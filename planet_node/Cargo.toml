@@ -1,6 +1,6 @@
 [package]
 edition = "2021"
-name = "planet_node"
+name = "planet-vector-tile_planet_node"
 version = "0.0.0"
 
 [lib]
@@ -10,7 +10,7 @@ crate-type = ["cdylib"]
 # Default enable napi4 feature, see https://nodejs.org/api/n-api.html#node-api-version-matrix
 napi = { version = "2.7.0", default-features = false, features = ["napi4"] }
 napi-derive = "2.7.0"
-planet_core = { path = "../core" }
+planet_core = { path = "../planet_core" }
 
 [build-dependencies]
 napi-build = "2.0.1"

@@ -141,20 +141,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e82dad04139b71a90c080c8463fe0dc7902db5192d939bd0950f074d014339e1"
 
 [[package]]
-name = "planet_core"
-version = "0.1.0"
-dependencies = [
- "fast_hilbert",
-]
-
-[[package]]
-name = "planet_node"
+name = "planet-vector-tile_planet_node"
 version = "0.0.0"
 dependencies = [
  "napi",
  "napi-build",
  "napi-derive",
  "planet_core",
+]
+
+[[package]]
+name = "planet_core"
+version = "0.1.0"
+dependencies = [
+ "fast_hilbert",
 ]
 
 [[package]]

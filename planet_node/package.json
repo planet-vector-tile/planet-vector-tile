@@ -1,17 +1,17 @@
 {
-  "name": "@planet-vector-tile/planet-node",
+  "name": "@planet-vector-tile/planet_node",
   "version": "0.0.0",
   "main": "index.js",
   "types": "index.d.ts",
   "napi": {
-    "name": "planet-node",
+    "name": "planet_node",
     "triples": {
       "additional": [
         "aarch64-apple-darwin"
       ]
     }
   },
-  "license": "Apache-2.0",
+  "license": "MIT",
   "devDependencies": {
     "@napi-rs/cli": "^2.11.4",
     "ava": "^4.3.0"

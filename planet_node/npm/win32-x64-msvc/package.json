@@ -1,5 +1,5 @@
 {
-  "name": "@planet-vector-tile/planet-node-win32-x64-msvc",
+  "name": "@planet-vector-tile/planet_node-win32-x64-msvc",
   "version": "0.0.0",
   "os": [
     "win32"
@@ -7,9 +7,9 @@
   "cpu": [
     "x64"
   ],
-  "main": "planet-node.win32-x64-msvc.node",
+  "main": "planet_node.win32-x64-msvc.node",
   "files": [
-    "planet-node.win32-x64-msvc.node"
+    "planet_node.win32-x64-msvc.node"
   ],
   "license": "MIT",
   "engines": {

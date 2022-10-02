@@ -25,24 +25,24 @@ switch (platform) {
   case 'android':
     switch (arch) {
       case 'arm64':
-        localFileExisted = existsSync(join(__dirname, 'planet-node.android-arm64.node'))
+        localFileExisted = existsSync(join(__dirname, 'planet_node.android-arm64.node'))
         try {
           if (localFileExisted) {
-            nativeBinding = require('./planet-node.android-arm64.node')
+            nativeBinding = require('./planet_node.android-arm64.node')
           } else {
-            nativeBinding = require('@planet-vector-tile/planet-node-android-arm64')
+            nativeBinding = require('@planet-vector-tile/planet_node-android-arm64')
           }
         } catch (e) {
           loadError = e
         }
         break
       case 'arm':
-        localFileExisted = existsSync(join(__dirname, 'planet-node.android-arm-eabi.node'))
+        localFileExisted = existsSync(join(__dirname, 'planet_node.android-arm-eabi.node'))
         try {
           if (localFileExisted) {
-            nativeBinding = require('./planet-node.android-arm-eabi.node')
+            nativeBinding = require('./planet_node.android-arm-eabi.node')
           } else {
-            nativeBinding = require('@planet-vector-tile/planet-node-android-arm-eabi')
+            nativeBinding = require('@planet-vector-tile/planet_node-android-arm-eabi')
           }
         } catch (e) {
           loadError = e
@@ -56,13 +56,13 @@ switch (platform) {
     switch (arch) {
       case 'x64':
         localFileExisted = existsSync(
-          join(__dirname, 'planet-node.win32-x64-msvc.node')
+          join(__dirname, 'planet_node.win32-x64-msvc.node')
         )
         try {
           if (localFileExisted) {
-            nativeBinding = require('./planet-node.win32-x64-msvc.node')
+            nativeBinding = require('./planet_node.win32-x64-msvc.node')
           } else {
-            nativeBinding = require('@planet-vector-tile/planet-node-win32-x64-msvc')
+            nativeBinding = require('@planet-vector-tile/planet_node-win32-x64-msvc')
           }
         } catch (e) {
           loadError = e
@@ -70,13 +70,13 @@ switch (platform) {
         break
       case 'ia32':
         localFileExisted = existsSync(
-          join(__dirname, 'planet-node.win32-ia32-msvc.node')
+          join(__dirname, 'planet_node.win32-ia32-msvc.node')
         )
         try {
           if (localFileExisted) {
-            nativeBinding = require('./planet-node.win32-ia32-msvc.node')
+            nativeBinding = require('./planet_node.win32-ia32-msvc.node')
           } else {
-            nativeBinding = require('@planet-vector-tile/planet-node-win32-ia32-msvc')
+            nativeBinding = require('@planet-vector-tile/planet_node-win32-ia32-msvc')
           }
         } catch (e) {
           loadError = e
@@ -84,13 +84,13 @@ switch (platform) {
         break
       case 'arm64':
         localFileExisted = existsSync(
-          join(__dirname, 'planet-node.win32-arm64-msvc.node')
+          join(__dirname, 'planet_node.win32-arm64-msvc.node')
         )
         try {
           if (localFileExisted) {
-            nativeBinding = require('./planet-node.win32-arm64-msvc.node')
+            nativeBinding = require('./planet_node.win32-arm64-msvc.node')
           } else {
-            nativeBinding = require('@planet-vector-tile/planet-node-win32-arm64-msvc')
+            nativeBinding = require('@planet-vector-tile/planet_node-win32-arm64-msvc')
           }
         } catch (e) {
           loadError = e
@@ -103,12 +103,12 @@ switch (platform) {
   case 'darwin':
     switch (arch) {
       case 'x64':
-        localFileExisted = existsSync(join(__dirname, 'planet-node.darwin-x64.node'))
+        localFileExisted = existsSync(join(__dirname, 'planet_node.darwin-x64.node'))
         try {
           if (localFileExisted) {
-            nativeBinding = require('./planet-node.darwin-x64.node')
+            nativeBinding = require('./planet_node.darwin-x64.node')
           } else {
-            nativeBinding = require('@planet-vector-tile/planet-node-darwin-x64')
+            nativeBinding = require('@planet-vector-tile/planet_node-darwin-x64')
           }
         } catch (e) {
           loadError = e
@@ -116,13 +116,13 @@ switch (platform) {
         break
       case 'arm64':
         localFileExisted = existsSync(
-          join(__dirname, 'planet-node.darwin-arm64.node')
+          join(__dirname, 'planet_node.darwin-arm64.node')
         )
         try {
           if (localFileExisted) {
-            nativeBinding = require('./planet-node.darwin-arm64.node')
+            nativeBinding = require('./planet_node.darwin-arm64.node')
           } else {
-            nativeBinding = require('@planet-vector-tile/planet-node-darwin-arm64')
+            nativeBinding = require('@planet-vector-tile/planet_node-darwin-arm64')
           }
         } catch (e) {
           loadError = e
@@ -136,12 +136,12 @@ switch (platform) {
     if (arch !== 'x64') {
       throw new Error(`Unsupported architecture on FreeBSD: ${arch}`)
     }
-    localFileExisted = existsSync(join(__dirname, 'planet-node.freebsd-x64.node'))
+    localFileExisted = existsSync(join(__dirname, 'planet_node.freebsd-x64.node'))
     try {
       if (localFileExisted) {
-        nativeBinding = require('./planet-node.freebsd-x64.node')
+        nativeBinding = require('./planet_node.freebsd-x64.node')
       } else {
-        nativeBinding = require('@planet-vector-tile/planet-node-freebsd-x64')
+        nativeBinding = require('@planet-vector-tile/planet_node-freebsd-x64')
       }
     } catch (e) {
       loadError = e
@@ -152,26 +152,26 @@ switch (platform) {
       case 'x64':
         if (isMusl()) {
           localFileExisted = existsSync(
-            join(__dirname, 'planet-node.linux-x64-musl.node')
+            join(__dirname, 'planet_node.linux-x64-musl.node')
           )
           try {
             if (localFileExisted) {
-              nativeBinding = require('./planet-node.linux-x64-musl.node')
+              nativeBinding = require('./planet_node.linux-x64-musl.node')
             } else {
-              nativeBinding = require('@planet-vector-tile/planet-node-linux-x64-musl')
+              nativeBinding = require('@planet-vector-tile/planet_node-linux-x64-musl')
             }
           } catch (e) {
             loadError = e
           }
         } else {
           localFileExisted = existsSync(
-            join(__dirname, 'planet-node.linux-x64-gnu.node')
+            join(__dirname, 'planet_node.linux-x64-gnu.node')
           )
           try {
             if (localFileExisted) {
-              nativeBinding = require('./planet-node.linux-x64-gnu.node')
+              nativeBinding = require('./planet_node.linux-x64-gnu.node')
             } else {
-              nativeBinding = require('@planet-vector-tile/planet-node-linux-x64-gnu')
+              nativeBinding = require('@planet-vector-tile/planet_node-linux-x64-gnu')
             }
           } catch (e) {
             loadError = e
@@ -181,26 +181,26 @@ switch (platform) {
       case 'arm64':
         if (isMusl()) {
           localFileExisted = existsSync(
-            join(__dirname, 'planet-node.linux-arm64-musl.node')
+            join(__dirname, 'planet_node.linux-arm64-musl.node')
           )
           try {
             if (localFileExisted) {
-              nativeBinding = require('./planet-node.linux-arm64-musl.node')
+              nativeBinding = require('./planet_node.linux-arm64-musl.node')
             } else {
-              nativeBinding = require('@planet-vector-tile/planet-node-linux-arm64-musl')
+              nativeBinding = require('@planet-vector-tile/planet_node-linux-arm64-musl')
             }
           } catch (e) {
             loadError = e
           }
         } else {
           localFileExisted = existsSync(
-            join(__dirname, 'planet-node.linux-arm64-gnu.node')
+            join(__dirname, 'planet_node.linux-arm64-gnu.node')
           )
           try {
             if (localFileExisted) {
-              nativeBinding = require('./planet-node.linux-arm64-gnu.node')
+              nativeBinding = require('./planet_node.linux-arm64-gnu.node')
             } else {
-              nativeBinding = require('@planet-vector-tile/planet-node-linux-arm64-gnu')
+              nativeBinding = require('@planet-vector-tile/planet_node-linux-arm64-gnu')
             }
           } catch (e) {
             loadError = e
@@ -209,13 +209,13 @@ switch (platform) {
         break
       case 'arm':
         localFileExisted = existsSync(
-          join(__dirname, 'planet-node.linux-arm-gnueabihf.node')
+          join(__dirname, 'planet_node.linux-arm-gnueabihf.node')
         )
         try {
           if (localFileExisted) {
-            nativeBinding = require('./planet-node.linux-arm-gnueabihf.node')
+            nativeBinding = require('./planet_node.linux-arm-gnueabihf.node')
           } else {
-            nativeBinding = require('@planet-vector-tile/planet-node-linux-arm-gnueabihf')
+            nativeBinding = require('@planet-vector-tile/planet_node-linux-arm-gnueabihf')
           }
         } catch (e) {
           loadError = e
@@ -236,6 +236,7 @@ if (!nativeBinding) {
   throw new Error(`Failed to load native binding`)
 }
 
-const { sum } = nativeBinding
+const { sum, infoTile } = nativeBinding
 
 module.exports.sum = sum
+module.exports.infoTile = infoTile

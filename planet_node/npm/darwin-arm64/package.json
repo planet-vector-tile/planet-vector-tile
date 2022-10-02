@@ -1,5 +1,5 @@
 {
-  "name": "@planet-vector-tile/planet-node-darwin-arm64",
+  "name": "@planet-vector-tile/planet_node-darwin-arm64",
   "version": "0.0.0",
   "os": [
     "darwin"
@@ -7,9 +7,9 @@
   "cpu": [
     "arm64"
   ],
-  "main": "planet-node.darwin-arm64.node",
+  "main": "planet_node.darwin-arm64.node",
   "files": [
-    "planet-node.darwin-arm64.node"
+    "planet_node.darwin-arm64.node"
   ],
   "license": "MIT",
   "engines": {

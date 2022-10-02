@@ -1,7 +1,7 @@
 name: CI
 env:
   DEBUG: napi:*
-  APP_NAME: planet-node
+  APP_NAME: planet_node
   MACOSX_DEPLOYMENT_TARGET: '10.13'
 'on':
   push:

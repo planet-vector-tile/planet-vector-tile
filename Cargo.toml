@@ -1,6 +1,6 @@
 [workspace]
 
 members = [
-    "core",
-    "node"
+    "planet_core",
+    "planet_node",
 ]
