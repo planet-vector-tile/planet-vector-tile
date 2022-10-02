@@ -1,10 +1,10 @@
-use fast_hilbert::{xy2h, h2xy};
+use fast_hilbert::{h2xy, xy2h};
 
 pub struct Tile {
     pub z: u8,
     pub x: u32,
     pub y: u32,
-    pub h: u64
+    pub h: u64,
 }
 
 impl Tile {
@@ -25,13 +25,11 @@ impl Tile {
     pub fn hilbert_at_zoom(z: u8) -> u64 {
         54 as u64
     }
-
-
 }
 
 pub struct HilbertTile {
     pub z: u8,
-    pub h: u64
+    pub h: u64,
 }
 
 impl HilbertTile {
@@ -54,7 +52,7 @@ impl From<ZXYTile> for HilbertTile {
 pub struct ZXYTile {
     pub z: u8,
     pub x: u32,
-    pub y: u32
+    pub y: u32,
 }
 
 impl ZXYTile {
@@ -69,4 +67,3 @@ impl From<HilbertTile> for ZXYTile {
         Self { z: tile.z, x, y }
     }
 }
-
