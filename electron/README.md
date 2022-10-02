@@ -1,3 +1,3 @@
-# planet-electron
+# electron
 
 Electron desktop app.
