@@ -1,6 +1,6 @@
 const { app, BrowserWindow } = require('electron')
 
-const createWindow = () => {
+function createWindow() {
   const win = new BrowserWindow({
     width: 1100,
     height: 800,
@@ -10,8 +10,17 @@ const createWindow = () => {
     }
   })
 
-  win.loadFile('./static/index.html')
+  if (app.isPackaged) {
+    win.loadFile("dist/index.html")
+  } else {
+    win.loadURL("http://localhost:1234")
+    win.webContents.openDevTools({ mode: "bottom" })
+  }
 }
+
+app.on("window-all-closed", () => {
+    if (process.platform !== "darwin") app.quit()
+  })
 
 app.whenReady().then(() => {
   createWindow()
