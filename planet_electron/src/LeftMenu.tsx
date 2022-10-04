@@ -1,4 +1,4 @@
-import { Accordion, AccordionDetails, AccordionSummary, Box, Slider, Typography } from '@mui/material'
+import { Accordion, AccordionDetails, AccordionSummary, Box, Checkbox, FormControlLabel, FormGroup, Slider, Typography } from '@mui/material'
 import ArrowForwardIosSharpIcon from '@mui/icons-material/ArrowForwardIosSharp'
 import React, { useState } from 'react'
 import mapfn from './map'
@@ -20,13 +20,14 @@ export default function LeftMenu() {
         </AccordionSummary>
         <AccordionDetails>
           <BackgroundOpacity />
+          <ShowDebugTileBoundaries />
         </AccordionDetails>
       </Accordion>
     </Box>
   )
 }
 
-const initialOpacity = (map.getLayer('sat').getPaintProperty('raster-opacity') as number) || 0.75
+const initialOpacity = (map.getLayer('sat')?.getPaintProperty('raster-opacity') as number) || 0.75
 
 function BackgroundOpacity() {
   const [opacity, setOpacity] = useState<number>(initialOpacity)
@@ -42,5 +43,21 @@ function BackgroundOpacity() {
       <Typography variant='subtitle2'>Satellite Opacity</Typography>
       <Slider aria-label='Satellite Opacity' value={opacity} step={0.01} min={0} max={1} onChange={handleSliderEvent} />
     </>
+  )
+}
+
+function ShowDebugTileBoundaries() {
+  const [debug, setDebug] = useState<boolean>(map.showTileBoundaries)
+
+  function handle(event: React.ChangeEvent<HTMLInputElement>) {
+    const d = event.target.checked
+    setDebug(d)
+    map.showTileBoundaries = d
+  }
+
+  return (
+    <FormGroup>
+      <FormControlLabel control={<Checkbox checked={debug} onChange={handle} />} label="Debug Tile Boundaries" />
+    </FormGroup>
   )
 }
