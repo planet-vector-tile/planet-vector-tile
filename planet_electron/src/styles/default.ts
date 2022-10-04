@@ -32,12 +32,7 @@ const style = {
         visibility: 'visible',
       },
       paint: {
-        'raster-opacity': {
-          stops: [
-            [1, 1],
-            [5, 1],
-          ],
-        },
+        'raster-opacity': 0.75,
       },
     },
   ],

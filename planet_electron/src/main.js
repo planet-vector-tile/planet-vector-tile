@@ -18,7 +18,7 @@ function createWindow() {
     win.loadFile('dist/index.html')
   } else {
     win.loadURL('http://localhost:1234')
-    win.webContents.openDevTools({ mode: 'bottom' })
+    // win.webContents.openDevTools({ mode: 'bottom' })
   }
 }
 
