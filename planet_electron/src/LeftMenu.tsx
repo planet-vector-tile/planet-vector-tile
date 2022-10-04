@@ -12,7 +12,7 @@ export default function LeftMenu() {
           id='panel1a-header'
         >
           <Typography variant='subtitle2' sx={{ ml: 1, fontWeight: 'bold' }}>
-            Planets
+            daylight-planet-with-admin.pvt
           </Typography>
         </AccordionSummary>
         <AccordionDetails>
@@ -21,34 +21,6 @@ export default function LeftMenu() {
             leo lobortis eget.
           </Typography>
         </AccordionDetails>
-      </Accordion>
-      <Accordion disableGutters>
-        <AccordionSummary
-          expandIcon={<ArrowForwardIosSharpIcon sx={{ fontSize: '0.9rem' }} />}
-          aria-controls='panel2a-content'
-          id='panel2a-header'
-        >
-          <Typography variant='subtitle2' sx={{ ml: 1, fontWeight: 'bold' }}>
-            Styles
-          </Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Typography>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse malesuada lacus ex, sit amet blandit
-            leo lobortis eget.
-          </Typography>
-        </AccordionDetails>
-      </Accordion>
-      <Accordion disableGutters>
-        <AccordionSummary
-          expandIcon={<ArrowForwardIosSharpIcon sx={{ fontSize: '0.9rem' }} />}
-          aria-controls='panel3a-content'
-          id='panel3a-header'
-        >
-          <Typography variant='subtitle2' sx={{ ml: 1, fontWeight: 'bold' }}>
-            Layers
-          </Typography>
-        </AccordionSummary>
       </Accordion>
     </Box>
   )

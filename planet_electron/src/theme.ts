@@ -53,6 +53,13 @@ const theme = createTheme({
         },
       },
     },
+    // MuiAccordionDetails: {
+    //   styleOverrides: {
+    //     root: {
+    //       borderTop: '1px solid rgba(0, 0, 0, .125)',
+    //     }
+    //   }
+    // }
   },
 })
 
