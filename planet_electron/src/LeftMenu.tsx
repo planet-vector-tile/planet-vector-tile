@@ -1,6 +1,7 @@
-import { Accordion, AccordionDetails, AccordionSummary, Box, Typography } from '@mui/material'
+import { Accordion, AccordionDetails, AccordionSummary, Box, Slider, Typography } from '@mui/material'
 import ArrowForwardIosSharpIcon from '@mui/icons-material/ArrowForwardIosSharp'
-import React from 'react'
+import React, { useState } from 'react'
+import map from './map'
 
 export default function LeftMenu() {
   return (
@@ -16,12 +17,22 @@ export default function LeftMenu() {
           </Typography>
         </AccordionSummary>
         <AccordionDetails>
-          <Typography>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse malesuada lacus ex, sit amet blandit
-            leo lobortis eget.
-          </Typography>
+            <BackgroundOpacity />
         </AccordionDetails>
       </Accordion>
     </Box>
   )
+}
+
+function BackgroundOpacity() {
+    const [opacity, setOpacity] = useState<number>(50)
+
+    function handleSliderEvent(event: Event, newValue: number | number[]) {
+        setOpacity(newValue as number)
+        // map.setPaintProperty('sat', 'raster-opacity')
+    }
+
+    return (
+        <Slider aria-label="Volume" value={opacity} onChange={handleSliderEvent} />
+    )
 }

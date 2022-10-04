@@ -1,0 +1,11 @@
+import defaultStyle from './styles/default'
+
+const config = {
+  style: defaultStyle,
+  center: [0, 0] as [number, number],
+  zoom: 0,
+}
+
+// TODO: override items from command line args
+
+export default config

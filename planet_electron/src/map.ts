@@ -1,4 +1,5 @@
 import { Map, NavigationControl } from '../../maplibre-gl-js/dist/maplibre-gl'
+import config from './config'
 
 import '../../maplibre-gl-js/dist/maplibre-gl.css'
 import './map.css'
@@ -12,9 +13,9 @@ export default function map(): Map {
 
     _map = new Map({
         container: 'map',
-        style: 'https://demotiles.maplibre.org/style.json',
-        center: [5, 34],
-        zoom: 2,
+        style: config.style,
+        center: config.center,
+        zoom: config.zoom,
     })
 
     _map.addControl(
