@@ -1,34 +1,24 @@
-import * as React from 'react';
-import Container from '@mui/material/Container';
-import Typography from '@mui/material/Typography';
-import Box from '@mui/material/Box';
-import Link from '@mui/material/Link';
-import ProTip from './ProTip';
-import { Button } from '@mui/material';
+import { Paper, Stack, styled } from '@mui/material'
+import * as React from 'react'
+import LeftMenu from './LeftMenu'
+import Location from './Location'
+import RightMenu from './RightMenu'
 
-function Copyright() {
-  return (
-    <Typography variant="body2" color="text.secondary" align="center">
-      {'Copyright © '}
-      <Link color="inherit" href="https://mui.com/">
-        Your Website
-      </Link>{' '}
-      {new Date().getFullYear()}.
-    </Typography>
-  );
-}
+
+const Item = styled(Paper)(({ theme }) => ({
+  backgroundColor: theme.palette.mode === 'dark' ? '#1A2027' : '#fff',
+  ...theme.typography.body2,
+  padding: theme.spacing(1),
+  textAlign: 'center',
+  color: theme.palette.text.secondary,
+}))
 
 export default function App() {
   return (
-    <Container maxWidth="sm">
-      <Box sx={{ my: 4 }}>
-        <Typography variant="h4" component="h1" gutterBottom>
-          Create React App example with TypeScript
-        </Typography>
-        <ProTip />
-        <Button variant="contained">A Button</Button>
-        <Copyright />
-      </Box>
-    </Container>
-  );
+    <Stack sx={{padding: 1}} direction='row' justifyContent='space-between' alignItems='flex-start' spacing={1}>
+      <LeftMenu />
+      <Location />
+      <RightMenu />
+    </Stack>
+  )
 }

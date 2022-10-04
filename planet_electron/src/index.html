@@ -4,8 +4,19 @@
     <meta charset="utf-8"/>
     <title>Planet Vector Tile</title>
   </head>
+  <style>
+    #map {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+    }
+
+  </style>
   <body>
-    <div id="root"></div>
-    <script type="module" src="renderer.tsx"></script>
+    <div id="map"></div>
+    <div id="ui"></div>
+    <script type="module" src="renderer.ts"></script>
   </body>
 </html>
