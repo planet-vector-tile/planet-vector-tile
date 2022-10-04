@@ -26,20 +26,33 @@ const theme = createTheme({
         },
       },
     },
+    MuiAccordion: {
+      styleOverrides: {
+        root: {
+          border: `1px solid rgba(0, 0, 0, .125)`,
+          '&:not(:last-child)': {
+            borderBottom: 0,
+          },
+          '&:before': {
+            display: 'none',
+          },
+        }
+      }
+    },
     MuiAccordionSummary: {
       styleOverrides: {
         root: {
           flexDirection: 'row-reverse',
-          minHeight: 32,
+          minHeight: 36,
           '& .MuiAccordionSummary-expandIconWrapper.Mui-expanded': {
             transform: 'rotate(90deg)',
           },
         },
         content: {
           margin: 0,
-        }
-      }
-    }
+        },
+      },
+    },
   },
 })
 

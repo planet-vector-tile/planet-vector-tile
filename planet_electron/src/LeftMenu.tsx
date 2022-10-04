@@ -4,10 +4,16 @@ import React from 'react'
 
 export default function LeftMenu() {
   return (
-    <Box sx={{ maxWidth: 300 }}>
+    <Box sx={{ maxWidth: 275 }}>
       <Accordion disableGutters>
-        <AccordionSummary expandIcon={<ArrowForwardIosSharpIcon sx={{ fontSize: '0.9rem', mr: 2 }}/>} aria-controls='panel1a-content' id='panel1a-header'>
-          <Typography variant="subtitle2" sx={{fontWeight: 'bold'}}>Planets</Typography>
+        <AccordionSummary
+          expandIcon={<ArrowForwardIosSharpIcon sx={{ fontSize: '0.9rem' }} />}
+          aria-controls='panel1a-content'
+          id='panel1a-header'
+        >
+          <Typography variant='subtitle2' sx={{ ml: 1, fontWeight: 'bold' }}>
+            Planets
+          </Typography>
         </AccordionSummary>
         <AccordionDetails>
           <Typography>
@@ -17,8 +23,14 @@ export default function LeftMenu() {
         </AccordionDetails>
       </Accordion>
       <Accordion disableGutters>
-        <AccordionSummary expandIcon={<ArrowForwardIosSharpIcon sx={{ fontSize: '0.9rem', mr: 2 }}/>} aria-controls='panel2a-content' id='panel2a-header'>
-          <Typography variant="subtitle2" sx={{fontWeight: 'bold'}}>Styles</Typography>
+        <AccordionSummary
+          expandIcon={<ArrowForwardIosSharpIcon sx={{ fontSize: '0.9rem' }} />}
+          aria-controls='panel2a-content'
+          id='panel2a-header'
+        >
+          <Typography variant='subtitle2' sx={{ ml: 1, fontWeight: 'bold' }}>
+            Styles
+          </Typography>
         </AccordionSummary>
         <AccordionDetails>
           <Typography>
@@ -28,8 +40,14 @@ export default function LeftMenu() {
         </AccordionDetails>
       </Accordion>
       <Accordion disableGutters>
-        <AccordionSummary expandIcon={<ArrowForwardIosSharpIcon sx={{ fontSize: '0.9rem', mr: 2}} />} aria-controls='panel3a-content' id='panel3a-header'>
-          <Typography variant="subtitle2"  sx={{fontWeight: 'bold'}}>Layers</Typography>
+        <AccordionSummary
+          expandIcon={<ArrowForwardIosSharpIcon sx={{ fontSize: '0.9rem' }} />}
+          aria-controls='panel3a-content'
+          id='panel3a-header'
+        >
+          <Typography variant='subtitle2' sx={{ ml: 1, fontWeight: 'bold' }}>
+            Layers
+          </Typography>
         </AccordionSummary>
       </Accordion>
     </Box>
