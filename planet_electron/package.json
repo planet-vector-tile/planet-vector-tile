@@ -12,6 +12,7 @@
     "dev:build-node": "cd ../planet_node && npm run build:debug",
     "dev:wait-for-parcel": "wait-on http://localhost:1234",
     "dev:electron": "electron .",
+    "dev:simple": "electron . --simple",
     "prod:make-deps": "run-p prod:parcel prod:build-node",
     "prod:parcel": "rimraf dist && parcel build ./src/index.html --public-url ./",
     "prod:build-node": "cd ../planet_node && npm run build",

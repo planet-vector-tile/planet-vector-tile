@@ -14,6 +14,12 @@ const style = {
       minzoom: 0,
       maxzoom: 23,
     },
+    planet: {
+      type: 'planet',
+      tiles: ['unimplemented'],
+      minzoom: 0,
+      maxzoom: 14,
+    }
   },
   layers: [
     {
@@ -35,6 +41,15 @@ const style = {
         'raster-opacity': 0.75,
       },
     },
+    {
+      id: 'tile-center',
+      type: 'circle',
+      source: 'planet',
+      paint: {
+        'circle-color': 'rgba(14, 236, 183, 1)',
+        'circle-radius': 10
+      }
+    }
   ],
 }
 

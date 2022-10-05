@@ -11,15 +11,14 @@ function createWindow() {
   })
 
   // https://www.electronjs.org/docs/latest/api/command-line#commandlinegetswitchvalueswitch
-  // const cl = app.commandLine
-  // win.webContents.send('argv', process.argv)
-
-  if (app.isPackaged) {
+  if (app.commandLine.hasSwitch('simple')) {
+    win.loadFile('src/simple.html')
+  } else if (app.isPackaged) {
     win.loadFile('dist/index.html')
   } else {
     win.loadURL('http://localhost:1234')
-    // win.webContents.openDevTools({ mode: 'bottom' })
   }
+  win.webContents.openDevTools({ mode: 'bottom' })
 }
 
 app.on('window-all-closed', () => {
