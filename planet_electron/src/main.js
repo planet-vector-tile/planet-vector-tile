@@ -18,7 +18,11 @@ function createWindow() {
   } else {
     win.loadURL('http://localhost:1234')
   }
-  win.webContents.openDevTools({ mode: 'bottom' })
+
+  if (app.commandLine.hasSwitch('dbg')) {
+    win.webContents.openDevTools({ mode: 'bottom' })
+    setTimeout(() => win.reload(), 500)
+  }
 }
 
 app.on('window-all-closed', () => {
