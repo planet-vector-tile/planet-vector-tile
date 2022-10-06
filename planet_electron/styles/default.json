@@ -43,6 +43,7 @@
       "id": "tile-center",
       "type": "circle",
       "source": "planet",
+      "source-layer": "pvt",
       "paint": {
         "circle-color": "rgba(14, 236, 183, 1)",
         "circle-radius": 10
