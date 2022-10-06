@@ -7,8 +7,9 @@ version = "0.0.0"
 crate-type = ["cdylib"]
 
 [dependencies]
+futures = "0.3.24"
 # Default enable napi4 feature, see https://nodejs.org/api/n-api.html#node-api-version-matrix
-napi = { version = "2.7.0", default-features = false, features = ["napi4"] }
+napi = { version = "2.7.0", default-features = false, features = ["async", "tokio_full"] }
 napi-derive = "2.7.0"
 planet_core = { path = "../planet_core" }
 

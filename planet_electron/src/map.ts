@@ -1,4 +1,4 @@
-import { Map, NavigationControl } from '../../maplibre-gl-js/dist/maplibre-gl'
+import { Map, NavigationControl, StyleSpecification } from '../../maplibre-gl-js/dist/maplibre-gl'
 import config from './config'
 
 import '../../maplibre-gl-js/dist/maplibre-gl.css'
@@ -13,7 +13,7 @@ export default function map(): Map {
 
     _map = new Map({
         container: 'map',
-        style: config.style,
+        style: config.style as StyleSpecification,
         center: config.center,
         zoom: config.zoom,
     })
