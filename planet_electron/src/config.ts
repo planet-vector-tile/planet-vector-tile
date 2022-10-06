@@ -1,4 +1,4 @@
-import defaultStyle from './styles/default'
+import defaultStyle from '../styles/default.json'
 
 const config = {
   style: defaultStyle,

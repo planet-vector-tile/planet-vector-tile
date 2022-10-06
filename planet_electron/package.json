@@ -2,6 +2,7 @@
   "name": "planet_electron",
   "author": "Nick Hallahan",
   "description": "The desktop Electron app to view Planet Vector Tiles.",
+  "license": "MIT",
   "version": "0.0.1",
   "main": "src/main.js",
   "scripts": {
@@ -13,15 +14,23 @@
     "dev:wait-for-parcel": "wait-on http://localhost:1234",
     "dev:electron": "electron .",
     "dev:simple": "electron . --simple",
+    "dev:watch": "npm-watch dev:simple",
     "prod:make-deps": "run-p prod:parcel prod:build-node",
     "prod:parcel": "rimraf dist && parcel build ./src/index.html --public-url ./",
     "prod:build-node": "cd ../planet_node && npm run build",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "license": "MIT",
+  "watch": {
+    "dev:simple": {
+      "patterns": ["src/*", "../maplibre-gl-js/dist"],
+      "extensions": "*",
+      "quiet": false
+    }
+  },
   "devDependencies": {
     "electron": "^21.0.1",
     "npm-run-all": "^4.1.5",
+    "npm-watch": "^0.11.0",
     "parcel": "^2.7.0",
     "process": "^0.11.10",
     "rimraf": "^3.0.2",
