@@ -7,3 +7,4 @@ edition = "2021"
 
 [dependencies]
 fast_hilbert = "1.0.0"
+flatbuffers = "2.1.2"

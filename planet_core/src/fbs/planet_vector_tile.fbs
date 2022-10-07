@@ -1,0 +1,38 @@
+// This flatbuffer defines the contents of a vector tile sent to MapboxGL / MaplibreGL.
+// This satisfies the renderer's internal representation of a vector tile, 
+// rather than the Mapbox Vector Tile protocol buffer format.
+// https://github.com/mapbox/vector-tile-js
+// 
+// We are using the interanl extent for a tile, which is always 8192.
+// https://github.com/maplibre/maplibre-gl-js/blob/028344137fe1676b50b8da2729f1dcb5c8b65eac/src/data/extent.ts
+// https://github.com/maplibre/maplibre-gl-js/blob/028344137fe1676b50b8da2729f1dcb5c8b65eac/src/data/load_geometry.ts
+
+namespace PlanetVectorTile;
+
+table Tile {
+    layers: [Layer];
+    strings: [string];
+}
+
+table Layer {
+    name: uint32;
+    features: [Feature];
+}
+
+table Feature {
+    id: uint64;
+    keys: [uint32];
+    values: [uint32];
+    geometry: [Geometry];
+}
+
+table Geometry {
+    points: [Point];
+}
+
+struct Point {
+    x: uint32;
+    y: uint32;
+}
+
+root_type Tile;
