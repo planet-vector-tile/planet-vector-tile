@@ -1,8 +1,9 @@
 import flatbuffers from 'flatbuffers'
 import { VectorTile, VectorTileLayer, VectorTileFeature } from '@mapbox/vector-tile'
-import { Feature, Geometry, GeoJsonProperties } from 'geojson'
 import { Tile } from './tile'
 import { Layer } from './layer'
+import { Feature } from './feature'
+import { ValueType } from './value-type'
 
 export class PlanetVectorTile implements VectorTile {
     _tile: Tile
@@ -55,25 +56,70 @@ export class PlanetVectorTileLayer implements VectorTileLayer {
         if (feat) {
             return feat
         }
-        const fbFeat = this._layer.features(featureIndex)
+        const fbFeat = this._layer.features(featureIndex)!
         feat = this._features[featureIndex] = new PlanetVectorTileFeature(this._tile, fbFeat)
+        return feat
     }
 
 }
 
 export class PlanetVectorTileFeature implements VectorTileFeature {
+    _tile: Tile
+    _feat: Feature
+    _properties: { [_: string]: string | number | boolean } | undefined
 
     extent: number
-    type: 1 | 2 | 3
-    id: number
 
     constructor(fbTile: Tile, fbFeat: Feature) {
         // https://github.com/maplibre/maplibre-gl-js/blob/028344137fe1676b50b8da2729f1dcb5c8b65eac/src/data/extent.ts
         this.extent = 8196
-        
+        this._tile = fbTile
+        this._feat = fbFeat
     }
 
-    properties: { [_: string]: string | number | boolean }
+    // We don't encode the type in the flatbuffer, because it can be derived.
+    // I don't think this is even being used in Maplibre.
+    get type(): 1 | 2 | 3 {
+        const firstGeom = this._feat.geometry(0)!
+        const len = firstGeom.pointsLength() 
+        if (len < 2) {
+            return 1
+        }
+        const pt0 = firstGeom.points(0)!
+        const x0 = pt0.x
+        const y0 = pt0.y
+        const ptEnd = firstGeom.points(len - 1)!
+        const xEnd = ptEnd.x
+        const yEnd = ptEnd.y
+        if (x0 === xEnd && y0 === yEnd) {
+            return 3
+        }
+        return 2
+    }
+
+    // This really should be optional, contrary to the TypeScript definition...
+    get id(): number {
+        // TODO deal with JS number overflow
+        return Number(this._feat.id()) || Number(this._feat.h())
+    }
+
+    get properties(): { [_: string]: string | number | boolean } {
+        if (this._properties) {
+            return this._properties
+        }
+        const props = this._properties = {}
+
+        for (let i = 0, len = this._feat.keysLength(); i < len; i++) {
+            const keyIdx = this._feat.keys(i)!
+            const valIdx = this._feat.values(i)!
+            const key = this._tile.strings(keyIdx)!
+            let val = getVal(this._tile, valIdx)
+            props[key] = val
+        }
+
+        return props
+    }
+
     loadGeometry(): import("@mapbox/point-geometry")[][] {
         throw new Error('Method not implemented.')
     }
@@ -84,4 +130,16 @@ export class PlanetVectorTileFeature implements VectorTileFeature {
         throw new Error('Method not implemented.')
     }
 
+}
+
+function getVal(tile: Tile, idx: number): string | number | boolean {
+    const val = tile.values(idx)!
+    const t = val.t()
+    if (t === ValueType.String) {
+        return tile.strings(val.v())
+    }
+    if (t === ValueType.Number) {
+        return val.v()
+    }
+    return !!val.v()
 }

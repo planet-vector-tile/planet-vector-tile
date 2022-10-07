@@ -18,6 +18,97 @@ pub mod planet_vector_tile {
   extern crate flatbuffers;
   use self::flatbuffers::{EndianScalar, Follow};
 
+#[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+pub const ENUM_MIN_VALUE_TYPE: u8 = 0;
+#[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+pub const ENUM_MAX_VALUE_TYPE: u8 = 2;
+#[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+#[allow(non_camel_case_types)]
+pub const ENUM_VALUES_VALUE_TYPE: [ValueType; 3] = [
+  ValueType::String,
+  ValueType::Number,
+  ValueType::Boolean,
+];
+
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
+#[repr(transparent)]
+pub struct ValueType(pub u8);
+#[allow(non_upper_case_globals)]
+impl ValueType {
+  pub const String: Self = Self(0);
+  pub const Number: Self = Self(1);
+  pub const Boolean: Self = Self(2);
+
+  pub const ENUM_MIN: u8 = 0;
+  pub const ENUM_MAX: u8 = 2;
+  pub const ENUM_VALUES: &'static [Self] = &[
+    Self::String,
+    Self::Number,
+    Self::Boolean,
+  ];
+  /// Returns the variant's name or "" if unknown.
+  pub fn variant_name(self) -> Option<&'static str> {
+    match self {
+      Self::String => Some("String"),
+      Self::Number => Some("Number"),
+      Self::Boolean => Some("Boolean"),
+      _ => None,
+    }
+  }
+}
+impl core::fmt::Debug for ValueType {
+  fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
+    if let Some(name) = self.variant_name() {
+      f.write_str(name)
+    } else {
+      f.write_fmt(format_args!("<UNKNOWN {:?}>", self.0))
+    }
+  }
+}
+impl<'a> flatbuffers::Follow<'a> for ValueType {
+  type Inner = Self;
+  #[inline]
+  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    let b = unsafe {
+      flatbuffers::read_scalar_at::<u8>(buf, loc)
+    };
+    Self(b)
+  }
+}
+
+impl flatbuffers::Push for ValueType {
+    type Output = ValueType;
+    #[inline]
+    fn push(&self, dst: &mut [u8], _rest: &[u8]) {
+        unsafe { flatbuffers::emplace_scalar::<u8>(dst, self.0); }
+    }
+}
+
+impl flatbuffers::EndianScalar for ValueType {
+  #[inline]
+  fn to_little_endian(self) -> Self {
+    let b = u8::to_le(self.0);
+    Self(b)
+  }
+  #[inline]
+  #[allow(clippy::wrong_self_convention)]
+  fn from_little_endian(self) -> Self {
+    let b = u8::from_le(self.0);
+    Self(b)
+  }
+}
+
+impl<'a> flatbuffers::Verifiable for ValueType {
+  #[inline]
+  fn run_verifier(
+    v: &mut flatbuffers::Verifier, pos: usize
+  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
+    use self::flatbuffers::Verifiable;
+    u8::run_verifier(v, pos)
+  }
+}
+
+impl flatbuffers::SimpleToVerifyInSlice for ValueType {}
 // struct Point, aligned to 4
 #[repr(transparent)]
 #[derive(Clone, Copy, PartialEq)]
@@ -144,6 +235,132 @@ impl<'a> Point {
 
 }
 
+// struct Value, aligned to 8
+#[repr(transparent)]
+#[derive(Clone, Copy, PartialEq)]
+pub struct Value(pub [u8; 16]);
+impl Default for Value { 
+  fn default() -> Self { 
+    Self([0; 16])
+  }
+}
+impl core::fmt::Debug for Value {
+  fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
+    f.debug_struct("Value")
+      .field("t", &self.t())
+      .field("v", &self.v())
+      .finish()
+  }
+}
+
+impl flatbuffers::SimpleToVerifyInSlice for Value {}
+impl flatbuffers::SafeSliceAccess for Value {}
+impl<'a> flatbuffers::Follow<'a> for Value {
+  type Inner = &'a Value;
+  #[inline]
+  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    <&'a Value>::follow(buf, loc)
+  }
+}
+impl<'a> flatbuffers::Follow<'a> for &'a Value {
+  type Inner = &'a Value;
+  #[inline]
+  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    flatbuffers::follow_cast_ref::<Value>(buf, loc)
+  }
+}
+impl<'b> flatbuffers::Push for Value {
+    type Output = Value;
+    #[inline]
+    fn push(&self, dst: &mut [u8], _rest: &[u8]) {
+        let src = unsafe {
+            ::core::slice::from_raw_parts(self as *const Value as *const u8, Self::size())
+        };
+        dst.copy_from_slice(src);
+    }
+}
+impl<'b> flatbuffers::Push for &'b Value {
+    type Output = Value;
+
+    #[inline]
+    fn push(&self, dst: &mut [u8], _rest: &[u8]) {
+        let src = unsafe {
+            ::core::slice::from_raw_parts(*self as *const Value as *const u8, Self::size())
+        };
+        dst.copy_from_slice(src);
+    }
+}
+
+impl<'a> flatbuffers::Verifiable for Value {
+  #[inline]
+  fn run_verifier(
+    v: &mut flatbuffers::Verifier, pos: usize
+  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
+    use self::flatbuffers::Verifiable;
+    v.in_buffer::<Self>(pos)
+  }
+}
+
+impl<'a> Value {
+  #[allow(clippy::too_many_arguments)]
+  pub fn new(
+    t: ValueType,
+    v: f64,
+  ) -> Self {
+    let mut s = Self([0; 16]);
+    s.set_t(t);
+    s.set_v(v);
+    s
+  }
+
+  pub fn t(&self) -> ValueType {
+    let mut mem = core::mem::MaybeUninit::<ValueType>::uninit();
+    unsafe {
+      core::ptr::copy_nonoverlapping(
+        self.0[0..].as_ptr(),
+        mem.as_mut_ptr() as *mut u8,
+        core::mem::size_of::<ValueType>(),
+      );
+      mem.assume_init()
+    }.from_little_endian()
+  }
+
+  pub fn set_t(&mut self, x: ValueType) {
+    let x_le = x.to_little_endian();
+    unsafe {
+      core::ptr::copy_nonoverlapping(
+        &x_le as *const ValueType as *const u8,
+        self.0[0..].as_mut_ptr(),
+        core::mem::size_of::<ValueType>(),
+      );
+    }
+  }
+
+  pub fn v(&self) -> f64 {
+    let mut mem = core::mem::MaybeUninit::<f64>::uninit();
+    unsafe {
+      core::ptr::copy_nonoverlapping(
+        self.0[8..].as_ptr(),
+        mem.as_mut_ptr() as *mut u8,
+        core::mem::size_of::<f64>(),
+      );
+      mem.assume_init()
+    }.from_little_endian()
+  }
+
+  pub fn set_v(&mut self, x: f64) {
+    let x_le = x.to_little_endian();
+    unsafe {
+      core::ptr::copy_nonoverlapping(
+        &x_le as *const f64 as *const u8,
+        self.0[8..].as_mut_ptr(),
+        core::mem::size_of::<f64>(),
+      );
+    }
+  }
+
+}
+
 pub enum TileOffset {}
 #[derive(Copy, Clone, PartialEq)]
 
@@ -162,6 +379,7 @@ impl<'a> flatbuffers::Follow<'a> for Tile<'a> {
 impl<'a> Tile<'a> {
   pub const VT_LAYERS: flatbuffers::VOffsetT = 4;
   pub const VT_STRINGS: flatbuffers::VOffsetT = 6;
+  pub const VT_VALUES: flatbuffers::VOffsetT = 8;
 
   #[inline]
   pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
@@ -173,6 +391,7 @@ impl<'a> Tile<'a> {
     args: &'args TileArgs<'args>
   ) -> flatbuffers::WIPOffset<Tile<'bldr>> {
     let mut builder = TileBuilder::new(_fbb);
+    if let Some(x) = args.values { builder.add_values(x); }
     if let Some(x) = args.strings { builder.add_strings(x); }
     if let Some(x) = args.layers { builder.add_layers(x); }
     builder.finish()
@@ -187,6 +406,10 @@ impl<'a> Tile<'a> {
   pub fn strings(&self) -> Option<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<&'a str>>> {
     self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<&'a str>>>>(Tile::VT_STRINGS, None)
   }
+  #[inline]
+  pub fn values(&self) -> Option<&'a [Value]> {
+    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, Value>>>(Tile::VT_VALUES, None).map(|v| v.safe_slice())
+  }
 }
 
 impl flatbuffers::Verifiable for Tile<'_> {
@@ -198,6 +421,7 @@ impl flatbuffers::Verifiable for Tile<'_> {
     v.visit_table(pos)?
      .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, flatbuffers::ForwardsUOffset<Layer>>>>("layers", Self::VT_LAYERS, false)?
      .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, flatbuffers::ForwardsUOffset<&'_ str>>>>("strings", Self::VT_STRINGS, false)?
+     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, Value>>>("values", Self::VT_VALUES, false)?
      .finish();
     Ok(())
   }
@@ -205,6 +429,7 @@ impl flatbuffers::Verifiable for Tile<'_> {
 pub struct TileArgs<'a> {
     pub layers: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Layer<'a>>>>>,
     pub strings: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<&'a str>>>>,
+    pub values: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, Value>>>,
 }
 impl<'a> Default for TileArgs<'a> {
   #[inline]
@@ -212,6 +437,7 @@ impl<'a> Default for TileArgs<'a> {
     TileArgs {
       layers: None,
       strings: None,
+      values: None,
     }
   }
 }
@@ -228,6 +454,10 @@ impl<'a: 'b, 'b> TileBuilder<'a, 'b> {
   #[inline]
   pub fn add_strings(&mut self, strings: flatbuffers::WIPOffset<flatbuffers::Vector<'b , flatbuffers::ForwardsUOffset<&'b  str>>>) {
     self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Tile::VT_STRINGS, strings);
+  }
+  #[inline]
+  pub fn add_values(&mut self, values: flatbuffers::WIPOffset<flatbuffers::Vector<'b , Value>>) {
+    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Tile::VT_VALUES, values);
   }
   #[inline]
   pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> TileBuilder<'a, 'b> {
@@ -249,6 +479,7 @@ impl core::fmt::Debug for Tile<'_> {
     let mut ds = f.debug_struct("Tile");
       ds.field("layers", &self.layers());
       ds.field("strings", &self.strings());
+      ds.field("values", &self.values());
       ds.finish()
   }
 }
@@ -377,9 +608,10 @@ impl<'a> flatbuffers::Follow<'a> for Feature<'a> {
 
 impl<'a> Feature<'a> {
   pub const VT_ID: flatbuffers::VOffsetT = 4;
-  pub const VT_KEYS: flatbuffers::VOffsetT = 6;
-  pub const VT_VALUES: flatbuffers::VOffsetT = 8;
-  pub const VT_GEOMETRY: flatbuffers::VOffsetT = 10;
+  pub const VT_H: flatbuffers::VOffsetT = 6;
+  pub const VT_KEYS: flatbuffers::VOffsetT = 8;
+  pub const VT_VALUES: flatbuffers::VOffsetT = 10;
+  pub const VT_GEOMETRY: flatbuffers::VOffsetT = 12;
 
   #[inline]
   pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
@@ -391,6 +623,7 @@ impl<'a> Feature<'a> {
     args: &'args FeatureArgs<'args>
   ) -> flatbuffers::WIPOffset<Feature<'bldr>> {
     let mut builder = FeatureBuilder::new(_fbb);
+    builder.add_h(args.h);
     builder.add_id(args.id);
     if let Some(x) = args.geometry { builder.add_geometry(x); }
     if let Some(x) = args.values { builder.add_values(x); }
@@ -402,6 +635,10 @@ impl<'a> Feature<'a> {
   #[inline]
   pub fn id(&self) -> u64 {
     self._tab.get::<u64>(Feature::VT_ID, Some(0)).unwrap()
+  }
+  #[inline]
+  pub fn h(&self) -> u64 {
+    self._tab.get::<u64>(Feature::VT_H, Some(0)).unwrap()
   }
   #[inline]
   pub fn keys(&self) -> Option<flatbuffers::Vector<'a, u32>> {
@@ -425,6 +662,7 @@ impl flatbuffers::Verifiable for Feature<'_> {
     use self::flatbuffers::Verifiable;
     v.visit_table(pos)?
      .visit_field::<u64>("id", Self::VT_ID, false)?
+     .visit_field::<u64>("h", Self::VT_H, false)?
      .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, u32>>>("keys", Self::VT_KEYS, false)?
      .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, u32>>>("values", Self::VT_VALUES, false)?
      .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, flatbuffers::ForwardsUOffset<Geometry>>>>("geometry", Self::VT_GEOMETRY, false)?
@@ -434,6 +672,7 @@ impl flatbuffers::Verifiable for Feature<'_> {
 }
 pub struct FeatureArgs<'a> {
     pub id: u64,
+    pub h: u64,
     pub keys: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, u32>>>,
     pub values: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, u32>>>,
     pub geometry: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Geometry<'a>>>>>,
@@ -443,6 +682,7 @@ impl<'a> Default for FeatureArgs<'a> {
   fn default() -> Self {
     FeatureArgs {
       id: 0,
+      h: 0,
       keys: None,
       values: None,
       geometry: None,
@@ -458,6 +698,10 @@ impl<'a: 'b, 'b> FeatureBuilder<'a, 'b> {
   #[inline]
   pub fn add_id(&mut self, id: u64) {
     self.fbb_.push_slot::<u64>(Feature::VT_ID, id, 0);
+  }
+  #[inline]
+  pub fn add_h(&mut self, h: u64) {
+    self.fbb_.push_slot::<u64>(Feature::VT_H, h, 0);
   }
   #[inline]
   pub fn add_keys(&mut self, keys: flatbuffers::WIPOffset<flatbuffers::Vector<'b , u32>>) {
@@ -490,6 +734,7 @@ impl core::fmt::Debug for Feature<'_> {
   fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
     let mut ds = f.debug_struct("Feature");
       ds.field("id", &self.id());
+      ds.field("h", &self.h());
       ds.field("keys", &self.keys());
       ds.field("values", &self.values());
       ds.field("geometry", &self.geometry());

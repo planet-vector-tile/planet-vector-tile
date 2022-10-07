@@ -28,56 +28,65 @@ id():bigint {
   return offset ? this.bb!.readUint64(this.bb_pos + offset) : BigInt('0');
 }
 
-keys(index: number):number|null {
+h():bigint {
   const offset = this.bb!.__offset(this.bb_pos, 6);
+  return offset ? this.bb!.readUint64(this.bb_pos + offset) : BigInt('0');
+}
+
+keys(index: number):number|null {
+  const offset = this.bb!.__offset(this.bb_pos, 8);
   return offset ? this.bb!.readUint32(this.bb!.__vector(this.bb_pos + offset) + index * 4) : 0;
 }
 
 keysLength():number {
-  const offset = this.bb!.__offset(this.bb_pos, 6);
+  const offset = this.bb!.__offset(this.bb_pos, 8);
   return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
 }
 
 keysArray():Uint32Array|null {
-  const offset = this.bb!.__offset(this.bb_pos, 6);
+  const offset = this.bb!.__offset(this.bb_pos, 8);
   return offset ? new Uint32Array(this.bb!.bytes().buffer, this.bb!.bytes().byteOffset + this.bb!.__vector(this.bb_pos + offset), this.bb!.__vector_len(this.bb_pos + offset)) : null;
 }
 
 values(index: number):number|null {
-  const offset = this.bb!.__offset(this.bb_pos, 8);
+  const offset = this.bb!.__offset(this.bb_pos, 10);
   return offset ? this.bb!.readUint32(this.bb!.__vector(this.bb_pos + offset) + index * 4) : 0;
 }
 
 valuesLength():number {
-  const offset = this.bb!.__offset(this.bb_pos, 8);
+  const offset = this.bb!.__offset(this.bb_pos, 10);
   return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
 }
 
 valuesArray():Uint32Array|null {
-  const offset = this.bb!.__offset(this.bb_pos, 8);
+  const offset = this.bb!.__offset(this.bb_pos, 10);
   return offset ? new Uint32Array(this.bb!.bytes().buffer, this.bb!.bytes().byteOffset + this.bb!.__vector(this.bb_pos + offset), this.bb!.__vector_len(this.bb_pos + offset)) : null;
 }
 
 geometry(index: number, obj?:Geometry):Geometry|null {
-  const offset = this.bb!.__offset(this.bb_pos, 10);
+  const offset = this.bb!.__offset(this.bb_pos, 12);
   return offset ? (obj || new Geometry()).__init(this.bb!.__indirect(this.bb!.__vector(this.bb_pos + offset) + index * 4), this.bb!) : null;
 }
 
 geometryLength():number {
-  const offset = this.bb!.__offset(this.bb_pos, 10);
+  const offset = this.bb!.__offset(this.bb_pos, 12);
   return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
 }
 
 static startFeature(builder:flatbuffers.Builder) {
-  builder.startObject(4);
+  builder.startObject(5);
 }
 
 static addId(builder:flatbuffers.Builder, id:bigint) {
   builder.addFieldInt64(0, id, BigInt('0'));
 }
 
+static addH(builder:flatbuffers.Builder, h:bigint) {
+  builder.addFieldInt64(1, h, BigInt('0'));
+}
+
 static addKeys(builder:flatbuffers.Builder, keysOffset:flatbuffers.Offset) {
-  builder.addFieldOffset(1, keysOffset, 0);
+  builder.addFieldOffset(2, keysOffset, 0);
 }
 
 static createKeysVector(builder:flatbuffers.Builder, data:number[]|Uint32Array):flatbuffers.Offset;
@@ -98,7 +107,7 @@ static startKeysVector(builder:flatbuffers.Builder, numElems:number) {
 }
 
 static addValues(builder:flatbuffers.Builder, valuesOffset:flatbuffers.Offset) {
-  builder.addFieldOffset(2, valuesOffset, 0);
+  builder.addFieldOffset(3, valuesOffset, 0);
 }
 
 static createValuesVector(builder:flatbuffers.Builder, data:number[]|Uint32Array):flatbuffers.Offset;
@@ -119,7 +128,7 @@ static startValuesVector(builder:flatbuffers.Builder, numElems:number) {
 }
 
 static addGeometry(builder:flatbuffers.Builder, geometryOffset:flatbuffers.Offset) {
-  builder.addFieldOffset(3, geometryOffset, 0);
+  builder.addFieldOffset(4, geometryOffset, 0);
 }
 
 static createGeometryVector(builder:flatbuffers.Builder, data:flatbuffers.Offset[]):flatbuffers.Offset {
@@ -139,9 +148,10 @@ static endFeature(builder:flatbuffers.Builder):flatbuffers.Offset {
   return offset;
 }
 
-static createFeature(builder:flatbuffers.Builder, id:bigint, keysOffset:flatbuffers.Offset, valuesOffset:flatbuffers.Offset, geometryOffset:flatbuffers.Offset):flatbuffers.Offset {
+static createFeature(builder:flatbuffers.Builder, id:bigint, h:bigint, keysOffset:flatbuffers.Offset, valuesOffset:flatbuffers.Offset, geometryOffset:flatbuffers.Offset):flatbuffers.Offset {
   Feature.startFeature(builder);
   Feature.addId(builder, id);
+  Feature.addH(builder, h);
   Feature.addKeys(builder, keysOffset);
   Feature.addValues(builder, valuesOffset);
   Feature.addGeometry(builder, geometryOffset);

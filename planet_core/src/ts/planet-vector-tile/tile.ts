@@ -3,6 +3,7 @@
 import * as flatbuffers from 'flatbuffers';
 
 import { Layer } from '../planet-vector-tile/layer';
+import { Value } from '../planet-vector-tile/value';
 
 
 export class Tile {
@@ -45,8 +46,18 @@ stringsLength():number {
   return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
 }
 
+values(index: number, obj?:Value):Value|null {
+  const offset = this.bb!.__offset(this.bb_pos, 8);
+  return offset ? (obj || new Value()).__init(this.bb!.__vector(this.bb_pos + offset) + index * 16, this.bb!) : null;
+}
+
+valuesLength():number {
+  const offset = this.bb!.__offset(this.bb_pos, 8);
+  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
+}
+
 static startTile(builder:flatbuffers.Builder) {
-  builder.startObject(2);
+  builder.startObject(3);
 }
 
 static addLayers(builder:flatbuffers.Builder, layersOffset:flatbuffers.Offset) {
@@ -81,6 +92,14 @@ static startStringsVector(builder:flatbuffers.Builder, numElems:number) {
   builder.startVector(4, numElems, 4);
 }
 
+static addValues(builder:flatbuffers.Builder, valuesOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(2, valuesOffset, 0);
+}
+
+static startValuesVector(builder:flatbuffers.Builder, numElems:number) {
+  builder.startVector(16, numElems, 8);
+}
+
 static endTile(builder:flatbuffers.Builder):flatbuffers.Offset {
   const offset = builder.endObject();
   return offset;
@@ -94,10 +113,11 @@ static finishSizePrefixedTileBuffer(builder:flatbuffers.Builder, offset:flatbuff
   builder.finish(offset, undefined, true);
 }
 
-static createTile(builder:flatbuffers.Builder, layersOffset:flatbuffers.Offset, stringsOffset:flatbuffers.Offset):flatbuffers.Offset {
+static createTile(builder:flatbuffers.Builder, layersOffset:flatbuffers.Offset, stringsOffset:flatbuffers.Offset, valuesOffset:flatbuffers.Offset):flatbuffers.Offset {
   Tile.startTile(builder);
   Tile.addLayers(builder, layersOffset);
   Tile.addStrings(builder, stringsOffset);
+  Tile.addValues(builder, valuesOffset);
   return Tile.endTile(builder);
 }
 }

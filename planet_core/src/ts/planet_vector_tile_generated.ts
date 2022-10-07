@@ -5,3 +5,5 @@ export { Geometry } from './planet-vector-tile/geometry';
 export { Layer } from './planet-vector-tile/layer';
 export { Point } from './planet-vector-tile/point';
 export { Tile } from './planet-vector-tile/tile';
+export { Value } from './planet-vector-tile/value';
+export { ValueType } from './planet-vector-tile/value-type';
