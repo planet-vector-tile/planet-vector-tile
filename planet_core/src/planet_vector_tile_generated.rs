@@ -9,32 +9,23 @@ use core::cmp::Ordering;
 extern crate flatbuffers;
 use self::flatbuffers::{EndianScalar, Follow};
 
-#[allow(unused_imports, dead_code)]
-pub mod planet_vector_tile {
-
-  use core::mem;
-  use core::cmp::Ordering;
-
-  extern crate flatbuffers;
-  use self::flatbuffers::{EndianScalar, Follow};
-
 #[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
-pub const ENUM_MIN_VALUE_TYPE: u8 = 0;
+pub const ENUM_MIN_PVTVALUE_TYPE: u8 = 0;
 #[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
-pub const ENUM_MAX_VALUE_TYPE: u8 = 2;
+pub const ENUM_MAX_PVTVALUE_TYPE: u8 = 2;
 #[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 #[allow(non_camel_case_types)]
-pub const ENUM_VALUES_VALUE_TYPE: [ValueType; 3] = [
-  ValueType::String,
-  ValueType::Number,
-  ValueType::Boolean,
+pub const ENUM_VALUES_PVTVALUE_TYPE: [PVTValueType; 3] = [
+  PVTValueType::String,
+  PVTValueType::Number,
+  PVTValueType::Boolean,
 ];
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
 #[repr(transparent)]
-pub struct ValueType(pub u8);
+pub struct PVTValueType(pub u8);
 #[allow(non_upper_case_globals)]
-impl ValueType {
+impl PVTValueType {
   pub const String: Self = Self(0);
   pub const Number: Self = Self(1);
   pub const Boolean: Self = Self(2);
@@ -56,7 +47,7 @@ impl ValueType {
     }
   }
 }
-impl core::fmt::Debug for ValueType {
+impl core::fmt::Debug for PVTValueType {
   fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
     if let Some(name) = self.variant_name() {
       f.write_str(name)
@@ -65,7 +56,7 @@ impl core::fmt::Debug for ValueType {
     }
   }
 }
-impl<'a> flatbuffers::Follow<'a> for ValueType {
+impl<'a> flatbuffers::Follow<'a> for PVTValueType {
   type Inner = Self;
   #[inline]
   fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
@@ -76,15 +67,15 @@ impl<'a> flatbuffers::Follow<'a> for ValueType {
   }
 }
 
-impl flatbuffers::Push for ValueType {
-    type Output = ValueType;
+impl flatbuffers::Push for PVTValueType {
+    type Output = PVTValueType;
     #[inline]
     fn push(&self, dst: &mut [u8], _rest: &[u8]) {
         unsafe { flatbuffers::emplace_scalar::<u8>(dst, self.0); }
     }
 }
 
-impl flatbuffers::EndianScalar for ValueType {
+impl flatbuffers::EndianScalar for PVTValueType {
   #[inline]
   fn to_little_endian(self) -> Self {
     let b = u8::to_le(self.0);
@@ -98,7 +89,7 @@ impl flatbuffers::EndianScalar for ValueType {
   }
 }
 
-impl<'a> flatbuffers::Verifiable for ValueType {
+impl<'a> flatbuffers::Verifiable for PVTValueType {
   #[inline]
   fn run_verifier(
     v: &mut flatbuffers::Verifier, pos: usize
@@ -108,64 +99,64 @@ impl<'a> flatbuffers::Verifiable for ValueType {
   }
 }
 
-impl flatbuffers::SimpleToVerifyInSlice for ValueType {}
-// struct Point, aligned to 4
+impl flatbuffers::SimpleToVerifyInSlice for PVTValueType {}
+// struct PVTPoint, aligned to 4
 #[repr(transparent)]
 #[derive(Clone, Copy, PartialEq)]
-pub struct Point(pub [u8; 8]);
-impl Default for Point { 
+pub struct PVTPoint(pub [u8; 8]);
+impl Default for PVTPoint { 
   fn default() -> Self { 
     Self([0; 8])
   }
 }
-impl core::fmt::Debug for Point {
+impl core::fmt::Debug for PVTPoint {
   fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
-    f.debug_struct("Point")
+    f.debug_struct("PVTPoint")
       .field("x", &self.x())
       .field("y", &self.y())
       .finish()
   }
 }
 
-impl flatbuffers::SimpleToVerifyInSlice for Point {}
-impl flatbuffers::SafeSliceAccess for Point {}
-impl<'a> flatbuffers::Follow<'a> for Point {
-  type Inner = &'a Point;
+impl flatbuffers::SimpleToVerifyInSlice for PVTPoint {}
+impl flatbuffers::SafeSliceAccess for PVTPoint {}
+impl<'a> flatbuffers::Follow<'a> for PVTPoint {
+  type Inner = &'a PVTPoint;
   #[inline]
   fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    <&'a Point>::follow(buf, loc)
+    <&'a PVTPoint>::follow(buf, loc)
   }
 }
-impl<'a> flatbuffers::Follow<'a> for &'a Point {
-  type Inner = &'a Point;
+impl<'a> flatbuffers::Follow<'a> for &'a PVTPoint {
+  type Inner = &'a PVTPoint;
   #[inline]
   fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    flatbuffers::follow_cast_ref::<Point>(buf, loc)
+    flatbuffers::follow_cast_ref::<PVTPoint>(buf, loc)
   }
 }
-impl<'b> flatbuffers::Push for Point {
-    type Output = Point;
+impl<'b> flatbuffers::Push for PVTPoint {
+    type Output = PVTPoint;
     #[inline]
     fn push(&self, dst: &mut [u8], _rest: &[u8]) {
         let src = unsafe {
-            ::core::slice::from_raw_parts(self as *const Point as *const u8, Self::size())
+            ::core::slice::from_raw_parts(self as *const PVTPoint as *const u8, Self::size())
         };
         dst.copy_from_slice(src);
     }
 }
-impl<'b> flatbuffers::Push for &'b Point {
-    type Output = Point;
+impl<'b> flatbuffers::Push for &'b PVTPoint {
+    type Output = PVTPoint;
 
     #[inline]
     fn push(&self, dst: &mut [u8], _rest: &[u8]) {
         let src = unsafe {
-            ::core::slice::from_raw_parts(*self as *const Point as *const u8, Self::size())
+            ::core::slice::from_raw_parts(*self as *const PVTPoint as *const u8, Self::size())
         };
         dst.copy_from_slice(src);
     }
 }
 
-impl<'a> flatbuffers::Verifiable for Point {
+impl<'a> flatbuffers::Verifiable for PVTPoint {
   #[inline]
   fn run_verifier(
     v: &mut flatbuffers::Verifier, pos: usize
@@ -175,7 +166,7 @@ impl<'a> flatbuffers::Verifiable for Point {
   }
 }
 
-impl<'a> Point {
+impl<'a> PVTPoint {
   #[allow(clippy::too_many_arguments)]
   pub fn new(
     x: u32,
@@ -235,63 +226,63 @@ impl<'a> Point {
 
 }
 
-// struct Value, aligned to 8
+// struct PVTValue, aligned to 8
 #[repr(transparent)]
 #[derive(Clone, Copy, PartialEq)]
-pub struct Value(pub [u8; 16]);
-impl Default for Value { 
+pub struct PVTValue(pub [u8; 16]);
+impl Default for PVTValue { 
   fn default() -> Self { 
     Self([0; 16])
   }
 }
-impl core::fmt::Debug for Value {
+impl core::fmt::Debug for PVTValue {
   fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
-    f.debug_struct("Value")
+    f.debug_struct("PVTValue")
       .field("t", &self.t())
       .field("v", &self.v())
       .finish()
   }
 }
 
-impl flatbuffers::SimpleToVerifyInSlice for Value {}
-impl flatbuffers::SafeSliceAccess for Value {}
-impl<'a> flatbuffers::Follow<'a> for Value {
-  type Inner = &'a Value;
+impl flatbuffers::SimpleToVerifyInSlice for PVTValue {}
+impl flatbuffers::SafeSliceAccess for PVTValue {}
+impl<'a> flatbuffers::Follow<'a> for PVTValue {
+  type Inner = &'a PVTValue;
   #[inline]
   fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    <&'a Value>::follow(buf, loc)
+    <&'a PVTValue>::follow(buf, loc)
   }
 }
-impl<'a> flatbuffers::Follow<'a> for &'a Value {
-  type Inner = &'a Value;
+impl<'a> flatbuffers::Follow<'a> for &'a PVTValue {
+  type Inner = &'a PVTValue;
   #[inline]
   fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    flatbuffers::follow_cast_ref::<Value>(buf, loc)
+    flatbuffers::follow_cast_ref::<PVTValue>(buf, loc)
   }
 }
-impl<'b> flatbuffers::Push for Value {
-    type Output = Value;
+impl<'b> flatbuffers::Push for PVTValue {
+    type Output = PVTValue;
     #[inline]
     fn push(&self, dst: &mut [u8], _rest: &[u8]) {
         let src = unsafe {
-            ::core::slice::from_raw_parts(self as *const Value as *const u8, Self::size())
+            ::core::slice::from_raw_parts(self as *const PVTValue as *const u8, Self::size())
         };
         dst.copy_from_slice(src);
     }
 }
-impl<'b> flatbuffers::Push for &'b Value {
-    type Output = Value;
+impl<'b> flatbuffers::Push for &'b PVTValue {
+    type Output = PVTValue;
 
     #[inline]
     fn push(&self, dst: &mut [u8], _rest: &[u8]) {
         let src = unsafe {
-            ::core::slice::from_raw_parts(*self as *const Value as *const u8, Self::size())
+            ::core::slice::from_raw_parts(*self as *const PVTValue as *const u8, Self::size())
         };
         dst.copy_from_slice(src);
     }
 }
 
-impl<'a> flatbuffers::Verifiable for Value {
+impl<'a> flatbuffers::Verifiable for PVTValue {
   #[inline]
   fn run_verifier(
     v: &mut flatbuffers::Verifier, pos: usize
@@ -301,10 +292,10 @@ impl<'a> flatbuffers::Verifiable for Value {
   }
 }
 
-impl<'a> Value {
+impl<'a> PVTValue {
   #[allow(clippy::too_many_arguments)]
   pub fn new(
-    t: ValueType,
+    t: PVTValueType,
     v: f64,
   ) -> Self {
     let mut s = Self([0; 16]);
@@ -313,25 +304,25 @@ impl<'a> Value {
     s
   }
 
-  pub fn t(&self) -> ValueType {
-    let mut mem = core::mem::MaybeUninit::<ValueType>::uninit();
+  pub fn t(&self) -> PVTValueType {
+    let mut mem = core::mem::MaybeUninit::<PVTValueType>::uninit();
     unsafe {
       core::ptr::copy_nonoverlapping(
         self.0[0..].as_ptr(),
         mem.as_mut_ptr() as *mut u8,
-        core::mem::size_of::<ValueType>(),
+        core::mem::size_of::<PVTValueType>(),
       );
       mem.assume_init()
     }.from_little_endian()
   }
 
-  pub fn set_t(&mut self, x: ValueType) {
+  pub fn set_t(&mut self, x: PVTValueType) {
     let x_le = x.to_little_endian();
     unsafe {
       core::ptr::copy_nonoverlapping(
-        &x_le as *const ValueType as *const u8,
+        &x_le as *const PVTValueType as *const u8,
         self.0[0..].as_mut_ptr(),
-        core::mem::size_of::<ValueType>(),
+        core::mem::size_of::<PVTValueType>(),
       );
     }
   }
@@ -361,36 +352,36 @@ impl<'a> Value {
 
 }
 
-pub enum TileOffset {}
+pub enum PVTTileOffset {}
 #[derive(Copy, Clone, PartialEq)]
 
-pub struct Tile<'a> {
+pub struct PVTTile<'a> {
   pub _tab: flatbuffers::Table<'a>,
 }
 
-impl<'a> flatbuffers::Follow<'a> for Tile<'a> {
-  type Inner = Tile<'a>;
+impl<'a> flatbuffers::Follow<'a> for PVTTile<'a> {
+  type Inner = PVTTile<'a>;
   #[inline]
   fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     Self { _tab: flatbuffers::Table { buf, loc } }
   }
 }
 
-impl<'a> Tile<'a> {
+impl<'a> PVTTile<'a> {
   pub const VT_LAYERS: flatbuffers::VOffsetT = 4;
   pub const VT_STRINGS: flatbuffers::VOffsetT = 6;
   pub const VT_VALUES: flatbuffers::VOffsetT = 8;
 
   #[inline]
   pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
-    Tile { _tab: table }
+    PVTTile { _tab: table }
   }
   #[allow(unused_mut)]
   pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
     _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
-    args: &'args TileArgs<'args>
-  ) -> flatbuffers::WIPOffset<Tile<'bldr>> {
-    let mut builder = TileBuilder::new(_fbb);
+    args: &'args PVTTileArgs<'args>
+  ) -> flatbuffers::WIPOffset<PVTTile<'bldr>> {
+    let mut builder = PVTTileBuilder::new(_fbb);
     if let Some(x) = args.values { builder.add_values(x); }
     if let Some(x) = args.strings { builder.add_strings(x); }
     if let Some(x) = args.layers { builder.add_layers(x); }
@@ -399,42 +390,42 @@ impl<'a> Tile<'a> {
 
 
   #[inline]
-  pub fn layers(&self) -> Option<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Layer<'a>>>> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Layer>>>>(Tile::VT_LAYERS, None)
+  pub fn layers(&self) -> Option<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<PVTLayer<'a>>>> {
+    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<PVTLayer>>>>(PVTTile::VT_LAYERS, None)
   }
   #[inline]
   pub fn strings(&self) -> Option<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<&'a str>>> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<&'a str>>>>(Tile::VT_STRINGS, None)
+    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<&'a str>>>>(PVTTile::VT_STRINGS, None)
   }
   #[inline]
-  pub fn values(&self) -> Option<&'a [Value]> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, Value>>>(Tile::VT_VALUES, None).map(|v| v.safe_slice())
+  pub fn values(&self) -> Option<&'a [PVTValue]> {
+    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, PVTValue>>>(PVTTile::VT_VALUES, None).map(|v| v.safe_slice())
   }
 }
 
-impl flatbuffers::Verifiable for Tile<'_> {
+impl flatbuffers::Verifiable for PVTTile<'_> {
   #[inline]
   fn run_verifier(
     v: &mut flatbuffers::Verifier, pos: usize
   ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
     use self::flatbuffers::Verifiable;
     v.visit_table(pos)?
-     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, flatbuffers::ForwardsUOffset<Layer>>>>("layers", Self::VT_LAYERS, false)?
+     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, flatbuffers::ForwardsUOffset<PVTLayer>>>>("layers", Self::VT_LAYERS, false)?
      .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, flatbuffers::ForwardsUOffset<&'_ str>>>>("strings", Self::VT_STRINGS, false)?
-     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, Value>>>("values", Self::VT_VALUES, false)?
+     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, PVTValue>>>("values", Self::VT_VALUES, false)?
      .finish();
     Ok(())
   }
 }
-pub struct TileArgs<'a> {
-    pub layers: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Layer<'a>>>>>,
+pub struct PVTTileArgs<'a> {
+    pub layers: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<PVTLayer<'a>>>>>,
     pub strings: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<&'a str>>>>,
-    pub values: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, Value>>>,
+    pub values: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, PVTValue>>>,
 }
-impl<'a> Default for TileArgs<'a> {
+impl<'a> Default for PVTTileArgs<'a> {
   #[inline]
   fn default() -> Self {
-    TileArgs {
+    PVTTileArgs {
       layers: None,
       strings: None,
       values: None,
@@ -442,76 +433,76 @@ impl<'a> Default for TileArgs<'a> {
   }
 }
 
-pub struct TileBuilder<'a: 'b, 'b> {
+pub struct PVTTileBuilder<'a: 'b, 'b> {
   fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
   start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,
 }
-impl<'a: 'b, 'b> TileBuilder<'a, 'b> {
+impl<'a: 'b, 'b> PVTTileBuilder<'a, 'b> {
   #[inline]
-  pub fn add_layers(&mut self, layers: flatbuffers::WIPOffset<flatbuffers::Vector<'b , flatbuffers::ForwardsUOffset<Layer<'b >>>>) {
-    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Tile::VT_LAYERS, layers);
+  pub fn add_layers(&mut self, layers: flatbuffers::WIPOffset<flatbuffers::Vector<'b , flatbuffers::ForwardsUOffset<PVTLayer<'b >>>>) {
+    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(PVTTile::VT_LAYERS, layers);
   }
   #[inline]
   pub fn add_strings(&mut self, strings: flatbuffers::WIPOffset<flatbuffers::Vector<'b , flatbuffers::ForwardsUOffset<&'b  str>>>) {
-    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Tile::VT_STRINGS, strings);
+    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(PVTTile::VT_STRINGS, strings);
   }
   #[inline]
-  pub fn add_values(&mut self, values: flatbuffers::WIPOffset<flatbuffers::Vector<'b , Value>>) {
-    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Tile::VT_VALUES, values);
+  pub fn add_values(&mut self, values: flatbuffers::WIPOffset<flatbuffers::Vector<'b , PVTValue>>) {
+    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(PVTTile::VT_VALUES, values);
   }
   #[inline]
-  pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> TileBuilder<'a, 'b> {
+  pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> PVTTileBuilder<'a, 'b> {
     let start = _fbb.start_table();
-    TileBuilder {
+    PVTTileBuilder {
       fbb_: _fbb,
       start_: start,
     }
   }
   #[inline]
-  pub fn finish(self) -> flatbuffers::WIPOffset<Tile<'a>> {
+  pub fn finish(self) -> flatbuffers::WIPOffset<PVTTile<'a>> {
     let o = self.fbb_.end_table(self.start_);
     flatbuffers::WIPOffset::new(o.value())
   }
 }
 
-impl core::fmt::Debug for Tile<'_> {
+impl core::fmt::Debug for PVTTile<'_> {
   fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-    let mut ds = f.debug_struct("Tile");
+    let mut ds = f.debug_struct("PVTTile");
       ds.field("layers", &self.layers());
       ds.field("strings", &self.strings());
       ds.field("values", &self.values());
       ds.finish()
   }
 }
-pub enum LayerOffset {}
+pub enum PVTLayerOffset {}
 #[derive(Copy, Clone, PartialEq)]
 
-pub struct Layer<'a> {
+pub struct PVTLayer<'a> {
   pub _tab: flatbuffers::Table<'a>,
 }
 
-impl<'a> flatbuffers::Follow<'a> for Layer<'a> {
-  type Inner = Layer<'a>;
+impl<'a> flatbuffers::Follow<'a> for PVTLayer<'a> {
+  type Inner = PVTLayer<'a>;
   #[inline]
   fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     Self { _tab: flatbuffers::Table { buf, loc } }
   }
 }
 
-impl<'a> Layer<'a> {
+impl<'a> PVTLayer<'a> {
   pub const VT_NAME: flatbuffers::VOffsetT = 4;
   pub const VT_FEATURES: flatbuffers::VOffsetT = 6;
 
   #[inline]
   pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
-    Layer { _tab: table }
+    PVTLayer { _tab: table }
   }
   #[allow(unused_mut)]
   pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
     _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
-    args: &'args LayerArgs<'args>
-  ) -> flatbuffers::WIPOffset<Layer<'bldr>> {
-    let mut builder = LayerBuilder::new(_fbb);
+    args: &'args PVTLayerArgs<'args>
+  ) -> flatbuffers::WIPOffset<PVTLayer<'bldr>> {
+    let mut builder = PVTLayerBuilder::new(_fbb);
     if let Some(x) = args.features { builder.add_features(x); }
     builder.add_name(args.name);
     builder.finish()
@@ -520,15 +511,15 @@ impl<'a> Layer<'a> {
 
   #[inline]
   pub fn name(&self) -> u32 {
-    self._tab.get::<u32>(Layer::VT_NAME, Some(0)).unwrap()
+    self._tab.get::<u32>(PVTLayer::VT_NAME, Some(0)).unwrap()
   }
   #[inline]
-  pub fn features(&self) -> Option<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Feature<'a>>>> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Feature>>>>(Layer::VT_FEATURES, None)
+  pub fn features(&self) -> Option<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<PVTFeature<'a>>>> {
+    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<PVTFeature>>>>(PVTLayer::VT_FEATURES, None)
   }
 }
 
-impl flatbuffers::Verifiable for Layer<'_> {
+impl flatbuffers::Verifiable for PVTLayer<'_> {
   #[inline]
   fn run_verifier(
     v: &mut flatbuffers::Verifier, pos: usize
@@ -536,77 +527,77 @@ impl flatbuffers::Verifiable for Layer<'_> {
     use self::flatbuffers::Verifiable;
     v.visit_table(pos)?
      .visit_field::<u32>("name", Self::VT_NAME, false)?
-     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, flatbuffers::ForwardsUOffset<Feature>>>>("features", Self::VT_FEATURES, false)?
+     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, flatbuffers::ForwardsUOffset<PVTFeature>>>>("features", Self::VT_FEATURES, false)?
      .finish();
     Ok(())
   }
 }
-pub struct LayerArgs<'a> {
+pub struct PVTLayerArgs<'a> {
     pub name: u32,
-    pub features: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Feature<'a>>>>>,
+    pub features: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<PVTFeature<'a>>>>>,
 }
-impl<'a> Default for LayerArgs<'a> {
+impl<'a> Default for PVTLayerArgs<'a> {
   #[inline]
   fn default() -> Self {
-    LayerArgs {
+    PVTLayerArgs {
       name: 0,
       features: None,
     }
   }
 }
 
-pub struct LayerBuilder<'a: 'b, 'b> {
+pub struct PVTLayerBuilder<'a: 'b, 'b> {
   fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
   start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,
 }
-impl<'a: 'b, 'b> LayerBuilder<'a, 'b> {
+impl<'a: 'b, 'b> PVTLayerBuilder<'a, 'b> {
   #[inline]
   pub fn add_name(&mut self, name: u32) {
-    self.fbb_.push_slot::<u32>(Layer::VT_NAME, name, 0);
+    self.fbb_.push_slot::<u32>(PVTLayer::VT_NAME, name, 0);
   }
   #[inline]
-  pub fn add_features(&mut self, features: flatbuffers::WIPOffset<flatbuffers::Vector<'b , flatbuffers::ForwardsUOffset<Feature<'b >>>>) {
-    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Layer::VT_FEATURES, features);
+  pub fn add_features(&mut self, features: flatbuffers::WIPOffset<flatbuffers::Vector<'b , flatbuffers::ForwardsUOffset<PVTFeature<'b >>>>) {
+    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(PVTLayer::VT_FEATURES, features);
   }
   #[inline]
-  pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> LayerBuilder<'a, 'b> {
+  pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> PVTLayerBuilder<'a, 'b> {
     let start = _fbb.start_table();
-    LayerBuilder {
+    PVTLayerBuilder {
       fbb_: _fbb,
       start_: start,
     }
   }
   #[inline]
-  pub fn finish(self) -> flatbuffers::WIPOffset<Layer<'a>> {
+  pub fn finish(self) -> flatbuffers::WIPOffset<PVTLayer<'a>> {
     let o = self.fbb_.end_table(self.start_);
     flatbuffers::WIPOffset::new(o.value())
   }
 }
 
-impl core::fmt::Debug for Layer<'_> {
+impl core::fmt::Debug for PVTLayer<'_> {
   fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-    let mut ds = f.debug_struct("Layer");
+    let mut ds = f.debug_struct("PVTLayer");
       ds.field("name", &self.name());
       ds.field("features", &self.features());
       ds.finish()
   }
 }
-pub enum FeatureOffset {}
+pub enum PVTFeatureOffset {}
 #[derive(Copy, Clone, PartialEq)]
 
-pub struct Feature<'a> {
+pub struct PVTFeature<'a> {
   pub _tab: flatbuffers::Table<'a>,
 }
 
-impl<'a> flatbuffers::Follow<'a> for Feature<'a> {
-  type Inner = Feature<'a>;
+impl<'a> flatbuffers::Follow<'a> for PVTFeature<'a> {
+  type Inner = PVTFeature<'a>;
   #[inline]
   fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     Self { _tab: flatbuffers::Table { buf, loc } }
   }
 }
 
-impl<'a> Feature<'a> {
+impl<'a> PVTFeature<'a> {
   pub const VT_ID: flatbuffers::VOffsetT = 4;
   pub const VT_H: flatbuffers::VOffsetT = 6;
   pub const VT_KEYS: flatbuffers::VOffsetT = 8;
@@ -615,14 +606,14 @@ impl<'a> Feature<'a> {
 
   #[inline]
   pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
-    Feature { _tab: table }
+    PVTFeature { _tab: table }
   }
   #[allow(unused_mut)]
   pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
     _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
-    args: &'args FeatureArgs<'args>
-  ) -> flatbuffers::WIPOffset<Feature<'bldr>> {
-    let mut builder = FeatureBuilder::new(_fbb);
+    args: &'args PVTFeatureArgs<'args>
+  ) -> flatbuffers::WIPOffset<PVTFeature<'bldr>> {
+    let mut builder = PVTFeatureBuilder::new(_fbb);
     builder.add_h(args.h);
     builder.add_id(args.id);
     if let Some(x) = args.geometry { builder.add_geometry(x); }
@@ -634,27 +625,27 @@ impl<'a> Feature<'a> {
 
   #[inline]
   pub fn id(&self) -> u64 {
-    self._tab.get::<u64>(Feature::VT_ID, Some(0)).unwrap()
+    self._tab.get::<u64>(PVTFeature::VT_ID, Some(0)).unwrap()
   }
   #[inline]
   pub fn h(&self) -> u64 {
-    self._tab.get::<u64>(Feature::VT_H, Some(0)).unwrap()
+    self._tab.get::<u64>(PVTFeature::VT_H, Some(0)).unwrap()
   }
   #[inline]
   pub fn keys(&self) -> Option<flatbuffers::Vector<'a, u32>> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, u32>>>(Feature::VT_KEYS, None)
+    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, u32>>>(PVTFeature::VT_KEYS, None)
   }
   #[inline]
   pub fn values(&self) -> Option<flatbuffers::Vector<'a, u32>> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, u32>>>(Feature::VT_VALUES, None)
+    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, u32>>>(PVTFeature::VT_VALUES, None)
   }
   #[inline]
-  pub fn geometry(&self) -> Option<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Geometry<'a>>>> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Geometry>>>>(Feature::VT_GEOMETRY, None)
+  pub fn geometry(&self) -> Option<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<PVTGeometry<'a>>>> {
+    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<PVTGeometry>>>>(PVTFeature::VT_GEOMETRY, None)
   }
 }
 
-impl flatbuffers::Verifiable for Feature<'_> {
+impl flatbuffers::Verifiable for PVTFeature<'_> {
   #[inline]
   fn run_verifier(
     v: &mut flatbuffers::Verifier, pos: usize
@@ -665,22 +656,22 @@ impl flatbuffers::Verifiable for Feature<'_> {
      .visit_field::<u64>("h", Self::VT_H, false)?
      .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, u32>>>("keys", Self::VT_KEYS, false)?
      .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, u32>>>("values", Self::VT_VALUES, false)?
-     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, flatbuffers::ForwardsUOffset<Geometry>>>>("geometry", Self::VT_GEOMETRY, false)?
+     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, flatbuffers::ForwardsUOffset<PVTGeometry>>>>("geometry", Self::VT_GEOMETRY, false)?
      .finish();
     Ok(())
   }
 }
-pub struct FeatureArgs<'a> {
+pub struct PVTFeatureArgs<'a> {
     pub id: u64,
     pub h: u64,
     pub keys: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, u32>>>,
     pub values: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, u32>>>,
-    pub geometry: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Geometry<'a>>>>>,
+    pub geometry: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<PVTGeometry<'a>>>>>,
 }
-impl<'a> Default for FeatureArgs<'a> {
+impl<'a> Default for PVTFeatureArgs<'a> {
   #[inline]
   fn default() -> Self {
-    FeatureArgs {
+    PVTFeatureArgs {
       id: 0,
       h: 0,
       keys: None,
@@ -690,49 +681,49 @@ impl<'a> Default for FeatureArgs<'a> {
   }
 }
 
-pub struct FeatureBuilder<'a: 'b, 'b> {
+pub struct PVTFeatureBuilder<'a: 'b, 'b> {
   fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
   start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,
 }
-impl<'a: 'b, 'b> FeatureBuilder<'a, 'b> {
+impl<'a: 'b, 'b> PVTFeatureBuilder<'a, 'b> {
   #[inline]
   pub fn add_id(&mut self, id: u64) {
-    self.fbb_.push_slot::<u64>(Feature::VT_ID, id, 0);
+    self.fbb_.push_slot::<u64>(PVTFeature::VT_ID, id, 0);
   }
   #[inline]
   pub fn add_h(&mut self, h: u64) {
-    self.fbb_.push_slot::<u64>(Feature::VT_H, h, 0);
+    self.fbb_.push_slot::<u64>(PVTFeature::VT_H, h, 0);
   }
   #[inline]
   pub fn add_keys(&mut self, keys: flatbuffers::WIPOffset<flatbuffers::Vector<'b , u32>>) {
-    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Feature::VT_KEYS, keys);
+    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(PVTFeature::VT_KEYS, keys);
   }
   #[inline]
   pub fn add_values(&mut self, values: flatbuffers::WIPOffset<flatbuffers::Vector<'b , u32>>) {
-    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Feature::VT_VALUES, values);
+    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(PVTFeature::VT_VALUES, values);
   }
   #[inline]
-  pub fn add_geometry(&mut self, geometry: flatbuffers::WIPOffset<flatbuffers::Vector<'b , flatbuffers::ForwardsUOffset<Geometry<'b >>>>) {
-    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Feature::VT_GEOMETRY, geometry);
+  pub fn add_geometry(&mut self, geometry: flatbuffers::WIPOffset<flatbuffers::Vector<'b , flatbuffers::ForwardsUOffset<PVTGeometry<'b >>>>) {
+    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(PVTFeature::VT_GEOMETRY, geometry);
   }
   #[inline]
-  pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> FeatureBuilder<'a, 'b> {
+  pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> PVTFeatureBuilder<'a, 'b> {
     let start = _fbb.start_table();
-    FeatureBuilder {
+    PVTFeatureBuilder {
       fbb_: _fbb,
       start_: start,
     }
   }
   #[inline]
-  pub fn finish(self) -> flatbuffers::WIPOffset<Feature<'a>> {
+  pub fn finish(self) -> flatbuffers::WIPOffset<PVTFeature<'a>> {
     let o = self.fbb_.end_table(self.start_);
     flatbuffers::WIPOffset::new(o.value())
   }
 }
 
-impl core::fmt::Debug for Feature<'_> {
+impl core::fmt::Debug for PVTFeature<'_> {
   fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-    let mut ds = f.debug_struct("Feature");
+    let mut ds = f.debug_struct("PVTFeature");
       ds.field("id", &self.id());
       ds.field("h", &self.h());
       ds.field("keys", &self.keys());
@@ -741,182 +732,180 @@ impl core::fmt::Debug for Feature<'_> {
       ds.finish()
   }
 }
-pub enum GeometryOffset {}
+pub enum PVTGeometryOffset {}
 #[derive(Copy, Clone, PartialEq)]
 
-pub struct Geometry<'a> {
+pub struct PVTGeometry<'a> {
   pub _tab: flatbuffers::Table<'a>,
 }
 
-impl<'a> flatbuffers::Follow<'a> for Geometry<'a> {
-  type Inner = Geometry<'a>;
+impl<'a> flatbuffers::Follow<'a> for PVTGeometry<'a> {
+  type Inner = PVTGeometry<'a>;
   #[inline]
   fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     Self { _tab: flatbuffers::Table { buf, loc } }
   }
 }
 
-impl<'a> Geometry<'a> {
+impl<'a> PVTGeometry<'a> {
   pub const VT_POINTS: flatbuffers::VOffsetT = 4;
 
   #[inline]
   pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
-    Geometry { _tab: table }
+    PVTGeometry { _tab: table }
   }
   #[allow(unused_mut)]
   pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
     _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
-    args: &'args GeometryArgs<'args>
-  ) -> flatbuffers::WIPOffset<Geometry<'bldr>> {
-    let mut builder = GeometryBuilder::new(_fbb);
+    args: &'args PVTGeometryArgs<'args>
+  ) -> flatbuffers::WIPOffset<PVTGeometry<'bldr>> {
+    let mut builder = PVTGeometryBuilder::new(_fbb);
     if let Some(x) = args.points { builder.add_points(x); }
     builder.finish()
   }
 
 
   #[inline]
-  pub fn points(&self) -> Option<&'a [Point]> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, Point>>>(Geometry::VT_POINTS, None).map(|v| v.safe_slice())
+  pub fn points(&self) -> Option<&'a [PVTPoint]> {
+    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, PVTPoint>>>(PVTGeometry::VT_POINTS, None).map(|v| v.safe_slice())
   }
 }
 
-impl flatbuffers::Verifiable for Geometry<'_> {
+impl flatbuffers::Verifiable for PVTGeometry<'_> {
   #[inline]
   fn run_verifier(
     v: &mut flatbuffers::Verifier, pos: usize
   ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
     use self::flatbuffers::Verifiable;
     v.visit_table(pos)?
-     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, Point>>>("points", Self::VT_POINTS, false)?
+     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, PVTPoint>>>("points", Self::VT_POINTS, false)?
      .finish();
     Ok(())
   }
 }
-pub struct GeometryArgs<'a> {
-    pub points: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, Point>>>,
+pub struct PVTGeometryArgs<'a> {
+    pub points: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, PVTPoint>>>,
 }
-impl<'a> Default for GeometryArgs<'a> {
+impl<'a> Default for PVTGeometryArgs<'a> {
   #[inline]
   fn default() -> Self {
-    GeometryArgs {
+    PVTGeometryArgs {
       points: None,
     }
   }
 }
 
-pub struct GeometryBuilder<'a: 'b, 'b> {
+pub struct PVTGeometryBuilder<'a: 'b, 'b> {
   fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
   start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,
 }
-impl<'a: 'b, 'b> GeometryBuilder<'a, 'b> {
+impl<'a: 'b, 'b> PVTGeometryBuilder<'a, 'b> {
   #[inline]
-  pub fn add_points(&mut self, points: flatbuffers::WIPOffset<flatbuffers::Vector<'b , Point>>) {
-    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Geometry::VT_POINTS, points);
+  pub fn add_points(&mut self, points: flatbuffers::WIPOffset<flatbuffers::Vector<'b , PVTPoint>>) {
+    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(PVTGeometry::VT_POINTS, points);
   }
   #[inline]
-  pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> GeometryBuilder<'a, 'b> {
+  pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> PVTGeometryBuilder<'a, 'b> {
     let start = _fbb.start_table();
-    GeometryBuilder {
+    PVTGeometryBuilder {
       fbb_: _fbb,
       start_: start,
     }
   }
   #[inline]
-  pub fn finish(self) -> flatbuffers::WIPOffset<Geometry<'a>> {
+  pub fn finish(self) -> flatbuffers::WIPOffset<PVTGeometry<'a>> {
     let o = self.fbb_.end_table(self.start_);
     flatbuffers::WIPOffset::new(o.value())
   }
 }
 
-impl core::fmt::Debug for Geometry<'_> {
+impl core::fmt::Debug for PVTGeometry<'_> {
   fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-    let mut ds = f.debug_struct("Geometry");
+    let mut ds = f.debug_struct("PVTGeometry");
       ds.field("points", &self.points());
       ds.finish()
   }
 }
 #[inline]
 #[deprecated(since="2.0.0", note="Deprecated in favor of `root_as...` methods.")]
-pub fn get_root_as_tile<'a>(buf: &'a [u8]) -> Tile<'a> {
-  unsafe { flatbuffers::root_unchecked::<Tile<'a>>(buf) }
+pub fn get_root_as_pvttile<'a>(buf: &'a [u8]) -> PVTTile<'a> {
+  unsafe { flatbuffers::root_unchecked::<PVTTile<'a>>(buf) }
 }
 
 #[inline]
 #[deprecated(since="2.0.0", note="Deprecated in favor of `root_as...` methods.")]
-pub fn get_size_prefixed_root_as_tile<'a>(buf: &'a [u8]) -> Tile<'a> {
-  unsafe { flatbuffers::size_prefixed_root_unchecked::<Tile<'a>>(buf) }
+pub fn get_size_prefixed_root_as_pvttile<'a>(buf: &'a [u8]) -> PVTTile<'a> {
+  unsafe { flatbuffers::size_prefixed_root_unchecked::<PVTTile<'a>>(buf) }
 }
 
 #[inline]
-/// Verifies that a buffer of bytes contains a `Tile`
+/// Verifies that a buffer of bytes contains a `PVTTile`
 /// and returns it.
 /// Note that verification is still experimental and may not
 /// catch every error, or be maximally performant. For the
 /// previous, unchecked, behavior use
-/// `root_as_tile_unchecked`.
-pub fn root_as_tile(buf: &[u8]) -> Result<Tile, flatbuffers::InvalidFlatbuffer> {
-  flatbuffers::root::<Tile>(buf)
+/// `root_as_pvttile_unchecked`.
+pub fn root_as_pvttile(buf: &[u8]) -> Result<PVTTile, flatbuffers::InvalidFlatbuffer> {
+  flatbuffers::root::<PVTTile>(buf)
 }
 #[inline]
 /// Verifies that a buffer of bytes contains a size prefixed
-/// `Tile` and returns it.
+/// `PVTTile` and returns it.
 /// Note that verification is still experimental and may not
 /// catch every error, or be maximally performant. For the
 /// previous, unchecked, behavior use
-/// `size_prefixed_root_as_tile_unchecked`.
-pub fn size_prefixed_root_as_tile(buf: &[u8]) -> Result<Tile, flatbuffers::InvalidFlatbuffer> {
-  flatbuffers::size_prefixed_root::<Tile>(buf)
+/// `size_prefixed_root_as_pvttile_unchecked`.
+pub fn size_prefixed_root_as_pvttile(buf: &[u8]) -> Result<PVTTile, flatbuffers::InvalidFlatbuffer> {
+  flatbuffers::size_prefixed_root::<PVTTile>(buf)
 }
 #[inline]
 /// Verifies, with the given options, that a buffer of bytes
-/// contains a `Tile` and returns it.
+/// contains a `PVTTile` and returns it.
 /// Note that verification is still experimental and may not
 /// catch every error, or be maximally performant. For the
 /// previous, unchecked, behavior use
-/// `root_as_tile_unchecked`.
-pub fn root_as_tile_with_opts<'b, 'o>(
+/// `root_as_pvttile_unchecked`.
+pub fn root_as_pvttile_with_opts<'b, 'o>(
   opts: &'o flatbuffers::VerifierOptions,
   buf: &'b [u8],
-) -> Result<Tile<'b>, flatbuffers::InvalidFlatbuffer> {
-  flatbuffers::root_with_opts::<Tile<'b>>(opts, buf)
+) -> Result<PVTTile<'b>, flatbuffers::InvalidFlatbuffer> {
+  flatbuffers::root_with_opts::<PVTTile<'b>>(opts, buf)
 }
 #[inline]
 /// Verifies, with the given verifier options, that a buffer of
-/// bytes contains a size prefixed `Tile` and returns
+/// bytes contains a size prefixed `PVTTile` and returns
 /// it. Note that verification is still experimental and may not
 /// catch every error, or be maximally performant. For the
 /// previous, unchecked, behavior use
-/// `root_as_tile_unchecked`.
-pub fn size_prefixed_root_as_tile_with_opts<'b, 'o>(
+/// `root_as_pvttile_unchecked`.
+pub fn size_prefixed_root_as_pvttile_with_opts<'b, 'o>(
   opts: &'o flatbuffers::VerifierOptions,
   buf: &'b [u8],
-) -> Result<Tile<'b>, flatbuffers::InvalidFlatbuffer> {
-  flatbuffers::size_prefixed_root_with_opts::<Tile<'b>>(opts, buf)
+) -> Result<PVTTile<'b>, flatbuffers::InvalidFlatbuffer> {
+  flatbuffers::size_prefixed_root_with_opts::<PVTTile<'b>>(opts, buf)
 }
 #[inline]
-/// Assumes, without verification, that a buffer of bytes contains a Tile and returns it.
+/// Assumes, without verification, that a buffer of bytes contains a PVTTile and returns it.
 /// # Safety
-/// Callers must trust the given bytes do indeed contain a valid `Tile`.
-pub unsafe fn root_as_tile_unchecked(buf: &[u8]) -> Tile {
-  flatbuffers::root_unchecked::<Tile>(buf)
+/// Callers must trust the given bytes do indeed contain a valid `PVTTile`.
+pub unsafe fn root_as_pvttile_unchecked(buf: &[u8]) -> PVTTile {
+  flatbuffers::root_unchecked::<PVTTile>(buf)
 }
 #[inline]
-/// Assumes, without verification, that a buffer of bytes contains a size prefixed Tile and returns it.
+/// Assumes, without verification, that a buffer of bytes contains a size prefixed PVTTile and returns it.
 /// # Safety
-/// Callers must trust the given bytes do indeed contain a valid size prefixed `Tile`.
-pub unsafe fn size_prefixed_root_as_tile_unchecked(buf: &[u8]) -> Tile {
-  flatbuffers::size_prefixed_root_unchecked::<Tile>(buf)
+/// Callers must trust the given bytes do indeed contain a valid size prefixed `PVTTile`.
+pub unsafe fn size_prefixed_root_as_pvttile_unchecked(buf: &[u8]) -> PVTTile {
+  flatbuffers::size_prefixed_root_unchecked::<PVTTile>(buf)
 }
 #[inline]
-pub fn finish_tile_buffer<'a, 'b>(
+pub fn finish_pvttile_buffer<'a, 'b>(
     fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>,
-    root: flatbuffers::WIPOffset<Tile<'a>>) {
+    root: flatbuffers::WIPOffset<PVTTile<'a>>) {
   fbb.finish(root, None);
 }
 
 #[inline]
-pub fn finish_size_prefixed_tile_buffer<'a, 'b>(fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>, root: flatbuffers::WIPOffset<Tile<'a>>) {
+pub fn finish_size_prefixed_pvttile_buffer<'a, 'b>(fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>, root: flatbuffers::WIPOffset<PVTTile<'a>>) {
   fbb.finish_size_prefixed(root, None);
 }
-}  // pub mod PlanetVectorTile
-

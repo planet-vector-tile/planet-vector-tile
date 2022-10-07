@@ -2,10 +2,10 @@
 
 import * as flatbuffers from 'flatbuffers';
 
-export class Point {
+export class PVTPoint {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
-  __init(i:number, bb:flatbuffers.ByteBuffer):Point {
+  __init(i:number, bb:flatbuffers.ByteBuffer):PVTPoint {
   this.bb_pos = i;
   this.bb = bb;
   return this;
@@ -23,7 +23,7 @@ static sizeOf():number {
   return 8;
 }
 
-static createPoint(builder:flatbuffers.Builder, x: number, y: number):flatbuffers.Offset {
+static createPVTPoint(builder:flatbuffers.Builder, x: number, y: number):flatbuffers.Offset {
   builder.prep(4, 8);
   builder.writeInt32(y);
   builder.writeInt32(x);

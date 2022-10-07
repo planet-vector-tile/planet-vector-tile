@@ -2,25 +2,25 @@
 
 import * as flatbuffers from 'flatbuffers';
 
-import { Feature } from '../planet-vector-tile/feature';
+import { PVTFeature } from './pvtfeature';
 
 
-export class Layer {
+export class PVTLayer {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
-  __init(i:number, bb:flatbuffers.ByteBuffer):Layer {
+  __init(i:number, bb:flatbuffers.ByteBuffer):PVTLayer {
   this.bb_pos = i;
   this.bb = bb;
   return this;
 }
 
-static getRootAsLayer(bb:flatbuffers.ByteBuffer, obj?:Layer):Layer {
-  return (obj || new Layer()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+static getRootAsPVTLayer(bb:flatbuffers.ByteBuffer, obj?:PVTLayer):PVTLayer {
+  return (obj || new PVTLayer()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 }
 
-static getSizePrefixedRootAsLayer(bb:flatbuffers.ByteBuffer, obj?:Layer):Layer {
+static getSizePrefixedRootAsPVTLayer(bb:flatbuffers.ByteBuffer, obj?:PVTLayer):PVTLayer {
   bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
-  return (obj || new Layer()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+  return (obj || new PVTLayer()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 }
 
 name():number {
@@ -28,9 +28,9 @@ name():number {
   return offset ? this.bb!.readUint32(this.bb_pos + offset) : 0;
 }
 
-features(index: number, obj?:Feature):Feature|null {
+features(index: number, obj?:PVTFeature):PVTFeature|null {
   const offset = this.bb!.__offset(this.bb_pos, 6);
-  return offset ? (obj || new Feature()).__init(this.bb!.__indirect(this.bb!.__vector(this.bb_pos + offset) + index * 4), this.bb!) : null;
+  return offset ? (obj || new PVTFeature()).__init(this.bb!.__indirect(this.bb!.__vector(this.bb_pos + offset) + index * 4), this.bb!) : null;
 }
 
 featuresLength():number {
@@ -38,7 +38,7 @@ featuresLength():number {
   return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
 }
 
-static startLayer(builder:flatbuffers.Builder) {
+static startPVTLayer(builder:flatbuffers.Builder) {
   builder.startObject(2);
 }
 
@@ -62,15 +62,15 @@ static startFeaturesVector(builder:flatbuffers.Builder, numElems:number) {
   builder.startVector(4, numElems, 4);
 }
 
-static endLayer(builder:flatbuffers.Builder):flatbuffers.Offset {
+static endPVTLayer(builder:flatbuffers.Builder):flatbuffers.Offset {
   const offset = builder.endObject();
   return offset;
 }
 
-static createLayer(builder:flatbuffers.Builder, name:number, featuresOffset:flatbuffers.Offset):flatbuffers.Offset {
-  Layer.startLayer(builder);
-  Layer.addName(builder, name);
-  Layer.addFeatures(builder, featuresOffset);
-  return Layer.endLayer(builder);
+static createPVTLayer(builder:flatbuffers.Builder, name:number, featuresOffset:flatbuffers.Offset):flatbuffers.Offset {
+  PVTLayer.startPVTLayer(builder);
+  PVTLayer.addName(builder, name);
+  PVTLayer.addFeatures(builder, featuresOffset);
+  return PVTLayer.endPVTLayer(builder);
 }
 }

@@ -2,31 +2,31 @@
 
 import * as flatbuffers from 'flatbuffers';
 
-import { Layer } from '../planet-vector-tile/layer';
-import { Value } from '../planet-vector-tile/value';
+import { PVTLayer } from './pvtlayer';
+import { PVTValue } from './pvtvalue';
 
 
-export class Tile {
+export class PVTTile {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
-  __init(i:number, bb:flatbuffers.ByteBuffer):Tile {
+  __init(i:number, bb:flatbuffers.ByteBuffer):PVTTile {
   this.bb_pos = i;
   this.bb = bb;
   return this;
 }
 
-static getRootAsTile(bb:flatbuffers.ByteBuffer, obj?:Tile):Tile {
-  return (obj || new Tile()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+static getRootAsPVTTile(bb:flatbuffers.ByteBuffer, obj?:PVTTile):PVTTile {
+  return (obj || new PVTTile()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 }
 
-static getSizePrefixedRootAsTile(bb:flatbuffers.ByteBuffer, obj?:Tile):Tile {
+static getSizePrefixedRootAsPVTTile(bb:flatbuffers.ByteBuffer, obj?:PVTTile):PVTTile {
   bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
-  return (obj || new Tile()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+  return (obj || new PVTTile()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 }
 
-layers(index: number, obj?:Layer):Layer|null {
+layers(index: number, obj?:PVTLayer):PVTLayer|null {
   const offset = this.bb!.__offset(this.bb_pos, 4);
-  return offset ? (obj || new Layer()).__init(this.bb!.__indirect(this.bb!.__vector(this.bb_pos + offset) + index * 4), this.bb!) : null;
+  return offset ? (obj || new PVTLayer()).__init(this.bb!.__indirect(this.bb!.__vector(this.bb_pos + offset) + index * 4), this.bb!) : null;
 }
 
 layersLength():number {
@@ -46,9 +46,9 @@ stringsLength():number {
   return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
 }
 
-values(index: number, obj?:Value):Value|null {
+values(index: number, obj?:PVTValue):PVTValue|null {
   const offset = this.bb!.__offset(this.bb_pos, 8);
-  return offset ? (obj || new Value()).__init(this.bb!.__vector(this.bb_pos + offset) + index * 16, this.bb!) : null;
+  return offset ? (obj || new PVTValue()).__init(this.bb!.__vector(this.bb_pos + offset) + index * 16, this.bb!) : null;
 }
 
 valuesLength():number {
@@ -56,7 +56,7 @@ valuesLength():number {
   return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
 }
 
-static startTile(builder:flatbuffers.Builder) {
+static startPVTTile(builder:flatbuffers.Builder) {
   builder.startObject(3);
 }
 
@@ -100,24 +100,24 @@ static startValuesVector(builder:flatbuffers.Builder, numElems:number) {
   builder.startVector(16, numElems, 8);
 }
 
-static endTile(builder:flatbuffers.Builder):flatbuffers.Offset {
+static endPVTTile(builder:flatbuffers.Builder):flatbuffers.Offset {
   const offset = builder.endObject();
   return offset;
 }
 
-static finishTileBuffer(builder:flatbuffers.Builder, offset:flatbuffers.Offset) {
+static finishPVTTileBuffer(builder:flatbuffers.Builder, offset:flatbuffers.Offset) {
   builder.finish(offset);
 }
 
-static finishSizePrefixedTileBuffer(builder:flatbuffers.Builder, offset:flatbuffers.Offset) {
+static finishSizePrefixedPVTTileBuffer(builder:flatbuffers.Builder, offset:flatbuffers.Offset) {
   builder.finish(offset, undefined, true);
 }
 
-static createTile(builder:flatbuffers.Builder, layersOffset:flatbuffers.Offset, stringsOffset:flatbuffers.Offset, valuesOffset:flatbuffers.Offset):flatbuffers.Offset {
-  Tile.startTile(builder);
-  Tile.addLayers(builder, layersOffset);
-  Tile.addStrings(builder, stringsOffset);
-  Tile.addValues(builder, valuesOffset);
-  return Tile.endTile(builder);
+static createPVTTile(builder:flatbuffers.Builder, layersOffset:flatbuffers.Offset, stringsOffset:flatbuffers.Offset, valuesOffset:flatbuffers.Offset):flatbuffers.Offset {
+  PVTTile.startPVTTile(builder);
+  PVTTile.addLayers(builder, layersOffset);
+  PVTTile.addStrings(builder, stringsOffset);
+  PVTTile.addValues(builder, valuesOffset);
+  return PVTTile.endPVTTile(builder);
 }
 }

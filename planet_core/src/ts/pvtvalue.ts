@@ -2,19 +2,19 @@
 
 import * as flatbuffers from 'flatbuffers';
 
-import { ValueType } from '../planet-vector-tile/value-type';
+import { PVTValueType } from './pvtvalue-type';
 
 
-export class Value {
+export class PVTValue {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
-  __init(i:number, bb:flatbuffers.ByteBuffer):Value {
+  __init(i:number, bb:flatbuffers.ByteBuffer):PVTValue {
   this.bb_pos = i;
   this.bb = bb;
   return this;
 }
 
-t():ValueType {
+t():PVTValueType {
   return this.bb!.readUint8(this.bb_pos);
 }
 
@@ -26,7 +26,7 @@ static sizeOf():number {
   return 16;
 }
 
-static createValue(builder:flatbuffers.Builder, t: ValueType, v: number):flatbuffers.Offset {
+static createPVTValue(builder:flatbuffers.Builder, t: PVTValueType, v: number):flatbuffers.Offset {
   builder.prep(8, 16);
   builder.writeFloat64(v);
   builder.pad(7);

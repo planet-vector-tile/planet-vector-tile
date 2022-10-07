@@ -2,25 +2,25 @@
 
 import * as flatbuffers from 'flatbuffers';
 
-import { Geometry } from '../planet-vector-tile/geometry';
+import { PVTGeometry } from './pvtgeometry';
 
 
-export class Feature {
+export class PVTFeature {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
-  __init(i:number, bb:flatbuffers.ByteBuffer):Feature {
+  __init(i:number, bb:flatbuffers.ByteBuffer):PVTFeature {
   this.bb_pos = i;
   this.bb = bb;
   return this;
 }
 
-static getRootAsFeature(bb:flatbuffers.ByteBuffer, obj?:Feature):Feature {
-  return (obj || new Feature()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+static getRootAsPVTFeature(bb:flatbuffers.ByteBuffer, obj?:PVTFeature):PVTFeature {
+  return (obj || new PVTFeature()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 }
 
-static getSizePrefixedRootAsFeature(bb:flatbuffers.ByteBuffer, obj?:Feature):Feature {
+static getSizePrefixedRootAsPVTFeature(bb:flatbuffers.ByteBuffer, obj?:PVTFeature):PVTFeature {
   bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
-  return (obj || new Feature()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+  return (obj || new PVTFeature()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 }
 
 id():bigint {
@@ -63,9 +63,9 @@ valuesArray():Uint32Array|null {
   return offset ? new Uint32Array(this.bb!.bytes().buffer, this.bb!.bytes().byteOffset + this.bb!.__vector(this.bb_pos + offset), this.bb!.__vector_len(this.bb_pos + offset)) : null;
 }
 
-geometry(index: number, obj?:Geometry):Geometry|null {
+geometry(index: number, obj?:PVTGeometry):PVTGeometry|null {
   const offset = this.bb!.__offset(this.bb_pos, 12);
-  return offset ? (obj || new Geometry()).__init(this.bb!.__indirect(this.bb!.__vector(this.bb_pos + offset) + index * 4), this.bb!) : null;
+  return offset ? (obj || new PVTGeometry()).__init(this.bb!.__indirect(this.bb!.__vector(this.bb_pos + offset) + index * 4), this.bb!) : null;
 }
 
 geometryLength():number {
@@ -73,7 +73,7 @@ geometryLength():number {
   return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
 }
 
-static startFeature(builder:flatbuffers.Builder) {
+static startPVTFeature(builder:flatbuffers.Builder) {
   builder.startObject(5);
 }
 
@@ -143,18 +143,18 @@ static startGeometryVector(builder:flatbuffers.Builder, numElems:number) {
   builder.startVector(4, numElems, 4);
 }
 
-static endFeature(builder:flatbuffers.Builder):flatbuffers.Offset {
+static endPVTFeature(builder:flatbuffers.Builder):flatbuffers.Offset {
   const offset = builder.endObject();
   return offset;
 }
 
-static createFeature(builder:flatbuffers.Builder, id:bigint, h:bigint, keysOffset:flatbuffers.Offset, valuesOffset:flatbuffers.Offset, geometryOffset:flatbuffers.Offset):flatbuffers.Offset {
-  Feature.startFeature(builder);
-  Feature.addId(builder, id);
-  Feature.addH(builder, h);
-  Feature.addKeys(builder, keysOffset);
-  Feature.addValues(builder, valuesOffset);
-  Feature.addGeometry(builder, geometryOffset);
-  return Feature.endFeature(builder);
+static createPVTFeature(builder:flatbuffers.Builder, id:bigint, h:bigint, keysOffset:flatbuffers.Offset, valuesOffset:flatbuffers.Offset, geometryOffset:flatbuffers.Offset):flatbuffers.Offset {
+  PVTFeature.startPVTFeature(builder);
+  PVTFeature.addId(builder, id);
+  PVTFeature.addH(builder, h);
+  PVTFeature.addKeys(builder, keysOffset);
+  PVTFeature.addValues(builder, valuesOffset);
+  PVTFeature.addGeometry(builder, geometryOffset);
+  return PVTFeature.endPVTFeature(builder);
 }
 }
