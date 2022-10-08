@@ -7,7 +7,6 @@ import { PVTLayer } from './pvtlayer'
 import { PVTFeature } from './pvtfeature'
 import { PVTValueType } from './pvtvalue-type'
 import { PVTGeometry } from './pvtgeometry'
-import { PVTPoint } from './pvtpoint'
 
 
 export class PlanetVectorTile implements VectorTile {
