@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Planet Vector Tile</title>
+        <meta charset="utf-8" />
+        <link rel="stylesheet" href="../../maplibre-gl-js/dist/maplibre-gl.css" />
+        <style>
+            body {
+                margin: 0;
+                padding: 0;
+            }
+            html,
+            body,
+            #map {
+                height: 100%;
+            }
+            #features {
+                position: absolute;
+                top: 0;
+                right: 0;
+                bottom: 0;
+                width: 300px;
+                overflow: auto;
+                background: rgba(255, 255, 255, 0.8);
+            }
+        </style>
+    </head>
+    <body>
+        <div id="map"></div>
+        <pre id="features"></pre>
+        <script src="../maplibre-gl-js/dist/maplibre-gl-dev.js"></script>
+        >
+        <script src="simple.js"></script>
+    </body>
+</html>
