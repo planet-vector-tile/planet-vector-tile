@@ -27,7 +27,7 @@
     "prepublishOnly": "napi prepublish -t npm",
     "test": "ava",
     "version": "napi version",
-    "format": "prettier write ."
+    "format": "prettier --write ."
   },
   "ava": {
     "files": [

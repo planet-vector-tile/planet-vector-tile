@@ -3,5 +3,5 @@
 export enum PVTValueType {
   String = 0,
   Number = 1,
-  Boolean = 2
+  Boolean = 2,
 }
