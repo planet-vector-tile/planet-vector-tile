@@ -226,12 +226,29 @@ export class PlanetVectorTileFeature implements VectorTileFeature {
         }
 
         // Now we have to figure out winding order to determine which rings are holes.
-        
+        const polygons: Position[][][] = []
+        let lastPolygon: Position[][] = []
+        for (const innerCoordinates of outerCoordinates) {
+            const area = signedArea(innerCoordinates)
+            if (area === 0) {
+                continue
+            }
+            // outer ring
+            if (area > 0) {
+                lastPolygon = [innerCoordinates]
+                polygons.push(lastPolygon)
+            } 
+            // inner ring
+            else {
+                lastPolygon.push(innerCoordinates)
+            }
+        }
+
         return {
             type: 'Feature',
             geometry: {
                 type: 'MultiPolygon',
-                coordinates: outerCoordinates
+                coordinates: polygons
             },
             properties: this.properties
         }
@@ -254,4 +271,12 @@ function getVal(tile: PVTTile, idx: number): string | number | boolean {
     return !!val.v()
 }
 
-
+function signedArea(ring): number {
+    let sum = 0;
+    for (let i = 0, len = ring.length, j = len - 1; i < len; j = i++) {
+        const p1 = ring[i];
+        const p2 = ring[j];
+        sum += (p2[0] - p1[0]) * (p1[1] + p2[1]);
+    }
+    return sum;
+}
