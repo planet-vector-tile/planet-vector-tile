@@ -1,6 +1,6 @@
-import flatbuffers from 'flatbuffers'
+import { ByteBuffer } from 'flatbuffers'
 import { Feature, Position } from 'geojson'
-import { VectorTile, VectorTileLayer, VectorTileFeature } from '@mapbox/vector-tile'
+import type { VectorTile, VectorTileLayer, VectorTileFeature } from '@mapbox/vector-tile'
 import Point from '@mapbox/point-geometry'
 import { PVTTile } from './pvttile'
 import { PVTLayer } from './pvtlayer'
@@ -15,7 +15,7 @@ export class PlanetVectorTile implements VectorTile {
 
     constructor(arrayBuffer: ArrayBuffer) {
         const arr = new Uint8Array(arrayBuffer)
-        const buffer = new flatbuffers.ByteBuffer(arr)
+        const buffer = new ByteBuffer(arr)
         this._tile = PVTTile.getRootAsPVTTile(buffer)
     }
     
