@@ -1,9 +1,14 @@
 import flatbuffers from 'flatbuffers'
+import { Feature } from 'geojson'
 import { VectorTile, VectorTileLayer, VectorTileFeature } from '@mapbox/vector-tile'
+import Point from '@mapbox/point-geometry'
 import { PVTTile } from './pvttile'
 import { PVTLayer } from './pvtlayer'
 import { PVTFeature } from './pvtfeature'
 import { PVTValueType } from './pvtvalue-type'
+import { PVTGeometry } from './pvtgeometry'
+import { PVTPoint } from './pvtpoint'
+
 
 export class PlanetVectorTile implements VectorTile {
     _tile: PVTTile
@@ -63,16 +68,20 @@ export class PlanetVectorTileLayer implements VectorTileLayer {
 
 }
 
+// https://github.com/maplibre/maplibre-gl-js/blob/028344137fe1676b50b8da2729f1dcb5c8b65eac/src/data/extent.ts
+type Extent = 8196
+const EXTENT: Extent = 8196
+
 export class PlanetVectorTileFeature implements VectorTileFeature {
+    extent: Extent
+
     _tile: PVTTile
     _feat: PVTFeature
+    _geom: Point[][];
     _properties: { [_: string]: string | number | boolean } | undefined
 
-    extent: number
-
     constructor(tile: PVTTile, feat: PVTFeature) {
-        // https://github.com/maplibre/maplibre-gl-js/blob/028344137fe1676b50b8da2729f1dcb5c8b65eac/src/data/extent.ts
-        this.extent = 8196
+        this.extent = EXTENT
         this._tile = tile
         this._feat = feat
     }
@@ -82,18 +91,17 @@ export class PlanetVectorTileFeature implements VectorTileFeature {
     get type(): 1 | 2 | 3 {
         const firstGeom = this._feat.geometry(0)!
         const len = firstGeom.pointsLength() 
+        // point
         if (len < 2) {
             return 1
         }
-        const pt0 = firstGeom.points(0)!
-        const x0 = pt0.x
-        const y0 = pt0.y
+        const { x, y } = firstGeom.points(0)!
         const ptEnd = firstGeom.points(len - 1)!
-        const xEnd = ptEnd.x
-        const yEnd = ptEnd.y
-        if (x0 === xEnd && y0 === yEnd) {
+        // polygon - closed ring
+        if (x === ptEnd.x && y === ptEnd.y) {
             return 3
         }
+        // line
         return 2
     }
 
@@ -120,15 +128,69 @@ export class PlanetVectorTileFeature implements VectorTileFeature {
         return props
     }
 
-    loadGeometry(): import("@mapbox/point-geometry")[][] {
-        throw new Error('Method not implemented.')
+    loadGeometry(): Point[][] {
+        if (this._geom) {
+            return this._geom
+        }
+        const feat = this._feat
+        const len = feat.geometryLength()
+        const outer = new Array<Point[]>(len)
+        for (let i = 0; i < len; i++) {
+            const geom = feat.geometry(i)!
+            const innerLen = geom.pointsLength()
+            const inner = new Array<Point>(innerLen)
+            outer[i] = inner
+            for (let j = 0; j < innerLen; j++) {
+                const pt = geom.points(j)!
+                inner[j] = new Point(pt.x(), pt.y())
+            }
+        }
+        this._geom = outer
+        return outer
     }
-    toGeoJSON(x: number, y: number, z: number): Feature<Geometry, GeoJsonProperties> {
-        throw new Error('Method not implemented.')
+
+    toGeoJSON(x: number, y: number, z: number): Feature {
+        const granularity = EXTENT * Math.pow(2, z)
+        const tileWest = EXTENT * x
+        const tileNorth = EXTENT * y
+
+        // Spherical Mercator tile coordinates to WGS84
+        function project(line: PVTGeometry) {
+            const len = line.pointsLength()
+            const coords = new Array<number[]>(len)
+            // we want to loop a full line in the function, since JS can't inline functions
+            for (let j = 0; j < len; j++) {
+                const p = line.points(j)!
+                const mercY = 180 - (tileNorth + p.y()) * 360 / granularity
+                const lon = (tileWest + p.x()) * 360 / granularity - 180
+                const lat = 360 / Math.PI * Math.atan(Math.exp(mercY * Math.PI / 180)) - 90
+                coords[j] = [lon, lat]
+            }
+            return coords
+        }
+
+        switch (this.type) {
+            case 1: // point
+                const line = this._feat.geometry(0)!
+                const coord = project(line)[0]
+                return {
+                    type: 'Feature',
+                    geometry: {
+                        type: 'Point',
+                        coordinates: coord
+                    },
+                    properties: this.properties
+                }
+            case 2: // line
+                break
+            case 3: // polygon
+
+                break
+        }
     }
-    bbox?(): [number, number, number, number] {
-        throw new Error('Method not implemented.')
-    }
+
+    // bbox is not required or used
+    // bbox?(): [number, number, number, number];
 
 }
 
@@ -143,3 +205,5 @@ function getVal(tile: PVTTile, idx: number): string | number | boolean {
     }
     return !!val.v()
 }
+
+
