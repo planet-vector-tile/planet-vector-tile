@@ -1,5 +1,5 @@
 import flatbuffers from 'flatbuffers'
-import { Feature } from 'geojson'
+import { Feature, Position } from 'geojson'
 import { VectorTile, VectorTileLayer, VectorTileFeature } from '@mapbox/vector-tile'
 import Point from '@mapbox/point-geometry'
 import { PVTTile } from './pvttile'
@@ -87,7 +87,9 @@ export class PlanetVectorTileFeature implements VectorTileFeature {
     }
 
     // We don't encode the type in the flatbuffer, because it can be derived.
-    // I don't think this is even being used in Maplibre.
+    // 1 is MultiPoint
+    // 2 is MultiLineString
+    // 3 is MultiPolygon
     get type(): 1 | 2 | 3 {
         const firstGeom = this._feat.geometry(0)!
         const len = firstGeom.pointsLength() 
@@ -128,6 +130,21 @@ export class PlanetVectorTileFeature implements VectorTileFeature {
         return props
     }
 
+    // Point - single item MultiPoint
+    // [ [[x,y]] ]
+
+    // MultiPoint
+    // [ [[x,y]] , [[x,y]] , [[x,y]] ]
+
+    // Line - single itme Line
+     // [ [[x,y], [x,y], [x,y]] ]
+
+    // MultiLine
+    // [ [[x,y], [x,y], [x,y]] , [[x,y], [x,y], [x,y]] ]
+
+    // MultiPolygon
+    // Same thing, but lines are closed.
+    // Holes are deterined by winding order. (Shoelace Formula)
     loadGeometry(): Point[][] {
         if (this._geom) {
             return this._geom
@@ -142,6 +159,7 @@ export class PlanetVectorTileFeature implements VectorTileFeature {
             outer[i] = inner
             for (let j = 0; j < innerLen; j++) {
                 const pt = geom.points(j)!
+                // These are instances of Mapbox's Points where there are attached transform methods.
                 inner[j] = new Point(pt.x(), pt.y())
             }
         }
@@ -150,12 +168,13 @@ export class PlanetVectorTileFeature implements VectorTileFeature {
     }
 
     toGeoJSON(x: number, y: number, z: number): Feature {
+        const feat = this._feat
         const granularity = EXTENT * Math.pow(2, z)
         const tileWest = EXTENT * x
         const tileNorth = EXTENT * y
 
         // Spherical Mercator tile coordinates to WGS84
-        function project(line: PVTGeometry) {
+        function project(line: PVTGeometry): Position[] {
             const len = line.pointsLength()
             const coords = new Array<number[]>(len)
             // we want to loop a full line in the function, since JS can't inline functions
@@ -169,23 +188,52 @@ export class PlanetVectorTileFeature implements VectorTileFeature {
             return coords
         }
 
-        switch (this.type) {
-            case 1: // point
-                const line = this._feat.geometry(0)!
-                const coord = project(line)[0]
-                return {
-                    type: 'Feature',
-                    geometry: {
-                        type: 'Point',
-                        coordinates: coord
-                    },
-                    properties: this.properties
-                }
-            case 2: // line
-                break
-            case 3: // polygon
+        const len = feat.geometryLength()
+        const type = this.type
 
-                break
+        // MultiPoint has one less nesting
+        if (type === 1) {
+            const outerCoordinates = new Array<Position>(len)
+            for (let i = 0; i < len; i++) {
+                const point = project(feat.geometry(i)!)[0]
+                outerCoordinates[i] = point
+            }
+            return {
+                type: 'Feature',
+                geometry: {
+                    type: 'MultiPoint',
+                    coordinates: outerCoordinates
+                },
+                properties: this.properties
+            }
+        } 
+
+        const outerCoordinates = new Array<Position[]>(len)
+        for (let i = 0; i < len; i++) {
+            const innerCoordinates = project(feat.geometry(i)!)
+            outerCoordinates[i] = innerCoordinates
+        }
+
+        if (type === 2) {
+            return {
+                type: 'Feature',
+                geometry: {
+                    type: 'MultiLineString',
+                    coordinates: outerCoordinates
+                },
+                properties: this.properties
+            }
+        }
+
+        // Now we have to figure out winding order to determine which rings are holes.
+        
+        return {
+            type: 'Feature',
+            geometry: {
+                type: 'MultiPolygon',
+                coordinates: outerCoordinates
+            },
+            properties: this.properties
         }
     }
 
