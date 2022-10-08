@@ -1,0 +1,52 @@
+// This flatbuffer defines the contents of a vector tile sent to MapboxGL / MaplibreGL.
+// This satisfies the renderer's internal representation of a vector tile, 
+// rather than the Mapbox Vector Tile protocol buffer format.
+// https://github.com/mapbox/vector-tile-js
+// 
+// We are using the interanl extent for a tile, which is always 8192.
+// https://github.com/maplibre/maplibre-gl-js/blob/028344137fe1676b50b8da2729f1dcb5c8b65eac/src/data/extent.ts
+// https://github.com/maplibre/maplibre-gl-js/blob/028344137fe1676b50b8da2729f1dcb5c8b65eac/src/data/load_geometry.ts
+
+table PVTTile {
+    layers: [PVTLayer];
+    strings: [string];
+    values: [PVTValue];
+}
+
+table PVTLayer {
+    name: uint32;
+    features: [PVTFeature];
+}
+
+table PVTFeature {
+    id: uint64; // OPTIONAL
+    h: uint64;  // REQUIRED hilbert index representing feature
+    // index of string in Tile
+    keys: [uint32];
+    // index of the value in Tile
+    values: [uint32];
+    geometry: [PVTGeometry];
+}
+
+table PVTGeometry {
+    points: [PVTPoint];
+}
+
+struct PVTPoint {
+    x: uint32;
+    y: uint32;
+}
+
+// All the primitives that can be represented in JavaScript
+enum PVTValueType: uint8 {
+    String, Number, Boolean
+}
+
+// Union is not supported in every language.
+// Representing what can be represented in JavaScript.
+struct PVTValue {
+    t: PVTValueType;
+    v: float64; // index to string, otherwise, just coerce the float64
+}
+
+root_type PVTTile;

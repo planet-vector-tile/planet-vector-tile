@@ -7,6 +7,8 @@ version = "0.0.0"
 crate-type = ["cdylib"]
 
 [dependencies]
+fast_hilbert = "1.0.0"
+flatbuffers = "2.1.2"
 # Default enable napi4 feature, see https://nodejs.org/api/n-api.html#node-api-version-matrix
 napi = { version = "2.7.0", default-features = false, features = ["napi4"] }
 napi-derive = "2.7.0"
