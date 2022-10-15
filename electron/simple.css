@@ -1,0 +1,43 @@
+body {
+    margin: 0;
+    padding: 0;
+}
+html,
+body,
+#map {
+    height: 100%;
+}
+#features-panel {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 300px;
+    background: rgba(255, 255, 255, 0.731);
+    display: none;
+}
+#features-panel > button {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    padding: 3px 5px;
+    border-radius: 50%;
+    border: 1px solid;
+    cursor: pointer;
+    font-size: 10px;
+}
+#features-panel > button:hover {
+    color: rgb(249, 84, 24);
+    border-color: rgb(212, 71, 20);
+    background-color: rgba(237, 76, 18, 0.3);
+}
+#features-panel > button:active {
+    color: rgb(78, 23, 3);
+    border-color: rgb(138, 46, 12);
+    background-color: rgba(237, 76, 18, 0.74);
+}
+#features {
+    font-size: 10px;
+    padding: 6px;
+    overflow: auto;
+}
