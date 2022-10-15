@@ -24,7 +24,7 @@ pub fn tile_info(tile: Tile) -> Vec<u8> {
   let values = builder.create_vector::<u32>(&[0, 1, 2, 3]);
   let geometries = builder.create_vector(&[geometry]);
 
-  let feature = PVTFeature::create(
+  let boundary_feature = PVTFeature::create(
     &mut builder,
     &PVTFeatureArgs {
       id: tile.h,
@@ -34,18 +34,39 @@ pub fn tile_info(tile: Tile) -> Vec<u8> {
       geometry: Some(geometries)
     },
   );
-
-  let features = builder.create_vector(&[feature]);
-
-  let layer = PVTLayer::create(
+  let boundary_features = builder.create_vector(&[boundary_feature]);
+  let boundary_layer = PVTLayer::create(
     &mut builder,
     &PVTLayerArgs {
       name: 4,
-      features: Some(features),
+      features: Some(boundary_features),
     },
   );
 
-  let layers = builder.create_vector(&[layer]);
+  let center_point = PVTPoint::new(4096, 4096);
+  let center_path = builder.create_vector(&[center_point]);
+  let center_geom = PVTGeometry::create(&mut builder, &PVTGeometryArgs { points: Some(center_path) });
+  let center_geoms = builder.create_vector(&[center_geom]);
+  let center_feature = PVTFeature::create(
+    &mut builder,
+    &PVTFeatureArgs {
+      id: tile.h,
+      h: tile.h,
+      keys: Some(keys),
+      values: Some(values),
+      geometry: Some(center_geoms)
+    },
+  );
+  let center_features = builder.create_vector(&[center_feature]);
+  let center_layer = PVTLayer::create(
+    &mut builder,
+    &PVTLayerArgs {
+      name: 5,
+      features: Some(center_features),
+    },
+  );
+
+  let layers = builder.create_vector(&[boundary_layer, center_layer]);
 
   let z = PVTValue::new(PVTValueType::Number, tile.z as f64);
   let x = PVTValue::new(PVTValueType::Number, tile.x as f64);
@@ -56,9 +77,10 @@ pub fn tile_info(tile: Tile) -> Vec<u8> {
   let x_str = builder.create_string("x");
   let y_str = builder.create_string("y");
   let h_str = builder.create_string("h");
-  let layer_name_str = builder.create_string("tile_info");
+  let boundary_str = builder.create_string("tile_boundary");
+  let center_str = builder.create_string("tile_center");
 
-  let strings = builder.create_vector(&[z_str, x_str, y_str, h_str, layer_name_str]);
+  let strings = builder.create_vector(&[z_str, x_str, y_str, h_str, boundary_str, center_str]);
   let values = builder.create_vector(&[z, x, y, h]);
 
   let tile = PVTTile::create(
@@ -74,3 +96,4 @@ pub fn tile_info(tile: Tile) -> Vec<u8> {
 
   builder.finished_data().to_vec()
 }
+

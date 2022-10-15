@@ -42,10 +42,22 @@
             "minzoom": 0,
             "maxzoom": 14,
             "source": "planet",
-            "source-layer": "tile_info",
+            "source-layer": "tile_boundary",
             "paint": {
                 "line-color": "#ff69b4",
                 "line-width": 1
+            }
+        },
+        {
+            "id": "tile_center",
+            "type": "circle",
+            "minzoom": 0,
+            "maxzoom": 14,
+            "source": "planet",
+            "source-layer": "tile_center",
+            "paint": {
+                "circle-color": "#ff69b4",
+                "circle-radius": 10
             }
         }
     ]
