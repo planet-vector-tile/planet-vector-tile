@@ -218,9 +218,8 @@ if (!nativeBinding) {
     throw new Error(`Failed to load native binding`);
 }
 
-const { sum, infoTile, loadPlanet, Planet } = nativeBinding;
+const { sum, loadPlanet, Planet } = nativeBinding;
 
 module.exports.sum = sum;
-module.exports.infoTile = infoTile;
 module.exports.loadPlanet = loadPlanet;
 module.exports.Planet = Planet;

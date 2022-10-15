@@ -25,7 +25,7 @@ table PVTFeature {
     keys: [uint32];
     // index of the value in Tile
     values: [uint32];
-    geometry: [PVTGeometry];
+    geometry: [PVTGeometry]; // should rename this to geometries
 }
 
 table PVTGeometry {

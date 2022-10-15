@@ -15,7 +15,8 @@
     "devDependencies": {
         "@napi-rs/cli": "^2.11.4",
         "ava": "^4.3.0",
-        "prettier": "2.7.1"
+        "prettier": "2.7.1",
+        "typescript": "^4.8.4"
     },
     "engines": {
         "node": ">= 16",
@@ -24,8 +25,8 @@
     "scripts": {
         "start": "electron .",
         "artifacts": "napi artifacts",
-        "build": "napi build --platform --release",
-        "build:debug": "napi build --platform",
+        "build": "napi build --platform --release && tsc -p tsconfig.json && prettier --write .",
+        "build:debug": "napi build --platform && tsc -p tsconfig.json && prettier --write .",
         "prepublishOnly": "napi prepublish -t npm",
         "test": "ava",
         "version": "napi version",

@@ -10,7 +10,6 @@ const { app, BrowserWindow } = require('electron');
 // Also
 // https://www.electron.build/
 
-
 function createWindow() {
     const win = new BrowserWindow({
         width: 1100,

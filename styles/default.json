@@ -32,15 +32,22 @@
             "id": "sat",
             "type": "raster",
             "source": "sat",
-            "layout": {
-                "visibility": "visible"
-            },
             "paint": {
                 "raster-opacity": 1
             }
         },
         {
-            "id": "tile-center",
+            "id": "tile_boundary",
+            "type": "line",
+            "source": "planet",
+            "source-layer": "tile_info",
+            "paint": {
+                "line-color": "#f7dccd",
+                "line-width": 2
+            }
+        },
+        {
+            "id": "tile_center",
             "type": "circle",
             "source": "planet",
             "source-layer": "pvt",

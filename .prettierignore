@@ -5,3 +5,4 @@ node_modules
 target
 npm
 maplibre-gl-js
+dist
