@@ -2,11 +2,21 @@ body {
     margin: 0;
     padding: 0;
 }
+
 html,
 body,
 #map {
     height: 100%;
 }
+
+#sat-slider {
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    width: 20px;
+    appearance: slider-vertical;
+}
+
 #features-panel {
     position: absolute;
     top: 0;
@@ -16,6 +26,7 @@ body,
     background: rgba(255, 255, 255, 0.731);
     display: none;
 }
+
 #features-panel > button {
     position: absolute;
     top: 4px;
@@ -26,16 +37,19 @@ body,
     cursor: pointer;
     font-size: 10px;
 }
+
 #features-panel > button:hover {
     color: rgb(249, 84, 24);
     border-color: rgb(212, 71, 20);
     background-color: rgba(237, 76, 18, 0.3);
 }
+
 #features-panel > button:active {
     color: rgb(78, 23, 3);
     border-color: rgb(138, 46, 12);
     background-color: rgba(237, 76, 18, 0.74);
 }
+
 #features {
     font-size: 10px;
     padding: 6px;
