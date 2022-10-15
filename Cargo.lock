@@ -224,9 +224,9 @@ dependencies = [
 
 [[package]]
 name = "napi"
-version = "2.9.1"
+version = "2.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "743fece4c26c5132f8559080145fde9ba88700c0f1aa30a1ab3e057ab105814d"
+checksum = "bace9a4026eaa6631804e2ff9030c47beb0483fbb12dc17950fe1530c4961f84"
 dependencies = [
  "bitflags",
  "ctor",
@@ -339,22 +339,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8b870d8c151b6f2fb93e84a13146138f05d02ed11c7e7c54f8826aaaf7c9f184"
 
 [[package]]
-name = "planet-vector-tile_planet_node"
+name = "planet-vector-tile"
 version = "0.0.0"
 dependencies = [
+ "fast_hilbert",
+ "flatbuffers",
  "futures",
  "napi",
  "napi-build",
  "napi-derive",
- "planet_core",
-]
-
-[[package]]
-name = "planet_core"
-version = "0.1.0"
-dependencies = [
- "fast_hilbert",
- "flatbuffers",
 ]
 
 [[package]]
@@ -443,9 +436,9 @@ dependencies = [
 
 [[package]]
 name = "syn"
-version = "1.0.101"
+version = "1.0.102"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e90cde112c4b9690b8cbe810cba9ddd8bc1d7472e2cae317b69e9438c1cba7d2"
+checksum = "3fcd952facd492f9be3ef0d0b7032a6e442ee9b361d4acc2b1d0c4aaa5f613a1"
 dependencies = [
  "proc-macro2",
  "quote",

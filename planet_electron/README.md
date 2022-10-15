@@ -1,3 +1,0 @@
-# electron
-
-Electron desktop app.

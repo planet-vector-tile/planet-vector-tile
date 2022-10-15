@@ -1,0 +1,69 @@
+{
+    "version": 8,
+    "name": "Default",
+    "center": [0, 0],
+    "zoom": 0,
+    "bearing": 0,
+    "pitch": 0,
+    "glyphs": "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
+    "sources": {
+        "sat": {
+            "type": "raster",
+            "tiles": ["https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"],
+            "minzoom": 0,
+            "maxzoom": 23
+        },
+        "planet": {
+            "type": "planet",
+            "tiles": ["unimplemented"],
+            "minzoom": 0,
+            "maxzoom": 23
+        }
+    },
+    "layers": [
+        {
+            "id": "background",
+            "type": "background",
+            "maxzoom": 24,
+            "paint": {
+                "background-color": "#f7f1cd"
+            }
+        },
+        {
+            "id": "sat",
+            "type": "raster",
+            "source": "sat",
+            "paint": {
+                "raster-opacity": 1
+            }
+        },
+        {
+            "id": "tile_boundary",
+            "type": "line",
+            "minzoom": 0,
+            "maxzoom": 23,
+            "source": "planet",
+            "source-layer": "tile_boundary",
+            "paint": {
+                "line-color": "#ff69b4",
+                "line-width": 2
+            }
+        },
+        {
+            "id": "tile_center_label",
+            "type": "symbol",
+            "minzoom": 0,
+            "maxzoom": 23,
+            "source": "planet",
+            "source-layer": "tile_center",
+            "layout": {
+                "text-font": ["Open Sans Semibold"],
+                "text-field": "{h}",
+                "text-size": 64   
+            },
+            "paint": {
+                "text-color": "#ff69b4"
+            }
+        }
+    ]
+}

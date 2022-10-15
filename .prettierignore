@@ -1,0 +1,8 @@
+package-lock.json
+build
+coverage
+node_modules
+target
+npm
+maplibre-gl-js
+dist
