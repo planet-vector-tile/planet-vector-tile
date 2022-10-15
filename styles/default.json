@@ -5,6 +5,7 @@
     "zoom": 0,
     "bearing": 0,
     "pitch": 0,
+    "glyphs": "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
     "sources": {
         "sat": {
             "type": "raster",
@@ -16,7 +17,7 @@
             "type": "planet",
             "tiles": ["unimplemented"],
             "minzoom": 0,
-            "maxzoom": 14
+            "maxzoom": 23
         }
     },
     "layers": [
@@ -40,24 +41,28 @@
             "id": "tile_boundary",
             "type": "line",
             "minzoom": 0,
-            "maxzoom": 14,
+            "maxzoom": 23,
             "source": "planet",
             "source-layer": "tile_boundary",
             "paint": {
                 "line-color": "#ff69b4",
-                "line-width": 1
+                "line-width": 2
             }
         },
         {
-            "id": "tile_center",
-            "type": "circle",
+            "id": "tile_center_label",
+            "type": "symbol",
             "minzoom": 0,
-            "maxzoom": 14,
+            "maxzoom": 23,
             "source": "planet",
             "source-layer": "tile_center",
+            "layout": {
+                "text-font": ["Open Sans Semibold"],
+                "text-field": "{h}",
+                "text-size": 64   
+            },
             "paint": {
-                "circle-color": "#ff69b4",
-                "circle-radius": 10
+                "text-color": "#ff69b4"
             }
         }
     ]
