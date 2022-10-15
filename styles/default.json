@@ -39,21 +39,13 @@
         {
             "id": "tile_boundary",
             "type": "line",
+            "minzoom": 0,
+            "maxzoom": 14,
             "source": "planet",
             "source-layer": "tile_info",
             "paint": {
-                "line-color": "#f7dccd",
-                "line-width": 2
-            }
-        },
-        {
-            "id": "tile_center",
-            "type": "circle",
-            "source": "planet",
-            "source-layer": "pvt",
-            "paint": {
-                "circle-color": "rgba(14, 236, 183, 1)",
-                "circle-radius": 10
+                "line-color": "#ff69b4",
+                "line-width": 1
             }
         }
     ]

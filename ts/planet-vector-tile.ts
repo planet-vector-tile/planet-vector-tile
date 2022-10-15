@@ -37,6 +37,10 @@ export class PlanetVectorTile implements VectorTile {
     }
 }
 
+// https://github.com/maplibre/maplibre-gl-js/blob/028344137fe1676b50b8da2729f1dcb5c8b65eac/src/data/extent.ts
+type Extent = 8196;
+const EXTENT: Extent = 8196;
+
 export class PlanetVectorTileLayer implements VectorTileLayer {
     _tile: PVTTile;
     _layer: PVTLayer;
@@ -44,14 +48,16 @@ export class PlanetVectorTileLayer implements VectorTileLayer {
 
     version?: number | undefined;
     name: string;
-    extent: number;
+    extent: Extent;
     length: number;
 
     constructor(tile: PVTTile, layer: PVTLayer, name: string) {
         this._tile = tile;
         this._layer = layer;
-        this._features = new Array(layer.featuresLength());
+        this.length = layer.featuresLength();
+        this._features = new Array(this.length);
         this.name = name;
+        this.extent = EXTENT;
     }
 
     feature(featureIndex: number): VectorTileFeature {
@@ -64,10 +70,6 @@ export class PlanetVectorTileLayer implements VectorTileLayer {
         return feat;
     }
 }
-
-// https://github.com/maplibre/maplibre-gl-js/blob/028344137fe1676b50b8da2729f1dcb5c8b65eac/src/data/extent.ts
-type Extent = 8196;
-const EXTENT: Extent = 8196;
 
 export class PlanetVectorTileFeature implements VectorTileFeature {
     extent: Extent;
