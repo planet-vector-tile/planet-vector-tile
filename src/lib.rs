@@ -40,6 +40,10 @@ impl Planet {
     }
   }
 
+  // Try using AsyncTask to create a Buffer
+  // https://napi.rs/docs/concepts/async-task
+  // https://github.com/napi-rs/napi-rs/blob/main/examples/napi/src/task.rs
+  // https://github.com/napi-rs/napi-rs/blob/a12bdc4359dfaff191d1fd124bc5b28e0d90f1bb/crates/napi/src/env.rs#L397
   #[napi]
   pub async fn tile(&self, z: u8, x: u32, y: u32) -> Result<Vec<u8>> {
     let p = self.path.clone();

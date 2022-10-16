@@ -59,7 +59,7 @@
             "layout": {
                 "text-font": ["Open Sans Semibold"],
                 "text-field": "{h}",
-                "text-size": 64   
+                "text-size": 64
             },
             "paint": {
                 "text-color": "#ff69b4"
