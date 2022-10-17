@@ -45,14 +45,13 @@ impl Planet {
   // https://github.com/napi-rs/napi-rs/blob/main/examples/napi/src/task.rs
   // https://github.com/napi-rs/napi-rs/blob/a12bdc4359dfaff191d1fd124bc5b28e0d90f1bb/crates/napi/src/env.rs#L397
   #[napi]
-  pub async fn tile(&self, z: u8, x: u32, y: u32) -> Result<Vec<u8>> {
+  pub async fn tile(&self, z: u8, x: u32, y: u32) -> Result<Uint8Array> {
     let p = self.path.clone();
     tokio::task::spawn(async move { 
-      let t = Tile::from_zxy(z, x, y);
-      let buf = tile_info(t);
-      Ok(buf)
+      let tile = Tile::from_zxy(z, x, y);
+      let vec_u8 = tile_info(tile);
+      Ok(vec_u8.into())
     }).await.unwrap()
-  
   }
 
   #[napi]

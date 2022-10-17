@@ -12,11 +12,7 @@ export class PlanetVectorTile implements VectorTile {
     _tile: PVTTile;
     _layers: { [_: string]: VectorTileLayer } | undefined;
 
-    // TODO Only support Uint8Array
-    constructor(arr: Uint8Array | Array<number>) {
-        if (Array.isArray(arr)) {
-            arr = Uint8Array.from(arr);
-        }
+    constructor(arr: Uint8Array) {
         const buffer = new ByteBuffer(arr);
         this._tile = PVTTile.getRootAsPVTTile(buffer);
     }

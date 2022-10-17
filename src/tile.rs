@@ -49,16 +49,16 @@ impl Tile {
     //     54 as u64
     // }
 
-    pub fn children(&self) -> [Tile] {
-        let z = self.z + 1;
-        let w = self.x * 2;
-        let n = self.y * 2;
-        let nw = Self::from_zxy(z, w, n);
-        let sw = Self::from_zxy(z, w, n + 1);
-        let se = Self::from_zxy(z, w + 1, n + 1);
-        let ne = Self::from_zxy(z, w + 1, n);
-        return [nw, sw, se, ne];
-    }
+    // pub fn children(&self) -> [Tile] {
+    //     let z = self.z + 1;
+    //     let w = self.x * 2;
+    //     let n = self.y * 2;
+    //     let nw = Self::from_zxy(z, w, n);
+    //     let sw = Self::from_zxy(z, w, n + 1);
+    //     let se = Self::from_zxy(z, w + 1, n + 1);
+    //     let ne = Self::from_zxy(z, w + 1, n);
+    //     return [nw, sw, se, ne];
+    // }
 
 
 }

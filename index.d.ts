@@ -7,6 +7,6 @@ export function sum(a: number, b: number): number;
 export function loadPlanet(path: string, minzoom: number, maxzoom: number): Planet;
 export class Planet {
     constructor(path: string, minzoom: number, maxzoom: number);
-    tile(z: number, x: number, y: number): Promise<Array<number>>;
+    tile(z: number, x: number, y: number): Promise<Uint8Array>;
     static asyncMultiTwo(arg: number): Promise<number>;
 }
