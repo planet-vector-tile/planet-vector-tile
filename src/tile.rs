@@ -1,20 +1,14 @@
 use fast_hilbert::{h2xy, xy2h};
 
-// max u32 is 4,294,967,296 (2^32)
+// The max u32 is 4,294,967,295 (2^32),
+// so the unit location tile would be zoom 32.
 
-
-// u32 for x y is a unit location representation at zoom 16
-// 4 ^ 16 = 4,294,967,296
-// u32 max is 4,294,967,295
-
-// In MapboxGL, the max extent for a tile is 8192 (13 bit integer)
+// In MapboxGL, the max extent for a tile is 8192 (13 bit unsigned integer)
 // 4,294,967,296 / 8192 = 524,288
+// 2^9 = 524,288 , so zoom 9 and above does not quantize coordinates
+// Zooms 8 and below do quantize coordinates.
 
-// 4 ^ 10 = 1,048,576       1,048,576 * 8192 = 8,589,934,592    too big
-// 4 ^ 9  = 262,144         262,144   * 8192 = 2,147,483,648    too small
-// Any unit location at zoom 10 or above is not quantized.
-
-
+#[derive(Debug, Copy, Clone)]
 pub struct Tile {
     pub z: u8,
     pub x: u32,
@@ -33,39 +27,64 @@ impl Tile {
         Self { z, x, y, h }
     }
 
+    pub fn at_zoom(&self, z: u8) -> Tile {
+        if z == self.z {
+            self.clone()
+        } else if z > self.z {
+            let multiplier = 2u32.pow((z - self.z) as u32);
+            let x = self.x * multiplier;
+            let y = self.y * multiplier;
+            Tile::from_zxy(z, x, y)
+        } else {
+            let divisor = 2u32.pow((self.z - z) as u32);
+            let x = self.x / divisor;
+            let y = self.y / divisor;
+            Tile::from_zxy(z, x, y)
+        }
+    }
+
     // The origin is the Northwest corner.
-    // The location is the xy at zoom 16.
+    // The location is the mercator xy at zoom 32.
     // You can think of the returned tile as the
     // "Location Tile".
-    // pub fn origin_location() -> Tile {
+    pub fn origin_location(&self) -> Tile {
+        self.at_zoom(32)
+    }
 
-    // }
+    pub fn center_location(&self) -> Tile {
+        let z_delta = (32 - self.z) as u32;
+        let mult = 2u32.pow(z_delta);
+        let half_tile_size = 4096 * mult;
+        let origin = self.origin_location();
+        Tile::from_zxy(32, origin.x + half_tile_size, origin.y + half_tile_size)
+    }
 
-    // pub fn center_location() -> Tile {
+    pub fn children(&self) -> [Tile; 4] {
+        let z = self.z + 1;
+        let w = self.x * 2;
+        let n = self.y * 2;
+        let nw = Tile::from_zxy(z, w, n);
+        let sw = Tile::from_zxy(z, w, n + 1);
+        let se = Tile::from_zxy(z, w + 1, n + 1);
+        let ne = Tile::from_zxy(z, w + 1, n);
+        [nw, sw, se, ne]
+    }
 
-    // }
-
-    // pub fn hilbert_at_zoom(z: u8) -> u64 {
-    //     54 as u64
-    // }
-
-    // pub fn children(&self) -> [Tile] {
-    //     let z = self.z + 1;
-    //     let w = self.x * 2;
-    //     let n = self.y * 2;
-    //     let nw = Self::from_zxy(z, w, n);
-    //     let sw = Self::from_zxy(z, w, n + 1);
-    //     let se = Self::from_zxy(z, w + 1, n + 1);
-    //     let ne = Self::from_zxy(z, w + 1, n);
-    //     return [nw, sw, se, ne];
-    // }
-
-
-}
-
-pub struct BBox {
-    w: u32,
-    s: u32,
-    e: u32,
-    n: u32
+    pub fn descendents(&self, levels: u8) -> Vec<Tile> {
+        let mut desc = Vec::new();
+        if levels == 0 {
+            return desc;
+        }
+        let mut children = Vec::from(self.children());
+        desc.append(&mut children);
+        let mut q = children.clone();
+        for tile in q.pop() {
+            let children = tile.children();
+            desc.append(&mut Vec::from(children));
+            if tile.z <= self.z + levels {
+                q.append(&mut Vec::from(children));
+            }
+        }
+        desc
+    }
 }
