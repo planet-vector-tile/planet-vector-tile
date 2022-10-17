@@ -1,5 +1,20 @@
 use fast_hilbert::{h2xy, xy2h};
 
+// max u32 is 4,294,967,296 (2^32)
+
+
+// u32 for x y is a unit location representation at zoom 16
+// 4 ^ 16 = 4,294,967,296
+// u32 max is 4,294,967,295
+
+// In MapboxGL, the max extent for a tile is 8192 (13 bit integer)
+// 4,294,967,296 / 8192 = 524,288
+
+// 4 ^ 10 = 1,048,576       1,048,576 * 8192 = 8,589,934,592    too big
+// 4 ^ 9  = 262,144         262,144   * 8192 = 2,147,483,648    too small
+// Any unit location at zoom 10 or above is not quantized.
+
+
 pub struct Tile {
     pub z: u8,
     pub x: u32,
@@ -18,52 +33,39 @@ impl Tile {
         Self { z, x, y, h }
     }
 
-    pub fn hilbert() -> u64 {
-        45 as u64
+    // The origin is the Northwest corner.
+    // The location is the xy at zoom 16.
+    // You can think of the returned tile as the
+    // "Location Tile".
+    // pub fn origin_location() -> Tile {
+
+    // }
+
+    // pub fn center_location() -> Tile {
+
+    // }
+
+    // pub fn hilbert_at_zoom(z: u8) -> u64 {
+    //     54 as u64
+    // }
+
+    pub fn children(&self) -> [Tile] {
+        let z = self.z + 1;
+        let w = self.x * 2;
+        let n = self.y * 2;
+        let nw = Self::from_zxy(z, w, n);
+        let sw = Self::from_zxy(z, w, n + 1);
+        let se = Self::from_zxy(z, w + 1, n + 1);
+        let ne = Self::from_zxy(z, w + 1, n);
+        return [nw, sw, se, ne];
     }
 
-    pub fn hilbert_at_zoom(z: u8) -> u64 {
-        54 as u64
-    }
+
 }
 
-pub struct HilbertTile {
-    pub z: u8,
-    pub h: u64,
-}
-
-impl HilbertTile {
-    pub fn new(z: u8, h: u64) -> Self {
-        Self { z, h }
-    }
-
-    fn index_for_zoom(z: u8) -> u64 {
-        z as u64
-    }
-}
-
-impl From<ZXYTile> for HilbertTile {
-    fn from(tile: ZXYTile) -> Self {
-        let h = xy2h(tile.x, tile.y);
-        Self { z: tile.z, h }
-    }
-}
-
-pub struct ZXYTile {
-    pub z: u8,
-    pub x: u32,
-    pub y: u32,
-}
-
-impl ZXYTile {
-    pub fn new(z: u8, x: u32, y: u32) -> Self {
-        Self { z, x, y }
-    }
-}
-
-impl From<HilbertTile> for ZXYTile {
-    fn from(tile: HilbertTile) -> Self {
-        let (x, y) = h2xy(tile.h);
-        Self { z: tile.z, x, y }
-    }
+pub struct BBox {
+    w: u32,
+    s: u32,
+    e: u32,
+    n: u32
 }

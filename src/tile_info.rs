@@ -96,4 +96,3 @@ pub fn tile_info(tile: Tile) -> Vec<u8> {
 
   builder.finished_data().to_vec()
 }
-
