@@ -58,6 +58,16 @@ impl Tile {
         self.at_zoom(32)
     }
 
+    // We love Antarctica, but x gets truncated beyond zoom 27
+    pub fn id(&self) -> u64 {
+        // z gets 5 bits, max 32
+        // x gets 27 bits, max 134217728
+        // y gets 32 bits, max 4294967296
+        let x64 = self.x as u64;
+        let x = if x64 > 134217728 { 134217728 } else { x64 };
+        (self.z as u64) << 59 | x << 32 | self.y as u64
+    }
+
     // The Northwest corner of the tile in location space.
     pub fn origin_location(&self) -> PVTPoint {
         if self.z == 32 {
@@ -163,4 +173,19 @@ pub struct BBox {
     nw: PVTPoint,
     // max
     se: PVTPoint
+}
+
+impl BBox {
+    pub fn nw(&self) -> PVTPoint {
+        self.nw
+    }
+    pub fn sw(&self) -> PVTPoint {
+        PVTPoint::new(self.nw.x(), self.se.y())
+    }
+    pub fn se(&self) -> PVTPoint {
+        self.se
+    }
+    pub fn ne(&self) -> PVTPoint {
+        PVTPoint::new(self.se.x(), self.nw.y())
+    }
 }

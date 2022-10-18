@@ -13,7 +13,7 @@ use crate::tile::{Tile, BBox};
 pub struct InfoTile<'fbb> {
     tile: Tile,
     builder: FlatBufferBuilder<'fbb>,
-    info_tiles: Vec<Tile>
+    tile_tree: Vec<Tile>
 }
 
 impl<'fbb> InfoTile<'fbb> {
@@ -22,12 +22,28 @@ impl<'fbb> InfoTile<'fbb> {
         InfoTile { 
             tile,
             builder: FlatBufferBuilder::new(),
-            info_tiles: Vec::<Tile>::new()
+            tile_tree: tile.tree(levels)
          }
     }
 
     pub fn buffer(&self) -> Vec<u8> {
+        for t in &self.tile_tree {
+            self.generate_info(t);
+        }
         Vec::<u8>::new()
+    }
+
+    fn generate_info(&mut self, tile: &Tile) {
+
+        // Create bbox geometry
+        let bbox = tile.bbox();
+        let nw = self.tile.project(bbox.nw());
+        let sw = self.tile.project(bbox.sw());
+        let se = self.tile.project(bbox.se());
+        let ne = self.tile.project(bbox.ne());
+        let path = self.builder.create_vector(&[nw, sw, se, ne, nw]);
+        let geometry = PVTGeometry::create(&mut self.builder, &PVTGeometryArgs { points: Some(path) });
+        let geometries = self.builder.create_vector(&[geometry]);
     }
 }
 
