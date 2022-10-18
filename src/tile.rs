@@ -1,4 +1,8 @@
 use fast_hilbert::{h2xy, xy2h};
+use std::ops;
+
+// Look into using simd...
+// use std::simd::u32x2;
 
 // The max u32 is 4,294,967,295 (2^32),
 // so the unit location tile would be zoom 32.
@@ -31,14 +35,14 @@ impl Tile {
         if z == self.z {
             self.clone()
         } else if z > self.z {
-            let multiplier = 2u32.pow((z - self.z) as u32);
-            let x = self.x * multiplier;
-            let y = self.y * multiplier;
+            let shift = (z - self.z) as u32;
+            let x = self.x << shift;
+            let y = self.y << shift;
             Tile::from_zxy(z, x, y)
         } else {
-            let divisor = 2u32.pow((self.z - z) as u32);
-            let x = self.x / divisor;
-            let y = self.y / divisor;
+            let shift = (z - self.z) as u32;
+            let x = self.x >> shift;
+            let y = self.y >> shift;
             Tile::from_zxy(z, x, y)
         }
     }
@@ -54,8 +58,7 @@ impl Tile {
     // The extent of a tile on an axis at z32.
     pub fn location_extent(&self) -> u32 {
         let z_delta = (32 - self.z) as u32;
-        let mult = 2u32.pow(z_delta);
-        8192 * mult
+        8192 << z_delta
     }
 
     pub fn center_location(&self) -> Tile {
@@ -97,24 +100,52 @@ impl Tile {
         let origin = self.origin_location();
         let extent = self.location_extent();
         BBox {
-            nw: Point {
-                x: origin.x,
-                y: origin.y
-            },
-            se: Point {
-                x: origin.x + extent,
-                y: origin.y + extent
-            }
+            w: origin.x,
+            n: origin.y,
+            e: origin.x + extent,
+            s: origin.y + extent
         }
     }
+
+    pub fn project(&self, point: &Point) {
+        let shift = 32 - self.z as u32;
+        
+    }
+
 }
 
+pub struct BBox {
+    w: u32,
+    n: u32,
+    e: u32,
+    s: u32
+}
+
+// look into using simd
 pub struct Point {
     x: u32,
     y: u32
 }
 
-pub struct BBox {
-    nw: Point,
-    se: Point
+impl Point {
+    pub fn new(x: u32, y: u32) -> Self {
+        Point {
+            x,
+            y
+        }
+    }
+}
+
+impl ops::Add<Point> for Tile {
+    type Output = Point;
+    fn add(self, _rhs: Point) -> Point {
+        Point::new(self.x + _rhs.x, self.y + _rhs.y)
+    }
+}
+
+impl ops::Sub<Point> for Tile {
+    type Output = Point;
+    fn sub(self, _rhs: Point) -> Point {
+        Point::new(self.x - _rhs.x, self.y - _rhs.y)
+    }
 }
