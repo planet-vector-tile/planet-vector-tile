@@ -12,14 +12,17 @@ use crate::tile::{Tile, BBox};
 
 pub struct InfoTile<'fbb> {
     tile: Tile,
-    builder: FlatBufferBuilder<'fbb>
+    builder: FlatBufferBuilder<'fbb>,
+    info_tiles: Vec<Tile>
 }
 
 impl<'fbb> InfoTile<'fbb> {
-    pub fn new(tile: Tile) -> Self {
+    pub fn new(tile: Tile, child_levels: Option<u8>) -> Self {
+        let levels = child_levels.unwrap_or(3);
         InfoTile { 
             tile,
-            builder: FlatBufferBuilder::new()
+            builder: FlatBufferBuilder::new(),
+            info_tiles: Vec::<Tile>::new()
          }
     }
 

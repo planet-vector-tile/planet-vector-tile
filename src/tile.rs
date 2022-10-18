@@ -83,6 +83,10 @@ impl Tile {
         PVTPoint::new(origin.x() + half_extent, origin.y() + half_extent)
     }
 
+    pub fn parent(&self) -> Tile {
+        Tile::from_zxy(self.z - 1, self.x >> 1, self.y >> 1)
+    }
+
     pub fn children(&self) -> [Tile; 4] {
         let z = self.z + 1;
         let w = self.x * 2;
@@ -94,26 +98,38 @@ impl Tile {
         [nw, sw, se, ne]
     }
 
-    pub fn descendants(&self, levels: u8) -> Vec<Tile> {
-        let mut desc = vec![];
-        if levels == 0 {
-            return desc;
+    pub fn descendants(&self, child_levels: u8) -> Vec<Tile> {
+        if child_levels == 0 {
+            return Vec::<Tile>::new();
         }
-        let mut children = Vec::from(self.children());
-        desc.append(&mut children);
-        let mut q = children.clone();
-        for tile in q.pop() {
-            let children = tile.children();
+        let children = Vec::from(self.children());
+        let mut desc = children.clone();
+        let mut q = children;
+        for t in q.pop() {
+            let children = t.children();
             desc.append(&mut Vec::from(children));
-            if tile.z <= self.z + levels {
+            if t.z <= self.z + child_levels {
                 q.append(&mut Vec::from(children));
             }
         }
         desc
     }
 
-    pub fn tree(&self, levels: u8) -> Vec<Tile> {
-        self.descendants(levels)
+    pub fn tree(&self, child_levels: u8) -> Vec<Tile> {
+        if self.z == 0 {
+            return Vec::<Tile>::new();
+        }
+
+        // Get parents
+        let mut t = self.clone();
+        let mut tree = vec![t];
+        for _ in self.z..1 {
+            tree.push(t);
+            t = t.parent();
+        }
+        tree.reverse();
+        tree.append(&mut self.descendants(child_levels));
+        tree
     }
 
     pub fn bbox(&self) -> BBox {
