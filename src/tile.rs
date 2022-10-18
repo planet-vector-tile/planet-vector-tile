@@ -70,8 +70,8 @@ impl Tile {
         [nw, sw, se, ne]
     }
 
-    pub fn descendents(&self, levels: u8) -> Vec<Tile> {
-        let mut desc = Vec::new();
+    pub fn descendants(&self, levels: u8) -> Vec<Tile> {
+        let mut desc = vec![self.clone()];
         if levels == 0 {
             return desc;
         }
