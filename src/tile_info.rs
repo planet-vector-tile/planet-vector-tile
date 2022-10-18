@@ -1,4 +1,6 @@
-use flatbuffers::FlatBufferBuilder;
+use std::collections::HashMap;
+
+use flatbuffers::{FlatBufferBuilder, WIPOffset};
 
 #[allow(dead_code, unused_imports)]
 #[path = "./fbs/planet_vector_tile_generated.rs"]
@@ -6,23 +8,29 @@ mod planet_vector_tile_generated;
 
 use planet_vector_tile_generated::*;
 
-use crate::tile::Tile;
+use crate::tile::{Tile, Point};
 
-pub fn info(tile: Tile) -> Vec<u8> {}
+// pub fn info(tile: Tile) -> Vec<u8> {}
 
-fn tile(builder: &FlatBufferBuilder, tile: &Tile) {
-    let bbox = tile.bbox();
-    let center = tile.center();
-    let proj = tile.project_bbox(&bbox);
+// fn tile(builder: &mut FlatBufferBuilder, tile: &Tile) {
+//     let bbox = tile.bbox();
+//     let center = tile.center();
+//     let proj_bbox = tile.project_bbox(&bbox);
+//     let proj_center = tile.project(&center);
 
-    let nw = PVTPoint::new(proj.w, proj.n);
-    let sw = PVTPoint::new(proj.w, proj.s);
-    let se = PVTPoint::new(proj.e, proj.s);
-    let ne = PVTPoint::new(proj.e, proj.n);
+//     let nw = PVTPoint::new(proj_bbox.w, proj_bbox.n);
+//     let sw = PVTPoint::new(proj_bbox.w, proj_bbox.s);
+//     let se = PVTPoint::new(proj_bbox.e, proj_bbox.s);
+//     let ne = PVTPoint::new(proj_bbox.e, proj_bbox.n);
+//     // let center = PVTPoint::new(proj_center.x, proj_center.y);
 
-    let path = builder.create_vector(&[nw, sw, se, ne, nw]);
-    let geometry = PVTGeometry::create(&mut builder, &PVTGeometryArgs { points: Some(path) });
-}
+//     let bbox_geom = create_simple_geometry(&mut builder, &[nw, sw, se, ne, nw]);
+// }
+
+// fn create_simple_geometry<'a>(builder: &'a mut FlatBufferBuilder, points: &'a [Point]) -> WIPOffset<PVTGeometry<'a>> {
+//     let path = builder.create_vector(points);
+//     PVTGeometry::create(builder, &PVTGeometryArgs { points: Some(path) })
+// }
 
 pub fn tile_info(tile: Tile) -> Vec<u8> {
     let mut builder = FlatBufferBuilder::with_capacity(1024);

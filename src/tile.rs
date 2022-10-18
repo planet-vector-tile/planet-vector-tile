@@ -59,10 +59,10 @@ impl Tile {
         8192 << z_delta
     }
 
-    pub fn center(&self) -> Tile {
+    pub fn center(&self) -> Point {
         let extent = self.extent() / 2;
         let origin = self.origin();
-        Tile::from_zxy(32, origin.x + extent, origin.y + extent)
+        Point::new(origin.x + extent, origin.y + extent)
     }
 
     pub fn children(&self) -> [Tile; 4] {
@@ -151,10 +151,6 @@ impl BBox {
 
     pub fn ne(&self) -> Point {
         Point::new(self.e, self.n)
-    }
-
-    pub fn nw(&self) -> Point {
-        Point::new(self.w, self.n)
     }
 }
 
