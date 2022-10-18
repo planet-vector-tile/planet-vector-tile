@@ -48,22 +48,20 @@ impl Tile {
     }
 
     // The origin is the Northwest corner.
-    // The location is the mercator xy at zoom 32.
-    // You can think of the returned tile as the
-    // "Location Tile".
-    pub fn origin_location(&self) -> Tile {
+    // This is the coordinate of the tile in location space (zoom 32).
+    pub fn origin(&self) -> Tile {
         self.at_zoom(32)
     }
 
-    // The extent of a tile on an axis at z32.
-    pub fn location_extent(&self) -> u32 {
+    // The extent of a tile in location space
+    pub fn extent(&self) -> u32 {
         let z_delta = (32 - self.z) as u32;
         8192 << z_delta
     }
 
-    pub fn center_location(&self) -> Tile {
-        let extent = self.location_extent() / 2;
-        let origin = self.origin_location();
+    pub fn center(&self) -> Tile {
+        let extent = self.extent() / 2;
+        let origin = self.origin();
         Tile::from_zxy(32, origin.x + extent, origin.y + extent)
     }
 
@@ -97,8 +95,8 @@ impl Tile {
     }
 
     pub fn bbox(&self) -> BBox {
-        let origin = self.origin_location();
-        let extent = self.location_extent();
+        let origin = self.origin();
+        let extent = self.extent();
         BBox {
             w: origin.x,
             n: origin.y,
@@ -107,9 +105,13 @@ impl Tile {
         }
     }
 
-    pub fn project(&self, point: &Point) {
+    // Projects a point from location space to tile space.
+    pub fn project(&self, point: &Point) -> Point {
         let shift = 32 - self.z as u32;
-        
+        let extent = self.extent();
+        let tile_x = point.x - self.x * extent;
+        let tile_y = point.y - self.y * extent;
+        Point::new(tile_x >> shift, tile_y >> shift)
     }
 
 }
