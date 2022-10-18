@@ -2,7 +2,7 @@ use fast_hilbert::{h2xy, xy2h};
 
 #[allow(dead_code, unused_imports)]
 #[path = "./fbs/planet_vector_tile_generated.rs"]
-mod planet_vector_tile_generated;
+pub mod planet_vector_tile_generated;
 use planet_vector_tile_generated::*;
 
 // Look into using simd...
@@ -58,14 +58,13 @@ impl Tile {
         self.at_zoom(32)
     }
 
-    // We love Antarctica, but x gets truncated beyond zoom 27
+    // We love Antarctica, but the id may modulus over at a very high zoom.
     pub fn id(&self) -> u64 {
-        // z gets 5 bits, max 32
-        // x gets 27 bits, max 134217728
-        // y gets 32 bits, max 4294967296
-        let x64 = self.x as u64;
-        let x = if x64 > 134217728 { 134217728 } else { x64 };
-        (self.z as u64) << 59 | x << 32 | self.y as u64
+        // z gets 5 bits, max 31
+        // h gets 59 bits, max 576460752303423487
+        let z = self.z as u64;
+        let h = if self.h > 576460752303423487 { self.h % 576460752303423487 } else { self.h };
+        z << 59 | h
     }
 
     // The Northwest corner of the tile in location space.

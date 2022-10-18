@@ -1,39 +1,35 @@
-use std::collections::HashMap;
+use flatbuffers::{FlatBufferBuilder};
 
-use flatbuffers::{FlatBufferBuilder, WIPOffset};
+use crate::tile::planet_vector_tile_generated::*;
 
-#[allow(dead_code, unused_imports)]
-#[path = "./fbs/planet_vector_tile_generated.rs"]
-mod planet_vector_tile_generated;
+use crate::tile::Tile;
+use crate::tile_attributes::TileAttributes;
 
-use planet_vector_tile_generated::*;
-
-use crate::tile::{Tile, BBox};
-
-pub struct InfoTile<'fbb> {
+pub struct InfoTile {
     tile: Tile,
-    builder: FlatBufferBuilder<'fbb>,
-    tile_tree: Vec<Tile>
+    tile_tree: Vec<Tile>,
+    attributes: TileAttributes,
 }
 
-impl<'fbb> InfoTile<'fbb> {
+impl InfoTile {
     pub fn new(tile: Tile, child_levels: Option<u8>) -> Self {
-        let levels = child_levels.unwrap_or(3);
+        let levels = child_levels.unwrap_or(4);
         InfoTile { 
             tile,
-            builder: FlatBufferBuilder::new(),
-            tile_tree: tile.tree(levels)
+            tile_tree: tile.tree(levels),
+            attributes: TileAttributes::new()
          }
     }
 
-    pub fn buffer(&self) -> Vec<u8> {
-        for t in &self.tile_tree {
-            self.generate_info(t);
+    pub fn build_buffer(&self) -> Vec<u8> {
+        let mut builder = FlatBufferBuilder::new();
+        for tile in &self.tile_tree {
+            self.generate_info(&mut builder, tile);
         }
         Vec::<u8>::new()
     }
 
-    fn generate_info(&mut self, tile: &Tile) {
+    fn generate_info(&self, builder: &mut FlatBufferBuilder, tile: &Tile) {
 
         // Create bbox geometry
         let bbox = tile.bbox();
@@ -41,9 +37,11 @@ impl<'fbb> InfoTile<'fbb> {
         let sw = self.tile.project(bbox.sw());
         let se = self.tile.project(bbox.se());
         let ne = self.tile.project(bbox.ne());
-        let path = self.builder.create_vector(&[nw, sw, se, ne, nw]);
-        let geometry = PVTGeometry::create(&mut self.builder, &PVTGeometryArgs { points: Some(path) });
-        let geometries = self.builder.create_vector(&[geometry]);
+        let path = builder.create_vector(&[nw, sw, se, ne, nw]);
+        let geometry = PVTGeometry::create(builder, &PVTGeometryArgs { points: Some(path) });
+        let geometries = builder.create_vector(&[geometry]);
+
+
     }
 }
 

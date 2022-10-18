@@ -2,6 +2,7 @@
 
 pub mod tile;
 pub mod info_tile;
+pub mod tile_attributes;
 
 #[macro_use]
 extern crate napi_derive;
