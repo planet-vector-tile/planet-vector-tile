@@ -101,7 +101,7 @@ impl Tile {
             w: origin.x,
             n: origin.y,
             e: origin.x + extent,
-            s: origin.y + extent
+            s: origin.y + extent,
         }
     }
 
@@ -114,27 +114,59 @@ impl Tile {
         Point::new(tile_x >> shift, tile_y >> shift)
     }
 
+    pub fn project_bbox(&self, bbox: &BBox) -> BBox {
+        let shift = 32 - self.z as u32;
+        let extent = self.extent();
+        let w = (bbox.w - self.x * extent) >> shift;
+        let n = (bbox.n - self.y * extent) >> shift;
+        let e = (bbox.e - self.x * extent) >> shift;
+        let s = (bbox.s - self.y * extent) >> shift;
+        BBox::new(w, n, e, s)
+    }
 }
 
 pub struct BBox {
     w: u32,
     n: u32,
     e: u32,
-    s: u32
+    s: u32,
+}
+
+impl BBox {
+    pub fn new(w: u32, n: u32, e: u32, s: u32) -> Self {
+        BBox { w, n, e, s }
+    }
+
+    pub fn nw(&self) -> Point {
+        Point::new(self.w, self.n)
+    }
+
+    pub fn sw(&self) -> Point {
+        Point::new(self.w, self.s)
+    }
+
+    pub fn se(&self) -> Point {
+        Point::new(self.e, self.s)
+    }
+
+    pub fn ne(&self) -> Point {
+        Point::new(self.e, self.n)
+    }
+
+    pub fn nw(&self) -> Point {
+        Point::new(self.w, self.n)
+    }
 }
 
 // look into using simd
 pub struct Point {
     x: u32,
-    y: u32
+    y: u32,
 }
 
 impl Point {
     pub fn new(x: u32, y: u32) -> Self {
-        Point {
-            x,
-            y
-        }
+        Point { x, y }
     }
 }
 
