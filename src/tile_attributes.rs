@@ -1,10 +1,8 @@
 use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
+use std::cell::{Cell, RefCell};
 
-#[allow(dead_code, unused_imports)]
-#[path = "./fbs/planet_vector_tile_generated.rs"]
-mod planet_vector_tile_generated;
-use planet_vector_tile_generated::*;
+use crate::tile::planet_vector_tile_generated::*;
 
 impl Hash for PVTValue {
     fn hash<H: Hasher>(&self, state: &mut H) {
@@ -15,88 +13,97 @@ impl Hash for PVTValue {
 impl Eq for PVTValue {}
 
 pub struct TileAttributes {
-    str_idx: u32,
-    val_idx: u32,
-    strings: HashMap<String, u32>,
-    values: HashMap<PVTValue, u32>,
+    str_idx: Cell<u32>,
+    val_idx: Cell<u32>,
+    strings: RefCell<HashMap<String, u32>>,
+    values: RefCell<HashMap<PVTValue, u32>>,
 }
 
-impl<'a> TileAttributes {
+impl TileAttributes {
     pub fn new() -> Self {
         TileAttributes {
-            str_idx: 0,
-            val_idx: 0,
-            strings: HashMap::new(),
-            values: HashMap::new(),
+            str_idx: Cell::new(0),
+            val_idx: Cell::new(0),
+            strings: RefCell::new(HashMap::new()),
+            values: RefCell::new(HashMap::new()),
         }
     }
 
-    pub fn upsert_string(&mut self, str: &str) -> u32 {
-        match self.strings.get(str) {
+    pub fn upsert_string(&self, str: &str) -> u32 {
+        let mut strings = self.strings.borrow_mut();
+        match strings.get(str) {
             Some(str_idx) => *str_idx,
             None => {
-                let idx = self.str_idx;
-                self.strings.insert(String::from(str), idx);
-                self.str_idx += 1;
+                let idx = self.str_idx.get();
+                strings.insert(String::from(str), idx);
+                self.str_idx.set(idx + 1);
                 idx
             }
         }
     }
 
-    pub fn upsert_value(&mut self, value: PVTValue) -> u32 {
-        match self.values.get(&value) {
+    pub fn upsert_value(&self, value: PVTValue) -> u32 {
+        let mut values = self.values.borrow_mut();
+        match values.get(&value) {
             Some(val_idx) => *val_idx,
             None => {
-                let idx = self.val_idx;
-                self.values.insert(value, idx);
-                self.val_idx += 1;
+                let idx = self.val_idx.get();
+                values.insert(value, idx);
+                self.val_idx.set(idx + 1);
                 idx
             }
         }
     }
 
-    pub fn upsert_string_value(&mut self, str_val: &str) -> u32 {
-        match self.strings.get(str_val) {
+    pub fn upsert_string_value(&self, str_val: &str) -> u32 {
+        let mut strings = self.strings.borrow_mut();
+        let mut values = self.values.borrow_mut();
+        match strings.get(str_val) {
             Some(str_idx) => {
                 let value = PVTValue::new(PVTValueType::String, *str_idx as f64);
-                match self.values.get(&value) {
+                match values.get(&value) {
                     Some(val_idx) => *val_idx,
                     None => {
-                        let idx = self.val_idx;
-                        self.values.insert(value, idx);
-                        self.val_idx += 1;
+                        let idx = self.val_idx.get();
+                        values.insert(value, idx);
+                        self.val_idx.set(idx + 1);
                         idx
                     }
                 }
 
             },
             None => {
-                let str_idx = self.str_idx;
-                self.strings.insert(String::from(str_val), str_idx);
-                self.str_idx += 1;
+                let str_idx = self.str_idx.get();
+                strings.insert(String::from(str_val), str_idx);
+                self.str_idx.set(str_idx + 1);
                 
                 let value = PVTValue::new(PVTValueType::String, str_idx as f64);
-                let val_idx = self.val_idx;
-                self.values.insert(value, val_idx);
+                let val_idx = self.val_idx.get();
+                values.insert(value, val_idx);
+                self.val_idx.set(val_idx + 1);
                 val_idx
             }
         }
     }
 
-    pub fn strings(&'a self) -> Vec<&'a str> {
-        let mut strings = Vec::<&'a str>::with_capacity(self.strings.len());
-        for (k, v) in self.strings.iter() {
-            strings[*v as usize] = k;
+    // Is there a way we can have a Vec<&str> ?
+    pub fn strings(&self) -> Vec<String> {
+        let strings = self.strings.borrow();
+        let mut string_vec = Vec::<String>::with_capacity(strings.len());
+        for (k, v) in strings.iter() {
+            string_vec[*v as usize] = k.clone();
         }
-        strings
+        string_vec
     }
 
-    pub fn values(&'a self) -> Vec<&'a PVTValue> {
-        let mut values = Vec::<&'a PVTValue>::with_capacity(self.values.len());
-        for (k, v) in self.values.iter() {
-            values[*v as usize] = k;
+    // Is there a way we can have a Vec<&PVTValue> ?
+    pub fn values(&self) -> Vec<PVTValue> {
+        let values = self.values.borrow();
+        let mut value_vec = Vec::<PVTValue>::with_capacity(values.len());
+        for (k, v) in values.iter() {
+            value_vec[*v as usize] = k.clone();
         }
-        values
+        value_vec
     }
 
 }

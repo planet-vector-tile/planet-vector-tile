@@ -1,7 +1,6 @@
 use flatbuffers::{FlatBufferBuilder};
 
 use crate::tile::planet_vector_tile_generated::*;
-
 use crate::tile::Tile;
 use crate::tile_attributes::TileAttributes;
 
@@ -30,6 +29,13 @@ impl InfoTile {
     }
 
     fn generate_info(&self, builder: &mut FlatBufferBuilder, tile: &Tile) {
+        
+        let z_key = self.attributes.upsert_string("z");
+        let x_key = self.attributes.upsert_string("x");
+        let y_key = self.attributes.upsert_string("y");
+        let h_key = self.attributes.upsert_string("h");
+        let z_val = self.attributes.upsert_value(PVTValue::new(PVTValueType::Number, tile.z as f64));
+
 
         // Create bbox geometry
         let bbox = tile.bbox();
