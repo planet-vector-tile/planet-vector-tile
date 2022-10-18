@@ -1,13 +1,13 @@
 #![deny(clippy::all)]
 
 pub mod tile;
-pub mod tile_info;
+pub mod info_tile;
 
 #[macro_use]
 extern crate napi_derive;
 
 use tile::Tile;
-use tile_info::tile_info;
+use info_tile::tile_info;
 
 use napi::bindgen_prelude::*;
 use napi::tokio::{self};

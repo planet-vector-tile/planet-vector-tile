@@ -8,11 +8,29 @@ mod planet_vector_tile_generated;
 
 use planet_vector_tile_generated::*;
 
-use crate::tile::{Tile, Point};
+use crate::tile::{Tile, BBox};
+
+pub struct InfoTile<'fbb> {
+    tile: Tile,
+    builder: FlatBufferBuilder<'fbb>
+}
+
+impl<'fbb> InfoTile<'fbb> {
+    pub fn new(tile: Tile) -> Self {
+        InfoTile { 
+            tile,
+            builder: FlatBufferBuilder::new()
+         }
+    }
+
+    pub fn buffer(&self) -> Vec<u8> {
+        Vec::<u8>::new()
+    }
+}
 
 // pub fn info(tile: Tile) -> Vec<u8> {}
 
-// fn tile(builder: &mut FlatBufferBuilder, tile: &Tile) {
+// fn tile(builder: &mut FlatBufferBuilder, tile: Tile) {
 //     let bbox = tile.bbox();
 //     let center = tile.center();
 //     let proj_bbox = tile.project_bbox(&bbox);
