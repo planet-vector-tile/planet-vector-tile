@@ -51,12 +51,17 @@ impl Tile {
         self.at_zoom(32)
     }
 
-    pub fn center_location(&self) -> Tile {
+    // The extent of a tile on an axis at z32.
+    pub fn location_extent(&self) -> u32 {
         let z_delta = (32 - self.z) as u32;
         let mult = 2u32.pow(z_delta);
-        let half_tile_size = 4096 * mult;
+        8192 * mult
+    }
+
+    pub fn center_location(&self) -> Tile {
+        let extent = self.location_extent() / 2;
         let origin = self.origin_location();
-        Tile::from_zxy(32, origin.x + half_tile_size, origin.y + half_tile_size)
+        Tile::from_zxy(32, origin.x + extent, origin.y + extent)
     }
 
     pub fn children(&self) -> [Tile; 4] {
@@ -87,4 +92,29 @@ impl Tile {
         }
         desc
     }
+
+    pub fn bbox(&self) -> BBox {
+        let origin = self.origin_location();
+        let extent = self.location_extent();
+        BBox {
+            nw: Point {
+                x: origin.x,
+                y: origin.y
+            },
+            se: Point {
+                x: origin.x + extent,
+                y: origin.y + extent
+            }
+        }
+    }
+}
+
+pub struct Point {
+    x: u32,
+    y: u32
+}
+
+pub struct BBox {
+    nw: Point,
+    se: Point
 }

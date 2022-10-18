@@ -13,11 +13,6 @@ use napi::bindgen_prelude::*;
 use napi::tokio::{self};
 
 #[napi]
-pub fn sum(a: i32, b: i32) -> i32 {
-  a + b
-}
-
-#[napi]
 pub fn load_planet(path: String, minzoom: u8, maxzoom: u8) -> Planet {
   Planet::new(path, minzoom, maxzoom)
 }
