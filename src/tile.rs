@@ -42,6 +42,8 @@ impl Tile {
         let z_delta = (z - self.z) as u32;
         if z == self.z {
             self.clone()
+        } else if z == 32 && self.z == 0 {
+            Tile::from_zxy(32, 0, 0)
         } else if z > self.z {
             let x = self.x << z_delta;
             let y = self.y << z_delta;
@@ -70,7 +72,9 @@ impl Tile {
 
     // The Northwest corner of the tile in location space.
     pub fn origin_location(&self) -> PVTPoint {
-        if self.z == 32 {
+        if self.z == 0 {
+            PVTPoint::new(0, 0)
+        } else if self.z == 32 {
             PVTPoint::new(self.x, self.y)
         } else {
             let z_delta = 32 - self.z as u32;
@@ -82,8 +86,10 @@ impl Tile {
 
     // The extent of a tile in location space
     pub fn location_extent(&self) -> u32 {
-        let z_delta = 32 - self.z as u32;
-        EXTENT << z_delta
+        if self.z == 32 {
+            return 0;
+        }
+        u32::MAX >> self.z
     }
 
     // The center in location space
@@ -195,5 +201,93 @@ impl BBox {
     }
     pub fn ne(&self) -> PVTPoint {
         PVTPoint::new(self.se.x(), self.nw.y())
+    }
+}
+
+// let tile = await planet.tile(9, 82, 199);
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_basic_tile() {
+        let t = Tile::from_zxy(9, 82, 199);
+        let t2 = Tile::from_zxy(9, 83, 300);
+
+        assert_eq!(t.id(), 5188146770730836249);
+        assert_eq!(t2.id(), 5188146770731048437);
+
+        let t_loc_tile = t.location_tile();
+        assert_eq!(t_loc_tile.z, 32);
+        assert_eq!(t_loc_tile.x, 687865856);
+        assert_eq!(t_loc_tile.y, 1669332992);
+        assert_eq!(t_loc_tile.h, 3660417878385666730);
+    }
+
+    #[test]
+    fn test_at_zoom() {
+        let t = Tile::from_zxy(0, 0, 0);
+        let zt = t.at_zoom(1);
+        assert_eq!(zt.z, 1);
+        assert_eq!(zt.x, 0);
+        assert_eq!(zt.y, 0);
+        assert_eq!(zt.h, 0);
+
+        let zt32 = t.at_zoom(2);
+        assert_eq!(zt32.z, 2);
+        assert_eq!(zt32.x, 0);
+        assert_eq!(zt32.y, 0);
+        assert_eq!(zt32.h, 0);
+
+        let zt31 = t.at_zoom(31);
+        assert_eq!(zt31.z, 31);
+        assert_eq!(zt31.x, 0);
+        assert_eq!(zt31.y, 0);
+        assert_eq!(zt31.h, 0);
+
+        let zt32 = t.at_zoom(32);
+        assert_eq!(zt32.z, 32);
+        assert_eq!(zt32.x, 0);
+        assert_eq!(zt32.y, 0);
+        assert_eq!(zt32.h, 0);
+    }
+
+    #[test]
+    fn test_location_extent() {
+        let t = Tile::from_zxy(0, 0, 0);
+        let e = t.location_extent();
+        assert_eq!(e, 4294967295);
+
+        let t = Tile::from_zxy(1, 0, 0);
+        let e = t.location_extent();
+        assert_eq!(e, 2147483648);
+    }
+
+    #[test]
+    fn test_bbox() {
+        let t = Tile::from_zxy(0, 0, 0);
+        let b = t.bbox();
+        assert_eq!(b.nw.x(), 0);
+        assert_eq!(b.nw.y(), 0);
+        assert_eq!(b.se.x(), 4294967295);
+        assert_eq!(b.se.y(), 4294967295);
+
+        let b2 = Tile::from_zxy(1, 0, 0).bbox();
+        assert_eq!(b2.nw.x(), 0);
+        assert_eq!(b2.nw.y(), 0);
+        assert_eq!(b2.se.x(), 2147483647);
+        assert_eq!(b2.se.y(), 2147483647);
+
+        let b3 = Tile::from_zxy(1, 1, 0).bbox();
+        assert_eq!(b3.nw.x(), 2147483648);
+        assert_eq!(b3.nw.y(), 0);
+        assert_eq!(b3.se.x(), 4294967295);
+        assert_eq!(b3.se.y(), 2147483647);
+    }
+
+    #[test]
+    fn shift() {
+        let max: u32 = 4294967295;
+        let half: u32 = 2147483647;
+        assert_eq!(max >> 1, half);
     }
 }

@@ -33,6 +33,7 @@
         "clean": "rm -rf index* node_modules package-lock.json dist/*",
         "prepublishOnly": "napi prepublish -t npm",
         "test": "ava",
+        "t": "npm run build && npm run test",
         "version": "napi version",
         "format": "prettier --write ."
     },
