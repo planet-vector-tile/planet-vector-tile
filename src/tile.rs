@@ -17,8 +17,6 @@ use planet_vector_tile_generated::*;
 // 2^9 = 524,288 , so zoom 9 and above does not quantize coordinates
 // Zooms 8 and below do quantize coordinates.
 
-const EXTENT: u32 = 8192;
-
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Tile {
     pub z: u8,
@@ -27,6 +25,8 @@ pub struct Tile {
     pub h: u64,
 }
 
+// Why do I get these dead code complaints on functions I am using?
+#[allow(dead_code)]
 impl Tile {
     pub fn from_zh(z: u8, h: u64) -> Self {
         let (x, y) = h2xy(h);
@@ -94,9 +94,9 @@ impl Tile {
 
     // The center in location space
     pub fn center(&self) -> PVTPoint {
-        let half_extent = self.location_extent() / 2;
+        let middle = self.location_extent() >> 1;
         let origin = self.origin_location();
-        PVTPoint::new(origin.x() + half_extent, origin.y() + half_extent)
+        PVTPoint::new(origin.x() + middle, origin.y() + middle)
     }
 
     pub fn parent(&self) -> Tile {
@@ -189,6 +189,8 @@ pub struct BBox {
     se: PVTPoint
 }
 
+// Why do I get these dead code complaints on functions I am using?
+#[allow(dead_code)]
 impl BBox {
     pub fn nw(&self) -> PVTPoint {
         self.nw
@@ -259,7 +261,7 @@ mod tests {
 
         let t = Tile::from_zxy(1, 0, 0);
         let e = t.location_extent();
-        assert_eq!(e, 2147483648);
+        assert_eq!(e, 2147483647);
     }
 
     #[test]
@@ -282,6 +284,26 @@ mod tests {
         assert_eq!(b3.nw.y(), 0);
         assert_eq!(b3.se.x(), 4294967295);
         assert_eq!(b3.se.y(), 2147483647);
+    }
+
+    #[test]
+    fn test_center() {
+        let c = Tile::from_zxy(32, 0, 0).center();
+        assert_eq!(c.x(), 0);
+        assert_eq!(c.y(), 0);
+
+        let c2 = Tile::from_zxy(31, 0, 0).center();
+        assert_eq!(c2.x(), 0);
+        assert_eq!(c2.y(), 0);
+
+        let c3 = Tile::from_zxy(0, 0, 0).center();
+        assert_eq!(c3.x(), 2147483647);
+        assert_eq!(c3.y(), 2147483647);
+
+        // Is this right?
+        let c4 = Tile::from_zxy(30, 0, 0).center();
+        assert_eq!(c4.x(), 1);
+        assert_eq!(c4.y(), 1);
     }
 
     #[test]
