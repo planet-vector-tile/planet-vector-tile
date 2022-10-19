@@ -17,6 +17,8 @@ use planet_vector_tile_generated::*;
 // 2^9 = 524,288 , so zoom 9 and above does not quantize coordinates
 // Zooms 8 and below do quantize coordinates.
 
+const TILE_EXTENT: u64 = 8192;
+
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Tile {
     pub z: u8,
@@ -159,11 +161,49 @@ impl Tile {
 
     // Projects a point from location space to tile space.
     pub fn project(&self, point: PVTPoint) -> PVTPoint {
-        let z_delta = 32 - self.z as u32;
-        let extent = self.location_extent();
-        let tile_x = point.x() - self.x * extent;
-        let tile_y = point.y() - self.y * extent;
-        PVTPoint::new(tile_x >> z_delta, tile_y >> z_delta)
+
+        // PVTPoint shouldnt be u32. Just make it a f64...
+        let loc_x = point.x() as u64;
+        let loc_y = point.y() as u64;
+        let u32_max = u32::MAX as u64;
+
+        let mut x = (loc_x * TILE_EXTENT) / u32_max;
+        let mut y = (loc_y * TILE_EXTENT) /u32_max;
+
+        // origin of the tile in the tile's resolution
+        let origin_x = self.x as u64 * TILE_EXTENT;
+        let origin_y = self.y as u64 * TILE_EXTENT;
+
+        // world origin to tile origin
+        x = x - origin_x;
+        y = y - origin_y;
+
+        // We shouldn't be clamping exactly to the bounds. 
+        // Need to change fb to be f64...
+
+        // clamp to origin
+        if x < origin_x {
+            x = origin_x
+        } else {
+            x = x - origin_x;
+            // clamp to extent
+            if x > TILE_EXTENT {
+                x = TILE_EXTENT
+            }
+        }
+
+        // clamp to origin
+        if y < origin_y {
+            y = origin_y
+        } else {
+            y = y - origin_y;
+            // clamp to extent
+            if y > TILE_EXTENT {
+                y = TILE_EXTENT
+            }
+        }
+
+        PVTPoint::new(x as u32, y as u32)
     }
 
     pub fn project_bbox(&self, bbox: BBox) -> BBox {
