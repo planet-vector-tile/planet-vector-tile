@@ -20,7 +20,7 @@ function createWindow() {
         },
     });
 
-    win.loadFile('electron/simple.html');
+    win.loadFile('simple.html');
 
     // https://www.electronjs.org/docs/latest/api/command-line#commandlinegetswitchvalueswitch
     if (app.commandLine.hasSwitch('dbg')) {

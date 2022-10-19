@@ -42,8 +42,8 @@ impl Planet {
         tokio::task::spawn(async move {
             let tile = Tile::from_zxy(z, x, y);
             let info_tile = InfoTile::new(tile, None);
-            let vec_u8 = info_tile.build_buffer();
-            // let vec_u8 = tile_info(tile);
+            // let vec_u8 = info_tile.build_buffer();
+            let vec_u8 = tile_info(tile);
             Ok(vec_u8.into())
         })
         .await
@@ -56,4 +56,5 @@ impl Planet {
             .await
             .unwrap()
     }
+
 }

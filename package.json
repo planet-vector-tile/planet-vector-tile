@@ -1,7 +1,7 @@
 {
     "name": "planet-vector-tile",
     "version": "0.0.0",
-    "main": "electron/main.js",
+    "main": "index.js",
     "types": "index.d.ts",
     "napi": {
         "name": "planet-vector-tile",
@@ -23,10 +23,12 @@
         "npm": ">=8"
     },
     "scripts": {
-        "start": "electron .",
+        "start": "cd electron && npm start",
         "artifacts": "napi artifacts",
-        "build": "napi build --platform --release && tsc -p tsconfig.json && prettier --write .",
-        "build:debug": "napi build --platform && tsc -p tsconfig.json && prettier --write .",
+        "build": "napi build --platform && npm run build:ts",
+        "build:release": "napi build --platform --release && npm run build:ts",
+        "build:ts": "tsc -p tsconfig.json && prettier --write .",
+        "clean": "rm -rf index* node_modules package-lock.json dist/*",
         "prepublishOnly": "napi prepublish -t npm",
         "test": "ava",
         "version": "napi version",
@@ -41,7 +43,6 @@
     "dependencies": {
         "@mapbox/point-geometry": "^0.1.0",
         "@types/mapbox__vector-tile": "^1.3.0",
-        "electron": "20.3.2",
         "flatbuffers": "^2.0.7",
         "geojson": "^0.5.0"
     }
