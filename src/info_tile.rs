@@ -1,4 +1,6 @@
+use flatbuffers::WIPOffset;
 use flatbuffers::{FlatBufferBuilder};
+use std::rc::Rc;
 
 use crate::tile::planet_vector_tile_generated::*;
 use crate::tile::Tile;
@@ -22,22 +24,55 @@ impl InfoTile {
 
     pub fn build_buffer(&self) -> Vec<u8> {
         let mut builder = FlatBufferBuilder::new();
+        let mut boundary_vec = Vec::<WIPOffset<PVTFeature>>::new();
+        let mut center_vec = Vec::<WIPOffset<PVTFeature>>::new();
         for tile in &self.tile_tree {
-            self.generate_info(&mut builder, tile);
+            let (boundary, center) = self.generate_info(&mut builder, tile);
+            boundary_vec.push(boundary);
+            center_vec.push(center);
         }
+
+        let boundary_features = builder.create_vector(&boundary_vec);
+        let boundary_layer = PVTLayer::create(
+            &mut builder,
+            &PVTLayerArgs {
+                name: self.attributes.upsert_string("tile_boundary"),
+                features: Some(boundary_features),
+            },
+        );
+        let center_features = builder.create_vector(&center_vec);
+        
+
         Vec::<u8>::new()
     }
 
-    fn generate_info(&self, builder: &mut FlatBufferBuilder, tile: &Tile) {
+    fn generate_info<'a>(&self, builder: &mut FlatBufferBuilder<'a>, tile: &Tile) -> (WIPOffset<PVTFeature<'a>>, WIPOffset<PVTFeature<'a>>){
+        let id = tile.id();
+        let is_render_tile = if *tile == self.tile { 1_f64 } else { 0_f64 };
         
+        // Create tags for features
+        let tile_key = self.attributes.upsert_string("tile");
+        let render_tile_key = self.attributes.upsert_string("render_tile");
+        let is_render_tile_key = self.attributes.upsert_string("render_tile");
+
         let z_key = self.attributes.upsert_string("z");
         let x_key = self.attributes.upsert_string("x");
         let y_key = self.attributes.upsert_string("y");
         let h_key = self.attributes.upsert_string("h");
+
+        let tile_val = self.attributes.upsert_string_value(&tile.to_string());
+        let render_tile_val = self.attributes.upsert_string_value(&self.tile.to_string());
+        let is_render_tile_val = self.attributes.upsert_value(PVTValue::new(PVTValueType::Boolean, is_render_tile));
+
         let z_val = self.attributes.upsert_value(PVTValue::new(PVTValueType::Number, tile.z as f64));
+        let x_val = self.attributes.upsert_value(PVTValue::new(PVTValueType::Number, tile.x as f64));
+        let y_val = self.attributes.upsert_value(PVTValue::new(PVTValueType::Number, tile.y as f64));
+        let h_val = self.attributes.upsert_value(PVTValue::new(PVTValueType::Number, tile.h as f64));
 
+        let keys = builder.create_vector::<u32>(&[tile_key, render_tile_key, is_render_tile_key, z_key, x_key, y_key, h_key]);
+        let vals = builder.create_vector::<u32>(&[tile_val, render_tile_val, is_render_tile_val, z_val, x_val, y_val, h_val]);
 
-        // Create bbox geometry
+        // Create boundary geometry
         let bbox = tile.bbox();
         let nw = self.tile.project(bbox.nw());
         let sw = self.tile.project(bbox.sw());
@@ -47,31 +82,40 @@ impl InfoTile {
         let geometry = PVTGeometry::create(builder, &PVTGeometryArgs { points: Some(path) });
         let geometries = builder.create_vector(&[geometry]);
 
+        // Create boundary feature
+        let boundary_feature = PVTFeature::create(
+            builder,
+            &PVTFeatureArgs {
+                id,
+                h: tile.h,
+                keys: Some(keys),
+                values: Some(vals),
+                geometry: Some(geometries),
+            },
+        );
 
+        // Create center geometry
+        let center = tile.center();
+        let center_path = builder.create_vector(&[center]);
+        let center_geom = PVTGeometry::create(builder, &PVTGeometryArgs { points: Some(center_path) });
+        let center_geoms = builder.create_vector(&[center_geom]);
+
+        // Create center feature.
+        let center_feature = PVTFeature::create(
+            builder,
+            &PVTFeatureArgs {
+                id,
+                h: tile.h,
+                keys: Some(keys),
+                values: Some(vals),
+                geometry: Some(center_geoms),
+            },
+        );
+
+        (boundary_feature, center_feature)
     }
 }
 
-// pub fn info(tile: Tile) -> Vec<u8> {}
-
-// fn tile(builder: &mut FlatBufferBuilder, tile: Tile) {
-//     let bbox = tile.bbox();
-//     let center = tile.center();
-//     let proj_bbox = tile.project_bbox(&bbox);
-//     let proj_center = tile.project(&center);
-
-//     let nw = PVTPoint::new(proj_bbox.w, proj_bbox.n);
-//     let sw = PVTPoint::new(proj_bbox.w, proj_bbox.s);
-//     let se = PVTPoint::new(proj_bbox.e, proj_bbox.s);
-//     let ne = PVTPoint::new(proj_bbox.e, proj_bbox.n);
-//     // let center = PVTPoint::new(proj_center.x, proj_center.y);
-
-//     let bbox_geom = create_simple_geometry(&mut builder, &[nw, sw, se, ne, nw]);
-// }
-
-// fn create_simple_geometry<'a>(builder: &'a mut FlatBufferBuilder, points: &'a [Point]) -> WIPOffset<PVTGeometry<'a>> {
-//     let path = builder.create_vector(points);
-//     PVTGeometry::create(builder, &PVTGeometryArgs { points: Some(path) })
-// }
 
 pub fn tile_info(tile: Tile) -> Vec<u8> {
     let mut builder = FlatBufferBuilder::with_capacity(1024);

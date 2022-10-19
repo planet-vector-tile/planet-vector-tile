@@ -1,4 +1,5 @@
 use fast_hilbert::{h2xy, xy2h};
+use std::fmt;
 
 #[allow(dead_code, unused_imports)]
 #[path = "./fbs/planet_vector_tile_generated.rs"]
@@ -18,7 +19,7 @@ use planet_vector_tile_generated::*;
 
 const EXTENT: u32 = 8192;
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Tile {
     pub z: u8,
     pub x: u32,
@@ -164,6 +165,14 @@ impl Tile {
             nw: self.project(bbox.nw),
             se: self.project(bbox.se)
         }
+    }
+}
+
+impl Eq for Tile {}
+
+impl fmt::Display for Tile {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "z{} x{} y{} h{}", self.z, self.x, self.y, self.h)
     }
 }
 
