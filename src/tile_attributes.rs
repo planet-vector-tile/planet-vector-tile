@@ -1,4 +1,5 @@
-use std::collections::HashMap;
+// use std::collections::HashMap;
+use indexmap::IndexMap;
 use std::hash::{Hash, Hasher};
 use std::cell::{Cell, RefCell};
 
@@ -13,10 +14,11 @@ impl Hash for PVTValue {
 impl Eq for PVTValue {}
 
 pub struct TileAttributes {
+    // Refactor, as we don't need idx anymore...
     str_idx: Cell<u32>,
     val_idx: Cell<u32>,
-    strings: RefCell<HashMap<String, u32>>,
-    values: RefCell<HashMap<PVTValue, u32>>,
+    strings: RefCell<IndexMap<String, u32>>,
+    values: RefCell<IndexMap<PVTValue, u32>>,
 }
 
 impl TileAttributes {
@@ -24,8 +26,8 @@ impl TileAttributes {
         TileAttributes {
             str_idx: Cell::new(0),
             val_idx: Cell::new(0),
-            strings: RefCell::new(HashMap::new()),
-            values: RefCell::new(HashMap::new()),
+            strings: RefCell::new(IndexMap::new()),
+            values: RefCell::new(IndexMap::new()),
         }
     }
 
@@ -89,22 +91,20 @@ impl TileAttributes {
     // Is there a way we can have a Vec<&str> ?
     pub fn strings(&self) -> Vec<String> {
         let strings = self.strings.borrow();
-        let mut string_vec = Vec::<String>::with_capacity(strings.len());
-        for (k, v) in strings.iter() {
-            // thread 'tokio-runtime-worker' panicked at 'index out of bounds: the len is 0 but the index is 7', src/tile_attributes.rs:94:13
-            string_vec[*v as usize] = k.clone();
-        }
-        string_vec
+        let s: Vec<String> = strings.keys().map(|s| String::from(s)).collect();
+        s
     }
 
     // Is there a way we can have a Vec<&PVTValue> ?
     pub fn values(&self) -> Vec<PVTValue> {
         let values = self.values.borrow();
-        let mut value_vec = Vec::<PVTValue>::with_capacity(values.len());
-        for (k, v) in values.iter() {
-            value_vec[*v as usize] = k.clone();
-        }
-        value_vec
+        // let mut value_vec = Vec::<PVTValue>::with_capacity(values.len());
+        // for (k, v) in values.iter() {
+        //     value_vec[*v as usize] = k.clone();
+        // }
+        // value_vec
+        let v: Vec<PVTValue> = values.keys().map(|v| v.clone()).collect();
+        v
     }
 
 }
