@@ -91,6 +91,7 @@ impl TileAttributes {
         let strings = self.strings.borrow();
         let mut string_vec = Vec::<String>::with_capacity(strings.len());
         for (k, v) in strings.iter() {
+            // thread 'tokio-runtime-worker' panicked at 'index out of bounds: the len is 0 but the index is 7', src/tile_attributes.rs:94:13
             string_vec[*v as usize] = k.clone();
         }
         string_vec

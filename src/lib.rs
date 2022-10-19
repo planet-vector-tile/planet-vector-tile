@@ -8,7 +8,7 @@ pub mod tile_attributes;
 extern crate napi_derive;
 
 use tile::Tile;
-use info_tile::tile_info;
+use info_tile::{tile_info, InfoTile};
 
 use napi::bindgen_prelude::*;
 use napi::tokio::{self};
@@ -36,16 +36,14 @@ impl Planet {
         }
     }
 
-    // Try using AsyncTask to create a Buffer
-    // https://napi.rs/docs/concepts/async-task
-    // https://github.com/napi-rs/napi-rs/blob/main/examples/napi/src/task.rs
-    // https://github.com/napi-rs/napi-rs/blob/a12bdc4359dfaff191d1fd124bc5b28e0d90f1bb/crates/napi/src/env.rs#L397
     #[napi]
     pub async fn tile(&self, z: u8, x: u32, y: u32) -> Result<Uint8Array> {
         let p = self.path.clone();
         tokio::task::spawn(async move {
             let tile = Tile::from_zxy(z, x, y);
-            let vec_u8 = tile_info(tile);
+            let info_tile = InfoTile::new(tile, None);
+            let vec_u8 = info_tile.build_buffer();
+            // let vec_u8 = tile_info(tile);
             Ok(vec_u8.into())
         })
         .await

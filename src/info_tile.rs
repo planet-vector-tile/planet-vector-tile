@@ -1,6 +1,5 @@
 use flatbuffers::WIPOffset;
 use flatbuffers::{FlatBufferBuilder};
-use std::rc::Rc;
 
 use crate::tile::planet_vector_tile_generated::*;
 use crate::tile::Tile;
@@ -41,9 +40,34 @@ impl InfoTile {
             },
         );
         let center_features = builder.create_vector(&center_vec);
-        
+        let center_layer = PVTLayer::create(
+            &mut builder,
+            &PVTLayerArgs {
+                name: self.attributes.upsert_string("tile_center"),
+                features: Some(center_features),
+            },
+        );
 
-        Vec::<u8>::new()
+        let layers = builder.create_vector(&[boundary_layer, center_layer]);
+        let strings_vec = self.attributes.strings();
+        // There should be a cleaner way of doing this...
+        let strs_vec = strings_vec.iter().map(|s| s.as_str()).collect::<Vec<&str>>();
+
+        let strings = builder.create_vector_of_strings(&strs_vec);
+        let values = builder.create_vector(&self.attributes.values());
+
+        let tile = PVTTile::create(
+            &mut builder,
+            &PVTTileArgs {
+                layers: Some(layers),
+                strings: Some(strings),
+                values: Some(values),
+            },
+        );
+    
+        builder.finish(tile, None);
+    
+        builder.finished_data().to_vec()
     }
 
     fn generate_info<'a>(&self, builder: &mut FlatBufferBuilder<'a>, tile: &Tile) -> (WIPOffset<PVTFeature<'a>>, WIPOffset<PVTFeature<'a>>){
