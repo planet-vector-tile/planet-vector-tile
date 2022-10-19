@@ -3,6 +3,6 @@ export default {
     output: {
         file: 'dist/bundle.js',
         format: 'umd',
-        name: "planet-vector-tile"
+        name: 'planet-vector-tile',
     },
 };

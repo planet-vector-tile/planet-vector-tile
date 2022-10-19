@@ -27,8 +27,8 @@ test('check info tile boundary feature', async t => {
     let p2x = points[2].x;
     let p2y = points[2].y;
 
-    t.is(p0x, 0)
-    t.is(p0y, 0)
-    t.is(p2x, 8192)
-    t.is(p2y, 8192)
+    t.is(p0x, 0);
+    t.is(p0y, 0);
+    t.is(p2x, 8192);
+    t.is(p2y, 8192);
 });
