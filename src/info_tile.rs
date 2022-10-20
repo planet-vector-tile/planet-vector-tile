@@ -249,12 +249,16 @@ pub fn basic(tile: Tile) -> Vec<u8> {
 // let tile = Tile::from_zxy(z, x, y);
 // let info_tile = InfoTile::new(tile, None);
 // let vec_u8 = info_tile.build_buffer();
-// mod tests {
-//     use super::*;
+mod tests {
+    use super::*;
 
-//     #[test]
-//     fn test_basic_tile() {
-//         let tile = tile::Tile::from::zxy(9, 82, 199);
+    #[test]
+    fn test_basic_info_tile() {
+        let tile = Tile::from_zxy(9, 82, 199);
+        let info_tile = InfoTile::new(tile, None);
+        let vec_u8 = info_tile.build_buffer();
+
+        assert_eq!(vec_u8.len(), 23);
         
-//     }
-// }
+    }
+}

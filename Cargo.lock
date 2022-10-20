@@ -365,6 +365,7 @@ dependencies = [
  "napi",
  "napi-build",
  "napi-derive",
+ "queue",
 ]
 
 [[package]]
@@ -375,6 +376,12 @@ checksum = "94e2ef8dbfc347b10c094890f778ee2e36ca9bb4262e86dc99cd217e35f3470b"
 dependencies = [
  "unicode-ident",
 ]
+
+[[package]]
+name = "queue"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6ff7e7fd62294a081720771513c1c1c995468a5d4e771a2928e423b88682ce48"
 
 [[package]]
 name = "quote"

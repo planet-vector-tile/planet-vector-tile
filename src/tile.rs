@@ -1,5 +1,6 @@
 use fast_hilbert::{h2xy, xy2h};
 use std::fmt;
+use queue::Queue;
 
 #[allow(dead_code, unused_imports)]
 #[path = "./fbs/planet_vector_tile_generated.rs"]
@@ -121,16 +122,22 @@ impl Tile {
         if child_levels == 0 {
             return Vec::<Tile>::new();
         }
-        let children = Vec::from(self.children());
-        let mut desc = children.clone();
-        let mut q = children;
-        for t in q.pop() {
-            let children = t.children();
-            desc.append(&mut Vec::from(children));
-            if t.z <= self.z + child_levels {
-                q.append(&mut Vec::from(children));
-            }
+        let top_z = self.z + child_levels;
+        let mut desc = Vec::<Tile>::new();
+        let mut q = Queue::<Tile>::new();
+        for t in self.children() {
+            q.queue(t).unwrap();
         }
+        while !q.is_empty() {
+            let t = q.dequeue().unwrap();
+            if t.z < top_z {
+                for c in t.children() {
+                    q.queue(c).unwrap();
+                }
+            }
+            desc.push(t);
+        }
+        
         desc
     }
 
@@ -140,15 +147,16 @@ impl Tile {
         }
 
         // Get parents
+        let mut pyramid = Vec::<Tile>::with_capacity((self.z + 1) as usize + 4_u32.pow(child_levels as u32) as usize);
         let mut t = self.clone();
-        let mut tree = vec![t];
-        for _ in self.z..1 {
-            tree.push(t);
+        pyramid.push(t);
+        for _ in 0..self.z {
             t = t.parent();
+            pyramid.push(t);
         }
-        tree.reverse();
-        tree.append(&mut self.descendants(child_levels));
-        tree
+        pyramid.reverse();
+        pyramid.append(&mut self.descendants(child_levels));
+        pyramid
     }
 
     pub fn bbox(&self) -> BBox {
