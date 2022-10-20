@@ -36,6 +36,6 @@ test('check info tile boundary feature', async t => {
 
     t.is(p0x, 0);
     t.is(p0y, 0);
-    t.is(p2x, 8192);
-    t.is(p2y, 8192);
+    t.is(p2x, 8191);
+    t.is(p2y, 8191);
 });

@@ -168,6 +168,16 @@ impl Tile {
         }
     }
 
+    fn axis_tile_count(&self) -> f64 {
+        if self.z == 0 {
+            1_f64
+        } else if self.z == 32 {
+            U32_SIZE
+        } else {
+            (2u32 << (self.z - 1) as u32) as f64
+        }
+    }
+
     // Projects a point from location space to tile space.
     pub fn project(&self, loc: PVTPoint) -> PVTPoint {
         // location in planet resolution
@@ -178,13 +188,15 @@ impl Tile {
         let unit_x = loc_x / U32_SIZE;
         let unit_y = loc_y / U32_SIZE;
 
-        // where tile origin is between 0 -> 1 for planet space
-        let unit_origin_x = if self.x == 0 { 0_f64 } else { self.x as f64 / (2u32 << (self.z - 1) as u32) as f64 };
-        let unit_origin_y = if self.y == 0 { 0_f64 } else { self.y as f64 / (2u32 << (self.z - 1) as u32) as f64 };
+        let resolution = self.axis_tile_count() * TILE_EXTENT;
+        let tile_x = unit_x * resolution;
+        let tile_y = unit_y * resolution;
 
-        // where coord is relative to tile origin and between 0 -> 8192
-        let mut x = (unit_x - unit_origin_x) * TILE_EXTENT;
-        let mut y = (unit_y - unit_origin_y) * TILE_EXTENT;
+        let origin_x = self.x as f64 * TILE_EXTENT;
+        let origin_y = self.y as f64 * TILE_EXTENT;
+
+        let mut x = tile_x - origin_x;
+        let mut y = tile_y - origin_y;
 
         // We shouldn't be clamping exactly to the bounds. 
         // Need to change fb to be i16...

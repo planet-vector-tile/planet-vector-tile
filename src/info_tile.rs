@@ -99,18 +99,18 @@ impl InfoTile {
         // Create boundary geometry
         let bbox = tile.bbox();
 
-        println!("bbox nw {:#?}", bbox.nw());
-        println!("bbox sw {:#?}", bbox.sw());
-        println!("bbox se {:#?}", bbox.se());
-        println!("bbox ne {:#?}", bbox.ne());
+        // println!("bbox nw {:#?}", bbox.nw());
+        // println!("bbox sw {:#?}", bbox.sw());
+        // println!("bbox se {:#?}", bbox.se());
+        // println!("bbox ne {:#?}", bbox.ne());
         let nw = self.tile.project(bbox.nw());
         let sw = self.tile.project(bbox.sw());
         let se = self.tile.project(bbox.se());
         let ne = self.tile.project(bbox.ne());
-        println!("proj nw {:#?}", nw);
-        println!("proj sw {:#?}", sw);
-        println!("proj se {:#?}", se);
-        println!("proj ne {:#?}", ne);
+        // println!("proj nw {:#?}", nw);
+        // println!("proj sw {:#?}", sw);
+        // println!("proj se {:#?}", se);
+        // println!("proj ne {:#?}", ne);
 
         let path = builder.create_vector(&[nw, sw, se, ne, nw]);
         let geometry = PVTGeometry::create(builder, &PVTGeometryArgs { points: Some(path) });
