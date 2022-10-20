@@ -257,8 +257,6 @@ mod tests {
         let tile = Tile::from_zxy(9, 82, 199);
         let info_tile = InfoTile::new(tile, None);
         let vec_u8 = info_tile.build_buffer();
-
-        assert_eq!(vec_u8.len(), 23);
-        
+        assert_eq!(vec_u8.len(), 106024);
     }
 }

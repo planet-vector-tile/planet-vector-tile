@@ -182,10 +182,6 @@ impl Tile {
         let origin_x = self.x as u64 * TILE_EXTENT;
         let origin_y = self.y as u64 * TILE_EXTENT;
 
-        // world origin to tile origin
-        x = x - origin_x;
-        y = y - origin_y;
-
         // We shouldn't be clamping exactly to the bounds. 
         // Need to change fb to be i16...
 
