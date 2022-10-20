@@ -13,9 +13,9 @@ const map = (window.map = new window.maplibregl.Map({
 
 map.on('mouseup', e => {
     const features = map.queryRenderedFeatures(e.point);
-    
+
     const infos = features.map(f => {
-        const info = {}
+        const info = {};
         info.id = f.id;
         info.layer = f.layer.id;
         info.layerType = f.layer.type;
@@ -23,7 +23,7 @@ map.on('mouseup', e => {
         info.geometryType = f.geometry.type;
         info.properties = f.properties;
         return info;
-    })
+    });
     document.getElementById('features').innerHTML = JSON.stringify(infos, null, 2);
     document.getElementById('features-panel').style.display = 'block';
 });

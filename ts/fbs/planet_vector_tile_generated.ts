@@ -3,7 +3,7 @@
 export { PVTFeature } from './pvtfeature';
 export { PVTGeometry } from './pvtgeometry';
 export { PVTLayer } from './pvtlayer';
-export { PVTPoint } from './pvtpoint';
 export { PVTTile } from './pvttile';
+export { PVTTilePoint } from './pvttile-point';
 export { PVTValue } from './pvtvalue';
 export { PVTValueType } from './pvtvalue-type';

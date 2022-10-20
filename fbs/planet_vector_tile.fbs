@@ -1,11 +1,8 @@
-// This flatbuffer defines the contents of a vector tile sent to MapboxGL / MaplibreGL.
-// This satisfies the renderer's internal representation of a vector tile, 
-// rather than the Mapbox Vector Tile protocol buffer format.
-// https://github.com/mapbox/vector-tile-js
-// 
-// We are using the interanl extent for a tile, which is always 8192.
-// https://github.com/maplibre/maplibre-gl-js/blob/028344137fe1676b50b8da2729f1dcb5c8b65eac/src/data/extent.ts
-// https://github.com/maplibre/maplibre-gl-js/blob/028344137fe1676b50b8da2729f1dcb5c8b65eac/src/data/load_geometry.ts
+// This is a point in planet space, not within a tile
+struct PVTPoint {
+    x: uint32;
+    y: uint32;
+}
 
 table PVTTile {
     layers: [PVTLayer];
@@ -25,18 +22,20 @@ table PVTFeature {
     keys: [uint32];
     // index of the value in Tile
     values: [uint32];
-    geometry: [PVTGeometry]; // should rename this to geometries
+    geometries: [PVTGeometry];
 }
 
 table PVTGeometry {
-    points: [PVTPoint];
+    points: [PVTTilePoint];
 }
 
-// PVTPoint should be i16,
-// PlanetPoint should be u32
-struct PVTPoint {
-    x: uint32;
-    y: uint32;
+// This is a point in tile space.
+// We are using the interanl extent for a tile, which is always 8192.
+// https://github.com/maplibre/maplibre-gl-js/blob/028344137fe1676b50b8da2729f1dcb5c8b65eac/src/data/extent.ts
+// https://github.com/maplibre/maplibre-gl-js/blob/028344137fe1676b50b8da2729f1dcb5c8b65eac/src/data/load_geometry.ts
+struct PVTTilePoint {
+    x: int16;
+    y: int16;
 }
 
 // All the primitives that can be represented in JavaScript

@@ -67,7 +67,7 @@
             "maxzoom": 23,
             "source": "planet",
             "source-layer": "tile_center",
-            "layout": {"visibility": "none"},
+            "layout": { "visibility": "none" },
             "paint": {
                 "circle-radius": 2,
                 "circle-color": "#ff69b4"

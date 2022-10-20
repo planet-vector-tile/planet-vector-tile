@@ -226,6 +226,132 @@ impl<'a> PVTPoint {
 
 }
 
+// struct PVTTilePoint, aligned to 2
+#[repr(transparent)]
+#[derive(Clone, Copy, PartialEq)]
+pub struct PVTTilePoint(pub [u8; 4]);
+impl Default for PVTTilePoint { 
+  fn default() -> Self { 
+    Self([0; 4])
+  }
+}
+impl core::fmt::Debug for PVTTilePoint {
+  fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
+    f.debug_struct("PVTTilePoint")
+      .field("x", &self.x())
+      .field("y", &self.y())
+      .finish()
+  }
+}
+
+impl flatbuffers::SimpleToVerifyInSlice for PVTTilePoint {}
+impl flatbuffers::SafeSliceAccess for PVTTilePoint {}
+impl<'a> flatbuffers::Follow<'a> for PVTTilePoint {
+  type Inner = &'a PVTTilePoint;
+  #[inline]
+  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    <&'a PVTTilePoint>::follow(buf, loc)
+  }
+}
+impl<'a> flatbuffers::Follow<'a> for &'a PVTTilePoint {
+  type Inner = &'a PVTTilePoint;
+  #[inline]
+  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    flatbuffers::follow_cast_ref::<PVTTilePoint>(buf, loc)
+  }
+}
+impl<'b> flatbuffers::Push for PVTTilePoint {
+    type Output = PVTTilePoint;
+    #[inline]
+    fn push(&self, dst: &mut [u8], _rest: &[u8]) {
+        let src = unsafe {
+            ::core::slice::from_raw_parts(self as *const PVTTilePoint as *const u8, Self::size())
+        };
+        dst.copy_from_slice(src);
+    }
+}
+impl<'b> flatbuffers::Push for &'b PVTTilePoint {
+    type Output = PVTTilePoint;
+
+    #[inline]
+    fn push(&self, dst: &mut [u8], _rest: &[u8]) {
+        let src = unsafe {
+            ::core::slice::from_raw_parts(*self as *const PVTTilePoint as *const u8, Self::size())
+        };
+        dst.copy_from_slice(src);
+    }
+}
+
+impl<'a> flatbuffers::Verifiable for PVTTilePoint {
+  #[inline]
+  fn run_verifier(
+    v: &mut flatbuffers::Verifier, pos: usize
+  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
+    use self::flatbuffers::Verifiable;
+    v.in_buffer::<Self>(pos)
+  }
+}
+
+impl<'a> PVTTilePoint {
+  #[allow(clippy::too_many_arguments)]
+  pub fn new(
+    x: i16,
+    y: i16,
+  ) -> Self {
+    let mut s = Self([0; 4]);
+    s.set_x(x);
+    s.set_y(y);
+    s
+  }
+
+  pub fn x(&self) -> i16 {
+    let mut mem = core::mem::MaybeUninit::<i16>::uninit();
+    unsafe {
+      core::ptr::copy_nonoverlapping(
+        self.0[0..].as_ptr(),
+        mem.as_mut_ptr() as *mut u8,
+        core::mem::size_of::<i16>(),
+      );
+      mem.assume_init()
+    }.from_little_endian()
+  }
+
+  pub fn set_x(&mut self, x: i16) {
+    let x_le = x.to_little_endian();
+    unsafe {
+      core::ptr::copy_nonoverlapping(
+        &x_le as *const i16 as *const u8,
+        self.0[0..].as_mut_ptr(),
+        core::mem::size_of::<i16>(),
+      );
+    }
+  }
+
+  pub fn y(&self) -> i16 {
+    let mut mem = core::mem::MaybeUninit::<i16>::uninit();
+    unsafe {
+      core::ptr::copy_nonoverlapping(
+        self.0[2..].as_ptr(),
+        mem.as_mut_ptr() as *mut u8,
+        core::mem::size_of::<i16>(),
+      );
+      mem.assume_init()
+    }.from_little_endian()
+  }
+
+  pub fn set_y(&mut self, x: i16) {
+    let x_le = x.to_little_endian();
+    unsafe {
+      core::ptr::copy_nonoverlapping(
+        &x_le as *const i16 as *const u8,
+        self.0[2..].as_mut_ptr(),
+        core::mem::size_of::<i16>(),
+      );
+    }
+  }
+
+}
+
 // struct PVTValue, aligned to 8
 #[repr(transparent)]
 #[derive(Clone, Copy, PartialEq)]
@@ -602,7 +728,7 @@ impl<'a> PVTFeature<'a> {
   pub const VT_H: flatbuffers::VOffsetT = 6;
   pub const VT_KEYS: flatbuffers::VOffsetT = 8;
   pub const VT_VALUES: flatbuffers::VOffsetT = 10;
-  pub const VT_GEOMETRY: flatbuffers::VOffsetT = 12;
+  pub const VT_GEOMETRIES: flatbuffers::VOffsetT = 12;
 
   #[inline]
   pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
@@ -616,7 +742,7 @@ impl<'a> PVTFeature<'a> {
     let mut builder = PVTFeatureBuilder::new(_fbb);
     builder.add_h(args.h);
     builder.add_id(args.id);
-    if let Some(x) = args.geometry { builder.add_geometry(x); }
+    if let Some(x) = args.geometries { builder.add_geometries(x); }
     if let Some(x) = args.values { builder.add_values(x); }
     if let Some(x) = args.keys { builder.add_keys(x); }
     builder.finish()
@@ -640,8 +766,8 @@ impl<'a> PVTFeature<'a> {
     self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, u32>>>(PVTFeature::VT_VALUES, None)
   }
   #[inline]
-  pub fn geometry(&self) -> Option<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<PVTGeometry<'a>>>> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<PVTGeometry>>>>(PVTFeature::VT_GEOMETRY, None)
+  pub fn geometries(&self) -> Option<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<PVTGeometry<'a>>>> {
+    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<PVTGeometry>>>>(PVTFeature::VT_GEOMETRIES, None)
   }
 }
 
@@ -656,7 +782,7 @@ impl flatbuffers::Verifiable for PVTFeature<'_> {
      .visit_field::<u64>("h", Self::VT_H, false)?
      .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, u32>>>("keys", Self::VT_KEYS, false)?
      .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, u32>>>("values", Self::VT_VALUES, false)?
-     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, flatbuffers::ForwardsUOffset<PVTGeometry>>>>("geometry", Self::VT_GEOMETRY, false)?
+     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, flatbuffers::ForwardsUOffset<PVTGeometry>>>>("geometries", Self::VT_GEOMETRIES, false)?
      .finish();
     Ok(())
   }
@@ -666,7 +792,7 @@ pub struct PVTFeatureArgs<'a> {
     pub h: u64,
     pub keys: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, u32>>>,
     pub values: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, u32>>>,
-    pub geometry: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<PVTGeometry<'a>>>>>,
+    pub geometries: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<PVTGeometry<'a>>>>>,
 }
 impl<'a> Default for PVTFeatureArgs<'a> {
   #[inline]
@@ -676,7 +802,7 @@ impl<'a> Default for PVTFeatureArgs<'a> {
       h: 0,
       keys: None,
       values: None,
-      geometry: None,
+      geometries: None,
     }
   }
 }
@@ -703,8 +829,8 @@ impl<'a: 'b, 'b> PVTFeatureBuilder<'a, 'b> {
     self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(PVTFeature::VT_VALUES, values);
   }
   #[inline]
-  pub fn add_geometry(&mut self, geometry: flatbuffers::WIPOffset<flatbuffers::Vector<'b , flatbuffers::ForwardsUOffset<PVTGeometry<'b >>>>) {
-    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(PVTFeature::VT_GEOMETRY, geometry);
+  pub fn add_geometries(&mut self, geometries: flatbuffers::WIPOffset<flatbuffers::Vector<'b , flatbuffers::ForwardsUOffset<PVTGeometry<'b >>>>) {
+    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(PVTFeature::VT_GEOMETRIES, geometries);
   }
   #[inline]
   pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> PVTFeatureBuilder<'a, 'b> {
@@ -728,7 +854,7 @@ impl core::fmt::Debug for PVTFeature<'_> {
       ds.field("h", &self.h());
       ds.field("keys", &self.keys());
       ds.field("values", &self.values());
-      ds.field("geometry", &self.geometry());
+      ds.field("geometries", &self.geometries());
       ds.finish()
   }
 }
@@ -766,8 +892,8 @@ impl<'a> PVTGeometry<'a> {
 
 
   #[inline]
-  pub fn points(&self) -> Option<&'a [PVTPoint]> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, PVTPoint>>>(PVTGeometry::VT_POINTS, None).map(|v| v.safe_slice())
+  pub fn points(&self) -> Option<&'a [PVTTilePoint]> {
+    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, PVTTilePoint>>>(PVTGeometry::VT_POINTS, None).map(|v| v.safe_slice())
   }
 }
 
@@ -778,13 +904,13 @@ impl flatbuffers::Verifiable for PVTGeometry<'_> {
   ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
     use self::flatbuffers::Verifiable;
     v.visit_table(pos)?
-     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, PVTPoint>>>("points", Self::VT_POINTS, false)?
+     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, PVTTilePoint>>>("points", Self::VT_POINTS, false)?
      .finish();
     Ok(())
   }
 }
 pub struct PVTGeometryArgs<'a> {
-    pub points: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, PVTPoint>>>,
+    pub points: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, PVTTilePoint>>>,
 }
 impl<'a> Default for PVTGeometryArgs<'a> {
   #[inline]
@@ -801,7 +927,7 @@ pub struct PVTGeometryBuilder<'a: 'b, 'b> {
 }
 impl<'a: 'b, 'b> PVTGeometryBuilder<'a, 'b> {
   #[inline]
-  pub fn add_points(&mut self, points: flatbuffers::WIPOffset<flatbuffers::Vector<'b , PVTPoint>>) {
+  pub fn add_points(&mut self, points: flatbuffers::WIPOffset<flatbuffers::Vector<'b , PVTTilePoint>>) {
     self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(PVTGeometry::VT_POINTS, points);
   }
   #[inline]

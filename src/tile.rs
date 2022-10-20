@@ -175,7 +175,7 @@ impl Tile {
     }
 
     // Projects a point from location space to tile space.
-    pub fn project(&self, loc: PVTPoint) -> PVTPoint {
+    pub fn project(&self, loc: PVTPoint) -> PVTTilePoint {
         // location in planet resolution
         let loc_x = loc.x() as f64;
         let loc_y = loc.y() as f64;
@@ -214,14 +214,7 @@ impl Tile {
             y = max;
         }
 
-        PVTPoint::new(x as u32, y as u32)
-    }
-
-    pub fn project_bbox(&self, bbox: BBox) -> BBox {
-        BBox {
-            nw: self.project(bbox.nw),
-            se: self.project(bbox.se)
-        }
+        PVTTilePoint::new(x as i16, y as i16)
     }
 }
 

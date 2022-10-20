@@ -89,7 +89,7 @@ export class PlanetVectorTileFeature implements VectorTileFeature {
     // 2 is MultiLineString
     // 3 is MultiPolygon
     get type(): 1 | 2 | 3 {
-        const firstGeom = this._feat.geometry(0)!;
+        const firstGeom = this._feat.geometries(0)!;
         const len = firstGeom.pointsLength();
         // point
         if (len < 2) {
@@ -149,10 +149,10 @@ export class PlanetVectorTileFeature implements VectorTileFeature {
         }
         // TODO Implement point where we just use the FB rather than do this extra loop / copy.
         const feat = this._feat;
-        const len = feat.geometryLength();
+        const len = feat.geometriesLength();
         const outer = new Array<Point[]>(len);
         for (let i = 0; i < len; i++) {
-            const geom = feat.geometry(i)!;
+            const geom = feat.geometries(i)!;
             const innerLen = geom.pointsLength();
             const inner = new Array<Point>(innerLen);
             outer[i] = inner;
@@ -187,14 +187,14 @@ export class PlanetVectorTileFeature implements VectorTileFeature {
             return coords;
         }
 
-        const len = feat.geometryLength();
+        const len = feat.geometriesLength();
         const type = this.type;
 
         // MultiPoint has one less nesting
         if (type === 1) {
             const outerCoordinates = new Array<Position>(len);
             for (let i = 0; i < len; i++) {
-                const point = project(feat.geometry(i)!)[0];
+                const point = project(feat.geometries(i)!)[0];
                 outerCoordinates[i] = point;
             }
             return {
@@ -209,7 +209,7 @@ export class PlanetVectorTileFeature implements VectorTileFeature {
 
         const outerCoordinates = new Array<Position[]>(len);
         for (let i = 0; i < len; i++) {
-            const innerCoordinates = project(feat.geometry(i)!);
+            const innerCoordinates = project(feat.geometries(i)!);
             outerCoordinates[i] = innerCoordinates;
         }
 

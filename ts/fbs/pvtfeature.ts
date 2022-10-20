@@ -74,7 +74,7 @@ export class PVTFeature {
             : null;
     }
 
-    geometry(index: number, obj?: PVTGeometry): PVTGeometry | null {
+    geometries(index: number, obj?: PVTGeometry): PVTGeometry | null {
         const offset = this.bb!.__offset(this.bb_pos, 12);
         return offset
             ? (obj || new PVTGeometry()).__init(
@@ -84,7 +84,7 @@ export class PVTFeature {
             : null;
     }
 
-    geometryLength(): number {
+    geometriesLength(): number {
         const offset = this.bb!.__offset(this.bb_pos, 12);
         return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
     }
@@ -149,11 +149,11 @@ export class PVTFeature {
         builder.startVector(4, numElems, 4);
     }
 
-    static addGeometry(builder: flatbuffers.Builder, geometryOffset: flatbuffers.Offset) {
-        builder.addFieldOffset(4, geometryOffset, 0);
+    static addGeometries(builder: flatbuffers.Builder, geometriesOffset: flatbuffers.Offset) {
+        builder.addFieldOffset(4, geometriesOffset, 0);
     }
 
-    static createGeometryVector(builder: flatbuffers.Builder, data: flatbuffers.Offset[]): flatbuffers.Offset {
+    static createGeometriesVector(builder: flatbuffers.Builder, data: flatbuffers.Offset[]): flatbuffers.Offset {
         builder.startVector(4, data.length, 4);
         for (let i = data.length - 1; i >= 0; i--) {
             builder.addOffset(data[i]!);
@@ -161,7 +161,7 @@ export class PVTFeature {
         return builder.endVector();
     }
 
-    static startGeometryVector(builder: flatbuffers.Builder, numElems: number) {
+    static startGeometriesVector(builder: flatbuffers.Builder, numElems: number) {
         builder.startVector(4, numElems, 4);
     }
 
@@ -176,14 +176,14 @@ export class PVTFeature {
         h: bigint,
         keysOffset: flatbuffers.Offset,
         valuesOffset: flatbuffers.Offset,
-        geometryOffset: flatbuffers.Offset
+        geometriesOffset: flatbuffers.Offset
     ): flatbuffers.Offset {
         PVTFeature.startPVTFeature(builder);
         PVTFeature.addId(builder, id);
         PVTFeature.addH(builder, h);
         PVTFeature.addKeys(builder, keysOffset);
         PVTFeature.addValues(builder, valuesOffset);
-        PVTFeature.addGeometry(builder, geometryOffset);
+        PVTFeature.addGeometries(builder, geometriesOffset);
         return PVTFeature.endPVTFeature(builder);
     }
 }

@@ -124,7 +124,7 @@ impl InfoTile {
                 h: tile.h,
                 keys: Some(keys),
                 values: Some(vals),
-                geometry: Some(geometries),
+                geometries: Some(geometries),
             },
         );
 
@@ -142,7 +142,7 @@ impl InfoTile {
                 h: tile.h,
                 keys: Some(keys),
                 values: Some(vals),
-                geometry: Some(center_geoms),
+                geometries: Some(center_geoms),
             },
         );
 
@@ -153,10 +153,10 @@ impl InfoTile {
 pub fn basic(tile: Tile) -> Vec<u8> {
     let mut builder = FlatBufferBuilder::with_capacity(1024);
 
-    let nw = PVTPoint::new(0, 0);
-    let sw = PVTPoint::new(0, 8192);
-    let se = PVTPoint::new(8192, 8192);
-    let ne = PVTPoint::new(8192, 0);
+    let nw = PVTTilePoint::new(0, 0);
+    let sw = PVTTilePoint::new(0, 8192);
+    let se = PVTTilePoint::new(8192, 8192);
+    let ne = PVTTilePoint::new(8192, 0);
 
     let path = builder.create_vector(&[nw, sw, se, ne, nw]);
 
@@ -173,7 +173,7 @@ pub fn basic(tile: Tile) -> Vec<u8> {
             h: tile.h,
             keys: Some(keys),
             values: Some(values),
-            geometry: Some(geometries),
+            geometries: Some(geometries),
         },
     );
     let boundary_features = builder.create_vector(&[boundary_feature]);
@@ -185,7 +185,7 @@ pub fn basic(tile: Tile) -> Vec<u8> {
         },
     );
 
-    let center_point = PVTPoint::new(4096, 4096);
+    let center_point = PVTTilePoint::new(4096, 4096);
     let center_path = builder.create_vector(&[center_point]);
     let center_geom = PVTGeometry::create(
         &mut builder,
@@ -201,7 +201,7 @@ pub fn basic(tile: Tile) -> Vec<u8> {
             h: tile.h,
             keys: Some(keys),
             values: Some(values),
-            geometry: Some(center_geoms),
+            geometries: Some(center_geoms),
         },
     );
     let center_features = builder.create_vector(&[center_feature]);

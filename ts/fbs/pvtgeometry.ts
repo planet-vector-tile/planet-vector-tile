@@ -2,7 +2,7 @@
 
 import * as flatbuffers from 'flatbuffers';
 
-import { PVTPoint } from './pvtpoint';
+import { PVTTilePoint } from './pvttile-point';
 
 export class PVTGeometry {
     bb: flatbuffers.ByteBuffer | null = null;
@@ -22,10 +22,10 @@ export class PVTGeometry {
         return (obj || new PVTGeometry()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
     }
 
-    points(index: number, obj?: PVTPoint): PVTPoint | null {
+    points(index: number, obj?: PVTTilePoint): PVTTilePoint | null {
         const offset = this.bb!.__offset(this.bb_pos, 4);
         return offset
-            ? (obj || new PVTPoint()).__init(this.bb!.__vector(this.bb_pos + offset) + index * 8, this.bb!)
+            ? (obj || new PVTTilePoint()).__init(this.bb!.__vector(this.bb_pos + offset) + index * 4, this.bb!)
             : null;
     }
 
@@ -43,7 +43,7 @@ export class PVTGeometry {
     }
 
     static startPointsVector(builder: flatbuffers.Builder, numElems: number) {
-        builder.startVector(8, numElems, 4);
+        builder.startVector(4, numElems, 2);
     }
 
     static endPVTGeometry(builder: flatbuffers.Builder): flatbuffers.Offset {
