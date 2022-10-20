@@ -34,10 +34,10 @@ test('check info tile boundary feature', async t => {
     const p2x = points[2].x;
     const p2y = points[2].y;
 
-    t.is(p0x, 0);
-    t.is(p0y, 0);
-    t.is(p2x, 8191);
-    t.is(p2y, 8191);
+    t.is(p0x, -16384);
+    t.is(p0y, -16384);
+    t.is(p2x, 16383);
+    t.is(p2y, 16383);
 });
 
 test('check info tile 0/0/0', async t => {

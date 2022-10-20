@@ -18,8 +18,14 @@ use planet_vector_tile_generated::*;
 // 2^9 = 524,288 , so zoom 9 and above does not quantize coordinates
 // Zooms 8 and below do quantize coordinates.
 
-const TILE_EXTENT: f64 = 8192_f64;
 const U32_SIZE: f64 = u32::MAX  as f64 + 1_f64;
+
+// https://github.com/maplibre/maplibre-gl-js/blob/9aabd047281ac94c246a8ebedb850ff1133a0407/src/data/extent.ts#L16
+const TILE_EXTENT: f64 = 8192_f64;
+
+// https://github.com/maplibre/maplibre-gl-js/blob/9aabd047281ac94c246a8ebedb850ff1133a0407/src/data/load_geometry.ts#L12-L14
+const TILE_MAX: f64 = 16383_f64;
+const TILE_MIN: f64 = -16384_f64;
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Tile {
@@ -197,21 +203,18 @@ impl Tile {
         // We shouldn't be clamping exactly to the bounds. 
         // Need to change fb to be i16...
 
-        let min = 0_f64;
-        let max = TILE_EXTENT - 1_f64;
-
         // clamp
-        if x < min {
-            x = min;
+        if x < TILE_MIN {
+            x = TILE_MIN;
         }
-        if x > max {
-            x = max;
+        if x > TILE_MAX {
+            x = TILE_MAX;
         }
-        if y < min {
-            y = min;
+        if y < TILE_MIN {
+            y = TILE_MIN;
         }
-        if y > max {
-            y = max;
+        if y > TILE_MAX {
+            y = TILE_MAX;
         }
 
         PVTTilePoint::new(x as i16, y as i16)
