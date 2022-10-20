@@ -142,10 +142,6 @@ impl Tile {
     }
 
     pub fn pyramid(&self, child_levels: u8) -> Vec<Tile> {
-        if self.z == 0 {
-            return Vec::<Tile>::new();
-        }
-
         // Get parents
         let mut pyramid = Vec::<Tile>::with_capacity((self.z + 1) as usize + 4_u32.pow(child_levels as u32) as usize);
         let mut t = self.clone();
@@ -361,9 +357,11 @@ mod tests {
     }
 
     #[test]
-    fn shift() {
-        let max: u32 = 4294967295;
-        let half: u32 = 2147483647;
-        assert_eq!(max >> 1, half);
+    fn test_pyramid() {
+        let t = Tile::from_zxy(0, 0, 0);
+        let p = t.pyramid(0);
+        assert_eq!(p.len(), 1);
+        let p2 = t.pyramid(1);
+        assert_eq!(p2.len(), 5);
     }
 }

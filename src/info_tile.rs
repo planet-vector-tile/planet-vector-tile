@@ -259,4 +259,12 @@ mod tests {
         let vec_u8 = info_tile.build_buffer();
         assert_eq!(vec_u8.len(), 106024);
     }
+
+    #[test]
+    fn test_zero_info_tile() {
+        let tile = Tile::from_zxy(0, 0, 0);
+        let info_tile = InfoTile::new(tile, None);
+        let vec_u8 = info_tile.build_buffer();
+        assert_eq!(vec_u8.len(), 96912);
+    }
 }
