@@ -7,7 +7,7 @@ use crate::tile_attributes::TileAttributes;
 
 pub struct InfoTile {
     tile: Tile,
-    tile_tree: Vec<Tile>,
+    pyramid: Vec<Tile>,
     attributes: TileAttributes,
 }
 
@@ -16,7 +16,7 @@ impl InfoTile {
         let levels = child_levels.unwrap_or(4);
         InfoTile { 
             tile,
-            tile_tree: tile.tree(levels),
+            pyramid: tile.pyramid(levels),
             attributes: TileAttributes::new()
          }
     }
@@ -25,7 +25,7 @@ impl InfoTile {
         let mut builder = FlatBufferBuilder::new();
         let mut boundary_vec = Vec::<WIPOffset<PVTFeature>>::new();
         let mut center_vec = Vec::<WIPOffset<PVTFeature>>::new();
-        for tile in &self.tile_tree {
+        for tile in &self.pyramid {
             let (boundary, center) = self.generate_info(&mut builder, tile);
             boundary_vec.push(boundary);
             center_vec.push(center);
@@ -243,3 +243,18 @@ pub fn basic(tile: Tile) -> Vec<u8> {
 
     builder.finished_data().to_vec()
 }
+
+
+// 9, 82, 199
+// let tile = Tile::from_zxy(z, x, y);
+// let info_tile = InfoTile::new(tile, None);
+// let vec_u8 = info_tile.build_buffer();
+// mod tests {
+//     use super::*;
+
+//     #[test]
+//     fn test_basic_tile() {
+//         let tile = tile::Tile::from::zxy(9, 82, 199);
+        
+//     }
+// }

@@ -26,8 +26,8 @@
     "scripts": {
         "start": "cd electron && npm start",
         "artifacts": "napi artifacts",
-        "build": "napi build --platform --js napi.js && npm run build:ts",
-        "build:release": "napi build --platform --release --js napi.js && npm run build:ts",
+        "build": "napi build --platform&& npm run build:ts",
+        "build:release": "napi build --platform --release&& npm run build:ts",
         "build:ts": "tsc -p tsconfig.json && prettier --write . && npm run rollup",
         "rollup": "rollup --config rollup.config.mjs",
         "clean": "rm -rf index* node_modules package-lock.json dist/*",

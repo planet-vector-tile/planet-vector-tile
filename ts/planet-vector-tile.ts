@@ -147,6 +147,7 @@ export class PlanetVectorTileFeature implements VectorTileFeature {
         if (this._geom) {
             return this._geom;
         }
+        // TODO Implement point where we just use the FB rather than do this extra loop / copy.
         const feat = this._feat;
         const len = feat.geometryLength();
         const outer = new Array<Point[]>(len);

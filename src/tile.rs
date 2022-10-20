@@ -18,6 +18,7 @@ use planet_vector_tile_generated::*;
 // Zooms 8 and below do quantize coordinates.
 
 const TILE_EXTENT: u64 = 8192;
+const U32_MAX: u64 = u32::MAX as u64;
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Tile {
@@ -133,7 +134,7 @@ impl Tile {
         desc
     }
 
-    pub fn tree(&self, child_levels: u8) -> Vec<Tile> {
+    pub fn pyramid(&self, child_levels: u8) -> Vec<Tile> {
         if self.z == 0 {
             return Vec::<Tile>::new();
         }
@@ -165,10 +166,9 @@ impl Tile {
         // PVTPoint shouldnt be u32. Just make it a f64...
         let loc_x = point.x() as u64;
         let loc_y = point.y() as u64;
-        let u32_max = u32::MAX as u64;
 
-        let mut x = (loc_x * TILE_EXTENT) / u32_max;
-        let mut y = (loc_y * TILE_EXTENT) /u32_max;
+        let mut x = (loc_x * TILE_EXTENT) / U32_MAX;
+        let mut y = (loc_y * TILE_EXTENT) / U32_MAX;
 
         // origin of the tile in the tile's resolution
         let origin_x = self.x as u64 * TILE_EXTENT;
@@ -179,7 +179,7 @@ impl Tile {
         y = y - origin_y;
 
         // We shouldn't be clamping exactly to the bounds. 
-        // Need to change fb to be f64...
+        // Need to change fb to be i16...
 
         // clamp to origin
         if x < origin_x {
@@ -246,7 +246,6 @@ impl BBox {
     }
 }
 
-// let tile = await planet.tile(9, 82, 199);
 mod tests {
     use super::*;
 
