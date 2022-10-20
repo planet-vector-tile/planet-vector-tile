@@ -129,7 +129,7 @@ impl InfoTile {
         );
 
         // Create center geometry
-        let center = tile.center();
+        let center = self.tile.project(tile.center());
         let center_path = builder.create_vector(&[center]);
         let center_geom = PVTGeometry::create(builder, &PVTGeometryArgs { points: Some(center_path) });
         let center_geoms = builder.create_vector(&[center_geom]);

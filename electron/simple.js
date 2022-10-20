@@ -1,3 +1,4 @@
+const { InferencePriority } = require('typescript');
 const api = require('../index');
 const style = require('../styles/default.json');
 
@@ -12,10 +13,18 @@ const map = (window.map = new window.maplibregl.Map({
 
 map.on('mouseup', e => {
     const features = map.queryRenderedFeatures(e.point);
-    // if (features.length === 0) {
-    //     return;
-    // }
-    document.getElementById('features').innerHTML = JSON.stringify(features, null, 2);
+    
+    const infos = features.map(f => {
+        const info = {}
+        info.id = f.id;
+        info.layer = f.layer.id;
+        info.layerType = f.layer.type;
+        info.sourceLayer = f.sourceLayer;
+        info.geometryType = f.geometry.type;
+        info.properties = f.properties;
+        return info;
+    })
+    document.getElementById('features').innerHTML = JSON.stringify(infos, null, 2);
     document.getElementById('features-panel').style.display = 'block';
 });
 

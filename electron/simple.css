@@ -24,6 +24,7 @@ body,
     bottom: 0;
     width: 300px;
     background: rgba(255, 255, 255, 0.731);
+    overflow: auto;
     display: none;
 }
 
@@ -51,7 +52,6 @@ body,
 }
 
 #features {
-    font-size: 10px;
-    padding: 6px;
+    font-size: 11px;
     overflow: auto;
 }

@@ -38,6 +38,17 @@
             }
         },
         {
+            "id": "tile_boundary_fill",
+            "type": "fill",
+            "minzoom": 0,
+            "maxzoom": 23,
+            "source": "planet",
+            "source-layer": "tile_boundary",
+            "paint": {
+                "fill-color": "rgba(255, 105, 180, 0.01)"
+            }
+        },
+        {
             "id": "tile_boundary",
             "type": "line",
             "minzoom": 0,
@@ -46,7 +57,20 @@
             "source-layer": "tile_boundary",
             "paint": {
                 "line-color": "#ff69b4",
-                "line-width": 2
+                "line-width": 1
+            }
+        },
+        {
+            "id": "tile_center",
+            "type": "circle",
+            "minzoom": 0,
+            "maxzoom": 23,
+            "source": "planet",
+            "source-layer": "tile_center",
+            "layout": {"visibility": "none"},
+            "paint": {
+                "circle-radius": 2,
+                "circle-color": "#ff69b4"
             }
         },
         {
@@ -59,7 +83,7 @@
             "layout": {
                 "text-font": ["Open Sans Semibold"],
                 "text-field": "{h}",
-                "text-size": 64
+                "text-size": 10
             },
             "paint": {
                 "text-color": "#ff69b4"
