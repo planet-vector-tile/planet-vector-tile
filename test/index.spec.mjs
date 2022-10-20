@@ -17,6 +17,13 @@ test('check info tile boundary feature', async t => {
     const tile = await planet.tile(9, 82, 199);
     const pvt = new PlanetVectorTile(tile);
     const firstFeature = pvt.layers.tile_boundary.feature(0);
+
+    let props = firstFeature.properties;
+    let { z, x, y } = props;
+    t.is(z, 0);
+    t.is(x, 0);
+    t.is(y, 0);
+
     const geom = firstFeature.loadGeometry();
     const points = geom[0];
 

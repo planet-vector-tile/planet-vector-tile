@@ -18,8 +18,8 @@ use planet_vector_tile_generated::*;
 // 2^9 = 524,288 , so zoom 9 and above does not quantize coordinates
 // Zooms 8 and below do quantize coordinates.
 
-const TILE_EXTENT: u64 = 8192;
-const U32_MAX: u64 = u32::MAX as u64;
+const TILE_EXTENT: f64 = 8192_f64;
+const U32_SIZE: f64 = u32::MAX  as f64 + 1_f64;
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Tile {
@@ -169,42 +169,41 @@ impl Tile {
     }
 
     // Projects a point from location space to tile space.
-    pub fn project(&self, point: PVTPoint) -> PVTPoint {
+    pub fn project(&self, loc: PVTPoint) -> PVTPoint {
+        // location in planet resolution
+        let loc_x = loc.x() as f64;
+        let loc_y = loc.y() as f64;
 
-        // PVTPoint shouldnt be u32. Just make it a f64...
-        let loc_x = point.x() as u64;
-        let loc_y = point.y() as u64;
+        // where coord is between 0 -> 1 for planet space
+        let unit_x = loc_x / U32_SIZE;
+        let unit_y = loc_y / U32_SIZE;
 
-        let mut x = (loc_x * TILE_EXTENT) / U32_MAX;
-        let mut y = (loc_y * TILE_EXTENT) / U32_MAX;
+        // where tile origin is between 0 -> 1 for planet space
+        let unit_origin_x = if self.x == 0 { 0_f64 } else { self.x as f64 / (2u32 << (self.z - 1) as u32) as f64 };
+        let unit_origin_y = if self.y == 0 { 0_f64 } else { self.y as f64 / (2u32 << (self.z - 1) as u32) as f64 };
 
-        // origin of the tile in the tile's resolution
-        let origin_x = self.x as u64 * TILE_EXTENT;
-        let origin_y = self.y as u64 * TILE_EXTENT;
+        // where coord is relative to tile origin and between 0 -> 8192
+        let mut x = (unit_x - unit_origin_x) * TILE_EXTENT;
+        let mut y = (unit_y - unit_origin_y) * TILE_EXTENT;
 
         // We shouldn't be clamping exactly to the bounds. 
         // Need to change fb to be i16...
 
-        // clamp to origin
-        if x < origin_x {
-            x = origin_x
-        } else {
-            x = x - origin_x;
-            // clamp to extent
-            if x > TILE_EXTENT {
-                x = TILE_EXTENT
-            }
-        }
+        let min = 0_f64;
+        let max = TILE_EXTENT - 1_f64;
 
-        // clamp to origin
-        if y < origin_y {
-            y = origin_y
-        } else {
-            y = y - origin_y;
-            // clamp to extent
-            if y > TILE_EXTENT {
-                y = TILE_EXTENT
-            }
+        // clamp
+        if x < min {
+            x = min;
+        }
+        if x > max {
+            x = max;
+        }
+        if y < min {
+            y = min;
+        }
+        if y > max {
+            y = max;
         }
 
         PVTPoint::new(x as u32, y as u32)

@@ -32,6 +32,8 @@ table PVTGeometry {
     points: [PVTPoint];
 }
 
+// PVTPoint should be i16,
+// PlanetPoint should be u32
 struct PVTPoint {
     x: uint32;
     y: uint32;
