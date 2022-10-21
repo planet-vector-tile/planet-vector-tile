@@ -1,6 +1,6 @@
 use fast_hilbert::{h2xy, xy2h};
-use std::fmt;
 use queue::Queue;
+use std::fmt;
 
 #[allow(dead_code, unused_imports)]
 #[path = "./fbs/planet_vector_tile_generated.rs"]
@@ -15,10 +15,10 @@ use planet_vector_tile_generated::*;
 
 // In MapboxGL, the max extent for a tile is 8192 (13 bit unsigned integer)
 // 4,294,967,296 / 8192 = 524,288
-// 2^9 = 524,288 , so zoom 9 and above does not quantize coordinates
+// 2^9 = 524,288 , so zoom 9 and above does not quantize coordinates.
 // Zooms 8 and below do quantize coordinates.
 
-const U32_SIZE: f64 = u32::MAX  as f64 + 1_f64;
+const U32_SIZE: f64 = u32::MAX as f64 + 1_f64;
 
 // https://github.com/maplibre/maplibre-gl-js/blob/9aabd047281ac94c246a8ebedb850ff1133a0407/src/data/extent.ts#L16
 const TILE_EXTENT: f64 = 8192_f64;
@@ -76,7 +76,11 @@ impl Tile {
         // z gets 5 bits, max 31
         // h gets 59 bits, max 576460752303423487
         let z = self.z as u64;
-        let h = if self.h > 576460752303423487 { self.h % 576460752303423487 } else { self.h };
+        let h = if self.h > 576460752303423487 {
+            self.h % 576460752303423487
+        } else {
+            self.h
+        };
         z << 59 | h
     }
 
@@ -143,13 +147,15 @@ impl Tile {
             }
             desc.push(t);
         }
-        
+
         desc
     }
 
     pub fn pyramid(&self, child_levels: u8) -> Vec<Tile> {
         // Get parents
-        let mut pyramid = Vec::<Tile>::with_capacity((self.z + 1) as usize + 4_u32.pow(child_levels as u32) as usize);
+        let mut pyramid = Vec::<Tile>::with_capacity(
+            (self.z + 1) as usize + 4_u32.pow(child_levels as u32) as usize,
+        );
         let mut t = self.clone();
         pyramid.push(t);
         for _ in 0..self.z {
@@ -166,7 +172,7 @@ impl Tile {
         let extent = self.location_extent();
         BBox {
             nw: origin,
-            se: PVTPoint::new(origin.x() + extent, origin.y() + extent)
+            se: PVTPoint::new(origin.x() + extent, origin.y() + extent),
         }
     }
 
@@ -200,7 +206,7 @@ impl Tile {
         let mut x = tile_x - origin_x;
         let mut y = tile_y - origin_y;
 
-        // We shouldn't be clamping exactly to the bounds. 
+        // We shouldn't be clamping exactly to the bounds.
         // Need to change fb to be i16...
 
         // clamp
@@ -219,6 +225,88 @@ impl Tile {
 
         PVTTilePoint::new(x as i16, y as i16)
     }
+
+    pub fn hilbert_bearing(&self) -> HilbertBearing {
+        // n
+        let n = if self.y != 0 {
+            Some(xy2h(self.x, self.y - 1))
+        } else {
+            None
+        };
+
+        // w
+        let w = if self.x != 0 {
+            Some(xy2h(self.x - 1, self.y))
+        } else {
+            None
+        };
+
+        // s
+        let s = if self.y != u32::MAX {
+            Some(xy2h(self.x, self.y + 1))
+        } else {
+            None
+        };
+
+        // e
+        let e = if self.x != u32::MAX {
+            Some(xy2h(self.x + 1, self.y))
+        } else {
+            None
+        };
+
+        let from_h = if self.h != 0 { Some(self.h - 1) } else { None };
+        let to_h = if self.h != u64::MAX { Some(self.h + 1) } else { None };
+
+        if n == from_h {
+            if w == to_h {
+                return HilbertBearing::NW;
+            }
+            if s == to_h {
+                return HilbertBearing::NS;
+            }
+            if e == to_h {
+                return HilbertBearing::NE;
+            }
+        }
+        if w == from_h {
+            if s == to_h {
+                return HilbertBearing::WS;
+            }
+            if e == to_h {
+                return HilbertBearing::WE;
+            }
+            if n == to_h {
+                return HilbertBearing::WN;
+            }
+        }
+        if s == from_h {
+            if e == to_h {
+                return HilbertBearing::SE;
+            }
+            if n == to_h {
+                return HilbertBearing::SN;
+            }
+            if w == to_h {
+                return HilbertBearing::SW;
+            }
+        }
+        if e == from_h {
+            if n == to_h {
+                return HilbertBearing::EN;
+            }
+            if w == to_h {
+                return HilbertBearing::EW;
+            }
+            if s == to_h {
+                return HilbertBearing::ES;
+            }
+        }
+        // first tile will always be west to east
+        HilbertBearing::WE
+
+    }
+
 }
 
 impl Eq for Tile {}
@@ -233,7 +321,7 @@ pub struct BBox {
     // min
     nw: PVTPoint,
     // max
-    se: PVTPoint
+    se: PVTPoint,
 }
 
 // Why do I get these dead code complaints on functions I am using?
@@ -251,6 +339,21 @@ impl BBox {
     pub fn ne(&self) -> PVTPoint {
         PVTPoint::new(self.se.x(), self.nw.y())
     }
+}
+
+pub enum HilbertBearing {
+    NW,
+    NS,
+    NE,
+    WS,
+    WE,
+    WN,
+    SE,
+    SN,
+    SW,
+    EN,
+    EW,
+    ES
 }
 
 mod tests {

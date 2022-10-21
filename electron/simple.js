@@ -14,23 +14,24 @@ const map = (window.map = new window.maplibregl.Map({
 map.on('mouseup', e => {
     const features = map.queryRenderedFeatures(e.point);
 
-    const infos = features.map(f => {
+    const infos = features
+        .map(f => {
+            const info = {};
+            info.id = f.id;
+            info.layer = f.layer.id;
+            info.layerType = f.layer.type;
+            info.sourceLayer = f.sourceLayer;
+            info.geometryType = f.geometry.type;
+            info.properties = f.properties;
+            const json = JSON.stringify(info, null, 2);
 
-        const info = {};
-        info.id = f.id;
-        info.layer = f.layer.id;
-        info.layerType = f.layer.type;
-        info.sourceLayer = f.sourceLayer;
-        info.geometryType = f.geometry.type;
-        info.properties = f.properties;
-        const json =  JSON.stringify(info, null, 2);
+            const title = info.properties?.tile || `${info.layer} - ${info.id}`;
 
-        const title = info.properties?.tile || `${info.layer} - ${info.id}`
+            return `<details><summary>${title}<button onclick="select(${f.properties.h})">Select</button></summary><pre>${json}</pre></details>`;
+        })
+        .join('');
 
-        return `<details><summary>${title}<button onclick="select(${f.properties.h})">Select</button></summary><pre>${json}</pre></details>`
-    }).join('')
-
-    document.getElementById('features').innerHTML = infos
+    document.getElementById('features').innerHTML = infos;
     document.getElementById('features-panel').style.display = 'block';
 });
 
