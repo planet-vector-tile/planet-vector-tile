@@ -45,9 +45,8 @@
             "source": "planet",
             "source-layer": "tile_boundary",
             "paint": {
-                "fill-color": "rgba(255, 105, 180, 0.01)"
-            },
-            "layout": { "visibility": "none" }
+                "fill-color": "rgba(255, 105, 180, 0.001)"
+            }
         },
         {
             "id": "tile_boundary",
@@ -83,6 +82,7 @@
             "maxzoom": 23,
             "source": "planet",
             "source-layer": "tile_bearing",
+            "filter": ["==", "highest_zoom", true],
             "paint": {
                 "line-color": "#ff69b4",
                 "line-width": 1

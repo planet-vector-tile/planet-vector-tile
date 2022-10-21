@@ -83,11 +83,22 @@ impl InfoTile {
     fn generate_info<'a>(&self, builder: &mut FlatBufferBuilder<'a>, tile: &Tile) -> (WIPOffset<PVTFeature<'a>>, WIPOffset<PVTFeature<'a>>, WIPOffset<PVTFeature<'a>>){
         let id = tile.id();
         let is_render_tile = if *tile == self.tile { 1_f64 } else { 0_f64 };
+        let is_highest_zoom = match self.pyramid.last() {
+            Some(t) => {
+                if t.z == tile.z {
+                    1_f64
+                } else {
+                    0_f64
+                }
+            },
+            None => 0_f64,
+        };
         
         // Create tags for features
         let tile_key = self.attributes.upsert_string("tile");
         let render_tile_key = self.attributes.upsert_string("render_tile");
         let is_render_tile_key = self.attributes.upsert_string("render_tile");
+        let is_highest_zoom_key = self.attributes.upsert_string("highest_zoom");
 
         let z_key = self.attributes.upsert_string("z");
         let x_key = self.attributes.upsert_string("x");
@@ -97,14 +108,15 @@ impl InfoTile {
         let tile_val = self.attributes.upsert_string_value(&tile.to_string());
         let render_tile_val = self.attributes.upsert_string_value(&self.tile.to_string());
         let is_render_tile_val = self.attributes.upsert_value(PVTValue::new(PVTValueType::Boolean, is_render_tile));
+        let is_highest_zoom_val = self.attributes.upsert_value(PVTValue::new(PVTValueType::Boolean, is_highest_zoom));
 
         let z_val = self.attributes.upsert_value(PVTValue::new(PVTValueType::Number, tile.z as f64));
         let x_val = self.attributes.upsert_value(PVTValue::new(PVTValueType::Number, tile.x as f64));
         let y_val = self.attributes.upsert_value(PVTValue::new(PVTValueType::Number, tile.y as f64));
         let h_val = self.attributes.upsert_value(PVTValue::new(PVTValueType::Number, tile.h as f64));
 
-        let keys = builder.create_vector::<u32>(&[tile_key, render_tile_key, is_render_tile_key, z_key, x_key, y_key, h_key]);
-        let vals = builder.create_vector::<u32>(&[tile_val, render_tile_val, is_render_tile_val, z_val, x_val, y_val, h_val]);
+        let keys = builder.create_vector::<u32>(&[tile_key, render_tile_key, is_render_tile_key, is_highest_zoom_key, z_key, x_key, y_key, h_key]);
+        let vals = builder.create_vector::<u32>(&[tile_val, render_tile_val, is_render_tile_val, is_highest_zoom_val, z_val, x_val, y_val, h_val]);
 
         // Create boundary geometry
         let bbox = tile.bbox();
