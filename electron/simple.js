@@ -15,6 +15,7 @@ map.on('mouseup', e => {
     const features = map.queryRenderedFeatures(e.point);
 
     const infos = features.map(f => {
+
         const info = {};
         info.id = f.id;
         info.layer = f.layer.id;
@@ -22,9 +23,14 @@ map.on('mouseup', e => {
         info.sourceLayer = f.sourceLayer;
         info.geometryType = f.geometry.type;
         info.properties = f.properties;
-        return info;
-    });
-    document.getElementById('features').innerHTML = JSON.stringify(infos, null, 2);
+        const json =  JSON.stringify(info, null, 2);
+
+        const title = info.properties?.tile || `${info.layer} - ${info.id}`
+
+        return `<details><summary>${title}<button>Select</button></summary><pre>${json}</pre></details>`
+    }).join('')
+
+    document.getElementById('features').innerHTML = infos
     document.getElementById('features-panel').style.display = 'block';
 });
 

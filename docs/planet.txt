@@ -1,0 +1,9 @@
+
+
+# File Topology
+
+1. Header
+2. TileIndex
+3. Edges
+4. Values
+5. Strings

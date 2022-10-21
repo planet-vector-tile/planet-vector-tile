@@ -61,6 +61,19 @@
             }
         },
         {
+            "id": "render_tile_boundary",
+            "type": "line",
+            "minzoom": 0,
+            "maxzoom": 23,
+            "source": "planet",
+            "source-layer": "tile_boundary",
+            "filter": ["==", "render_tile", true],
+            "paint": {
+                "line-color": "rgba(14, 236, 183, 1)",
+                "line-width": 2
+            }
+        },
+        {
             "id": "tile_center",
             "type": "circle",
             "minzoom": 0,
@@ -87,6 +100,23 @@
             },
             "paint": {
                 "text-color": "#ff69b4"
+            }
+        },
+        {
+            "id": "render_tile_center_label",
+            "type": "symbol",
+            "minzoom": 0,
+            "maxzoom": 23,
+            "source": "planet",
+            "source-layer": "tile_center",
+            "filter": ["==", "render_tile", true],
+            "layout": {
+                "text-font": ["Open Sans Semibold"],
+                "text-field": "{h}",
+                "text-size": 18
+            },
+            "paint": {
+                "text-color": "rgba(14, 236, 183, 1)"
             }
         }
     ]

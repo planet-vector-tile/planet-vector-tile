@@ -51,7 +51,22 @@ body,
     background-color: rgba(237, 76, 18, 0.74);
 }
 
+#features-panel h3 {
+    margin: 5px 0 0 10px;
+}
+
 #features {
-    font-size: 11px;
+    font-size: 12px;
+    padding: 4px;
     overflow: auto;
+}
+
+#features summary {
+    font-size: 16px;
+    margin: 4px;
+    cursor: pointer;
+}
+
+#features summary > button {
+    float: right;
 }
