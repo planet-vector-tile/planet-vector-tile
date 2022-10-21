@@ -17,7 +17,7 @@
             "type": "planet",
             "tiles": ["unimplemented"],
             "minzoom": 0,
-            "maxzoom": 23
+            "maxzoom": 18
         }
     },
     "layers": [
@@ -46,7 +46,8 @@
             "source-layer": "tile_boundary",
             "paint": {
                 "fill-color": "rgba(255, 105, 180, 0.01)"
-            }
+            },
+            "layout": { "visibility": "none" }
         },
         {
             "id": "tile_boundary",
@@ -58,7 +59,8 @@
             "paint": {
                 "line-color": "#ff69b4",
                 "line-width": 1
-            }
+            },
+            "layout": { "visibility": "none" }
         },
         {
             "id": "render_tile_boundary",
@@ -67,6 +69,32 @@
             "maxzoom": 23,
             "source": "planet",
             "source-layer": "tile_boundary",
+            "filter": ["==", "render_tile", true],
+            "paint": {
+                "line-color": "rgba(14, 236, 183, 1)",
+                "line-width": 2
+            },
+            "layout": { "visibility": "none" }
+        },
+        {
+            "id": "tile_bearing",
+            "type": "line",
+            "minzoom": 0,
+            "maxzoom": 23,
+            "source": "planet",
+            "source-layer": "tile_bearing",
+            "paint": {
+                "line-color": "#ff69b4",
+                "line-width": 1
+            }
+        },
+        {
+            "id": "render_tile_bearing",
+            "type": "line",
+            "minzoom": 0,
+            "maxzoom": 23,
+            "source": "planet",
+            "source-layer": "tile_bearing",
             "filter": ["==", "render_tile", true],
             "paint": {
                 "line-color": "rgba(14, 236, 183, 1)",
@@ -96,7 +124,8 @@
             "layout": {
                 "text-font": ["Open Sans Semibold"],
                 "text-field": "{h}",
-                "text-size": 10
+                "text-size": 10,
+                "visibility": "none"
             },
             "paint": {
                 "text-color": "#ff69b4"

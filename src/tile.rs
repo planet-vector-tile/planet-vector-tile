@@ -132,7 +132,7 @@ impl Tile {
         if child_levels == 0 {
             return Vec::<Tile>::new();
         }
-        let top_z = self.z + child_levels;
+        let top_z = if self.z + child_levels >= 31 { 31 } else { self.z + child_levels };
         let mut desc = Vec::<Tile>::new();
         let mut q = Queue::<Tile>::new();
         for t in self.children() {

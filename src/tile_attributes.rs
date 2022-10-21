@@ -50,6 +50,15 @@ impl TileAttributes {
         }
     }
 
+    pub fn upsert_number_value(&self, value: f64) -> u32 {
+        self.upsert_value(PVTValue::new(PVTValueType::Number, value))
+    }
+
+    pub fn upsert_bool_value(&self, value: bool) -> u32 {
+        let v = if value { 1_f64 } else { 0_f64 };
+        self.upsert_value(PVTValue::new(PVTValueType::Boolean, v))
+    }
+
     pub fn upsert_string_value(&self, str_val: &str) -> u32 {
         let mut strings = self.strings.borrow_mut();
         let mut values = self.values.borrow_mut();

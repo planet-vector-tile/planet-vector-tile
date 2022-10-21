@@ -2,7 +2,7 @@ use flatbuffers::WIPOffset;
 use flatbuffers::{FlatBufferBuilder};
 
 use crate::tile::planet_vector_tile_generated::*;
-use crate::tile::Tile;
+use crate::tile::{Tile, HilbertBearing};
 use crate::tile_attributes::TileAttributes;
 
 pub struct InfoTile {
@@ -13,7 +13,7 @@ pub struct InfoTile {
 
 impl InfoTile {
     pub fn new(tile: Tile, child_levels: Option<u8>) -> Self {
-        let levels = child_levels.unwrap_or(3);
+        let levels = child_levels.unwrap_or(6);
         InfoTile { 
             tile,
             pyramid: tile.pyramid(levels),
@@ -25,10 +25,12 @@ impl InfoTile {
         let mut builder = FlatBufferBuilder::new();
         let mut boundary_vec = Vec::<WIPOffset<PVTFeature>>::new();
         let mut center_vec = Vec::<WIPOffset<PVTFeature>>::new();
+        let mut bearing_vec = Vec::<WIPOffset<PVTFeature>>::new();
         for tile in &self.pyramid {
-            let (boundary, center) = self.generate_info(&mut builder, tile);
+            let (boundary, center, bearing) = self.generate_info(&mut builder, tile);
             boundary_vec.push(boundary);
             center_vec.push(center);
+            bearing_vec.push(bearing);
         }
 
         let boundary_features = builder.create_vector(&boundary_vec);
@@ -47,8 +49,16 @@ impl InfoTile {
                 features: Some(center_features),
             },
         );
+        let bearing_features = builder.create_vector(&bearing_vec);
+        let bearing_layer = PVTLayer::create(
+            &mut builder,
+            &PVTLayerArgs {
+                name: self.attributes.upsert_string("tile_bearing"),
+                features: Some(bearing_features),
+            },
+        );
 
-        let layers = builder.create_vector(&[boundary_layer, center_layer]);
+        let layers = builder.create_vector(&[boundary_layer, center_layer, bearing_layer]);
         let strings_vec = self.attributes.strings();
         // There should be a cleaner way of doing this...
         let strs_vec = strings_vec.iter().map(|s| s.as_str()).collect::<Vec<&str>>();
@@ -70,7 +80,7 @@ impl InfoTile {
         builder.finished_data().to_vec()
     }
 
-    fn generate_info<'a>(&self, builder: &mut FlatBufferBuilder<'a>, tile: &Tile) -> (WIPOffset<PVTFeature<'a>>, WIPOffset<PVTFeature<'a>>){
+    fn generate_info<'a>(&self, builder: &mut FlatBufferBuilder<'a>, tile: &Tile) -> (WIPOffset<PVTFeature<'a>>, WIPOffset<PVTFeature<'a>>, WIPOffset<PVTFeature<'a>>){
         let id = tile.id();
         let is_render_tile = if *tile == self.tile { 1_f64 } else { 0_f64 };
         
@@ -99,18 +109,10 @@ impl InfoTile {
         // Create boundary geometry
         let bbox = tile.bbox();
 
-        // println!("bbox nw {:#?}", bbox.nw());
-        // println!("bbox sw {:#?}", bbox.sw());
-        // println!("bbox se {:#?}", bbox.se());
-        // println!("bbox ne {:#?}", bbox.ne());
         let nw = self.tile.project(bbox.nw());
         let sw = self.tile.project(bbox.sw());
         let se = self.tile.project(bbox.se());
         let ne = self.tile.project(bbox.ne());
-        // println!("proj nw {:#?}", nw);
-        // println!("proj sw {:#?}", sw);
-        // println!("proj se {:#?}", se);
-        // println!("proj ne {:#?}", ne);
 
         let path = builder.create_vector(&[nw, sw, se, ne, nw]);
         let geometry = PVTGeometry::create(builder, &PVTGeometryArgs { points: Some(path) });
@@ -146,9 +148,83 @@ impl InfoTile {
             },
         );
 
-        (boundary_feature, center_feature)
+        let bearing_tile_points = self.create_bearing_tile_points(tile);
+        let bearing_path = builder.create_vector(&bearing_tile_points);
+        let bearing_geom = PVTGeometry::create(builder, &PVTGeometryArgs { points: Some(bearing_path) });
+        let bearing_geoms = builder.create_vector(&[bearing_geom]);
+
+        let bearing_feature = PVTFeature::create(
+            builder,
+            &PVTFeatureArgs {
+                id,
+                h: tile.h,
+                keys: Some(keys),
+                values: Some(vals),
+                geometries: Some(bearing_geoms),
+            },
+        );
+
+        (boundary_feature, center_feature, bearing_feature)
+    }
+
+    fn create_bearing_tile_points(&self, tile: &Tile) -> Vec<PVTTilePoint> {
+        let origin = tile.origin_location();
+        let extent = tile.location_extent();
+        let middle = extent >> 1;
+        
+        let n = PVTPoint::new(origin.x() + middle, origin.y());
+        let w = PVTPoint::new(origin.x(), origin.y() + middle);
+        let s = PVTPoint::new(origin.x() + middle, origin.y() + extent);
+        let e = PVTPoint::new(origin.x() + extent, origin.y() + middle);
+    
+        let pn = self.tile.project(n);
+        let pw = self.tile.project(w);
+        let ps = self.tile.project(s);
+        let pe = self.tile.project(e);
+        let pc = self.tile.project(tile.center());
+
+        match tile.hilbert_bearing() {
+            HilbertBearing::NW => {
+                vec![pn, pc, pw]
+            },
+            HilbertBearing::NS => {
+                vec![pn, pc, ps]
+            },
+            HilbertBearing::NE => {
+                vec![pn, pc, pe]
+            },
+            HilbertBearing::WS => {
+                vec![pw, pc, ps]
+            },
+            HilbertBearing::WE => {
+                vec![pw, pc, pe]
+            },
+            HilbertBearing::WN => {
+                vec![pw, pc, pn]
+            },
+            HilbertBearing::SE => {
+                vec![ps, pc, pe]
+            },
+            HilbertBearing::SN => {
+                vec![ps, pc, pn]
+            },
+            HilbertBearing::SW => {
+                vec![ps, pc, pw]
+            },
+            HilbertBearing::EN => {
+                vec![pe, pc, pn]
+            },
+            HilbertBearing::EW => {
+                vec![pe, pc, pw]
+            },
+            HilbertBearing::ES => {
+                vec![pe, pc, ps]
+            },
+        }
     }
 }
+
+
 
 pub fn basic(tile: Tile) -> Vec<u8> {
     let mut builder = FlatBufferBuilder::with_capacity(1024);
