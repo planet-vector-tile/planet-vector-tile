@@ -27,7 +27,7 @@ map.on('mouseup', e => {
 
         const title = info.properties?.tile || `${info.layer} - ${info.id}`
 
-        return `<details><summary>${title}<button>Select</button></summary><pre>${json}</pre></details>`
+        return `<details><summary>${title}<button onclick="select(${f.properties.h})">Select</button></summary><pre>${json}</pre></details>`
     }).join('')
 
     document.getElementById('features').innerHTML = infos
@@ -42,3 +42,7 @@ satSlider.addEventListener('change', e => {
 });
 document.getElementById('close-panel').onclick = () =>
     (document.getElementById('features-panel').style.display = 'none');
+
+function select(h) {
+    console.log('h', h);
+}
