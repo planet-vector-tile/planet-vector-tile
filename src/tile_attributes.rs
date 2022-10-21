@@ -14,9 +14,6 @@ impl Hash for PVTValue {
 impl Eq for PVTValue {}
 
 pub struct TileAttributes {
-    // Refactor, as we don't need idx anymore...
-    str_idx: Cell<u32>,
-    val_idx: Cell<u32>,
     strings: RefCell<IndexMap<String, u32>>,
     values: RefCell<IndexMap<PVTValue, u32>>,
 }
@@ -24,8 +21,6 @@ pub struct TileAttributes {
 impl TileAttributes {
     pub fn new() -> Self {
         TileAttributes {
-            str_idx: Cell::new(0),
-            val_idx: Cell::new(0),
             strings: RefCell::new(IndexMap::new()),
             values: RefCell::new(IndexMap::new()),
         }
@@ -36,9 +31,8 @@ impl TileAttributes {
         match strings.get(str) {
             Some(str_idx) => *str_idx,
             None => {
-                let idx = self.str_idx.get();
+                let idx = strings.len() as u32;
                 strings.insert(String::from(str), idx);
-                self.str_idx.set(idx + 1);
                 idx
             }
         }
@@ -49,9 +43,8 @@ impl TileAttributes {
         match values.get(&value) {
             Some(val_idx) => *val_idx,
             None => {
-                let idx = self.val_idx.get();
+                let idx = values.len() as u32;
                 values.insert(value, idx);
-                self.val_idx.set(idx + 1);
                 idx
             }
         }
@@ -66,23 +59,19 @@ impl TileAttributes {
                 match values.get(&value) {
                     Some(val_idx) => *val_idx,
                     None => {
-                        let idx = self.val_idx.get();
+                        let idx = values.len() as u32;
                         values.insert(value, idx);
-                        self.val_idx.set(idx + 1);
                         idx
                     }
                 }
 
             },
             None => {
-                let str_idx = self.str_idx.get();
+                let str_idx = strings.len() as u32;
                 strings.insert(String::from(str_val), str_idx);
-                self.str_idx.set(str_idx + 1);
-                
                 let value = PVTValue::new(PVTValueType::String, str_idx as f64);
-                let val_idx = self.val_idx.get();
+                let val_idx = values.len() as u32;
                 values.insert(value, val_idx);
-                self.val_idx.set(val_idx + 1);
                 val_idx
             }
         }
@@ -91,20 +80,13 @@ impl TileAttributes {
     // Is there a way we can have a Vec<&str> ?
     pub fn strings(&self) -> Vec<String> {
         let strings = self.strings.borrow();
-        let s: Vec<String> = strings.keys().map(|s| String::from(s)).collect();
-        s
+        strings.keys().map(|s| String::from(s)).collect()
     }
 
     // Is there a way we can have a Vec<&PVTValue> ?
     pub fn values(&self) -> Vec<PVTValue> {
         let values = self.values.borrow();
-        // let mut value_vec = Vec::<PVTValue>::with_capacity(values.len());
-        // for (k, v) in values.iter() {
-        //     value_vec[*v as usize] = k.clone();
-        // }
-        // value_vec
-        let v: Vec<PVTValue> = values.keys().map(|v| v.clone()).collect();
-        v
+        values.keys().map(|v| v.clone()).collect()
     }
 
 }
