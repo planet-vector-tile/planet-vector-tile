@@ -1,0 +1,3285 @@
+{
+    "airport-11": {
+        "height": 11,
+        "pixelRatio": 1,
+        "width": 11,
+        "x": 949,
+        "y": 634
+    },
+    "attraction-11": {
+        "height": 11,
+        "pixelRatio": 1,
+        "width": 11,
+        "x": 960,
+        "y": 634
+    },
+    "beer_11": {
+        "height": 17,
+        "pixelRatio": 1,
+        "width": 17,
+        "x": 938,
+        "y": 615
+    },
+    "bicycle_rental-11": {
+        "height": 11,
+        "pixelRatio": 1,
+        "width": 11,
+        "x": 971,
+        "y": 634
+    },
+    "bikepark": {
+        "height": 29,
+        "pixelRatio": 1,
+        "width": 25,
+        "x": 840,
+        "y": 538
+    },
+    "bikeshop": {
+        "height": 15,
+        "pixelRatio": 1,
+        "width": 13,
+        "x": 329,
+        "y": 634
+    },
+    "bus_11": {
+        "height": 15,
+        "pixelRatio": 1,
+        "width": 15,
+        "x": 342,
+        "y": 634
+    },
+    "bw-ca-transcanada": {
+        "height": 24,
+        "pixelRatio": 1,
+        "width": 22,
+        "x": 105,
+        "y": 568
+    },
+    "bw-dark-ca-transcanada": {
+        "height": 24,
+        "pixelRatio": 1,
+        "width": 22,
+        "x": 127,
+        "y": 568
+    },
+    "bw-dark-exit": {
+        "height": 16,
+        "pixelRatio": 1,
+        "width": 24,
+        "x": 34,
+        "y": 634
+    },
+    "bw-dark-us-highway": {
+        "height": 18,
+        "pixelRatio": 1,
+        "width": 24,
+        "x": 835,
+        "y": 615
+    },
+    "bw-dark-us-interstate": {
+        "height": 22,
+        "pixelRatio": 1,
+        "width": 26,
+        "x": 337,
+        "y": 568
+    },
+    "bw-dark-us-state": {
+        "height": 16,
+        "pixelRatio": 1,
+        "width": 25,
+        "x": 58,
+        "y": 634
+    },
+    "bw-us-highway": {
+        "height": 22,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 363,
+        "y": 568
+    },
+    "bw-us-interstate": {
+        "height": 27,
+        "pixelRatio": 1,
+        "width": 32,
+        "x": 929,
+        "y": 538
+    },
+    "bw-us-state": {
+        "height": 20,
+        "pixelRatio": 1,
+        "width": 31,
+        "x": 170,
+        "y": 594
+    },
+    "ca-transcanada": {
+        "height": 24,
+        "pixelRatio": 1,
+        "width": 22,
+        "x": 149,
+        "y": 568
+    },
+    "camp_site-11": {
+        "height": 11,
+        "pixelRatio": 1,
+        "width": 11,
+        "x": 982,
+        "y": 634
+    },
+    "campsite-11": {
+        "height": 11,
+        "pixelRatio": 1,
+        "width": 11,
+        "x": 982,
+        "y": 634
+    },
+    "checkerboard": {
+        "height": 32,
+        "pixelRatio": 1,
+        "width": 32,
+        "x": 174,
+        "y": 354
+    },
+    "climbing": {
+        "height": 15,
+        "pixelRatio": 1,
+        "width": 15,
+        "x": 357,
+        "y": 634
+    },
+    "considerable-considerable-considerable": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 478,
+        "y": 256
+    },
+    "considerable-considerable-extreme": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 0,
+        "y": 418
+    },
+    "considerable-considerable-high": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 30,
+        "y": 418
+    },
+    "considerable-considerable-low": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 60,
+        "y": 418
+    },
+    "considerable-considerable-moderate": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 90,
+        "y": 418
+    },
+    "considerable-considerable-norating": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 120,
+        "y": 418
+    },
+    "considerable-extreme-considerable": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 150,
+        "y": 418
+    },
+    "considerable-extreme-extreme": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 180,
+        "y": 418
+    },
+    "considerable-extreme-high": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 210,
+        "y": 418
+    },
+    "considerable-extreme-low": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 240,
+        "y": 418
+    },
+    "considerable-extreme-moderate": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 270,
+        "y": 418
+    },
+    "considerable-extreme-norating": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 300,
+        "y": 418
+    },
+    "considerable-high-considerable": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 330,
+        "y": 418
+    },
+    "considerable-high-extreme": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 360,
+        "y": 418
+    },
+    "considerable-high-high": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 390,
+        "y": 418
+    },
+    "considerable-high-low": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 420,
+        "y": 418
+    },
+    "considerable-high-moderate": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 450,
+        "y": 418
+    },
+    "considerable-high-norating": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 480,
+        "y": 418
+    },
+    "considerable-low-considerable": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 0,
+        "y": 448
+    },
+    "considerable-low-extreme": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 30,
+        "y": 448
+    },
+    "considerable-low-high": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 60,
+        "y": 448
+    },
+    "considerable-low-low": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 90,
+        "y": 448
+    },
+    "considerable-low-moderate": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 120,
+        "y": 448
+    },
+    "considerable-low-norating": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 150,
+        "y": 448
+    },
+    "considerable-moderate-considerable": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 180,
+        "y": 448
+    },
+    "considerable-moderate-extreme": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 210,
+        "y": 448
+    },
+    "considerable-moderate-high": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 240,
+        "y": 448
+    },
+    "considerable-moderate-low": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 270,
+        "y": 448
+    },
+    "considerable-moderate-moderate": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 300,
+        "y": 448
+    },
+    "considerable-moderate-norating": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 330,
+        "y": 448
+    },
+    "considerable-norating-considerable": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 360,
+        "y": 448
+    },
+    "considerable-norating-extreme": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 390,
+        "y": 448
+    },
+    "considerable-norating-high": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 420,
+        "y": 448
+    },
+    "considerable-norating-low": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 450,
+        "y": 448
+    },
+    "considerable-norating-moderate": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 480,
+        "y": 448
+    },
+    "considerable-norating-norating": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 0,
+        "y": 478
+    },
+    "dark-ca-transcanada": {
+        "height": 24,
+        "pixelRatio": 1,
+        "width": 22,
+        "x": 171,
+        "y": 568
+    },
+    "dark-exit": {
+        "height": 20,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 201,
+        "y": 594
+    },
+    "dark-fs-road-badge": {
+        "height": 20,
+        "pixelRatio": 1,
+        "width": 31,
+        "x": 231,
+        "y": 594
+    },
+    "dark-fs-track-badge": {
+        "height": 20,
+        "pixelRatio": 1,
+        "width": 31,
+        "x": 262,
+        "y": 594
+    },
+    "dark-fs-trail-hiking": {
+        "height": 20,
+        "pixelRatio": 1,
+        "width": 31,
+        "x": 293,
+        "y": 594
+    },
+    "dark-fs-trail-horse": {
+        "height": 20,
+        "pixelRatio": 1,
+        "width": 31,
+        "x": 324,
+        "y": 594
+    },
+    "dark-fs-trail-mechanized": {
+        "height": 20,
+        "pixelRatio": 1,
+        "width": 31,
+        "x": 355,
+        "y": 594
+    },
+    "dark-fs-trail-motorized": {
+        "height": 20,
+        "pixelRatio": 1,
+        "width": 31,
+        "x": 386,
+        "y": 594
+    },
+    "dark-landcover-fill-scree": {
+        "height": 98,
+        "pixelRatio": 1,
+        "width": 109,
+        "x": 0,
+        "y": 256
+    },
+    "dark-large-ca-transcanada": {
+        "height": 31,
+        "pixelRatio": 1,
+        "width": 28,
+        "x": 470,
+        "y": 354
+    },
+    "dark-large-exit": {
+        "height": 26,
+        "pixelRatio": 1,
+        "width": 40,
+        "x": 961,
+        "y": 538
+    },
+    "dark-large-us-interstate": {
+        "height": 35,
+        "pixelRatio": 1,
+        "width": 42,
+        "x": 121,
+        "y": 354
+    },
+    "dark-ldt-AT": {
+        "height": 21,
+        "pixelRatio": 1,
+        "width": 21,
+        "x": 1001,
+        "y": 538
+    },
+    "dark-ldt-AZT": {
+        "height": 21,
+        "pixelRatio": 1,
+        "width": 21,
+        "x": 0,
+        "y": 594
+    },
+    "dark-ldt-CDT": {
+        "height": 21,
+        "pixelRatio": 1,
+        "width": 22,
+        "x": 21,
+        "y": 594
+    },
+    "dark-ldt-CT": {
+        "height": 21,
+        "pixelRatio": 1,
+        "width": 20,
+        "x": 43,
+        "y": 594
+    },
+    "dark-ldt-GDT": {
+        "height": 21,
+        "pixelRatio": 1,
+        "width": 22,
+        "x": 63,
+        "y": 594
+    },
+    "dark-ldt-JMT": {
+        "height": 21,
+        "pixelRatio": 1,
+        "width": 22,
+        "x": 85,
+        "y": 594
+    },
+    "dark-ldt-LT": {
+        "height": 22,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 393,
+        "y": 568
+    },
+    "dark-ldt-PCT": {
+        "height": 21,
+        "pixelRatio": 1,
+        "width": 21,
+        "x": 107,
+        "y": 594
+    },
+    "dark-ldt-SHT": {
+        "height": 15,
+        "pixelRatio": 1,
+        "width": 25,
+        "x": 372,
+        "y": 634
+    },
+    "dark-ldt-TMB": {
+        "height": 16,
+        "pixelRatio": 1,
+        "width": 23,
+        "x": 83,
+        "y": 634
+    },
+    "dark-trail-direction": {
+        "height": 8,
+        "pixelRatio": 1,
+        "width": 15,
+        "x": 179,
+        "y": 651
+    },
+    "dark-us-interstate": {
+        "height": 22,
+        "pixelRatio": 1,
+        "width": 26,
+        "x": 423,
+        "y": 568
+    },
+    "default-1": {
+        "height": 14,
+        "pixelRatio": 1,
+        "width": 20,
+        "x": 707,
+        "y": 634
+    },
+    "default-2": {
+        "height": 14,
+        "pixelRatio": 1,
+        "width": 20,
+        "x": 707,
+        "y": 634
+    },
+    "default-3": {
+        "height": 14,
+        "pixelRatio": 1,
+        "width": 26,
+        "x": 727,
+        "y": 634
+    },
+    "default-4": {
+        "height": 14,
+        "pixelRatio": 1,
+        "width": 32,
+        "x": 753,
+        "y": 634
+    },
+    "default-5": {
+        "height": 14,
+        "pixelRatio": 1,
+        "width": 38,
+        "x": 785,
+        "y": 634
+    },
+    "default-6": {
+        "height": 14,
+        "pixelRatio": 1,
+        "width": 44,
+        "x": 823,
+        "y": 634
+    },
+    "direction_arrow": {
+        "height": 16,
+        "pixelRatio": 1,
+        "width": 9,
+        "x": 106,
+        "y": 634
+    },
+    "directory": {
+        "height": 16,
+        "pixelRatio": 1,
+        "width": 13,
+        "x": 115,
+        "y": 634
+    },
+    "dot_10": {
+        "height": 10,
+        "pixelRatio": 1,
+        "width": 10,
+        "x": 99,
+        "y": 651
+    },
+    "dot_11": {
+        "height": 11,
+        "pixelRatio": 1,
+        "width": 11,
+        "x": 993,
+        "y": 634
+    },
+    "dot_9": {
+        "height": 9,
+        "pixelRatio": 1,
+        "width": 9,
+        "x": 170,
+        "y": 651
+    },
+    "drinking_water-11": {
+        "height": 11,
+        "pixelRatio": 1,
+        "width": 11,
+        "x": 1004,
+        "y": 634
+    },
+    "exit": {
+        "height": 20,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 417,
+        "y": 594
+    },
+    "extreme-considerable-considerable": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 30,
+        "y": 478
+    },
+    "extreme-considerable-extreme": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 60,
+        "y": 478
+    },
+    "extreme-considerable-high": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 90,
+        "y": 478
+    },
+    "extreme-considerable-low": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 120,
+        "y": 478
+    },
+    "extreme-considerable-moderate": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 150,
+        "y": 478
+    },
+    "extreme-considerable-norating": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 180,
+        "y": 478
+    },
+    "extreme-extreme-considerable": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 210,
+        "y": 478
+    },
+    "extreme-extreme-extreme": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 240,
+        "y": 478
+    },
+    "extreme-extreme-high": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 270,
+        "y": 478
+    },
+    "extreme-extreme-low": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 300,
+        "y": 478
+    },
+    "extreme-extreme-moderate": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 330,
+        "y": 478
+    },
+    "extreme-extreme-norating": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 360,
+        "y": 478
+    },
+    "extreme-high-considerable": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 390,
+        "y": 478
+    },
+    "extreme-high-extreme": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 420,
+        "y": 478
+    },
+    "extreme-high-high": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 450,
+        "y": 478
+    },
+    "extreme-high-low": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 480,
+        "y": 478
+    },
+    "extreme-high-moderate": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 510,
+        "y": 418
+    },
+    "extreme-high-norating": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 540,
+        "y": 418
+    },
+    "extreme-low-considerable": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 570,
+        "y": 418
+    },
+    "extreme-low-extreme": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 600,
+        "y": 418
+    },
+    "extreme-low-high": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 630,
+        "y": 418
+    },
+    "extreme-low-low": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 660,
+        "y": 418
+    },
+    "extreme-low-moderate": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 690,
+        "y": 418
+    },
+    "extreme-low-norating": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 720,
+        "y": 418
+    },
+    "extreme-moderate-considerable": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 750,
+        "y": 418
+    },
+    "extreme-moderate-extreme": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 780,
+        "y": 418
+    },
+    "extreme-moderate-high": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 810,
+        "y": 418
+    },
+    "extreme-moderate-low": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 840,
+        "y": 418
+    },
+    "extreme-moderate-moderate": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 870,
+        "y": 418
+    },
+    "extreme-moderate-norating": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 900,
+        "y": 418
+    },
+    "extreme-norating-considerable": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 930,
+        "y": 418
+    },
+    "extreme-norating-extreme": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 960,
+        "y": 418
+    },
+    "extreme-norating-high": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 990,
+        "y": 418
+    },
+    "extreme-norating-low": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 510,
+        "y": 448
+    },
+    "extreme-norating-moderate": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 540,
+        "y": 448
+    },
+    "extreme-norating-norating": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 570,
+        "y": 448
+    },
+    "fire": {
+        "height": 18,
+        "pixelRatio": 1,
+        "width": 19,
+        "x": 859,
+        "y": 615
+    },
+    "fs-road-badge": {
+        "height": 20,
+        "pixelRatio": 1,
+        "width": 31,
+        "x": 447,
+        "y": 594
+    },
+    "fs-track-badge": {
+        "height": 20,
+        "pixelRatio": 1,
+        "width": 31,
+        "x": 478,
+        "y": 594
+    },
+    "fs-trail-hiking": {
+        "height": 20,
+        "pixelRatio": 1,
+        "width": 31,
+        "x": 509,
+        "y": 594
+    },
+    "fs-trail-horse": {
+        "height": 20,
+        "pixelRatio": 1,
+        "width": 31,
+        "x": 540,
+        "y": 594
+    },
+    "fs-trail-mechanized": {
+        "height": 20,
+        "pixelRatio": 1,
+        "width": 31,
+        "x": 571,
+        "y": 594
+    },
+    "fs-trail-motorized": {
+        "height": 20,
+        "pixelRatio": 1,
+        "width": 31,
+        "x": 602,
+        "y": 594
+    },
+    "fuel_11": {
+        "height": 15,
+        "pixelRatio": 1,
+        "width": 15,
+        "x": 397,
+        "y": 634
+    },
+    "high-considerable-considerable": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 600,
+        "y": 448
+    },
+    "high-considerable-extreme": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 630,
+        "y": 448
+    },
+    "high-considerable-high": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 660,
+        "y": 448
+    },
+    "high-considerable-low": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 690,
+        "y": 448
+    },
+    "high-considerable-moderate": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 720,
+        "y": 448
+    },
+    "high-considerable-norating": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 750,
+        "y": 448
+    },
+    "high-extreme-considerable": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 780,
+        "y": 448
+    },
+    "high-extreme-extreme": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 810,
+        "y": 448
+    },
+    "high-extreme-high": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 840,
+        "y": 448
+    },
+    "high-extreme-low": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 870,
+        "y": 448
+    },
+    "high-extreme-moderate": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 900,
+        "y": 448
+    },
+    "high-extreme-norating": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 930,
+        "y": 448
+    },
+    "high-high-considerable": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 960,
+        "y": 448
+    },
+    "high-high-extreme": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 990,
+        "y": 448
+    },
+    "high-high-high": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 510,
+        "y": 478
+    },
+    "high-high-low": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 540,
+        "y": 478
+    },
+    "high-high-moderate": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 570,
+        "y": 478
+    },
+    "high-high-norating": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 600,
+        "y": 478
+    },
+    "high-low-considerable": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 630,
+        "y": 478
+    },
+    "high-low-extreme": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 660,
+        "y": 478
+    },
+    "high-low-high": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 690,
+        "y": 478
+    },
+    "high-low-low": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 720,
+        "y": 478
+    },
+    "high-low-moderate": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 750,
+        "y": 478
+    },
+    "high-low-norating": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 780,
+        "y": 478
+    },
+    "high-moderate-considerable": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 810,
+        "y": 478
+    },
+    "high-moderate-extreme": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 840,
+        "y": 478
+    },
+    "high-moderate-high": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 870,
+        "y": 478
+    },
+    "high-moderate-low": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 900,
+        "y": 478
+    },
+    "high-moderate-moderate": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 930,
+        "y": 478
+    },
+    "high-moderate-norating": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 960,
+        "y": 478
+    },
+    "high-norating-considerable": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 990,
+        "y": 478
+    },
+    "high-norating-extreme": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 498,
+        "y": 354
+    },
+    "high-norating-high": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 528,
+        "y": 354
+    },
+    "high-norating-low": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 558,
+        "y": 354
+    },
+    "high-norating-moderate": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 588,
+        "y": 354
+    },
+    "high-norating-norating": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 618,
+        "y": 354
+    },
+    "hospital_11": {
+        "height": 17,
+        "pixelRatio": 1,
+        "width": 17,
+        "x": 955,
+        "y": 615
+    },
+    "in-state": {
+        "height": 22,
+        "pixelRatio": 1,
+        "width": 20,
+        "x": 449,
+        "y": 568
+    },
+    "information-11": {
+        "height": 11,
+        "pixelRatio": 1,
+        "width": 11,
+        "x": 1010,
+        "y": 594
+    },
+    "intermittent-water": {
+        "height": 78,
+        "pixelRatio": 1,
+        "width": 86,
+        "x": 218,
+        "y": 256
+    },
+    "landcover-fill-marsh": {
+        "height": 256,
+        "pixelRatio": 1,
+        "width": 256,
+        "x": 0,
+        "y": 0
+    },
+    "landcover-fill-noise": {
+        "height": 98,
+        "pixelRatio": 1,
+        "width": 109,
+        "x": 109,
+        "y": 256
+    },
+    "landcover-fill-scree": {
+        "height": 78,
+        "pixelRatio": 1,
+        "width": 87,
+        "x": 304,
+        "y": 256
+    },
+    "landcover-fill-snow": {
+        "height": 78,
+        "pixelRatio": 1,
+        "width": 87,
+        "x": 391,
+        "y": 256
+    },
+    "landcover-fill-wetland": {
+        "height": 256,
+        "pixelRatio": 1,
+        "width": 256,
+        "x": 256,
+        "y": 0
+    },
+    "landmark-11": {
+        "height": 11,
+        "pixelRatio": 1,
+        "width": 11,
+        "x": 0,
+        "y": 651
+    },
+    "landuse-fill-military": {
+        "height": 20,
+        "pixelRatio": 1,
+        "width": 20,
+        "x": 633,
+        "y": 594
+    },
+    "large-ca-transcanada": {
+        "height": 44,
+        "pixelRatio": 1,
+        "width": 39,
+        "x": 82,
+        "y": 354
+    },
+    "large-exit": {
+        "height": 26,
+        "pixelRatio": 1,
+        "width": 40,
+        "x": 0,
+        "y": 568
+    },
+    "large-us-highway": {
+        "height": 29,
+        "pixelRatio": 1,
+        "width": 39,
+        "x": 865,
+        "y": 538
+    },
+    "large-us-state": {
+        "height": 26,
+        "pixelRatio": 1,
+        "width": 40,
+        "x": 40,
+        "y": 568
+    },
+    "ldt-AT": {
+        "height": 24,
+        "pixelRatio": 1,
+        "width": 24,
+        "x": 193,
+        "y": 568
+    },
+    "ldt-AZT": {
+        "height": 24,
+        "pixelRatio": 1,
+        "width": 24,
+        "x": 217,
+        "y": 568
+    },
+    "ldt-CDT": {
+        "height": 24,
+        "pixelRatio": 1,
+        "width": 24,
+        "x": 241,
+        "y": 568
+    },
+    "ldt-CT": {
+        "height": 20,
+        "pixelRatio": 1,
+        "width": 20,
+        "x": 653,
+        "y": 594
+    },
+    "ldt-GDT": {
+        "height": 24,
+        "pixelRatio": 1,
+        "width": 24,
+        "x": 265,
+        "y": 568
+    },
+    "ldt-JMT": {
+        "height": 24,
+        "pixelRatio": 1,
+        "width": 24,
+        "x": 289,
+        "y": 568
+    },
+    "ldt-LT": {
+        "height": 22,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 469,
+        "y": 568
+    },
+    "ldt-PCT": {
+        "height": 24,
+        "pixelRatio": 1,
+        "width": 24,
+        "x": 313,
+        "y": 568
+    },
+    "ldt-SHT": {
+        "height": 17,
+        "pixelRatio": 1,
+        "width": 28,
+        "x": 972,
+        "y": 615
+    },
+    "ldt-TMB": {
+        "height": 20,
+        "pixelRatio": 1,
+        "width": 26,
+        "x": 673,
+        "y": 594
+    },
+    "low-considerable-considerable": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 648,
+        "y": 354
+    },
+    "low-considerable-extreme": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 678,
+        "y": 354
+    },
+    "low-considerable-high": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 708,
+        "y": 354
+    },
+    "low-considerable-low": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 738,
+        "y": 354
+    },
+    "low-considerable-moderate": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 768,
+        "y": 354
+    },
+    "low-considerable-norating": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 798,
+        "y": 354
+    },
+    "low-extreme-considerable": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 828,
+        "y": 354
+    },
+    "low-extreme-extreme": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 858,
+        "y": 354
+    },
+    "low-extreme-high": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 888,
+        "y": 354
+    },
+    "low-extreme-low": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 918,
+        "y": 354
+    },
+    "low-extreme-moderate": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 948,
+        "y": 354
+    },
+    "low-extreme-norating": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 978,
+        "y": 354
+    },
+    "low-high-considerable": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 508,
+        "y": 256
+    },
+    "low-high-extreme": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 538,
+        "y": 256
+    },
+    "low-high-high": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 568,
+        "y": 256
+    },
+    "low-high-low": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 598,
+        "y": 256
+    },
+    "low-high-moderate": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 628,
+        "y": 256
+    },
+    "low-high-norating": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 658,
+        "y": 256
+    },
+    "low-low-considerable": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 688,
+        "y": 256
+    },
+    "low-low-extreme": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 718,
+        "y": 256
+    },
+    "low-low-high": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 748,
+        "y": 256
+    },
+    "low-low-low": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 778,
+        "y": 256
+    },
+    "low-low-moderate": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 808,
+        "y": 256
+    },
+    "low-low-norating": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 838,
+        "y": 256
+    },
+    "low-moderate-considerable": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 868,
+        "y": 256
+    },
+    "low-moderate-extreme": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 898,
+        "y": 256
+    },
+    "low-moderate-high": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 928,
+        "y": 256
+    },
+    "low-moderate-low": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 958,
+        "y": 256
+    },
+    "low-moderate-moderate": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 988,
+        "y": 256
+    },
+    "low-moderate-norating": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 512,
+        "y": 0
+    },
+    "low-norating-considerable": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 542,
+        "y": 0
+    },
+    "low-norating-extreme": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 572,
+        "y": 0
+    },
+    "low-norating-high": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 602,
+        "y": 0
+    },
+    "low-norating-low": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 632,
+        "y": 0
+    },
+    "low-norating-moderate": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 662,
+        "y": 0
+    },
+    "low-norating-norating": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 692,
+        "y": 0
+    },
+    "moderate-considerable-considerable": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 722,
+        "y": 0
+    },
+    "moderate-considerable-extreme": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 752,
+        "y": 0
+    },
+    "moderate-considerable-high": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 782,
+        "y": 0
+    },
+    "moderate-considerable-low": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 812,
+        "y": 0
+    },
+    "moderate-considerable-moderate": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 842,
+        "y": 0
+    },
+    "moderate-considerable-norating": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 872,
+        "y": 0
+    },
+    "moderate-extreme-considerable": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 902,
+        "y": 0
+    },
+    "moderate-extreme-extreme": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 932,
+        "y": 0
+    },
+    "moderate-extreme-high": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 962,
+        "y": 0
+    },
+    "moderate-extreme-low": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 992,
+        "y": 0
+    },
+    "moderate-extreme-moderate": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 0,
+        "y": 508
+    },
+    "moderate-extreme-norating": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 30,
+        "y": 508
+    },
+    "moderate-high-considerable": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 60,
+        "y": 508
+    },
+    "moderate-high-extreme": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 90,
+        "y": 508
+    },
+    "moderate-high-high": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 120,
+        "y": 508
+    },
+    "moderate-high-low": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 150,
+        "y": 508
+    },
+    "moderate-high-moderate": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 180,
+        "y": 508
+    },
+    "moderate-high-norating": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 210,
+        "y": 508
+    },
+    "moderate-low-considerable": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 240,
+        "y": 508
+    },
+    "moderate-low-extreme": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 270,
+        "y": 508
+    },
+    "moderate-low-high": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 300,
+        "y": 508
+    },
+    "moderate-low-low": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 330,
+        "y": 508
+    },
+    "moderate-low-moderate": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 360,
+        "y": 508
+    },
+    "moderate-low-norating": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 390,
+        "y": 508
+    },
+    "moderate-moderate-considerable": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 420,
+        "y": 508
+    },
+    "moderate-moderate-extreme": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 450,
+        "y": 508
+    },
+    "moderate-moderate-high": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 480,
+        "y": 508
+    },
+    "moderate-moderate-low": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 510,
+        "y": 508
+    },
+    "moderate-moderate-moderate": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 540,
+        "y": 508
+    },
+    "moderate-moderate-norating": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 570,
+        "y": 508
+    },
+    "moderate-norating-considerable": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 600,
+        "y": 508
+    },
+    "moderate-norating-extreme": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 630,
+        "y": 508
+    },
+    "moderate-norating-high": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 660,
+        "y": 508
+    },
+    "moderate-norating-low": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 690,
+        "y": 508
+    },
+    "moderate-norating-moderate": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 720,
+        "y": 508
+    },
+    "moderate-norating-norating": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 750,
+        "y": 508
+    },
+    "motocross": {
+        "height": 19,
+        "pixelRatio": 1,
+        "width": 16,
+        "x": 880,
+        "y": 594
+    },
+    "mountain-11": {
+        "height": 11,
+        "pixelRatio": 1,
+        "width": 11,
+        "x": 11,
+        "y": 651
+    },
+    "mt-fish": {
+        "height": 12,
+        "pixelRatio": 1,
+        "width": 23,
+        "x": 881,
+        "y": 634
+    },
+    "mt-fish_stream": {
+        "height": 12,
+        "pixelRatio": 1,
+        "width": 23,
+        "x": 904,
+        "y": 634
+    },
+    "mt-fishing-access": {
+        "height": 19,
+        "pixelRatio": 1,
+        "width": 19,
+        "x": 896,
+        "y": 594
+    },
+    "mt-fishing-license": {
+        "height": 22,
+        "pixelRatio": 1,
+        "width": 15,
+        "x": 499,
+        "y": 568
+    },
+    "mt-stream-gauge": {
+        "height": 10,
+        "pixelRatio": 1,
+        "width": 10,
+        "x": 109,
+        "y": 651
+    },
+    "norating-considerable-considerable": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 780,
+        "y": 508
+    },
+    "norating-considerable-extreme": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 810,
+        "y": 508
+    },
+    "norating-considerable-high": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 840,
+        "y": 508
+    },
+    "norating-considerable-low": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 870,
+        "y": 508
+    },
+    "norating-considerable-moderate": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 900,
+        "y": 508
+    },
+    "norating-considerable-norating": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 930,
+        "y": 508
+    },
+    "norating-extreme-considerable": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 960,
+        "y": 508
+    },
+    "norating-extreme-extreme": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 990,
+        "y": 508
+    },
+    "norating-extreme-high": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 0,
+        "y": 538
+    },
+    "norating-extreme-low": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 30,
+        "y": 538
+    },
+    "norating-extreme-moderate": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 60,
+        "y": 538
+    },
+    "norating-extreme-norating": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 90,
+        "y": 538
+    },
+    "norating-high-considerable": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 120,
+        "y": 538
+    },
+    "norating-high-extreme": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 150,
+        "y": 538
+    },
+    "norating-high-high": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 180,
+        "y": 538
+    },
+    "norating-high-low": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 210,
+        "y": 538
+    },
+    "norating-high-moderate": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 240,
+        "y": 538
+    },
+    "norating-high-norating": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 270,
+        "y": 538
+    },
+    "norating-low-considerable": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 300,
+        "y": 538
+    },
+    "norating-low-extreme": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 330,
+        "y": 538
+    },
+    "norating-low-high": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 360,
+        "y": 538
+    },
+    "norating-low-low": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 390,
+        "y": 538
+    },
+    "norating-low-moderate": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 420,
+        "y": 538
+    },
+    "norating-low-norating": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 450,
+        "y": 538
+    },
+    "norating-moderate-considerable": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 480,
+        "y": 538
+    },
+    "norating-moderate-extreme": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 510,
+        "y": 538
+    },
+    "norating-moderate-high": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 540,
+        "y": 538
+    },
+    "norating-moderate-low": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 570,
+        "y": 538
+    },
+    "norating-moderate-moderate": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 600,
+        "y": 538
+    },
+    "norating-moderate-norating": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 630,
+        "y": 538
+    },
+    "norating-norating-considerable": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 660,
+        "y": 538
+    },
+    "norating-norating-extreme": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 690,
+        "y": 538
+    },
+    "norating-norating-high": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 720,
+        "y": 538
+    },
+    "norating-norating-low": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 750,
+        "y": 538
+    },
+    "norating-norating-moderate": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 780,
+        "y": 538
+    },
+    "norating-norating-norating": {
+        "height": 30,
+        "pixelRatio": 1,
+        "width": 30,
+        "x": 810,
+        "y": 538
+    },
+    "ok-boat-ramp": {
+        "height": 19,
+        "pixelRatio": 1,
+        "width": 19,
+        "x": 915,
+        "y": 594
+    },
+    "ok-buoy": {
+        "height": 17,
+        "pixelRatio": 1,
+        "width": 17,
+        "x": 1000,
+        "y": 615
+    },
+    "ok-fish": {
+        "height": 12,
+        "pixelRatio": 1,
+        "width": 22,
+        "x": 927,
+        "y": 634
+    },
+    "ok-fish-attractor": {
+        "height": 19,
+        "pixelRatio": 1,
+        "width": 19,
+        "x": 934,
+        "y": 594
+    },
+    "ok-fishing-dock": {
+        "height": 19,
+        "pixelRatio": 1,
+        "width": 19,
+        "x": 953,
+        "y": 594
+    },
+    "ok-lake-feature": {
+        "height": 15,
+        "pixelRatio": 1,
+        "width": 10,
+        "x": 412,
+        "y": 634
+    },
+    "ok-marina": {
+        "height": 19,
+        "pixelRatio": 1,
+        "width": 19,
+        "x": 972,
+        "y": 594
+    },
+    "ok-scuba-diving": {
+        "height": 19,
+        "pixelRatio": 1,
+        "width": 19,
+        "x": 991,
+        "y": 594
+    },
+    "outside-plus": {
+        "height": 25,
+        "pixelRatio": 1,
+        "width": 25,
+        "x": 80,
+        "y": 568
+    },
+    "park-11": {
+        "height": 11,
+        "pixelRatio": 1,
+        "width": 11,
+        "x": 22,
+        "y": 651
+    },
+    "parking_11": {
+        "height": 15,
+        "pixelRatio": 1,
+        "width": 15,
+        "x": 422,
+        "y": 634
+    },
+    "pedestrian_polygon": {
+        "height": 64,
+        "pixelRatio": 1,
+        "width": 64,
+        "x": 0,
+        "y": 354
+    },
+    "photo": {
+        "height": 10,
+        "pixelRatio": 1,
+        "width": 11,
+        "x": 119,
+        "y": 651
+    },
+    "picnic_site-11": {
+        "height": 11,
+        "pixelRatio": 1,
+        "width": 11,
+        "x": 33,
+        "y": 651
+    },
+    "pitch_11": {
+        "height": 17,
+        "pixelRatio": 1,
+        "width": 17,
+        "x": 0,
+        "y": 634
+    },
+    "place-city_large": {
+        "height": 49,
+        "pixelRatio": 1,
+        "width": 18,
+        "x": 64,
+        "y": 354
+    },
+    "place-city_small": {
+        "height": 33,
+        "pixelRatio": 1,
+        "width": 11,
+        "x": 163,
+        "y": 354
+    },
+    "playground_11": {
+        "height": 17,
+        "pixelRatio": 1,
+        "width": 17,
+        "x": 17,
+        "y": 634
+    },
+    "poi-charging_station": {
+        "height": 20,
+        "pixelRatio": 1,
+        "width": 20,
+        "x": 699,
+        "y": 594
+    },
+    "poi-drinking_water": {
+        "height": 20,
+        "pixelRatio": 1,
+        "width": 20,
+        "x": 719,
+        "y": 594
+    },
+    "poi-fuel": {
+        "height": 20,
+        "pixelRatio": 1,
+        "width": 20,
+        "x": 739,
+        "y": 594
+    },
+    "poi-gate": {
+        "height": 18,
+        "pixelRatio": 1,
+        "width": 18,
+        "x": 878,
+        "y": 615
+    },
+    "poi-grocery": {
+        "height": 20,
+        "pixelRatio": 1,
+        "width": 20,
+        "x": 759,
+        "y": 594
+    },
+    "poi-park-blm": {
+        "height": 22,
+        "pixelRatio": 1,
+        "width": 24,
+        "x": 514,
+        "y": 568
+    },
+    "poi-park-marine": {
+        "height": 22,
+        "pixelRatio": 1,
+        "width": 24,
+        "x": 538,
+        "y": 568
+    },
+    "poi-park-nat_forest": {
+        "height": 22,
+        "pixelRatio": 1,
+        "width": 24,
+        "x": 562,
+        "y": 568
+    },
+    "poi-park-nat_park": {
+        "height": 22,
+        "pixelRatio": 1,
+        "width": 24,
+        "x": 586,
+        "y": 568
+    },
+    "poi-park-other": {
+        "height": 22,
+        "pixelRatio": 1,
+        "width": 24,
+        "x": 610,
+        "y": 568
+    },
+    "poi-park-state": {
+        "height": 22,
+        "pixelRatio": 1,
+        "width": 24,
+        "x": 634,
+        "y": 568
+    },
+    "poi-park-state_other": {
+        "height": 22,
+        "pixelRatio": 1,
+        "width": 24,
+        "x": 610,
+        "y": 568
+    },
+    "poi-park-state_park": {
+        "height": 22,
+        "pixelRatio": 1,
+        "width": 24,
+        "x": 658,
+        "y": 568
+    },
+    "poi-park-wilderness": {
+        "height": 22,
+        "pixelRatio": 1,
+        "width": 24,
+        "x": 682,
+        "y": 568
+    },
+    "poi-park-wildlife": {
+        "height": 22,
+        "pixelRatio": 1,
+        "width": 24,
+        "x": 706,
+        "y": 568
+    },
+    "poi-rafting": {
+        "height": 20,
+        "pixelRatio": 1,
+        "width": 21,
+        "x": 779,
+        "y": 594
+    },
+    "poi-river": {
+        "height": 22,
+        "pixelRatio": 1,
+        "width": 24,
+        "x": 730,
+        "y": 568
+    },
+    "poi_1": {
+        "height": 10,
+        "pixelRatio": 1,
+        "width": 10,
+        "x": 130,
+        "y": 651
+    },
+    "poi_10": {
+        "height": 15,
+        "pixelRatio": 1,
+        "width": 15,
+        "x": 437,
+        "y": 634
+    },
+    "poi_11": {
+        "height": 15,
+        "pixelRatio": 1,
+        "width": 15,
+        "x": 452,
+        "y": 634
+    },
+    "poi_12": {
+        "height": 15,
+        "pixelRatio": 1,
+        "width": 15,
+        "x": 467,
+        "y": 634
+    },
+    "poi_13": {
+        "height": 15,
+        "pixelRatio": 1,
+        "width": 15,
+        "x": 482,
+        "y": 634
+    },
+    "poi_14": {
+        "height": 15,
+        "pixelRatio": 1,
+        "width": 15,
+        "x": 497,
+        "y": 634
+    },
+    "poi_15": {
+        "height": 15,
+        "pixelRatio": 1,
+        "width": 15,
+        "x": 512,
+        "y": 634
+    },
+    "poi_16": {
+        "height": 10,
+        "pixelRatio": 1,
+        "width": 10,
+        "x": 140,
+        "y": 651
+    },
+    "poi_17": {
+        "height": 16,
+        "pixelRatio": 1,
+        "width": 16,
+        "x": 128,
+        "y": 634
+    },
+    "poi_18": {
+        "height": 16,
+        "pixelRatio": 1,
+        "width": 16,
+        "x": 144,
+        "y": 634
+    },
+    "poi_19": {
+        "height": 15,
+        "pixelRatio": 1,
+        "width": 15,
+        "x": 527,
+        "y": 634
+    },
+    "poi_2": {
+        "height": 15,
+        "pixelRatio": 1,
+        "width": 15,
+        "x": 542,
+        "y": 634
+    },
+    "poi_20": {
+        "height": 16,
+        "pixelRatio": 1,
+        "width": 16,
+        "x": 160,
+        "y": 634
+    },
+    "poi_21": {
+        "height": 16,
+        "pixelRatio": 1,
+        "width": 16,
+        "x": 176,
+        "y": 634
+    },
+    "poi_22": {
+        "height": 16,
+        "pixelRatio": 1,
+        "width": 16,
+        "x": 192,
+        "y": 634
+    },
+    "poi_23": {
+        "height": 16,
+        "pixelRatio": 1,
+        "width": 16,
+        "x": 208,
+        "y": 634
+    },
+    "poi_24": {
+        "height": 16,
+        "pixelRatio": 1,
+        "width": 16,
+        "x": 224,
+        "y": 634
+    },
+    "poi_25": {
+        "height": 16,
+        "pixelRatio": 1,
+        "width": 16,
+        "x": 240,
+        "y": 634
+    },
+    "poi_26": {
+        "height": 16,
+        "pixelRatio": 1,
+        "width": 16,
+        "x": 256,
+        "y": 634
+    },
+    "poi_27": {
+        "height": 16,
+        "pixelRatio": 1,
+        "width": 16,
+        "x": 272,
+        "y": 634
+    },
+    "poi_28": {
+        "height": 16,
+        "pixelRatio": 1,
+        "width": 16,
+        "x": 288,
+        "y": 634
+    },
+    "poi_29": {
+        "height": 16,
+        "pixelRatio": 1,
+        "width": 16,
+        "x": 192,
+        "y": 634
+    },
+    "poi_3": {
+        "height": 15,
+        "pixelRatio": 1,
+        "width": 15,
+        "x": 557,
+        "y": 634
+    },
+    "poi_4": {
+        "height": 15,
+        "pixelRatio": 1,
+        "width": 15,
+        "x": 572,
+        "y": 634
+    },
+    "poi_5": {
+        "height": 15,
+        "pixelRatio": 1,
+        "width": 15,
+        "x": 587,
+        "y": 634
+    },
+    "poi_6": {
+        "height": 15,
+        "pixelRatio": 1,
+        "width": 15,
+        "x": 602,
+        "y": 634
+    },
+    "poi_7": {
+        "height": 10,
+        "pixelRatio": 1,
+        "width": 10,
+        "x": 150,
+        "y": 651
+    },
+    "poi_8": {
+        "height": 15,
+        "pixelRatio": 1,
+        "width": 15,
+        "x": 617,
+        "y": 634
+    },
+    "poi_9": {
+        "height": 15,
+        "pixelRatio": 1,
+        "width": 15,
+        "x": 632,
+        "y": 634
+    },
+    "poidark-charging_station": {
+        "height": 20,
+        "pixelRatio": 1,
+        "width": 20,
+        "x": 800,
+        "y": 594
+    },
+    "poidark-drinking_water": {
+        "height": 20,
+        "pixelRatio": 1,
+        "width": 20,
+        "x": 820,
+        "y": 594
+    },
+    "poidark-fuel": {
+        "height": 20,
+        "pixelRatio": 1,
+        "width": 20,
+        "x": 840,
+        "y": 594
+    },
+    "poidark-gate": {
+        "height": 18,
+        "pixelRatio": 1,
+        "width": 18,
+        "x": 896,
+        "y": 615
+    },
+    "poidark-grocery": {
+        "height": 20,
+        "pixelRatio": 1,
+        "width": 20,
+        "x": 860,
+        "y": 594
+    },
+    "poidark-park-blm": {
+        "height": 22,
+        "pixelRatio": 1,
+        "width": 24,
+        "x": 754,
+        "y": 568
+    },
+    "poidark-park-marine": {
+        "height": 22,
+        "pixelRatio": 1,
+        "width": 24,
+        "x": 778,
+        "y": 568
+    },
+    "poidark-park-nat_forest": {
+        "height": 22,
+        "pixelRatio": 1,
+        "width": 24,
+        "x": 802,
+        "y": 568
+    },
+    "poidark-park-nat_park": {
+        "height": 22,
+        "pixelRatio": 1,
+        "width": 24,
+        "x": 826,
+        "y": 568
+    },
+    "poidark-park-other": {
+        "height": 22,
+        "pixelRatio": 1,
+        "width": 24,
+        "x": 850,
+        "y": 568
+    },
+    "poidark-park-state": {
+        "height": 22,
+        "pixelRatio": 1,
+        "width": 24,
+        "x": 874,
+        "y": 568
+    },
+    "poidark-park-state_other": {
+        "height": 22,
+        "pixelRatio": 1,
+        "width": 24,
+        "x": 850,
+        "y": 568
+    },
+    "poidark-park-state_park": {
+        "height": 22,
+        "pixelRatio": 1,
+        "width": 24,
+        "x": 898,
+        "y": 568
+    },
+    "poidark-park-wilderness": {
+        "height": 22,
+        "pixelRatio": 1,
+        "width": 24,
+        "x": 922,
+        "y": 568
+    },
+    "poidark-park-wildlife": {
+        "height": 22,
+        "pixelRatio": 1,
+        "width": 24,
+        "x": 946,
+        "y": 568
+    },
+    "poidark-river": {
+        "height": 22,
+        "pixelRatio": 1,
+        "width": 24,
+        "x": 970,
+        "y": 568
+    },
+    "railway_11": {
+        "height": 15,
+        "pixelRatio": 1,
+        "width": 15,
+        "x": 647,
+        "y": 634
+    },
+    "region": {
+        "height": 29,
+        "pixelRatio": 1,
+        "width": 25,
+        "x": 904,
+        "y": 538
+    },
+    "resort_powday": {
+        "height": 21,
+        "pixelRatio": 1,
+        "width": 21,
+        "x": 128,
+        "y": 594
+    },
+    "resort_powday_dark": {
+        "height": 21,
+        "pixelRatio": 1,
+        "width": 21,
+        "x": 149,
+        "y": 594
+    },
+    "route": {
+        "height": 32,
+        "pixelRatio": 1,
+        "width": 24,
+        "x": 206,
+        "y": 354
+    },
+    "skateboard-11": {
+        "height": 11,
+        "pixelRatio": 1,
+        "width": 11,
+        "x": 44,
+        "y": 651
+    },
+    "skillpark": {
+        "height": 19,
+        "pixelRatio": 1,
+        "width": 16,
+        "x": 1008,
+        "y": 354
+    },
+    "stream-gauge-above": {
+        "height": 15,
+        "pixelRatio": 1,
+        "width": 15,
+        "x": 662,
+        "y": 634
+    },
+    "stream-gauge-avg": {
+        "height": 15,
+        "pixelRatio": 1,
+        "width": 15,
+        "x": 677,
+        "y": 634
+    },
+    "stream-gauge-below": {
+        "height": 15,
+        "pixelRatio": 1,
+        "width": 15,
+        "x": 692,
+        "y": 634
+    },
+    "stream-gauge-null": {
+        "height": 14,
+        "pixelRatio": 1,
+        "width": 14,
+        "x": 867,
+        "y": 634
+    },
+    "toilets-11": {
+        "height": 11,
+        "pixelRatio": 1,
+        "width": 11,
+        "x": 55,
+        "y": 651
+    },
+    "trail": {
+        "height": 10,
+        "pixelRatio": 1,
+        "width": 10,
+        "x": 160,
+        "y": 651
+    },
+    "trail-direction": {
+        "height": 8,
+        "pixelRatio": 1,
+        "width": 11,
+        "x": 194,
+        "y": 651
+    },
+    "trail_diff1": {
+        "height": 32,
+        "pixelRatio": 1,
+        "width": 24,
+        "x": 230,
+        "y": 354
+    },
+    "trail_diff10": {
+        "height": 32,
+        "pixelRatio": 1,
+        "width": 24,
+        "x": 254,
+        "y": 354
+    },
+    "trail_diff11": {
+        "height": 32,
+        "pixelRatio": 1,
+        "width": 24,
+        "x": 278,
+        "y": 354
+    },
+    "trail_diff2": {
+        "height": 32,
+        "pixelRatio": 1,
+        "width": 24,
+        "x": 302,
+        "y": 354
+    },
+    "trail_diff3": {
+        "height": 32,
+        "pixelRatio": 1,
+        "width": 24,
+        "x": 326,
+        "y": 354
+    },
+    "trail_diff4": {
+        "height": 32,
+        "pixelRatio": 1,
+        "width": 24,
+        "x": 350,
+        "y": 354
+    },
+    "trail_diff5": {
+        "height": 32,
+        "pixelRatio": 1,
+        "width": 24,
+        "x": 254,
+        "y": 354
+    },
+    "trail_diff6": {
+        "height": 32,
+        "pixelRatio": 1,
+        "width": 24,
+        "x": 374,
+        "y": 354
+    },
+    "trail_diff7": {
+        "height": 32,
+        "pixelRatio": 1,
+        "width": 24,
+        "x": 398,
+        "y": 354
+    },
+    "trail_diff8": {
+        "height": 32,
+        "pixelRatio": 1,
+        "width": 24,
+        "x": 422,
+        "y": 354
+    },
+    "trail_diff9": {
+        "height": 32,
+        "pixelRatio": 1,
+        "width": 24,
+        "x": 446,
+        "y": 354
+    },
+    "trail_status_green": {
+        "height": 19,
+        "pixelRatio": 1,
+        "width": 19,
+        "x": 0,
+        "y": 615
+    },
+    "trail_status_issue": {
+        "height": 19,
+        "pixelRatio": 1,
+        "width": 19,
+        "x": 19,
+        "y": 615
+    },
+    "trail_status_issue2": {
+        "height": 19,
+        "pixelRatio": 1,
+        "width": 19,
+        "x": 38,
+        "y": 615
+    },
+    "trail_status_red": {
+        "height": 19,
+        "pixelRatio": 1,
+        "width": 19,
+        "x": 57,
+        "y": 615
+    },
+    "triangle-11": {
+        "height": 11,
+        "pixelRatio": 1,
+        "width": 11,
+        "x": 66,
+        "y": 651
+    },
+    "us-highway": {
+        "height": 18,
+        "pixelRatio": 1,
+        "width": 24,
+        "x": 914,
+        "y": 615
+    },
+    "us-interstate": {
+        "height": 22,
+        "pixelRatio": 1,
+        "width": 26,
+        "x": 994,
+        "y": 568
+    },
+    "us-state": {
+        "height": 16,
+        "pixelRatio": 1,
+        "width": 25,
+        "x": 304,
+        "y": 634
+    },
+    "usfs-backpacking": {
+        "height": 19,
+        "pixelRatio": 1,
+        "width": 19,
+        "x": 76,
+        "y": 615
+    },
+    "usfs-beach": {
+        "height": 19,
+        "pixelRatio": 1,
+        "width": 19,
+        "x": 95,
+        "y": 615
+    },
+    "usfs-bicycling": {
+        "height": 19,
+        "pixelRatio": 1,
+        "width": 19,
+        "x": 114,
+        "y": 615
+    },
+    "usfs-boating-motorized": {
+        "height": 19,
+        "pixelRatio": 1,
+        "width": 19,
+        "x": 133,
+        "y": 615
+    },
+    "usfs-boating-non-motorized": {
+        "height": 19,
+        "pixelRatio": 1,
+        "width": 19,
+        "x": 152,
+        "y": 615
+    },
+    "usfs-cabin-rentals": {
+        "height": 19,
+        "pixelRatio": 1,
+        "width": 19,
+        "x": 171,
+        "y": 615
+    },
+    "usfs-campground-camping": {
+        "height": 19,
+        "pixelRatio": 1,
+        "width": 19,
+        "x": 190,
+        "y": 615
+    },
+    "usfs-caving": {
+        "height": 19,
+        "pixelRatio": 1,
+        "width": 19,
+        "x": 209,
+        "y": 615
+    },
+    "usfs-day-hiking": {
+        "height": 19,
+        "pixelRatio": 1,
+        "width": 19,
+        "x": 228,
+        "y": 615
+    },
+    "usfs-dispersed-camping": {
+        "height": 19,
+        "pixelRatio": 1,
+        "width": 19,
+        "x": 247,
+        "y": 615
+    },
+    "usfs-dog-sledding": {
+        "height": 19,
+        "pixelRatio": 1,
+        "width": 19,
+        "x": 266,
+        "y": 615
+    },
+    "usfs-fishing": {
+        "height": 19,
+        "pixelRatio": 1,
+        "width": 19,
+        "x": 285,
+        "y": 615
+    },
+    "usfs-forest-service-shield": {
+        "height": 19,
+        "pixelRatio": 1,
+        "width": 18,
+        "x": 304,
+        "y": 615
+    },
+    "usfs-group-camping": {
+        "height": 19,
+        "pixelRatio": 1,
+        "width": 19,
+        "x": 322,
+        "y": 615
+    },
+    "usfs-group-picnicking": {
+        "height": 19,
+        "pixelRatio": 1,
+        "width": 19,
+        "x": 341,
+        "y": 615
+    },
+    "usfs-hand-gliding": {
+        "height": 19,
+        "pixelRatio": 1,
+        "width": 19,
+        "x": 360,
+        "y": 615
+    },
+    "usfs-horse-camping": {
+        "height": 19,
+        "pixelRatio": 1,
+        "width": 19,
+        "x": 379,
+        "y": 615
+    },
+    "usfs-horse-riding": {
+        "height": 19,
+        "pixelRatio": 1,
+        "width": 19,
+        "x": 398,
+        "y": 615
+    },
+    "usfs-hunting": {
+        "height": 19,
+        "pixelRatio": 1,
+        "width": 19,
+        "x": 417,
+        "y": 615
+    },
+    "usfs-ice-skating": {
+        "height": 19,
+        "pixelRatio": 1,
+        "width": 19,
+        "x": 436,
+        "y": 615
+    },
+    "usfs-interpretive-areas": {
+        "height": 19,
+        "pixelRatio": 1,
+        "width": 19,
+        "x": 455,
+        "y": 615
+    },
+    "usfs-mountain-climbing": {
+        "height": 19,
+        "pixelRatio": 1,
+        "width": 19,
+        "x": 474,
+        "y": 615
+    },
+    "usfs-ohv-camping": {
+        "height": 19,
+        "pixelRatio": 1,
+        "width": 19,
+        "x": 493,
+        "y": 615
+    },
+    "usfs-ohv-riding": {
+        "height": 19,
+        "pixelRatio": 1,
+        "width": 19,
+        "x": 512,
+        "y": 615
+    },
+    "usfs-picnicking": {
+        "height": 19,
+        "pixelRatio": 1,
+        "width": 19,
+        "x": 531,
+        "y": 615
+    },
+    "usfs-rock-climbing": {
+        "height": 19,
+        "pixelRatio": 1,
+        "width": 19,
+        "x": 550,
+        "y": 615
+    },
+    "usfs-rockhounding": {
+        "height": 19,
+        "pixelRatio": 1,
+        "width": 19,
+        "x": 569,
+        "y": 615
+    },
+    "usfs-rv-camping": {
+        "height": 19,
+        "pixelRatio": 1,
+        "width": 19,
+        "x": 588,
+        "y": 615
+    },
+    "usfs-scuba-diving": {
+        "height": 19,
+        "pixelRatio": 1,
+        "width": 19,
+        "x": 607,
+        "y": 615
+    },
+    "usfs-skiing-snowboarding": {
+        "height": 19,
+        "pixelRatio": 1,
+        "width": 19,
+        "x": 626,
+        "y": 615
+    },
+    "usfs-snowmobiling": {
+        "height": 19,
+        "pixelRatio": 1,
+        "width": 19,
+        "x": 645,
+        "y": 615
+    },
+    "usfs-swimming": {
+        "height": 19,
+        "pixelRatio": 1,
+        "width": 19,
+        "x": 664,
+        "y": 615
+    },
+    "usfs-tidepooling": {
+        "height": 19,
+        "pixelRatio": 1,
+        "width": 19,
+        "x": 683,
+        "y": 615
+    },
+    "usfs-trailhead": {
+        "height": 19,
+        "pixelRatio": 1,
+        "width": 19,
+        "x": 702,
+        "y": 615
+    },
+    "usfs-tubing": {
+        "height": 19,
+        "pixelRatio": 1,
+        "width": 19,
+        "x": 721,
+        "y": 615
+    },
+    "usfs-viewing-plants": {
+        "height": 19,
+        "pixelRatio": 1,
+        "width": 19,
+        "x": 740,
+        "y": 615
+    },
+    "usfs-viewing-scenery": {
+        "height": 19,
+        "pixelRatio": 1,
+        "width": 19,
+        "x": 759,
+        "y": 615
+    },
+    "usfs-viewing-wildlife": {
+        "height": 19,
+        "pixelRatio": 1,
+        "width": 19,
+        "x": 778,
+        "y": 615
+    },
+    "usfs-visitor-centers": {
+        "height": 19,
+        "pixelRatio": 1,
+        "width": 19,
+        "x": 797,
+        "y": 615
+    },
+    "usfs-xc-skiing-snowshoeing": {
+        "height": 19,
+        "pixelRatio": 1,
+        "width": 19,
+        "x": 816,
+        "y": 615
+    },
+    "viewpoint-11": {
+        "height": 11,
+        "pixelRatio": 1,
+        "width": 11,
+        "x": 77,
+        "y": 651
+    },
+    "waterfall-11": {
+        "height": 11,
+        "pixelRatio": 1,
+        "width": 11,
+        "x": 88,
+        "y": 651
+    }
+}

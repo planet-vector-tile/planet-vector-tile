@@ -6,6 +6,7 @@
     "bearing": 0,
     "pitch": 0,
     "glyphs": "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
+    "sprite": "https://storage.googleapis.com/hellopvt3/sprites",
     "sources": {
         "sat": {
             "type": "raster",
@@ -15,9 +16,10 @@
         },
         "planet": {
             "type": "planet",
-            "tiles": ["unimplemented"],
+            "tiles": ["info_tile"],
             "minzoom": 0,
-            "maxzoom": 18
+            "maxzoom": 18,
+            "sprite": "https://storage.googleapis.com/hellopvt3/sprites"
         }
     },
     "layers": [
@@ -86,6 +88,19 @@
             "paint": {
                 "line-color": "#ff69b4",
                 "line-width": 1
+            }
+        },
+        {
+            "id": "tile_bearing_arrow",
+            "type": "symbol",
+            "source": "planet",
+            "minzoom": 0,
+            "maxzoom": 23,
+            "source-layer": "tile_bearing",
+            "filter": ["==", "highest_zoom", true],
+            "layout": {
+                "icon-image": "direction_arrow",
+                "symbol-placement": "line"
             }
         },
         {

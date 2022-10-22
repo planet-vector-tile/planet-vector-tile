@@ -13,7 +13,7 @@ pub struct InfoTile {
 
 impl InfoTile {
     pub fn new(tile: Tile, child_levels: Option<u8>) -> Self {
-        let levels = child_levels.unwrap_or(6);
+        let levels = child_levels.unwrap_or(5);
         InfoTile { 
             tile,
             pyramid: tile.pyramid(levels),
