@@ -18,7 +18,7 @@
             "type": "planet",
             "tiles": ["info_tile"],
             "minzoom": 0,
-            "maxzoom": 18,
+            "maxzoom": 9,
             "sprite": "https://storage.googleapis.com/hellopvt3/sprites"
         }
     },
@@ -58,10 +58,10 @@
             "source": "planet",
             "source-layer": "tile_boundary",
             "paint": {
-                "line-color": "#ff69b4",
+                "line-color": "rgba(255, 255, 255, 0.3)",
                 "line-width": 1
             },
-            "layout": { "visibility": "none" }
+            "filter": ["==", "highest_zoom", true]
         },
         {
             "id": "render_tile_boundary",
@@ -73,9 +73,8 @@
             "filter": ["==", "render_tile", true],
             "paint": {
                 "line-color": "rgba(14, 236, 183, 1)",
-                "line-width": 2
-            },
-            "layout": { "visibility": "none" }
+                "line-width": 1
+            }
         },
         {
             "id": "tile_bearing",
@@ -87,7 +86,7 @@
             "filter": ["==", "highest_zoom", true],
             "paint": {
                 "line-color": "#ff69b4",
-                "line-width": 1
+                "line-width": 3
             }
         },
         {
@@ -99,7 +98,7 @@
             "source-layer": "tile_bearing",
             "filter": ["==", "highest_zoom", true],
             "layout": {
-                "icon-image": "direction_arrow",
+                "icon-image": "dark-trail-direction",
                 "symbol-placement": "line"
             }
         },
@@ -111,6 +110,7 @@
             "source": "planet",
             "source-layer": "tile_bearing",
             "filter": ["==", "render_tile", true],
+            "layout": { "visibility": "none" },
             "paint": {
                 "line-color": "rgba(14, 236, 183, 1)",
                 "line-width": 2
@@ -136,14 +136,14 @@
             "maxzoom": 23,
             "source": "planet",
             "source-layer": "tile_center",
+            "filter": ["==", "highest_zoom", true],
             "layout": {
                 "text-font": ["Open Sans Semibold"],
                 "text-field": "{h}",
-                "text-size": 10,
-                "visibility": "none"
+                "text-size": 10
             },
             "paint": {
-                "text-color": "#ff69b4"
+                "text-color": "white"
             }
         },
         {
@@ -153,11 +153,11 @@
             "maxzoom": 23,
             "source": "planet",
             "source-layer": "tile_center",
-            "filter": ["==", "render_tile", true],
             "layout": {
                 "text-font": ["Open Sans Semibold"],
                 "text-field": "{h}",
-                "text-size": 18
+                "text-size": 18,
+                "visibility": "none"
             },
             "paint": {
                 "text-color": "rgba(14, 236, 183, 1)"
