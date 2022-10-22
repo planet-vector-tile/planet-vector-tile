@@ -140,7 +140,8 @@
             "layout": {
                 "text-font": ["Open Sans Semibold"],
                 "text-field": "{h}",
-                "text-size": 10
+                "text-size": 10,
+                "visibility": "none"
             },
             "paint": {
                 "text-color": "white"
