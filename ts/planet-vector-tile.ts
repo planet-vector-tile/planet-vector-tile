@@ -107,7 +107,6 @@ export class PlanetVectorTileFeature implements VectorTileFeature {
 
     // This really should be optional, contrary to the TypeScript definition...
     get id(): number {
-        // TODO deal with JS number overflow
         return Number(this._feat.id()) || Number(this._feat.h());
     }
 

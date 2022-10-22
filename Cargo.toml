@@ -13,7 +13,7 @@ futures = "0.3.24"
 indexmap = "1.9.1"
 # Default enable napi4 feature, see https://nodejs.org/api/n-api.html#node-api-version-matrix
 napi = { version = "2.7.0", default-features = false, features = ["async", "tokio_full"] }
-napi-derive = "2.7.0"
+napi-derive = { version = "2.7.0", features = ["type-def"] }
 queue = "0.3.1"
 
 [build-dependencies]
