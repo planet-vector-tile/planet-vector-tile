@@ -1,52 +1,26 @@
 // Retrieve Job-defined env vars
-const {CLOUD_RUN_TASK_INDEX = 0, CLOUD_RUN_TASK_ATTEMPT = 0} = process.env;
+const { CLOUD_RUN_TASK_INDEX = 0, CLOUD_RUN_TASK_ATTEMPT = 0 } = process.env;
 // Retrieve User-defined env vars
-const {SLEEP_MS, FAIL_RATE} = process.env;
+const { HELLO, WORLD } = process.env;
+const { platform, arch } = process;
 
-// Define main script
-const main = async () => {
-  console.log(
-    `Starting Task #${CLOUD_RUN_TASK_INDEX}, Attempt #${CLOUD_RUN_TASK_ATTEMPT}...`
-  );
-  // Simulate work
-  if (SLEEP_MS) {
-    await sleep(SLEEP_MS);
-  }
-  // Simulate errors
-  if (FAIL_RATE) {
-    try {
-      randomFailure(FAIL_RATE);
-    } catch (err) {
-      err.message = `Task #${CLOUD_RUN_TASK_INDEX}, Attempt #${CLOUD_RUN_TASK_ATTEMPT} failed.\n\n${err.message}`;
-      throw err;
-    }
-  }
-  console.log(`Completed Task #${CLOUD_RUN_TASK_INDEX}.`);
-};
+const pvt = require('./index');
 
-// Wait for a specific amount of time
-const sleep = ms => {
-  return new Promise(resolve => setTimeout(resolve, ms));
-};
+async function main() {
+    console.log(`Starting Task #${CLOUD_RUN_TASK_INDEX}, Attempt #${CLOUD_RUN_TASK_ATTEMPT}...`);
 
-// Throw an error based on fail rate
-const randomFailure = rate => {
-  rate = parseFloat(rate);
-  if (!rate || rate < 0 || rate > 1) {
-    console.warn(
-      `Invalid FAIL_RATE env var value: ${rate}. Must be a float between 0 and 1 inclusive.`
-    );
-    return;
-  }
+    console.log('platform', platform);
+    console.log('arch', arch);
 
-  const randomFailure = Math.random();
-  if (randomFailure < rate) {
-    throw new Error('Task failed.');
-  }
-};
+    let planet = pvt.loadPlanet('info_tile', 0, 14);
+    let res = await planet.asyncMultiTwo(11);
+    console.log('11 * 11', res);
+
+    console.log(`Completed Task #${CLOUD_RUN_TASK_INDEX}.`);
+}
 
 // Start script
 main().catch(err => {
-  console.error(err);
-  process.exit(1); // Retry Job Task by exiting the process
+    console.error(err);
+    process.exit(1); // Retry Job Task by exiting the process
 });

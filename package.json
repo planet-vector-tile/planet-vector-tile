@@ -1,5 +1,5 @@
 {
-    "name": "planet-vector-tile",
+    "name": "@planet-vector-tile/planet-vector-tile",
     "version": "0.0.0",
     "main": "index.js",
     "types": "index.d.ts",
@@ -28,6 +28,7 @@
         "electron": "cd electron && npm start",
         "artifacts": "napi artifacts",
         "build": "napi build --platform --js napi.js && npm run build:ts",
+        "build:linux": "napi build --platform --target x86_64-unknown-linux-gnu --release --js napi.js && npm run build:ts",
         "build:release": "napi build --platform --release --js napi.js && npm run build:ts",
         "build:ts": "tsc -p tsconfig.json && prettier --write . && npm run rollup",
         "rollup": "rollup --config rollup.config.mjs",
@@ -49,5 +50,11 @@
         "@types/mapbox__vector-tile": "^1.3.0",
         "flatbuffers": "^2.0.7",
         "geojson": "^0.5.0"
+    },
+    "optionalDependencies": {
+        "planet-vector-tile-win32-x64-msvc": "0.0.0",
+        "planet-vector-tile-darwin-x64": "0.0.0",
+        "planet-vector-tile-linux-x64-gnu": "0.0.0",
+        "planet-vector-tile-darwin-arm64": "0.0.0"
     }
 }
