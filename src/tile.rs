@@ -71,6 +71,7 @@ impl Tile {
         self.at_zoom(32)
     }
 
+    // FIXME - There is a bug here. I'm seeing many tiles with the same ID.
     // We love Antarctica, but the id may modulus over at a very high zoom.
     pub fn id(&self) -> u64 {
         // z gets 5 bits, max 31

@@ -27,7 +27,7 @@ map.on('mouseup', e => {
 
             const title = info.properties?.tile || `${info.layer} - ${info.id}`;
 
-            return `<details><summary>${title}<button onclick="select(${f.properties.h})">Select</button></summary><pre>${json}</pre></details>`;
+            return `<details><summary>${title}<button onclick="select(${f.id})">Select</button></summary><pre>${json}</pre></details>`;
         })
         .join('');
 
@@ -44,6 +44,31 @@ satSlider.addEventListener('change', e => {
 document.getElementById('close-panel').onclick = () =>
     (document.getElementById('features-panel').style.display = 'none');
 
-function select(h) {
-    console.log('h', h);
+let selectedFeatureId = null;
+
+function select(id) {
+    console.log('selected feature id', id);
+    if (selectedFeatureId) {
+        map.setFeatureState(
+            {
+                source: 'planet',
+                sourceLayer: 'tile_boundary',
+                id: selectedFeatureId,
+            },
+            {
+                selected: false,
+            }
+        );
+    }
+    selectedFeatureId = id;
+    map.setFeatureState(
+        {
+            source: 'planet',
+            sourceLayer: 'tile_boundary',
+            id,
+        },
+        {
+            selected: true,
+        }
+    );
 }

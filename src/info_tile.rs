@@ -1,9 +1,18 @@
+use std::sync::atomic::{AtomicU64, Ordering};
+
 use flatbuffers::WIPOffset;
 use flatbuffers::{FlatBufferBuilder};
 
 use crate::tile::planet_vector_tile_generated::*;
 use crate::tile::{Tile, HilbertBearing};
 use crate::tile_attributes::TileAttributes;
+
+// I don't need OnceCell if it is just an integer. Atomics work.
+// https://stackoverflow.com/questions/27791532/how-do-i-create-a-global-mutable-singleton
+static COUNTER: AtomicU64 = AtomicU64::new(0);
+fn count() -> u64 {
+    COUNTER.fetch_add(1, Ordering::SeqCst)
+}
 
 pub struct InfoTile {
     tile: Tile,
@@ -81,7 +90,7 @@ impl InfoTile {
     }
 
     fn generate_info<'a>(&self, builder: &mut FlatBufferBuilder<'a>, tile: &Tile) -> (WIPOffset<PVTFeature<'a>>, WIPOffset<PVTFeature<'a>>, WIPOffset<PVTFeature<'a>>){
-        let id = tile.id();
+        let id = count();
         let is_render_tile = if *tile == self.tile { 1_f64 } else { 0_f64 };
         let is_highest_zoom = match self.pyramid.last() {
             Some(t) => {

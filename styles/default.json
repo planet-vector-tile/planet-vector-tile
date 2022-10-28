@@ -73,7 +73,20 @@
             "filter": ["==", "render_tile", true],
             "paint": {
                 "line-color": "rgba(14, 236, 183, 1)",
-                "line-width": 1
+                "line-width": 2
+            }
+        },
+        {
+            "id": "selected_tile_boundary",
+            "type": "line",
+            "minzoom": 0,
+            "maxzoom": 23,
+            "source": "planet",
+            "source-layer": "tile_boundary",
+            "paint": {
+                "line-color": "##FFC000",
+                "line-width": 3,
+                "line-opacity": ["case", ["boolean", ["feature-state", "selected"], false], 1, 0]
             }
         },
         {
