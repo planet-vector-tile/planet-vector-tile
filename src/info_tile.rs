@@ -1,10 +1,10 @@
 use std::sync::atomic::{AtomicU64, Ordering};
 
+use flatbuffers::FlatBufferBuilder;
 use flatbuffers::WIPOffset;
-use flatbuffers::{FlatBufferBuilder};
 
 use crate::tile::planet_vector_tile_generated::*;
-use crate::tile::{Tile, HilbertBearing};
+use crate::tile::{HilbertBearing, Tile};
 use crate::tile_attributes::TileAttributes;
 
 // I don't need OnceCell if it is just an integer. Atomics work.
@@ -23,11 +23,11 @@ pub struct InfoTile {
 impl InfoTile {
     pub fn new(tile: Tile, child_levels: Option<u8>) -> Self {
         let levels = child_levels.unwrap_or(4);
-        InfoTile { 
+        InfoTile {
             tile,
             pyramid: tile.pyramid(levels),
-            attributes: TileAttributes::new()
-         }
+            attributes: TileAttributes::new(),
+        }
     }
 
     pub fn build_buffer(&self) -> Vec<u8> {
@@ -70,7 +70,10 @@ impl InfoTile {
         let layers = builder.create_vector(&[boundary_layer, center_layer, bearing_layer]);
         let strings_vec = self.attributes.strings();
         // There should be a cleaner way of doing this...
-        let strs_vec = strings_vec.iter().map(|s| s.as_str()).collect::<Vec<&str>>();
+        let strs_vec = strings_vec
+            .iter()
+            .map(|s| s.as_str())
+            .collect::<Vec<&str>>();
 
         let strings = builder.create_vector_of_strings(&strs_vec);
         let values = builder.create_vector(&self.attributes.values());
@@ -83,14 +86,22 @@ impl InfoTile {
                 values: Some(values),
             },
         );
-    
+
         builder.finish(tile, None);
-    
+
         builder.finished_data().to_vec()
     }
 
-    fn generate_info<'a>(&self, builder: &mut FlatBufferBuilder<'a>, tile: &Tile) -> (WIPOffset<PVTFeature<'a>>, WIPOffset<PVTFeature<'a>>, WIPOffset<PVTFeature<'a>>){
-        let id = count();
+    fn generate_info<'a>(
+        &self,
+        builder: &mut FlatBufferBuilder<'a>,
+        tile: &Tile,
+    ) -> (
+        WIPOffset<PVTFeature<'a>>,
+        WIPOffset<PVTFeature<'a>>,
+        WIPOffset<PVTFeature<'a>>,
+    ) {
+        let id = tile.id();
         let is_render_tile = if *tile == self.tile { 1_f64 } else { 0_f64 };
         let is_highest_zoom = match self.pyramid.last() {
             Some(t) => {
@@ -99,14 +110,14 @@ impl InfoTile {
                 } else {
                     0_f64
                 }
-            },
+            }
             None => 0_f64,
         };
-        
+
         // Create tags for features
         let tile_key = self.attributes.upsert_string("tile");
         let render_tile_key = self.attributes.upsert_string("render_tile");
-        let is_render_tile_key = self.attributes.upsert_string("render_tile");
+        let is_render_tile_key = self.attributes.upsert_string("is_render_tile");
         let is_highest_zoom_key = self.attributes.upsert_string("highest_zoom");
 
         let z_key = self.attributes.upsert_string("z");
@@ -116,16 +127,46 @@ impl InfoTile {
 
         let tile_val = self.attributes.upsert_string_value(&tile.to_string());
         let render_tile_val = self.attributes.upsert_string_value(&self.tile.to_string());
-        let is_render_tile_val = self.attributes.upsert_value(PVTValue::new(PVTValueType::Boolean, is_render_tile));
-        let is_highest_zoom_val = self.attributes.upsert_value(PVTValue::new(PVTValueType::Boolean, is_highest_zoom));
+        let is_render_tile_val = self
+            .attributes
+            .upsert_value(PVTValue::new(PVTValueType::Boolean, is_render_tile));
+        let is_highest_zoom_val = self
+            .attributes
+            .upsert_value(PVTValue::new(PVTValueType::Boolean, is_highest_zoom));
 
-        let z_val = self.attributes.upsert_value(PVTValue::new(PVTValueType::Number, tile.z as f64));
-        let x_val = self.attributes.upsert_value(PVTValue::new(PVTValueType::Number, tile.x as f64));
-        let y_val = self.attributes.upsert_value(PVTValue::new(PVTValueType::Number, tile.y as f64));
-        let h_val = self.attributes.upsert_value(PVTValue::new(PVTValueType::Number, tile.h as f64));
+        let z_val = self
+            .attributes
+            .upsert_value(PVTValue::new(PVTValueType::Number, tile.z as f64));
+        let x_val = self
+            .attributes
+            .upsert_value(PVTValue::new(PVTValueType::Number, tile.x as f64));
+        let y_val = self
+            .attributes
+            .upsert_value(PVTValue::new(PVTValueType::Number, tile.y as f64));
+        let h_val = self
+            .attributes
+            .upsert_value(PVTValue::new(PVTValueType::Number, tile.h as f64));
 
-        let keys = builder.create_vector::<u32>(&[tile_key, render_tile_key, is_render_tile_key, is_highest_zoom_key, z_key, x_key, y_key, h_key]);
-        let vals = builder.create_vector::<u32>(&[tile_val, render_tile_val, is_render_tile_val, is_highest_zoom_val, z_val, x_val, y_val, h_val]);
+        let keys = builder.create_vector::<u32>(&[
+            tile_key,
+            render_tile_key,
+            is_render_tile_key,
+            is_highest_zoom_key,
+            z_key,
+            x_key,
+            y_key,
+            h_key,
+        ]);
+        let vals = builder.create_vector::<u32>(&[
+            tile_val,
+            render_tile_val,
+            is_render_tile_val,
+            is_highest_zoom_val,
+            z_val,
+            x_val,
+            y_val,
+            h_val,
+        ]);
 
         // Create boundary geometry
         let bbox = tile.bbox();
@@ -154,7 +195,12 @@ impl InfoTile {
         // Create center geometry
         let center = self.tile.project(tile.center());
         let center_path = builder.create_vector(&[center]);
-        let center_geom = PVTGeometry::create(builder, &PVTGeometryArgs { points: Some(center_path) });
+        let center_geom = PVTGeometry::create(
+            builder,
+            &PVTGeometryArgs {
+                points: Some(center_path),
+            },
+        );
         let center_geoms = builder.create_vector(&[center_geom]);
 
         // Create center feature.
@@ -171,7 +217,12 @@ impl InfoTile {
 
         let bearing_tile_points = self.create_bearing_tile_points(tile);
         let bearing_path = builder.create_vector(&bearing_tile_points);
-        let bearing_geom = PVTGeometry::create(builder, &PVTGeometryArgs { points: Some(bearing_path) });
+        let bearing_geom = PVTGeometry::create(
+            builder,
+            &PVTGeometryArgs {
+                points: Some(bearing_path),
+            },
+        );
         let bearing_geoms = builder.create_vector(&[bearing_geom]);
 
         let bearing_feature = PVTFeature::create(
@@ -192,12 +243,12 @@ impl InfoTile {
         let origin = tile.origin_location();
         let extent = tile.location_extent();
         let middle = extent >> 1;
-        
+
         let n = PVTPoint::new(origin.x() + middle, origin.y());
         let w = PVTPoint::new(origin.x(), origin.y() + middle);
         let s = PVTPoint::new(origin.x() + middle, origin.y() + extent);
         let e = PVTPoint::new(origin.x() + extent, origin.y() + middle);
-    
+
         let pn = self.tile.project(n);
         let pw = self.tile.project(w);
         let ps = self.tile.project(s);
@@ -207,45 +258,43 @@ impl InfoTile {
         match tile.hilbert_bearing() {
             HilbertBearing::NW => {
                 vec![pn, pc, pw]
-            },
+            }
             HilbertBearing::NS => {
                 vec![pn, pc, ps]
-            },
+            }
             HilbertBearing::NE => {
                 vec![pn, pc, pe]
-            },
+            }
             HilbertBearing::WS => {
                 vec![pw, pc, ps]
-            },
+            }
             HilbertBearing::WE => {
                 vec![pw, pc, pe]
-            },
+            }
             HilbertBearing::WN => {
                 vec![pw, pc, pn]
-            },
+            }
             HilbertBearing::SE => {
                 vec![ps, pc, pe]
-            },
+            }
             HilbertBearing::SN => {
                 vec![ps, pc, pn]
-            },
+            }
             HilbertBearing::SW => {
                 vec![ps, pc, pw]
-            },
+            }
             HilbertBearing::EN => {
                 vec![pe, pc, pn]
-            },
+            }
             HilbertBearing::EW => {
                 vec![pe, pc, pw]
-            },
+            }
             HilbertBearing::ES => {
                 vec![pe, pc, ps]
-            },
+            }
         }
     }
 }
-
-
 
 pub fn basic(tile: Tile) -> Vec<u8> {
     let mut builder = FlatBufferBuilder::with_capacity(1024);
@@ -340,7 +389,6 @@ pub fn basic(tile: Tile) -> Vec<u8> {
 
     builder.finished_data().to_vec()
 }
-
 
 // 9, 82, 199
 // let tile = Tile::from_zxy(z, x, y);

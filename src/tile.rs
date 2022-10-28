@@ -71,18 +71,21 @@ impl Tile {
         self.at_zoom(32)
     }
 
-    // FIXME - There is a bug here. I'm seeing many tiles with the same ID.
-    // We love Antarctica, but the id may modulus over at a very high zoom.
+    // The id has a max of 52 bits to accomodate JavaScript numbers.
+     // z gets 5 bits, max 31
+    // h gets 47 bits, max 140_737_488_355_327
+    // https://www.rustexplorer.com/b/0uno7c
     pub fn id(&self) -> u64 {
-        // z gets 5 bits, max 31
-        // h gets 59 bits, max 576460752303423487
         let z = self.z as u64;
-        let h = if self.h > 576460752303423487 {
-            self.h % 576460752303423487
-        } else {
-            self.h
-        };
-        z << 59 | h
+
+        // 2^47 - 1 , this limit is within z24.
+        if self.h > 140_737_488_355_327 {
+            // When we go above the limit, we just omit the z from the id.
+            // 2 ^ 52
+            return self.h % 4_503_599_627_370_495;
+        }
+
+        z << 47 | self.h
     }
 
     // The Northwest corner of the tile in location space.

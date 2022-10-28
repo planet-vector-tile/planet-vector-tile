@@ -84,7 +84,7 @@
             "source": "planet",
             "source-layer": "tile_boundary",
             "paint": {
-                "line-color": "##FFC000",
+                "line-color": "#FFC000",
                 "line-width": 3,
                 "line-opacity": ["case", ["boolean", ["feature-state", "selected"], false], 1, 0]
             }
