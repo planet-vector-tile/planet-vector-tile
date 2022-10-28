@@ -28,7 +28,7 @@
             "type": "background",
             "maxzoom": 24,
             "paint": {
-                "background-color": "#f7f1cd"
+                "background-color": "#6C3102"
             }
         },
         {
@@ -58,7 +58,7 @@
             "source": "planet",
             "source-layer": "tile_boundary",
             "paint": {
-                "line-color": "rgba(255, 255, 255, 0.3)",
+                "line-color": "rgba(255, 255, 255, 0.1)",
                 "line-width": 1
             },
             "filter": ["==", "highest_zoom", true]
@@ -70,10 +70,10 @@
             "maxzoom": 23,
             "source": "planet",
             "source-layer": "tile_boundary",
-            "filter": ["==", "render_tile", true],
+            "filter": ["==", "is_render_tile", true],
             "paint": {
-                "line-color": "rgba(14, 236, 183, 1)",
-                "line-width": 2
+                "line-color": "rgba(255, 255, 255, 0.4)",
+                "line-width": 1
             }
         },
         {
@@ -96,7 +96,7 @@
             "maxzoom": 23,
             "source": "planet",
             "source-layer": "tile_bearing",
-            "filter": ["==", "highest_zoom", true],
+            "filter": ["==", "z", -1],
             "paint": {
                 "line-color": "#ff69b4",
                 "line-width": 3
@@ -109,7 +109,7 @@
             "minzoom": 0,
             "maxzoom": 23,
             "source-layer": "tile_bearing",
-            "filter": ["==", "highest_zoom", true],
+            "filter": ["==", "z", -1],
             "layout": {
                 "icon-image": "dark-trail-direction",
                 "symbol-placement": "line"
@@ -122,11 +122,23 @@
             "maxzoom": 23,
             "source": "planet",
             "source-layer": "tile_bearing",
-            "filter": ["==", "render_tile", true],
-            "layout": { "visibility": "none" },
+            "filter": ["==", "is_render_tile", true],
             "paint": {
-                "line-color": "rgba(14, 236, 183, 1)",
+                "line-color": "rgba(255, 105, 180, 0.5)",
                 "line-width": 2
+            }
+        },
+        {
+            "id": "render_tile_bearing_arrow",
+            "type": "symbol",
+            "source": "planet",
+            "minzoom": 0,
+            "maxzoom": 23,
+            "source-layer": "tile_bearing",
+            "filter": ["==", "is_render_tile", true],
+            "layout": {
+                "icon-image": "dark-trail-direction",
+                "symbol-placement": "line"
             }
         },
         {

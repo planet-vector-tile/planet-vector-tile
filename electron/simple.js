@@ -11,8 +11,13 @@ const map = (window.map = new window.maplibregl.Map({
     style: style,
 }));
 
+let pvt = (window.pvt = {
+    clickedFeatures: null,
+    selectedFeature: null,
+});
+
 map.on('mouseup', e => {
-    const features = map.queryRenderedFeatures(e.point);
+    const features = (pvt.clickedFeatures = map.queryRenderedFeatures(e.point));
 
     const infos = features
         .map(f => {
@@ -44,31 +49,31 @@ satSlider.addEventListener('change', e => {
 document.getElementById('close-panel').onclick = () =>
     (document.getElementById('features-panel').style.display = 'none');
 
-let selectedFeatureId = null;
-
 function select(id) {
     console.log('selected feature id', id);
-    if (selectedFeatureId) {
+    if (pvt.selectedFeature) {
         map.setFeatureState(
             {
                 source: 'planet',
                 sourceLayer: 'tile_boundary',
-                id: selectedFeatureId,
+                id: pvt.selectedFeature.id,
             },
             {
                 selected: false,
             }
         );
     }
-    selectedFeatureId = id;
+    const feature = (pvt.selectedFeature = pvt.clickedFeatures.find(f => f.id === id));
     map.setFeatureState(
         {
             source: 'planet',
             sourceLayer: 'tile_boundary',
-            id,
+            id: feature.id,
         },
         {
             selected: true,
         }
     );
+    map.setFilter('tile_bearing', ['==', 'z', feature.properties.z]);
+    map.setFilter('tile_bearing_arrow', ['==', 'z', feature.properties.z]);
 }

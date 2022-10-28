@@ -7,13 +7,6 @@ use crate::tile::planet_vector_tile_generated::*;
 use crate::tile::{HilbertBearing, Tile};
 use crate::tile_attributes::TileAttributes;
 
-// I don't need OnceCell if it is just an integer. Atomics work.
-// https://stackoverflow.com/questions/27791532/how-do-i-create-a-global-mutable-singleton
-static COUNTER: AtomicU64 = AtomicU64::new(0);
-fn count() -> u64 {
-    COUNTER.fetch_add(1, Ordering::SeqCst)
-}
-
 pub struct InfoTile {
     tile: Tile,
     pyramid: Vec<Tile>,
@@ -22,7 +15,7 @@ pub struct InfoTile {
 
 impl InfoTile {
     pub fn new(tile: Tile, child_levels: Option<u8>) -> Self {
-        let levels = child_levels.unwrap_or(4);
+        let levels = child_levels.unwrap_or(6);
         InfoTile {
             tile,
             pyramid: tile.pyramid(levels),
