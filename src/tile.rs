@@ -160,8 +160,27 @@ impl Tile {
         PVTPoint::new(origin.x() + middle, origin.y() + middle)
     }
 
-    pub fn parent(&self) -> Tile {
-        Tile::from_zxy(self.z - 1, self.x >> 1, self.y >> 1)
+    pub fn parent(&self) -> Option<Self> {
+        if self.z == 0 {
+            None
+        } else {
+            Some(Self {
+                z: self.z - 1,
+                x: self.x >> 1,
+                y: self.y >> 1,
+                h: self.h >> 2,
+            })
+        }
+    }
+
+    fn ancestor(&self, z: u8) -> Self {
+        assert!(z > 0 && z < self.z);
+        Self {
+            z,
+            x: self.x >> self.z - z,
+            y: self.y >> self.z - z,
+            h: self.h >> (self.z - z) * 2,
+        }
     }
 
     pub fn children(&self) -> [Tile; 4] {
@@ -203,17 +222,14 @@ impl Tile {
     }
 
     pub fn pyramid(&self, child_levels: u8) -> Vec<Tile> {
-        // Get parents
-        let mut pyramid = Vec::<Tile>::with_capacity(
-            (self.z + 1) as usize + 4_u32.pow(child_levels as u32) as usize,
-        );
-        let mut t = self.clone();
-        pyramid.push(t);
-        for _ in 0..self.z {
-            t = t.parent();
-            pyramid.push(t);
+        let size = self.z as usize + 1 + (1 << 2 * child_levels);
+
+        let mut pyramid = Vec::<Tile>::with_capacity(size);
+
+        for z in 1..self.z {
+            pyramid.push(self.ancestor(z));
         }
-        pyramid.reverse();
+        pyramid.push(self.clone());
         pyramid.append(&mut self.descendants(child_levels));
         pyramid
     }
@@ -308,57 +324,59 @@ impl Tile {
         };
 
         let from_h = if self.h != 0 { Some(self.h - 1) } else { None };
-        let to_h = if self.h != u64::MAX {
+        let to_h = if self.h < (1 << (2 * self.z)) {
             Some(self.h + 1)
         } else {
             None
         };
 
+        if to_h.is_none() {
+            return HilbertBearing::None;
+        }
+
         if n == from_h {
             if w == to_h {
-                return HilbertBearing::NW;
+                HilbertBearing::NW
+            } else if s == to_h {
+                HilbertBearing::NS
+            } else if e == to_h {
+                HilbertBearing::NE
+            } else {
+                HilbertBearing::None
             }
+        } else if w == from_h {
             if s == to_h {
-                return HilbertBearing::NS;
+                HilbertBearing::WS
+            } else if e == to_h {
+                HilbertBearing::WE
+            } else if n == to_h {
+                HilbertBearing::WN
+            } else {
+                HilbertBearing::None
             }
+        } else if s == from_h {
             if e == to_h {
-                return HilbertBearing::NE;
+                HilbertBearing::SE
+            } else if n == to_h {
+                HilbertBearing::SN
+            } else if w == to_h {
+                HilbertBearing::SW
+            } else {
+                HilbertBearing::None
             }
-        }
-        if w == from_h {
-            if s == to_h {
-                return HilbertBearing::WS;
-            }
-            if e == to_h {
-                return HilbertBearing::WE;
-            }
+        } else if e == from_h {
             if n == to_h {
-                return HilbertBearing::WN;
+                HilbertBearing::EN
+            }else if w == to_h {
+                HilbertBearing::EW
+            } else if s == to_h {
+                HilbertBearing::ES
+            } else {
+                HilbertBearing::None
             }
+        } else {
+            HilbertBearing::None
         }
-        if s == from_h {
-            if e == to_h {
-                return HilbertBearing::SE;
-            }
-            if n == to_h {
-                return HilbertBearing::SN;
-            }
-            if w == to_h {
-                return HilbertBearing::SW;
-            }
-        }
-        if e == from_h {
-            if n == to_h {
-                return HilbertBearing::EN;
-            }
-            if w == to_h {
-                return HilbertBearing::EW;
-            }
-            if s == to_h {
-                return HilbertBearing::ES;
-            }
-        }
-        HilbertBearing::None
     }
 }
 
