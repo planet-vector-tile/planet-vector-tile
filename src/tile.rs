@@ -352,7 +352,7 @@ impl Tile {
             } else if n == to_h {
                 HilbertBearing::WN
             } else {
-                HilbertBearing::None
+                HilbertBearing::WE
             }
         } else if s == from_h {
             if e == to_h {
@@ -362,7 +362,7 @@ impl Tile {
             } else if w == to_h {
                 HilbertBearing::SW
             } else {
-                HilbertBearing::None
+                HilbertBearing::SN
             }
         } else if e == from_h {
             if n == to_h {
