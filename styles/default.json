@@ -123,6 +123,7 @@
             "source": "planet",
             "source-layer": "tile_bearing",
             "filter": ["==", "is_render_tile", true],
+            "layout": { "visibility": "none" },
             "paint": {
                 "line-color": "rgba(255, 105, 180, 0.5)",
                 "line-width": 2
@@ -138,7 +139,8 @@
             "filter": ["==", "is_render_tile", true],
             "layout": {
                 "icon-image": "dark-trail-direction",
-                "symbol-placement": "line"
+                "symbol-placement": "line",
+                "visibility": "none"
             }
         },
         {
@@ -179,14 +181,14 @@
             "maxzoom": 23,
             "source": "planet",
             "source-layer": "tile_center",
+            "filter": ["==", "is_render_tile", true],
             "layout": {
                 "text-font": ["Open Sans Semibold"],
-                "text-field": "{h}",
-                "text-size": 18,
-                "visibility": "none"
+                "text-field": "{tile}",
+                "text-size": 32
             },
             "paint": {
-                "text-color": "rgba(14, 236, 183, 1)"
+                "text-color": "rgba(255, 255, 255, 0.3)"
             }
         }
     ]
