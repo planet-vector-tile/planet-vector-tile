@@ -284,6 +284,9 @@ impl InfoTile {
             }
             HilbertBearing::ES => {
                 vec![pe, pc, ps]
+            },
+            HilbertBearing::None => {
+                vec![]
             }
         }
     }
