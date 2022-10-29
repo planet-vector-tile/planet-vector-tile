@@ -1,6 +1,6 @@
 use fast_hilbert::{h2xy, xy2h};
 use queue::Queue;
-use std::fmt;
+use std::{fmt, ops::Range};
 
 #[allow(dead_code, unused_imports)]
 #[path = "./fbs/planet_vector_tile_generated.rs"]
@@ -72,7 +72,7 @@ impl Tile {
     }
 
     // The id has a max of 52 bits to accomodate JavaScript numbers.
-     // z gets 5 bits, max 31
+    // z gets 5 bits, max 31
     // h gets 47 bits, max 140_737_488_355_327
     // https://www.rustexplorer.com/b/0uno7c
     pub fn id(&self) -> u64 {
@@ -110,6 +110,43 @@ impl Tile {
         u32::MAX >> self.z
     }
 
+    // The range of hilbert locations for a given tile.
+    pub fn hloc_range(&self) -> Range<u64> {
+        let bbox = self.bbox();
+        let nw = bbox.nw();
+        let sw = bbox.sw();
+        let se = bbox.se();
+        let ne = bbox.ne();
+        let hnw = xy2h(nw.x(), nw.y());
+        let hsw = xy2h(sw.x(), sw.y());
+        let hse = xy2h(se.x(), se.y());
+        let hne = xy2h(ne.x(), ne.y());
+
+        let mut start = hnw;
+        let mut end = hnw;
+
+        if hsw < start {
+            start = hsw;
+        }
+        if hsw > end {
+            end = hsw;
+        }
+        if hse < start {
+            start = hse;
+        }
+        if hse > end {
+            end = hse;
+        }
+        if hne < start {
+            start = hne;
+        }
+        if hne > end {
+            end = hne;
+        }
+
+        Range { start, end }
+    }
+
     // The center in location space
     pub fn center(&self) -> PVTPoint {
         let middle = self.location_extent() >> 1;
@@ -136,7 +173,11 @@ impl Tile {
         if child_levels == 0 {
             return Vec::<Tile>::new();
         }
-        let top_z = if self.z + child_levels >= 31 { 31 } else { self.z + child_levels };
+        let top_z = if self.z + child_levels >= 31 {
+            31
+        } else {
+            self.z + child_levels
+        };
         let mut desc = Vec::<Tile>::new();
         let mut q = Queue::<Tile>::new();
         for t in self.children() {
@@ -260,7 +301,11 @@ impl Tile {
         };
 
         let from_h = if self.h != 0 { Some(self.h - 1) } else { None };
-        let to_h = if self.h != u64::MAX { Some(self.h + 1) } else { None };
+        let to_h = if self.h != u64::MAX {
+            Some(self.h + 1)
+        } else {
+            None
+        };
 
         if n == from_h {
             if w == to_h {
@@ -308,9 +353,7 @@ impl Tile {
         }
         // first tile will always be west to east
         HilbertBearing::WE
-
     }
-
 }
 
 impl Eq for Tile {}
@@ -357,7 +400,7 @@ pub enum HilbertBearing {
     SW,
     EN,
     EW,
-    ES
+    ES,
 }
 
 mod tests {
