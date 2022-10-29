@@ -76,4 +76,5 @@ function select(id) {
     );
     map.setFilter('tile_bearing', ['==', 'z', feature.properties.z]);
     map.setFilter('tile_bearing_arrow', ['==', 'z', feature.properties.z]);
+    map.setFilter('tile_center_label', ['==', 'z', feature.properties.z]);
 }
