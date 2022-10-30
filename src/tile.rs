@@ -40,7 +40,12 @@ pub struct Tile {
 impl Tile {
     pub fn from_zh(z: u8, h: u64) -> Self {
         if z == 0 {
-            return Self { z: 0, x: 0, y: 0, h: 0 };
+            return Self {
+                z: 0,
+                x: 0,
+                y: 0,
+                h: 0,
+            };
         }
         let (x, y) = h2xy(h, z);
         Self { z, x, y, h }
@@ -48,7 +53,12 @@ impl Tile {
 
     pub fn from_zxy(z: u8, x: u32, y: u32) -> Self {
         if z == 0 {
-            return Self { z: 0, x: 0, y: 0, h: 0 };
+            return Self {
+                z: 0,
+                x: 0,
+                y: 0,
+                h: 0,
+            };
         }
         let h = xy2h(x, y, z);
         Self { z, x, y, h }
@@ -68,6 +78,36 @@ impl Tile {
             let x = self.x >> z_delta;
             let y = self.y >> z_delta;
             Tile::from_zxy(z, x, y)
+        }
+    }
+
+    pub fn h_range_for_zoom(&self, z: u8) -> Range<u64> {
+        // The range for this tile
+        if z == self.z {
+            Range {
+                start: self.h,
+                end: self.h + 1,
+            }
+        }
+        // The range for a lower zoom is the shifted h
+        // with the length of 1
+        else if z < self.z {
+            let start = self.h >> 2 * (self.z - z) as u64;
+            Range {
+                start,
+                end: start + 1,
+            }
+        }
+        // For a higher zoom, we shift h to the corresponding Hilbert order,
+        // then we determine the number of tiles this tile covers
+        // to compute the range.
+        else {
+            let z_delta = (z - self.z) as u64;
+            let start = self.h << 2 * z_delta;
+            Range {
+                start,
+                end: start + (1 << 2 * z_delta),
+            }
         }
     }
 
@@ -114,43 +154,6 @@ impl Tile {
             return 0;
         }
         u32::MAX >> self.z
-    }
-
-    // The range of hilbert locations for a given tile.
-    pub fn hloc_range(&self) -> Range<u64> {
-        let bbox = self.bbox();
-        let nw = bbox.nw();
-        let sw = bbox.sw();
-        let se = bbox.se();
-        let ne = bbox.ne();
-        let hnw = xy2h(nw.x(), nw.y(), self.z);
-        let hsw = xy2h(sw.x(), sw.y(), self.z);
-        let hse = xy2h(se.x(), se.y(), self.z);
-        let hne = xy2h(ne.x(), ne.y(), self.z);
-
-        let mut start = hnw;
-        let mut end = hnw;
-
-        if hsw < start {
-            start = hsw;
-        }
-        if hsw > end {
-            end = hsw;
-        }
-        if hse < start {
-            start = hse;
-        }
-        if hse > end {
-            end = hse;
-        }
-        if hne < start {
-            start = hne;
-        }
-        if hne > end {
-            end = hne;
-        }
-
-        Range { start, end }
     }
 
     // The center in location space
@@ -273,8 +276,7 @@ impl Tile {
         let mut x = tile_x - origin_x;
         let mut y = tile_y - origin_y;
 
-        // We shouldn't be clamping exactly to the bounds.
-        // Need to change fb to be i16...
+        // TODO: Provide offset around the tile bounds for clamping.
 
         // clamp
         if x < TILE_MIN {
@@ -367,7 +369,7 @@ impl Tile {
         } else if e == from_h {
             if n == to_h {
                 HilbertBearing::EN
-            }else if w == to_h {
+            } else if w == to_h {
                 HilbertBearing::EW
             } else if s == to_h {
                 HilbertBearing::ES
@@ -534,5 +536,22 @@ mod tests {
         assert_eq!(p.len(), 1);
         let p2 = t.pyramid(1);
         assert_eq!(p2.len(), 5);
+    }
+
+    #[test]
+    fn test_h_range_for_zoom() {
+        let t = Tile::from_zxy(9, 82, 199);
+        // let t = Tile::from_zh(9, 52017);
+        let range = t.h_range_for_zoom(9);
+        assert_eq!(range.start, 52017);
+        assert_eq!(range.end, 52018);
+
+        let range2 = t.h_range_for_zoom(2);
+        assert_eq!(range2.start, 3);
+        assert_eq!(range2.end, 4);
+
+        let range3 = t.h_range_for_zoom(12);
+        assert_eq!(range3.start, 3_329_088);
+        assert_eq!(range3.end, 3_329_152);
     }
 }
