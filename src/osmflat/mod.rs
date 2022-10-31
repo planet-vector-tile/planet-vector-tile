@@ -1,7 +1,7 @@
 mod osmflat_generated;
 mod tags;
 
-#[path = "../generated/planet_vector_tile_generated.rs"]
+#[path = "../generated/osmflat_generated.rs"]
 pub use crate::osmflat_generated::osm::*;
 
 pub use crate::tags::*;

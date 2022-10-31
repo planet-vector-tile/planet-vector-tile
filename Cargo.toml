@@ -7,7 +7,7 @@ version = "0.0.0"
 crate-type = ["cdylib"]
 
 [dependencies]
-fast_hilbert = { git = "https://github.com/becheran/fast-hilbert", branch = "fix_reorientation" }
+fast_hilbert = "2.0.0"
 flatbuffers = "22.9.29"
 flatdata = "0.5.3"
 futures = "0.3.24"
