@@ -53,9 +53,11 @@ dependencies = [
 
 [[package]]
 name = "fast_hilbert"
-version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4da4712de76fc67cd81d903562fd16a693cb377f209975d3af5042a646bae5a5"
+version = "1.0.2-alpha.0"
+source = "git+https://github.com/becheran/fast-hilbert?branch=fix_reorientation#b8be882fb6427762365ada429250d5f27a26bc9b"
+dependencies = [
+ "num-traits",
+]
 
 [[package]]
 name = "flatbuffers"
@@ -289,6 +291,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "529671ebfae679f2ce9630b62dd53c72c56b3eb8b2c852e7e2fa91704ff93d67"
 dependencies = [
  "libloading",
+]
+
+[[package]]
+name = "num-traits"
+version = "0.2.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "578ede34cf02f8924ab9447f50c28075b4d3e5b269972345e7e0372b38c6cdcd"
+dependencies = [
+ "autocfg",
 ]
 
 [[package]]
