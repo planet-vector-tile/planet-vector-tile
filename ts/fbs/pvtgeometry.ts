@@ -2,7 +2,7 @@
 
 import * as flatbuffers from 'flatbuffers';
 
-import { PVTTilePoint } from './pvttile-point';
+import { PVTTilePoint } from './pvttile-point.js';
 
 export class PVTGeometry {
     bb: flatbuffers.ByteBuffer | null = null;

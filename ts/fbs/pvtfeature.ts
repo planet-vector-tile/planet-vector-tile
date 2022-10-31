@@ -2,7 +2,7 @@
 
 import * as flatbuffers from 'flatbuffers';
 
-import { PVTGeometry } from './pvtgeometry';
+import { PVTGeometry } from './pvtgeometry.js';
 
 export class PVTFeature {
     bb: flatbuffers.ByteBuffer | null = null;

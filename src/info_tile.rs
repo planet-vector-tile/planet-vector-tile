@@ -62,13 +62,15 @@ impl InfoTile {
 
         let layers = builder.create_vector(&[boundary_layer, center_layer, bearing_layer]);
         let strings_vec = self.attributes.strings();
-        // There should be a cleaner way of doing this...
-        let strs_vec = strings_vec
-            .iter()
-            .map(|s| s.as_str())
-            .collect::<Vec<&str>>();
 
-        let strings = builder.create_vector_of_strings(&strs_vec);
+        // There should be a cleaner way of doing this...
+        let strs_vec: Vec<WIPOffset<&str>> = strings_vec
+            .iter()
+            .rev()
+            .map(|s| builder.create_string(s.as_str()))
+            .collect();
+
+        let strings = builder.create_vector(&strs_vec);
         let values = builder.create_vector(&self.attributes.values());
 
         let tile = PVTTile::create(
@@ -284,7 +286,7 @@ impl InfoTile {
             }
             HilbertBearing::ES => {
                 vec![pe, pc, ps]
-            },
+            }
             HilbertBearing::None => {
                 vec![]
             }

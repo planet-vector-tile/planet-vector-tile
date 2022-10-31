@@ -2,8 +2,8 @@
 
 import * as flatbuffers from 'flatbuffers';
 
-import { PVTLayer } from './pvtlayer';
-import { PVTValue } from './pvtvalue';
+import { PVTLayer } from './pvtlayer.js';
+import { PVTValue } from './pvtvalue.js';
 
 export class PVTTile {
     bb: flatbuffers.ByteBuffer | null = null;

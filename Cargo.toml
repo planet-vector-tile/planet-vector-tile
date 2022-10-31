@@ -8,7 +8,8 @@ crate-type = ["cdylib"]
 
 [dependencies]
 fast_hilbert = { git = "https://github.com/becheran/fast-hilbert", branch = "fix_reorientation" }
-flatbuffers = "2.1.2"
+flatbuffers = "22.9.29"
+flatdata = "0.5.3"
 futures = "0.3.24"
 indexmap = "1.9.1"
 # Default enable napi4 feature, see https://nodejs.org/api/n-api.html#node-api-version-matrix

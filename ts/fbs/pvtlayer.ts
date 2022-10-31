@@ -2,7 +2,7 @@
 
 import * as flatbuffers from 'flatbuffers';
 
-import { PVTFeature } from './pvtfeature';
+import { PVTFeature } from './pvtfeature.js';
 
 export class PVTLayer {
     bb: flatbuffers.ByteBuffer | null = null;

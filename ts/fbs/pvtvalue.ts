@@ -2,7 +2,7 @@
 
 import * as flatbuffers from 'flatbuffers';
 
-import { PVTValueType } from './pvtvalue-type';
+import { PVTValueType } from './pvtvalue-type.js';
 
 export class PVTValue {
     bb: flatbuffers.ByteBuffer | null = null;

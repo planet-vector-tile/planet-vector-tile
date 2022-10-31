@@ -3,7 +3,7 @@ use queue::Queue;
 use std::{fmt, ops::Range};
 
 #[allow(dead_code, unused_imports)]
-#[path = "./fbs/planet_vector_tile_generated.rs"]
+#[path = "./generated/planet_vector_tile_generated.rs"]
 pub mod planet_vector_tile_generated;
 use planet_vector_tile_generated::*;
 

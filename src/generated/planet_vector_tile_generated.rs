@@ -59,10 +59,8 @@ impl core::fmt::Debug for PVTValueType {
 impl<'a> flatbuffers::Follow<'a> for PVTValueType {
   type Inner = Self;
   #[inline]
-  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    let b = unsafe {
-      flatbuffers::read_scalar_at::<u8>(buf, loc)
-    };
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    let b = flatbuffers::read_scalar_at::<u8>(buf, loc);
     Self(b)
   }
 }
@@ -70,21 +68,21 @@ impl<'a> flatbuffers::Follow<'a> for PVTValueType {
 impl flatbuffers::Push for PVTValueType {
     type Output = PVTValueType;
     #[inline]
-    fn push(&self, dst: &mut [u8], _rest: &[u8]) {
-        unsafe { flatbuffers::emplace_scalar::<u8>(dst, self.0); }
+    unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
+        flatbuffers::emplace_scalar::<u8>(dst, self.0);
     }
 }
 
 impl flatbuffers::EndianScalar for PVTValueType {
+  type Scalar = u8;
   #[inline]
-  fn to_little_endian(self) -> Self {
-    let b = u8::to_le(self.0);
-    Self(b)
+  fn to_little_endian(self) -> u8 {
+    self.0.to_le()
   }
   #[inline]
   #[allow(clippy::wrong_self_convention)]
-  fn from_little_endian(self) -> Self {
-    let b = u8::from_le(self.0);
+  fn from_little_endian(v: u8) -> Self {
+    let b = u8::from_le(v);
     Self(b)
   }
 }
@@ -119,39 +117,25 @@ impl core::fmt::Debug for PVTPoint {
 }
 
 impl flatbuffers::SimpleToVerifyInSlice for PVTPoint {}
-impl flatbuffers::SafeSliceAccess for PVTPoint {}
 impl<'a> flatbuffers::Follow<'a> for PVTPoint {
   type Inner = &'a PVTPoint;
   #[inline]
-  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     <&'a PVTPoint>::follow(buf, loc)
   }
 }
 impl<'a> flatbuffers::Follow<'a> for &'a PVTPoint {
   type Inner = &'a PVTPoint;
   #[inline]
-  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     flatbuffers::follow_cast_ref::<PVTPoint>(buf, loc)
   }
 }
 impl<'b> flatbuffers::Push for PVTPoint {
     type Output = PVTPoint;
     #[inline]
-    fn push(&self, dst: &mut [u8], _rest: &[u8]) {
-        let src = unsafe {
-            ::core::slice::from_raw_parts(self as *const PVTPoint as *const u8, Self::size())
-        };
-        dst.copy_from_slice(src);
-    }
-}
-impl<'b> flatbuffers::Push for &'b PVTPoint {
-    type Output = PVTPoint;
-
-    #[inline]
-    fn push(&self, dst: &mut [u8], _rest: &[u8]) {
-        let src = unsafe {
-            ::core::slice::from_raw_parts(*self as *const PVTPoint as *const u8, Self::size())
-        };
+    unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
+        let src = ::core::slice::from_raw_parts(self as *const PVTPoint as *const u8, Self::size());
         dst.copy_from_slice(src);
     }
 }
@@ -179,47 +163,59 @@ impl<'a> PVTPoint {
   }
 
   pub fn x(&self) -> u32 {
-    let mut mem = core::mem::MaybeUninit::<u32>::uninit();
-    unsafe {
+    let mut mem = core::mem::MaybeUninit::<<u32 as EndianScalar>::Scalar>::uninit();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    EndianScalar::from_little_endian(unsafe {
       core::ptr::copy_nonoverlapping(
         self.0[0..].as_ptr(),
         mem.as_mut_ptr() as *mut u8,
-        core::mem::size_of::<u32>(),
+        core::mem::size_of::<<u32 as EndianScalar>::Scalar>(),
       );
       mem.assume_init()
-    }.from_little_endian()
+    })
   }
 
   pub fn set_x(&mut self, x: u32) {
     let x_le = x.to_little_endian();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
     unsafe {
       core::ptr::copy_nonoverlapping(
-        &x_le as *const u32 as *const u8,
+        &x_le as *const _ as *const u8,
         self.0[0..].as_mut_ptr(),
-        core::mem::size_of::<u32>(),
+        core::mem::size_of::<<u32 as EndianScalar>::Scalar>(),
       );
     }
   }
 
   pub fn y(&self) -> u32 {
-    let mut mem = core::mem::MaybeUninit::<u32>::uninit();
-    unsafe {
+    let mut mem = core::mem::MaybeUninit::<<u32 as EndianScalar>::Scalar>::uninit();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    EndianScalar::from_little_endian(unsafe {
       core::ptr::copy_nonoverlapping(
         self.0[4..].as_ptr(),
         mem.as_mut_ptr() as *mut u8,
-        core::mem::size_of::<u32>(),
+        core::mem::size_of::<<u32 as EndianScalar>::Scalar>(),
       );
       mem.assume_init()
-    }.from_little_endian()
+    })
   }
 
   pub fn set_y(&mut self, x: u32) {
     let x_le = x.to_little_endian();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
     unsafe {
       core::ptr::copy_nonoverlapping(
-        &x_le as *const u32 as *const u8,
+        &x_le as *const _ as *const u8,
         self.0[4..].as_mut_ptr(),
-        core::mem::size_of::<u32>(),
+        core::mem::size_of::<<u32 as EndianScalar>::Scalar>(),
       );
     }
   }
@@ -245,39 +241,25 @@ impl core::fmt::Debug for PVTTilePoint {
 }
 
 impl flatbuffers::SimpleToVerifyInSlice for PVTTilePoint {}
-impl flatbuffers::SafeSliceAccess for PVTTilePoint {}
 impl<'a> flatbuffers::Follow<'a> for PVTTilePoint {
   type Inner = &'a PVTTilePoint;
   #[inline]
-  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     <&'a PVTTilePoint>::follow(buf, loc)
   }
 }
 impl<'a> flatbuffers::Follow<'a> for &'a PVTTilePoint {
   type Inner = &'a PVTTilePoint;
   #[inline]
-  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     flatbuffers::follow_cast_ref::<PVTTilePoint>(buf, loc)
   }
 }
 impl<'b> flatbuffers::Push for PVTTilePoint {
     type Output = PVTTilePoint;
     #[inline]
-    fn push(&self, dst: &mut [u8], _rest: &[u8]) {
-        let src = unsafe {
-            ::core::slice::from_raw_parts(self as *const PVTTilePoint as *const u8, Self::size())
-        };
-        dst.copy_from_slice(src);
-    }
-}
-impl<'b> flatbuffers::Push for &'b PVTTilePoint {
-    type Output = PVTTilePoint;
-
-    #[inline]
-    fn push(&self, dst: &mut [u8], _rest: &[u8]) {
-        let src = unsafe {
-            ::core::slice::from_raw_parts(*self as *const PVTTilePoint as *const u8, Self::size())
-        };
+    unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
+        let src = ::core::slice::from_raw_parts(self as *const PVTTilePoint as *const u8, Self::size());
         dst.copy_from_slice(src);
     }
 }
@@ -305,47 +287,59 @@ impl<'a> PVTTilePoint {
   }
 
   pub fn x(&self) -> i16 {
-    let mut mem = core::mem::MaybeUninit::<i16>::uninit();
-    unsafe {
+    let mut mem = core::mem::MaybeUninit::<<i16 as EndianScalar>::Scalar>::uninit();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    EndianScalar::from_little_endian(unsafe {
       core::ptr::copy_nonoverlapping(
         self.0[0..].as_ptr(),
         mem.as_mut_ptr() as *mut u8,
-        core::mem::size_of::<i16>(),
+        core::mem::size_of::<<i16 as EndianScalar>::Scalar>(),
       );
       mem.assume_init()
-    }.from_little_endian()
+    })
   }
 
   pub fn set_x(&mut self, x: i16) {
     let x_le = x.to_little_endian();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
     unsafe {
       core::ptr::copy_nonoverlapping(
-        &x_le as *const i16 as *const u8,
+        &x_le as *const _ as *const u8,
         self.0[0..].as_mut_ptr(),
-        core::mem::size_of::<i16>(),
+        core::mem::size_of::<<i16 as EndianScalar>::Scalar>(),
       );
     }
   }
 
   pub fn y(&self) -> i16 {
-    let mut mem = core::mem::MaybeUninit::<i16>::uninit();
-    unsafe {
+    let mut mem = core::mem::MaybeUninit::<<i16 as EndianScalar>::Scalar>::uninit();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    EndianScalar::from_little_endian(unsafe {
       core::ptr::copy_nonoverlapping(
         self.0[2..].as_ptr(),
         mem.as_mut_ptr() as *mut u8,
-        core::mem::size_of::<i16>(),
+        core::mem::size_of::<<i16 as EndianScalar>::Scalar>(),
       );
       mem.assume_init()
-    }.from_little_endian()
+    })
   }
 
   pub fn set_y(&mut self, x: i16) {
     let x_le = x.to_little_endian();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
     unsafe {
       core::ptr::copy_nonoverlapping(
-        &x_le as *const i16 as *const u8,
+        &x_le as *const _ as *const u8,
         self.0[2..].as_mut_ptr(),
-        core::mem::size_of::<i16>(),
+        core::mem::size_of::<<i16 as EndianScalar>::Scalar>(),
       );
     }
   }
@@ -371,39 +365,25 @@ impl core::fmt::Debug for PVTValue {
 }
 
 impl flatbuffers::SimpleToVerifyInSlice for PVTValue {}
-impl flatbuffers::SafeSliceAccess for PVTValue {}
 impl<'a> flatbuffers::Follow<'a> for PVTValue {
   type Inner = &'a PVTValue;
   #[inline]
-  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     <&'a PVTValue>::follow(buf, loc)
   }
 }
 impl<'a> flatbuffers::Follow<'a> for &'a PVTValue {
   type Inner = &'a PVTValue;
   #[inline]
-  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     flatbuffers::follow_cast_ref::<PVTValue>(buf, loc)
   }
 }
 impl<'b> flatbuffers::Push for PVTValue {
     type Output = PVTValue;
     #[inline]
-    fn push(&self, dst: &mut [u8], _rest: &[u8]) {
-        let src = unsafe {
-            ::core::slice::from_raw_parts(self as *const PVTValue as *const u8, Self::size())
-        };
-        dst.copy_from_slice(src);
-    }
-}
-impl<'b> flatbuffers::Push for &'b PVTValue {
-    type Output = PVTValue;
-
-    #[inline]
-    fn push(&self, dst: &mut [u8], _rest: &[u8]) {
-        let src = unsafe {
-            ::core::slice::from_raw_parts(*self as *const PVTValue as *const u8, Self::size())
-        };
+    unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
+        let src = ::core::slice::from_raw_parts(self as *const PVTValue as *const u8, Self::size());
         dst.copy_from_slice(src);
     }
 }
@@ -431,47 +411,59 @@ impl<'a> PVTValue {
   }
 
   pub fn t(&self) -> PVTValueType {
-    let mut mem = core::mem::MaybeUninit::<PVTValueType>::uninit();
-    unsafe {
+    let mut mem = core::mem::MaybeUninit::<<PVTValueType as EndianScalar>::Scalar>::uninit();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    EndianScalar::from_little_endian(unsafe {
       core::ptr::copy_nonoverlapping(
         self.0[0..].as_ptr(),
         mem.as_mut_ptr() as *mut u8,
-        core::mem::size_of::<PVTValueType>(),
+        core::mem::size_of::<<PVTValueType as EndianScalar>::Scalar>(),
       );
       mem.assume_init()
-    }.from_little_endian()
+    })
   }
 
   pub fn set_t(&mut self, x: PVTValueType) {
     let x_le = x.to_little_endian();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
     unsafe {
       core::ptr::copy_nonoverlapping(
-        &x_le as *const PVTValueType as *const u8,
+        &x_le as *const _ as *const u8,
         self.0[0..].as_mut_ptr(),
-        core::mem::size_of::<PVTValueType>(),
+        core::mem::size_of::<<PVTValueType as EndianScalar>::Scalar>(),
       );
     }
   }
 
   pub fn v(&self) -> f64 {
-    let mut mem = core::mem::MaybeUninit::<f64>::uninit();
-    unsafe {
+    let mut mem = core::mem::MaybeUninit::<<f64 as EndianScalar>::Scalar>::uninit();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    EndianScalar::from_little_endian(unsafe {
       core::ptr::copy_nonoverlapping(
         self.0[8..].as_ptr(),
         mem.as_mut_ptr() as *mut u8,
-        core::mem::size_of::<f64>(),
+        core::mem::size_of::<<f64 as EndianScalar>::Scalar>(),
       );
       mem.assume_init()
-    }.from_little_endian()
+    })
   }
 
   pub fn set_v(&mut self, x: f64) {
     let x_le = x.to_little_endian();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
     unsafe {
       core::ptr::copy_nonoverlapping(
-        &x_le as *const f64 as *const u8,
+        &x_le as *const _ as *const u8,
         self.0[8..].as_mut_ptr(),
-        core::mem::size_of::<f64>(),
+        core::mem::size_of::<<f64 as EndianScalar>::Scalar>(),
       );
     }
   }
@@ -488,8 +480,8 @@ pub struct PVTTile<'a> {
 impl<'a> flatbuffers::Follow<'a> for PVTTile<'a> {
   type Inner = PVTTile<'a>;
   #[inline]
-  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    Self { _tab: flatbuffers::Table { buf, loc } }
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    Self { _tab: flatbuffers::Table::new(buf, loc) }
   }
 }
 
@@ -499,7 +491,7 @@ impl<'a> PVTTile<'a> {
   pub const VT_VALUES: flatbuffers::VOffsetT = 8;
 
   #[inline]
-  pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
+  pub unsafe fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
     PVTTile { _tab: table }
   }
   #[allow(unused_mut)]
@@ -517,15 +509,24 @@ impl<'a> PVTTile<'a> {
 
   #[inline]
   pub fn layers(&self) -> Option<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<PVTLayer<'a>>>> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<PVTLayer>>>>(PVTTile::VT_LAYERS, None)
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
+    unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<PVTLayer>>>>(PVTTile::VT_LAYERS, None)}
   }
   #[inline]
   pub fn strings(&self) -> Option<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<&'a str>>> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<&'a str>>>>(PVTTile::VT_STRINGS, None)
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
+    unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<&'a str>>>>(PVTTile::VT_STRINGS, None)}
   }
   #[inline]
-  pub fn values(&self) -> Option<&'a [PVTValue]> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, PVTValue>>>(PVTTile::VT_VALUES, None).map(|v| v.safe_slice())
+  pub fn values(&self) -> Option<flatbuffers::Vector<'a, PVTValue>> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
+    unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, PVTValue>>>(PVTTile::VT_VALUES, None)}
   }
 }
 
@@ -610,8 +611,8 @@ pub struct PVTLayer<'a> {
 impl<'a> flatbuffers::Follow<'a> for PVTLayer<'a> {
   type Inner = PVTLayer<'a>;
   #[inline]
-  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    Self { _tab: flatbuffers::Table { buf, loc } }
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    Self { _tab: flatbuffers::Table::new(buf, loc) }
   }
 }
 
@@ -620,7 +621,7 @@ impl<'a> PVTLayer<'a> {
   pub const VT_FEATURES: flatbuffers::VOffsetT = 6;
 
   #[inline]
-  pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
+  pub unsafe fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
     PVTLayer { _tab: table }
   }
   #[allow(unused_mut)]
@@ -637,11 +638,17 @@ impl<'a> PVTLayer<'a> {
 
   #[inline]
   pub fn name(&self) -> u32 {
-    self._tab.get::<u32>(PVTLayer::VT_NAME, Some(0)).unwrap()
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
+    unsafe { self._tab.get::<u32>(PVTLayer::VT_NAME, Some(0)).unwrap()}
   }
   #[inline]
   pub fn features(&self) -> Option<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<PVTFeature<'a>>>> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<PVTFeature>>>>(PVTLayer::VT_FEATURES, None)
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
+    unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<PVTFeature>>>>(PVTLayer::VT_FEATURES, None)}
   }
 }
 
@@ -718,8 +725,8 @@ pub struct PVTFeature<'a> {
 impl<'a> flatbuffers::Follow<'a> for PVTFeature<'a> {
   type Inner = PVTFeature<'a>;
   #[inline]
-  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    Self { _tab: flatbuffers::Table { buf, loc } }
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    Self { _tab: flatbuffers::Table::new(buf, loc) }
   }
 }
 
@@ -731,7 +738,7 @@ impl<'a> PVTFeature<'a> {
   pub const VT_GEOMETRIES: flatbuffers::VOffsetT = 12;
 
   #[inline]
-  pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
+  pub unsafe fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
     PVTFeature { _tab: table }
   }
   #[allow(unused_mut)]
@@ -751,23 +758,38 @@ impl<'a> PVTFeature<'a> {
 
   #[inline]
   pub fn id(&self) -> u64 {
-    self._tab.get::<u64>(PVTFeature::VT_ID, Some(0)).unwrap()
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
+    unsafe { self._tab.get::<u64>(PVTFeature::VT_ID, Some(0)).unwrap()}
   }
   #[inline]
   pub fn h(&self) -> u64 {
-    self._tab.get::<u64>(PVTFeature::VT_H, Some(0)).unwrap()
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
+    unsafe { self._tab.get::<u64>(PVTFeature::VT_H, Some(0)).unwrap()}
   }
   #[inline]
   pub fn keys(&self) -> Option<flatbuffers::Vector<'a, u32>> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, u32>>>(PVTFeature::VT_KEYS, None)
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
+    unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, u32>>>(PVTFeature::VT_KEYS, None)}
   }
   #[inline]
   pub fn values(&self) -> Option<flatbuffers::Vector<'a, u32>> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, u32>>>(PVTFeature::VT_VALUES, None)
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
+    unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, u32>>>(PVTFeature::VT_VALUES, None)}
   }
   #[inline]
   pub fn geometries(&self) -> Option<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<PVTGeometry<'a>>>> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<PVTGeometry>>>>(PVTFeature::VT_GEOMETRIES, None)
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
+    unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<PVTGeometry>>>>(PVTFeature::VT_GEOMETRIES, None)}
   }
 }
 
@@ -868,8 +890,8 @@ pub struct PVTGeometry<'a> {
 impl<'a> flatbuffers::Follow<'a> for PVTGeometry<'a> {
   type Inner = PVTGeometry<'a>;
   #[inline]
-  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    Self { _tab: flatbuffers::Table { buf, loc } }
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    Self { _tab: flatbuffers::Table::new(buf, loc) }
   }
 }
 
@@ -877,7 +899,7 @@ impl<'a> PVTGeometry<'a> {
   pub const VT_POINTS: flatbuffers::VOffsetT = 4;
 
   #[inline]
-  pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
+  pub unsafe fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
     PVTGeometry { _tab: table }
   }
   #[allow(unused_mut)]
@@ -892,8 +914,11 @@ impl<'a> PVTGeometry<'a> {
 
 
   #[inline]
-  pub fn points(&self) -> Option<&'a [PVTTilePoint]> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, PVTTilePoint>>>(PVTGeometry::VT_POINTS, None).map(|v| v.safe_slice())
+  pub fn points(&self) -> Option<flatbuffers::Vector<'a, PVTTilePoint>> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
+    unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, PVTTilePoint>>>(PVTGeometry::VT_POINTS, None)}
   }
 }
 
@@ -952,18 +977,6 @@ impl core::fmt::Debug for PVTGeometry<'_> {
       ds.finish()
   }
 }
-#[inline]
-#[deprecated(since="2.0.0", note="Deprecated in favor of `root_as...` methods.")]
-pub fn get_root_as_pvttile<'a>(buf: &'a [u8]) -> PVTTile<'a> {
-  unsafe { flatbuffers::root_unchecked::<PVTTile<'a>>(buf) }
-}
-
-#[inline]
-#[deprecated(since="2.0.0", note="Deprecated in favor of `root_as...` methods.")]
-pub fn get_size_prefixed_root_as_pvttile<'a>(buf: &'a [u8]) -> PVTTile<'a> {
-  unsafe { flatbuffers::size_prefixed_root_unchecked::<PVTTile<'a>>(buf) }
-}
-
 #[inline]
 /// Verifies that a buffer of bytes contains a `PVTTile`
 /// and returns it.
