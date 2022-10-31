@@ -15,10 +15,14 @@ indexmap = "1.9.1"
 # Default enable napi4 feature, see https://nodejs.org/api/n-api.html#node-api-version-matrix
 napi = { version = "2.7.0", default-features = false, features = ["async", "tokio_full"] }
 napi-derive = { version = "2.7.0", features = ["type-def"] }
+prost = "0.11.0"
+prost-build = "0.11.1"
+prost-types = "0.11.1"
 queue = "0.3.1"
 
 [build-dependencies]
 napi-build = "2.0.1"
+prost-build = "0.11.1"
 
 [profile.release]
 lto = true
