@@ -6,7 +6,7 @@ pub use convert::convert;
 
 #[allow(dead_code)]
 #[path = "../generated/osmflat_generated.rs"]
-mod osmflat_generated;
+pub mod osmflat_generated;
 
 #[path = "../generated/osmpbf.rs"]
 mod osmpbf_generated;

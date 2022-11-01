@@ -23,7 +23,11 @@ use super::strings::StringTable;
 
 type Error = Box<dyn std::error::Error>;
 
-pub fn convert(args: Args) -> Result<(), Error> {
+pub fn convert(args: Args) -> Result<osmflat::Osm, Error> {
+    let time = Instant::now();
+    println!("Converting osm.pbf to osm.flatdata...");
+
+
     let input_file = File::open(&args.input)?;
     let input_data = unsafe { Mmap::map(&input_file)? };
 
@@ -144,16 +148,16 @@ pub fn convert(args: Args) -> Result<(), Error> {
     info!("Writing stringtable to disk...");
     builder.set_stringtable(&stringtable.into_bytes())?;
 
-    info!("osmflat archive built.");
-
     std::mem::drop(builder);
-    osmflat::Osm::open(storage)?;
+    let archive = osmflat::Osm::open(storage)?;
 
-    info!("Verified that osmflat archive can be opened.");
-
+    println!(
+        "Conversion from osm.pbf to osm.flatdata is complete. {}",
+        humantime::format_duration(time.elapsed())
+    );
     println!("{}", stats);
 
-    Ok(())
+    Ok(archive)
 }
 
 fn serialize_header(
@@ -338,12 +342,12 @@ fn serialize_dense_nodes(
             node.set_lon(lon_dm7 as i32);
 
             let u_lon = (lon_dm7 + i32::MAX as i64) as u32;
-                let u_lat = (lat_dm7 + i32::MAX as i64) as u32;
-                let pair = hilbert_node_pairs.grow()?;
-                pair.set_i(index);
-                // The order is 32, because our lat / lon are 32 bits.
-                let h = xy2h(u_lon, u_lat, 32);
-                pair.set_h(h);
+            let u_lat = (lat_dm7 + i32::MAX as i64) as u32;
+            let pair = hilbert_node_pairs.grow()?;
+            pair.set_i(index);
+            // The order is 32, because our lat / lon are 32 bits.
+            let h = xy2h(u_lon, u_lat, 32);
+            pair.set_h(h);
 
             if tags_offset < dense_nodes.keys_vals.len() {
                 node.set_tag_first_idx(tags.next_index());
@@ -584,8 +588,8 @@ fn serialize_dense_node_blocks(
     if let Some(ids) = node_ids {
         ids.close()?;
     }
-    
-    hilbert_node_pairs.close();
+
+    hilbert_node_pairs.close()?;
 
     info!("Dense nodes converted in {} secs.", t.elapsed().as_secs());
     info!("Building dense nodes index...");

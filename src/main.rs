@@ -1,12 +1,12 @@
-mod osmflat;
 mod args;
+mod osmflat;
 mod parallel;
+mod sort_archive;
 
 use args::*;
 use clap::Parser;
-use log::info;
-use std::{time::Instant, fs};
 use humantime::format_duration;
+use std::{fs, time::Instant};
 
 fn main() {
     let args = Args::parse();
@@ -24,10 +24,17 @@ fn main() {
         }
     }
 
-    let t = Instant::now();
-    if let Err(e) = osmflat::convert(args) {
+    let time = Instant::now();
+
+    let quit = |e| {
+        eprintln!("Planet generation FAILED!");
         eprintln!("Error: {}", e);
+        println!("Total Time: {:?}", format_duration(time.elapsed()));
         std::process::exit(1);
-    }
-    info!("Conversion from osm.pbf to osm.flatdata is complete. {:?}", format_duration(t.elapsed()));
+    };
+
+    let archive = osmflat::convert(args).unwrap_or_else(|e| quit(e));
+    sort_archive::sort(archive);
+
+    println!("Total Time: {:?}", format_duration(time.elapsed()));
 }
