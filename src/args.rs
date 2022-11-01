@@ -10,7 +10,7 @@ pub struct Args {
     /// Output directory for OSM flatdata archive
     pub output: PathBuf,
 
-    /// Whether to compile the optional ids subs
+    /// Include OSM entity ids.
     #[structopt(long = "ids")]
     pub ids: bool,
 }

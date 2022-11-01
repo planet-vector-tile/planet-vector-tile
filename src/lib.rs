@@ -7,7 +7,7 @@ pub mod tile_attributes;
 #[macro_use]
 extern crate napi_derive;
 
-use info_tile::InfoTile;
+use info_tile::*;
 use tile::Tile;
 
 use napi::bindgen_prelude::*;

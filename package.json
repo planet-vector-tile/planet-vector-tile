@@ -24,7 +24,7 @@
         "npm": ">=8"
     },
     "scripts": {
-        "start": "cd electron && npm start",
+        "start": "cd electron && npm i && npm start",
         "build": "npm i && napi build --platform --release && npm run build:ts",
         "build:debug": "npm i && napi build --platform --js && npm run build:ts",
         "build:ts": "tsc -p tsconfig.json && prettier --write . && npm run rollup",
