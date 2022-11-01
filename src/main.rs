@@ -11,8 +11,9 @@ use humantime::format_duration;
 fn main() {
     let args = Args::parse();
 
-    env_logger::Builder::default()
-        .format_module_path(true)
+    env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info"))
+        .format_level(false)
+        .format_module_path(false)
         .format_timestamp_nanos()
         .init();
 
@@ -28,5 +29,5 @@ fn main() {
         eprintln!("Error: {}", e);
         std::process::exit(1);
     }
-    info!("Conversion from osm.pbf to osm.flatdata complete. {:?}", format_duration(t.elapsed()));
+    info!("Conversion from osm.pbf to osm.flatdata is complete. {:?}", format_duration(t.elapsed()));
 }
