@@ -2,7 +2,9 @@
 //! It is easy to combine these with `std::str::from_utf8` family of functions,
 //! to lift them to operate on `str`.
 
-use crate::Osm;
+#[allow(dead_code, unused_imports)]
+
+use super::osmflat_generated::osm::Osm;
 use std::ops::Range;
 
 /// Returns an iterator over tags specified by `range`.

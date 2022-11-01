@@ -1,14 +1,14 @@
 #![deny(clippy::all)]
 
-pub mod tile;
 pub mod info_tile;
+pub mod tile;
 pub mod tile_attributes;
 
 #[macro_use]
 extern crate napi_derive;
 
-use tile::Tile;
 use info_tile::{basic, InfoTile};
+use tile::Tile;
 
 use napi::bindgen_prelude::*;
 use napi::tokio::{self};
@@ -56,5 +56,4 @@ impl Planet {
             .await
             .unwrap()
     }
-
 }

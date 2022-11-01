@@ -1,7 +1,7 @@
 // use std::collections::HashMap;
 use indexmap::IndexMap;
-use std::hash::{Hash, Hasher};
 use std::cell::{Cell, RefCell};
+use std::hash::{Hash, Hasher};
 
 use crate::tile::planet_vector_tile_generated::*;
 
@@ -73,8 +73,7 @@ impl TileAttributes {
                         idx
                     }
                 }
-
-            },
+            }
             None => {
                 let str_idx = strings.len() as u32;
                 strings.insert(String::from(str_val), str_idx);
@@ -97,5 +96,4 @@ impl TileAttributes {
         let values = self.values.borrow();
         values.keys().map(|v| v.clone()).collect()
     }
-
 }

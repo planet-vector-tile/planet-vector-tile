@@ -1,12 +1,17 @@
-mod osmflat_generated;
-mod tags;
+// This module's code is adapted from:
+// https://github.com/boxdot/osmflat-rs
+
+mod convert;
+pub use convert::convert;
 
 #[path = "../generated/osmflat_generated.rs"]
-pub use crate::osmflat_generated::osm::*;
+mod osmflat_generated;
 
-pub use crate::tags::*;
+#[path = "../generated/osmpbf.rs"]
+mod osmpbf_generated;
 
-// re-export what is needed from flatdata to use osmflat
-pub use flatdata::FileResourceStorage;
-#[cfg(feature = "tar")]
-pub use flatdata::TarArchiveResourceStorage;
+mod ids;
+mod osmpbf;
+mod stats;
+mod strings;
+mod tags;

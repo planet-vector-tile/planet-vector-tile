@@ -1,6 +1,25 @@
-mod tile;
+mod osmflat;
+mod args;
+mod parallel;
+
+use args::*;
+use clap::Parser;
+use log::info;
+use std::time::Instant;
+use humantime::format_duration;
 
 fn main() {
-    let t = tile::Tile::from_zxy(6, 5, 454);
-    println!("max 59 bytes {} , tile {} !", 2u64.pow(59), t.h);
+    let args = Args::parse();
+
+    env_logger::Builder::default()
+        .format_module_path(true)
+        .format_timestamp_nanos()
+        .init();
+
+    let t = Instant::now();
+    if let Err(e) = osmflat::convert(args) {
+        eprintln!("{}: {}", "Error", e);
+        std::process::exit(1);
+    }
+    info!("Conversion from osm.pbf to osm.flatdata complete. {:?}", format_duration(t.elapsed()));
 }

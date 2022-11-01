@@ -1,8 +1,7 @@
+use parking_lot::{Condvar, Mutex};
 use std::cmp::Reverse;
 use std::collections::BTreeMap;
 use std::sync::{mpsc::sync_channel, Arc};
-
-use parking_lot::{Condvar, Mutex};
 
 pub fn parallel_process<Iter, Item, Producer, Data, Consumer, Error, Garbage>(
     iter: Iter,
