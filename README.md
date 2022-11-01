@@ -19,13 +19,25 @@ npm run build
 cargo install --path .
 ```
 
-## Run the Electron app
+## Convert an OSM PBF to osmflat.
+
+```
+pvt -o ~/geodata/extracts/california.osm.pbf ~/geodata/flatdata/california
+```
+
+or
+
+```
+cargo run -- -o ~/geodata/extracts/california.osm.pbf ~/geodata/flatdata/california
+```
+
+## Run the Electron app.
 
 ```
 npm start
 ```
 
-## Modify Schema
+## Modify the schema.
 
 If you want to modify the flatdata or flatbuffer schema, you will need to install the corresponding schema compilers.
 

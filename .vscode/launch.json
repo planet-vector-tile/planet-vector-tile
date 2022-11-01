@@ -1,0 +1,45 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'pvt'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=pvt",
+                    "--package=planet-vector-tile"
+                ],
+                "filter": {
+                    "name": "pvt",
+                    "kind": "bin"
+                }
+            },
+            "args": ["-o", "/Users/n/geodata/extracts/santacruz.pbf", "/Users/n/geodata/flatdata/santacruz"],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'pvt'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=pvt",
+                    "--package=planet-vector-tile"
+                ],
+                "filter": {
+                    "name": "pvt",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        }
+    ]
+}

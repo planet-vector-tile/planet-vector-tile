@@ -7,10 +7,14 @@ pub struct Args {
     /// Input OSM pbf file
     pub input: PathBuf,
 
-    /// Output directory for OSM flatdata archive
+    /// Output directory for osmflat
     pub output: PathBuf,
 
     /// Include OSM entity ids.
     #[structopt(long = "ids")]
     pub ids: bool,
+
+    /// Overwrite existing osmflat output directory
+    #[arg(short, long, default_value_t = false)]
+    pub overwrite: bool,
 }
