@@ -100,8 +100,8 @@ pub fn convert(args: Args) -> Result<(), Error> {
         way_ids = Some(ids_archive.start_ways()?);
         relation_ids = Some(ids_archive.start_relations()?);
     }
-    // NHTODO: Remove Some
-    let hilbert_node_pairs = Some(builder.start_hilbert_node_pairs()?);
+
+    let hilbert_node_pairs = builder.start_hilbert_node_pairs()?;
 
     let nodes_id_to_idx = serialize_dense_node_blocks(
         &builder,
@@ -301,7 +301,7 @@ fn serialize_dense_nodes(
     nodes: &mut flatdata::ExternalVector<osmflat::Node>,
     node_ids: &mut Option<flatdata::ExternalVector<osmflat::Id>>,
     nodes_id_to_idx: &mut ids::IdTableBuilder,
-    hilbert_node_pairs: &mut Option<flatdata::ExternalVector<osmflat::HilbertNodePair>>,
+    hilbert_node_pairs: &mut flatdata::ExternalVector<osmflat::HilbertNodePair>,
     stringtable: &mut StringTable,
     tags: &mut TagSerializer,
 ) -> Result<Stats, Error> {
@@ -337,15 +337,13 @@ fn serialize_dense_nodes(
             node.set_lat(lat_dm7 as i32);
             node.set_lon(lon_dm7 as i32);
 
-            if let Some(pairs) = hilbert_node_pairs {
-                let u_lon = (lon_dm7 + i32::MAX as i64) as u32;
+            let u_lon = (lon_dm7 + i32::MAX as i64) as u32;
                 let u_lat = (lat_dm7 + i32::MAX as i64) as u32;
-                let pair = pairs.grow()?;
+                let pair = hilbert_node_pairs.grow()?;
                 pair.set_i(index);
                 // The order is 32, because our lat / lon are 32 bits.
                 let h = xy2h(u_lon, u_lat, 32);
                 pair.set_h(h);
-            }
 
             if tags_offset < dense_nodes.keys_vals.len() {
                 node.set_tag_first_idx(tags.next_index());
@@ -545,7 +543,7 @@ fn serialize_dense_node_blocks(
     builder: &osmflat::OsmBuilder,
     granularity: i32,
     mut node_ids: Option<flatdata::ExternalVector<osmflat::Id>>,
-    mut hilbert_node_pairs: Option<flatdata::ExternalVector<osmflat::HilbertNodePair>>,
+    mut hilbert_node_pairs: flatdata::ExternalVector<osmflat::HilbertNodePair>,
     blocks: Vec<BlockIndex>,
     data: &[u8],
     tags: &mut TagSerializer,
@@ -586,9 +584,9 @@ fn serialize_dense_node_blocks(
     if let Some(ids) = node_ids {
         ids.close()?;
     }
-    if let Some(pairs) = hilbert_node_pairs {
-        pairs.close()?;
-    }
+    
+    hilbert_node_pairs.close();
+
     info!("Dense nodes converted in {} secs.", t.elapsed().as_secs());
     info!("Building dense nodes index...");
     let nodes_id_to_idx = nodes_id_to_idx.build();
