@@ -400,7 +400,7 @@ mod tests {
         let tile = Tile::from_zxy(9, 82, 199);
         let info_tile = InfoTile::new(tile, None);
         let vec_u8 = info_tile.build_buffer();
-        assert_eq!(vec_u8.len(), 94832);
+        assert_eq!(vec_u8.len(), 1885608);
     }
 
     #[test]
@@ -408,6 +408,6 @@ mod tests {
         let tile = Tile::from_zxy(0, 0, 0);
         let info_tile = InfoTile::new(tile, None);
         let vec_u8 = info_tile.build_buffer();
-        assert_eq!(vec_u8.len(), 86008);
+        assert_eq!(vec_u8.len(), 1800936);
     }
 }
