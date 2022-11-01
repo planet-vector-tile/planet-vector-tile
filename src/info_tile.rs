@@ -64,7 +64,6 @@ impl InfoTile {
         // There should be a cleaner way of doing this...
         let strs_vec: Vec<WIPOffset<&str>> = strings_vec
             .iter()
-            .rev()
             .map(|s| builder.create_string(s.as_str()))
             .collect();
 
@@ -391,6 +390,7 @@ pub fn basic(tile: Tile) -> Vec<u8> {
 // let info_tile = InfoTile::new(tile, None);
 // let vec_u8 = info_tile.build_buffer();
 mod tests {
+    #[allow(unused_imports)]
     use super::*;
 
     #[test]
