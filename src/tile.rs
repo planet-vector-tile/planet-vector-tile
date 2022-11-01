@@ -431,7 +431,6 @@ pub enum HilbertBearing {
 }
 
 mod tests {
-    use super::*;
 
     #[test]
     fn test_basic_tile() {

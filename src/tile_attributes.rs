@@ -1,6 +1,6 @@
 // use std::collections::HashMap;
 use indexmap::IndexMap;
-use std::cell::{Cell, RefCell};
+use std::cell::RefCell;
 use std::hash::{Hash, Hasher};
 
 use crate::tile::planet_vector_tile_generated::*;
@@ -14,6 +14,7 @@ impl Hash for PVTValue {
 impl Eq for PVTValue {}
 
 pub struct TileAttributes {
+    // NHTODO: Is RefCell necessary?
     strings: RefCell<IndexMap<String, u32>>,
     values: RefCell<IndexMap<PVTValue, u32>>,
 }

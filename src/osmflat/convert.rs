@@ -101,7 +101,7 @@ pub fn convert(args: Args) -> Result<(), Error> {
         relation_ids = Some(ids_archive.start_relations()?);
     }
     // NHTODO: Remove Some
-    let mut hilbert_node_pairs = Some(builder.start_hilbert_node_pairs()?);
+    let hilbert_node_pairs = Some(builder.start_hilbert_node_pairs()?);
 
     let nodes_id_to_idx = serialize_dense_node_blocks(
         &builder,

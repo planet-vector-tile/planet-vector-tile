@@ -2,7 +2,8 @@
 //! It is easy to combine these with `std::str::from_utf8` family of functions,
 //! to lift them to operate on `str`.
 
-#[allow(dead_code, unused_imports)]
+// NHTODO tags.rs isn't currently being used. Do we want this or another approach?
+#![allow(dead_code)]
 
 use super::osmflat_generated::osm::Osm;
 use std::ops::Range;

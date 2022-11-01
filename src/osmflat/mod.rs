@@ -4,6 +4,7 @@
 mod convert;
 pub use convert::convert;
 
+#[allow(dead_code)]
 #[path = "../generated/osmflat_generated.rs"]
 mod osmflat_generated;
 

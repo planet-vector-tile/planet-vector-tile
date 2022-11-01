@@ -7,7 +7,7 @@ pub mod tile_attributes;
 #[macro_use]
 extern crate napi_derive;
 
-use info_tile::{basic, InfoTile};
+use info_tile::InfoTile;
 use tile::Tile;
 
 use napi::bindgen_prelude::*;
@@ -18,6 +18,8 @@ pub fn load_planet(path: String, minzoom: u8, maxzoom: u8) -> Planet {
     Planet::new(path, minzoom, maxzoom)
 }
 
+// NHTODO: Think about minzoom maxzoom
+#[allow(dead_code)]
 #[napi]
 pub struct Planet {
     path: String,
@@ -38,7 +40,7 @@ impl Planet {
 
     #[napi]
     pub async fn tile(&self, z: u8, x: u32, y: u32) -> Result<Uint8Array> {
-        let p = self.path.clone();
+        // let p = self.path.clone();
         tokio::task::spawn(async move {
             let tile = Tile::from_zxy(z, x, y);
             let info_tile = InfoTile::new(tile, None);
