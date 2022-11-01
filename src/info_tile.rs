@@ -391,6 +391,8 @@ pub fn basic(tile: Tile) -> Vec<u8> {
 // let info_tile = InfoTile::new(tile, None);
 // let vec_u8 = info_tile.build_buffer();
 mod tests {
+    use super::*;
+
     #[test]
     fn test_basic_info_tile() {
         let tile = Tile::from_zxy(9, 82, 199);
