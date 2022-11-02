@@ -33,13 +33,8 @@ pub fn sort(archive: Osm, dir: PathBuf) -> Result<(), Box<dyn std::error::Error>
     node_pairs.par_sort_unstable_by_key(|idx| idx.h());
     info!("Finished in {} secs.", t.elapsed().as_secs());
     
-    let mut prog_counter: usize = 0;
-    let prog_len = (nodes_len / 1_000_000) as u64;
-    let mut pb = ProgressBar::new(prog_len as u64);
-
     // Reorder nodes to sorted hilbert node pairs.
-    pb.message("Reordering nodes.");
-    let t = Instant::now();
+    let mut pb = Prog::new("Reordering nodes. ", nodes_len);
     let nodes = archive.nodes();
     let sorted_nodes_mut = Mutant::<Node>::new(&dir, "sorted_nodes", nodes_len)?;
     let sorted_nodes = sorted_nodes_mut.mutable_slice();
@@ -65,12 +60,9 @@ pub fn sort(archive: Osm, dir: PathBuf) -> Result<(), Box<dyn std::error::Error>
 
             sorted_node.fill_from(node);
             sorted_node.set_tag_first_idx(tag_first_idx as u64);
-            if i / 1_000_000 > prog_counter {
-                pb.inc();
-                prog_counter += 1;
-            }
+            pb.tick(i);
         });
-    info!("Finished in {} secs.", t.elapsed().as_secs());
+    pb.finish();
 
     Ok(())
 }
@@ -135,19 +127,20 @@ fn build_hilbert_way_pairs(way_pairs: &mut [HilbertWayPair], archive: &Osm) -> R
 
 struct Prog {
     prog_counter: usize,
-    prog_len: u64,
     pb: ProgressBar<Stdout>,
     t: Instant,
 }
 
 impl Prog {
-    fn new(&self, len: u64) -> Self {
-        let prog_len = len / 1_000_000_u64;
+    fn new(msg: &str, len: usize) -> Self {
+        let prog_len = len as u64 / 1_000_000;
+        let t = Instant::now();
+        let mut pb = ProgressBar::new(prog_len);
+        pb.message(msg);
         Self {
             prog_counter: 0,
-            prog_len,
-            pb: ProgressBar::new(prog_len),
-            t: Instant::now()
+            pb,
+            t,
         }
     }
     fn tick(&mut self, i: usize) {
