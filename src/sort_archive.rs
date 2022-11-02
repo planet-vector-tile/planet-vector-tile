@@ -22,7 +22,14 @@ pub fn sort(archive: Osm, dir: PathBuf) -> Result<(), Box<dyn std::error::Error>
     // Build hilbert way pairs.
     let ways_len = archive.ways().len();
     let way_pairs_mut = Mutant::<HilbertWayPair>::new(&dir, "hilbert_way_pairs", ways_len)?;
-    build_hilbert_way_pairs(way_pairs_mut.mutable_slice(), &archive)?;
+    let way_pairs = way_pairs_mut.mutable_slice();
+    build_hilbert_way_pairs(way_pairs, &archive)?;
+
+    // Sort hilbert way pairs.
+    info!("Sorting hilbert way pairs.");
+    let t = Instant::now();
+    way_pairs.par_sort_unstable_by_key(|idx| idx.h());
+    info!("Finished in {} secs.", t.elapsed().as_secs());
 
     // Sort hilbert node pairs.
     info!("Sorting hilbert node pairs.");
