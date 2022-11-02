@@ -1,4 +1,5 @@
 mod args;
+mod mutant;
 mod osmflat;
 mod parallel;
 mod sort_archive;
@@ -6,9 +7,11 @@ mod sort_archive;
 use args::*;
 use clap::Parser;
 use humantime::format_duration;
-use std::{fs, time::Instant};
+use std::{fs, time::Instant, error::Error};
 
 fn main() {
+    let time = Instant::now();
+
     let args = Args::parse();
 
     env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info"))
@@ -20,21 +23,19 @@ fn main() {
     if args.overwrite {
         if let Err(e) = fs::remove_dir_all(args.output.clone()) {
             eprintln!("Unable to remove output dir: {}", e);
-            std::process::exit(1);
         }
     }
 
-    let time = Instant::now();
+    let dir = args.output.clone();
 
-    let quit = |e| {
-        eprintln!("Planet generation FAILED!");
-        eprintln!("Error: {}", e);
-        println!("Total Time: {:?}", format_duration(time.elapsed()));
-        std::process::exit(1);
-    };
+    let archive = osmflat::convert(args).unwrap_or_else(quit);
+    let _ = sort_archive::sort(archive, dir).unwrap_or_else(quit);
 
-    let archive = osmflat::convert(args).unwrap_or_else(|e| quit(e));
-    sort_archive::sort(archive);
+    println!("Total Time: {}", format_duration(time.elapsed()));
+}
 
-    println!("Total Time: {:?}", format_duration(time.elapsed()));
+fn quit<T>(e: Box<dyn Error>) -> T {
+    eprintln!("Planet generation FAILED!");
+    eprintln!("Error: {}", e);
+    std::process::exit(1);
 }
