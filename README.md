@@ -28,8 +28,11 @@ pvt -o ~/geodata/extracts/california.osm.pbf ~/geodata/flatdata/california
 or
 
 ```
-cargo run -- -o ~/geodata/extracts/california.osm.pbf ~/geodata/flatdata/california
+cargo run -r -- -o ~/geodata/extracts/california.osm.pbf ~/geodata/flatdata/california
 ```
+
+Note that if you are not using a release build, the tool will run much more slowly.
+
 
 ## Run the Electron app.
 
