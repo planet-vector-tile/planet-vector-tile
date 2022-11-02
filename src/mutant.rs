@@ -3,14 +3,6 @@ use memmap2::MmapMut;
 use core::mem::size_of;
 use core::slice::from_raw_parts_mut;
 
-
-pub fn mutable_slice<T>(slc: &[T]) -> &mut [T] {
-    unsafe {
-        from_raw_parts_mut(
-            slc.as_ptr() as *mut T, slc.len())
-    }
-}
-
 pub struct Mutant<T: Sized> {
     mmap: MmapMut,
     len: usize,

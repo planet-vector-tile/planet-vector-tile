@@ -5,11 +5,10 @@ use geo::algorithm::interior_point::InteriorPoint;
 use geo::geometry::{Coordinate, LineString};
 use log::info;
 use rayon::prelude::*;
-use crate::mutant::{mutable_slice, Mutant};
-use crate::osmflat::osmflat_generated::osm::{Osm, HilbertWayPair};
+use crate::{mutant::Mutant, osmflat::osmflat_generated::osm::{Osm, HilbertNodePair, HilbertWayPair}};
 
 pub fn sort(archive: Osm, dir: PathBuf) -> Result<(), Box<dyn std::error::Error>> { 
-    let hilbert_node_pairs = match archive.hilbert_node_pairs() {
+    match archive.hilbert_node_pairs() {
         Some(p) => p,
         None => {
             return Err(Box::new(Error::new(
@@ -19,15 +18,17 @@ pub fn sort(archive: Osm, dir: PathBuf) -> Result<(), Box<dyn std::error::Error>
         },
     };
 
-    
-    let way_pairs = Mutant::<HilbertWayPair>::new(&dir, "hilbert_way_pairs", 20)?;
-    build_hilbert_way_pairs(way_pairs.mutable_slice(), &archive)?;
+    let ways_len = archive.ways().len();
+    let way_pairs_mut = Mutant::<HilbertWayPair>::new(&dir, "hilbert_way_pairs", ways_len)?;
+    build_hilbert_way_pairs(way_pairs_mut.mutable_slice(), &archive)?;
 
-    // info!("Sorting hilbert node pairs.");
-    // let t = Instant::now();
-    // let node_pairs = mutable_slice(hilbert_node_pairs);
-    // node_pairs.par_sort_unstable_by_key(|idx| idx.h());
-    // info!("Finished in {} secs.", t.elapsed().as_secs());
+    info!("Sorting hilbert node pairs.");
+    let t = Instant::now();
+    let nodes_len = archive.nodes().len();
+    let node_pairs_mut = Mutant::<HilbertNodePair>::new(&dir, "hilbert_node_pairs", nodes_len)?;
+    let node_pairs = node_pairs_mut.mutable_slice();
+    node_pairs.par_sort_unstable_by_key(|idx| idx.h());
+    info!("Finished in {} secs.", t.elapsed().as_secs());
     
 
     Ok(())
