@@ -6,7 +6,7 @@ use geo::geometry::{Coordinate, LineString};
 use log::info;
 use pbr::ProgressBar;
 use rayon::prelude::*;
-use crate::{mutant::Mutant, osmflat::osmflat_generated::osm::{Osm, HilbertNodePair, HilbertWayPair, Node, TagIndex}};
+use crate::{mutant::Mutant, osmflat::osmflat_generated::osm::{Osm, HilbertNodePair, HilbertWayPair, Node, TagIndex, NodeIndex, Way}};
 
 pub fn sort(archive: Osm, dir: PathBuf) -> Result<(), Box<dyn std::error::Error>> { 
     match archive.hilbert_node_pairs() {
@@ -20,6 +20,7 @@ pub fn sort(archive: Osm, dir: PathBuf) -> Result<(), Box<dyn std::error::Error>
     };
 
     // Build hilbert way pairs.
+    let ways = archive.ways();
     let ways_len = archive.ways().len();
     let way_pairs_mut = Mutant::<HilbertWayPair>::new(&dir, "hilbert_way_pairs", ways_len)?;
     let way_pairs = way_pairs_mut.mutable_slice();
@@ -69,6 +70,43 @@ pub fn sort(archive: Osm, dir: PathBuf) -> Result<(), Box<dyn std::error::Error>
             sorted_node.set_tag_first_idx(tag_first_idx as u64);
             pb.tick(i);
         });
+    pb.finish();
+
+    // Reorder ways to sorted hilbert way pairs.
+    let mut pb = Prog::new("Reordering ways. ", ways_len);
+    let sorted_ways_mut = Mutant::<Way>::new(&dir, "sorted_ways", ways_len)?;
+    let sorted_ways = sorted_ways_mut.mutable_slice();
+    let mut nodes_index_counter: usize = 0;
+    let nodes_index = archive.nodes_index();
+    let nodes_index_len = nodes_index.len();
+    let sorted_nodes_index_mut = Mutant::<NodeIndex>::new(&dir, "sorted_nodes_index", nodes_index_len)?;
+    let sorted_nodes_index = sorted_nodes_index_mut.mutable_slice();
+    sorted_ways.iter_mut().zip(way_pairs.iter_mut()).for_each(|(sorted_way, hilbert_way_pair)| {
+        let i = hilbert_way_pair.i() as usize;
+        let way = &ways[i];
+        let start = way.tag_first_idx() as usize;
+        let end = way.tags().end as usize;
+
+        let tag_first_idx = tag_counter;
+        for t in &tags_index[start..end] {
+            sorted_tags_index[tag_counter].fill_from(t);
+            tag_counter += 1;
+        }
+
+        let ref_start = way.ref_first_idx() as usize;
+        let ref_end = way.refs().end as usize;
+
+        let nodes_first_idx = nodes_index_counter;
+        for r in &nodes_index[ref_start..ref_end] {
+            sorted_nodes_index[nodes_index_counter].fill_from(r);
+            nodes_index_counter += 1;
+        }
+
+        sorted_way.fill_from(way);
+        sorted_way.set_tag_first_idx(tag_first_idx as u64);
+        sorted_way.set_ref_first_idx(nodes_first_idx as u64);
+        pb.tick(i);
+    });
     pb.finish();
 
     Ok(())
