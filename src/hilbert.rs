@@ -25,15 +25,16 @@ impl HilbertTiles {
     pub fn build(dir: &Path, leaf_zoom: u8) -> Result<Self, Box<dyn std::error::Error>> {
         
         // Leaf zoom must be even
-        if leaf_zoom & 1 == 0 {
+        if leaf_zoom & 1 != 0 {
+            eprintln!("leaf zoom not even: {}", leaf_zoom);
             return Err(Box::new(Error::new(
                 ErrorKind::Other,
-                "No hilbert node pairs!",
+                "Leaf zoom must be even!",
             )));
         }
 
         let tree = Mutant::<NodeTile>::new(dir, "hilbert_tree", 1000)?;
-        let mut m_leaves = Mutant::<LeafTile>::new(dir, "leaves", 100000)?;
+        let mut m_leaves = Mutant::<LeafTile>::new(dir, "hilbert_leaves", 100000)?;
         let n_chunks = Mutant::<Chunk>::new(dir, "n_chunks", 1000)?;
         let w_chunks = Mutant::<Chunk>::new(dir, "w_chunks", 1000)?;
         let r_chunks = Mutant::<Chunk>::new(dir, "r_chunks", 1000)?;

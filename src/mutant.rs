@@ -74,7 +74,7 @@ impl<T: Sized> Mutant<T> {
         let file_size = file.metadata()?.len() as usize;
         let contents_size = file_size - 8;
 
-        let capacity = size_of::<T>() / contents_size;
+        let capacity = contents_size / size_of::<T>();
 
         // Assume a flatdata vector is completely filled.
         let len = if is_flatdata {
