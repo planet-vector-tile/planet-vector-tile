@@ -208,9 +208,9 @@ mod tests {
     #[test]
     fn test_a_few_hilbert_pairs() {
         let d = PathBuf::from("/Users/n/geodata/flatdata/santacruz");
-        let m = Mutant::<HilbertNodePair>::open(&d, "hilbert_node_pairs").unwrap();
+        let m = Mutant::<HilbertNodePair>::open(&d, "hilbert_node_pairs", true).unwrap();
         let ns = m.slice();
-        let m2 = Mutant::<HilbertWayPair>::open(&d, "hilbert_way_pairs").unwrap();
+        let m2 = Mutant::<HilbertWayPair>::open(&d, "hilbert_way_pairs", true).unwrap();
         let ws = m2.slice();
 
         // Print a sanity check

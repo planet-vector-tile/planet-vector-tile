@@ -12,8 +12,6 @@ use crate::osmflat::osmflat_generated::osm::{Node, HilbertNodePair, Way, Hilbert
 // 4^16 = 4,294,967,296
 // 2^32 = 4,294,967,296
 
-const MB_500: usize = 524288000;
-
 struct HilbertTiles {
     leaf_zoom: u8,
     tree: Cell<Mutant<NodeTile>>,
@@ -40,31 +38,41 @@ impl HilbertTiles {
         let w_chunks = Mutant::<Chunk>::new(dir, "w_chunks", 1000)?;
         let r_chunks = Mutant::<Chunk>::new(dir, "r_chunks", 1000)?;
         
-    
+        let m_nodes = Mutant::<Node>::open(dir, "nodes", true)?;
+        let m_ways = Mutant::<Way>::open(dir, "ways", true)?;
+        let m_relations = Mutant::<Relation>::open(dir, "relations", true)?;
+        let m_node_pairs = Mutant::<HilbertNodePair>::open(dir, "hilbert_node_pairs", true)?;
+        let m_way_pairs = Mutant::<HilbertWayPair>::open(dir, "hilbert_way_pairs", true)?;
 
-        let leaves_file = OpenOptions::new()
-            .read(true)
-            .write(true)
-            .create(true)
-            .open(&dir.join("hilbert_leaves"))?;
+        let node_pairs = m_node_pairs.slice();
+        let way_pairs = m_way_pairs.slice();
 
-        let leaves_writer = BufWriter::with_capacity(MB_500, leaves_file);
-
-        let nodes_mut = Mutant::<Node>::open(dir, "nodes", true)?;
-        let hilbert_node_pairs_mut = Mutant::<HilbertNodePair>::open(dir, "hilbert_node_pairs", true)?;
-        let hilbert_node_pairs = hilbert_node_pairs_mut.slice();
+        // Find the lowest hilbert tile
         
-        let first_node_h = hilbert_node_pairs[0].h();
-        let mut t = Tile::from_zh(32, first_node_h);
-        let mut h_range = t.h_range_for_zoom(leaf_zoom);
-        
-
-        for (i, pair) in hilbert_node_pairs[1..].iter().enumerate() {
-            let h = pair.h();
-            if h < h_range.end {
-
-            }
+        let mut lowest_h = node_pairs.first().unwrap().h();
+        let way_h = way_pairs.first().unwrap().h();
+        if way_h < lowest_h {
+            lowest_h = way_h;
         }
+
+        let start_tile = Tile::from_zh(32, lowest_h);
+        let mut n_idx = 0;
+        let mut w_idx = 0;
+
+  
+
+        
+        // let first_node_h = hilbert_node_pairs[0].h();
+        // let mut t = Tile::from_zh(32, first_node_h);
+        // let mut h_range = t.h_range_for_zoom(leaf_zoom);
+        
+
+        // for (i, pair) in hilbert_node_pairs[1..].iter().enumerate() {
+        //     let h = pair.h();
+        //     if h < h_range.end {
+
+        //     }
+        // }
 
 
 
@@ -91,19 +99,35 @@ impl HilbertTiles {
 
 struct NWR {
     n: u64,
-    w: u64,
-    r: u64
+    w: u32,
+    r: u32
 }
 
 struct LeafTile {
-    first_idx: NWR,
-    first_chunk_idx: NWR,
+    first_entity_idx: NWR,
+    first_chunk_idx: NWRChunk,
 }
 
 struct NodeTile {
-    // children array is 0 if there are no children
-    children: [u32; 16], // offsets from current index
     first_chunk_idx: NWRChunk,
+    children_idx: u32,
+    children_mask: u16,
+}
+
+impl NodeTile {
+
+}
+
+fn mask_has_children(mask: u16) -> bool {
+    mask != 0
+}
+
+fn mask_include(mask: u16, child_idx: u8) -> u16 {
+    mask | 1 << child_idx
+}
+
+fn mask_has(mask: u16, child_idx: u8) -> bool {
+    (mask >> child_idx & 1) == 1
 }
 
 struct NWRChunk {
@@ -165,6 +189,23 @@ mod tests {
         println!("{:x?}", unsafe { to_bytes(s0) } );
     }
 
+    #[test]
+    fn test_mask() {
+        let mask = 0;
+
+        assert_eq!(mask_has_children(mask), false);
+
+        let m2 = mask_include(0, 5);
+        assert_eq!(0b100000, m2);
+
+        let m3 = mask_include(m2, 15);
+        assert_eq!(0b1000000000100000, m3);
+
+        assert!(!mask_has(m3, 0));
+
+        assert!(mask_has(m3, 5));
+        assert!(mask_has(m3, 15));
+    }
 
 }
 
