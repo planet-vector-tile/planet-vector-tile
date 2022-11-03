@@ -33,7 +33,7 @@ impl HilbertTiles {
         }
 
         let tree = Mutant::<NodeTile>::new(dir, "hilbert_tree", 1000)?;
-        let leaves = Mutant::<LeafTile>::new(dir, "leaves", 1000)?;
+        let m_leaves = Mutant::<LeafTile>::new(dir, "leaves", 100000)?;
         let n_chunks = Mutant::<Chunk>::new(dir, "n_chunks", 1000)?;
         let w_chunks = Mutant::<Chunk>::new(dir, "w_chunks", 1000)?;
         let r_chunks = Mutant::<Chunk>::new(dir, "r_chunks", 1000)?;
@@ -55,32 +55,54 @@ impl HilbertTiles {
             lowest_h = way_h;
         }
 
-        let start_tile = Tile::from_zh(32, lowest_h);
-        let mut n_idx = 0;
-        let mut w_idx = 0;
+        let mut tile_h = idx_h_to_zoom(lowest_h, leaf_zoom);
+        let mut t_i: usize = 0;
+        let mut n_i: usize = 1;
+        let mut w_i: usize = 1;
 
+        let leaves = m_leaves.mutable_slice();
+        leaves[t_i] = LeafTile {
+            first_entity_idx: NWR {
+                n: 0,
+                w: 0,
+                r: 0,
+            },
+            first_chunk_idx: NWRChunk {
+                n: 0,
+                w: 0,
+                r: 0,
+            },
+            tile_h,
+        };
+
+        let node_pairs = m_node_pairs.slice();
+        let node_pairs_len = node_pairs.len();
+        while n_i < node_pairs_len {
+            let p = &node_pairs[n_i];
+            let node_h = p.h();
+            let node_tile_h = idx_h_to_zoom(node_h, leaf_zoom);
+            if node_tile_h > tile_h {
+                t_i += 1;
+                tile_h = node_tile_h;
+                leaves[t_i].tile_h = node_tile_h;
+                leaves[t_i].first_entity_idx.n = n_i as u64;
+            }
+            n_i += 1;
+        }
   
+        let way_pairs = m_way_pairs.slice();
+        let way_pairs_len = way_pairs.len();
+        while w_i < way_pairs_len {
+            let p = &way_pairs[w_i];
+            let way_h = p.h();
+            let way_tile_h = idx_h_to_zoom(way_h, leaf_zoom);
 
-        
-        // let first_node_h = hilbert_node_pairs[0].h();
-        // let mut t = Tile::from_zh(32, first_node_h);
-        // let mut h_range = t.h_range_for_zoom(leaf_zoom);
-        
-
-        // for (i, pair) in hilbert_node_pairs[1..].iter().enumerate() {
-        //     let h = pair.h();
-        //     if h < h_range.end {
-
-        //     }
-        // }
-
-
-
+        }
 
         Ok(Self {
             leaf_zoom,
             tree: Cell::new(tree),
-            leaves: Cell::new(leaves),
+            leaves: Cell::new(m_leaves),
             n_chunks: Cell::new(n_chunks),
             w_chunks: Cell::new(w_chunks),
             r_chunks: Cell::new(r_chunks),
@@ -97,6 +119,10 @@ impl HilbertTiles {
 
 }
 
+fn idx_h_to_zoom(h: u64, z: u8) -> u32 {
+    (h >> 2 * (32 - z)) as u32
+}
+
 struct NWR {
     n: u64,
     w: u32,
@@ -106,6 +132,7 @@ struct NWR {
 struct LeafTile {
     first_entity_idx: NWR,
     first_chunk_idx: NWRChunk,
+    tile_h: u32, // a the leaf zoom
 }
 
 struct NodeTile {

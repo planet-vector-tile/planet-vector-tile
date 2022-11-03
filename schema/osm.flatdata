@@ -122,7 +122,7 @@ struct Way {
 }
 
 struct HilbertWayPair {
-    i: u64 : 40;
+    i: u64 : 40;  // NHTODO This should be 32
     h: u64 : 64;
 }
 
