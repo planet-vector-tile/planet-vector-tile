@@ -151,7 +151,7 @@ fn build_hilbert_way_pairs(way_pairs: &mut [HilbertWayPair], archive: &Osm) -> R
 
             if let Some(loc) = location {
                 let x = (loc.x() as i64 + i32::MAX as i64) as u32;
-                let y = (loc.x() as i64 + i32::MAX as i64) as u32;
+                let y = (loc.y() as i64 + i32::MAX as i64) as u32;
                 // info!("way point on surface {:#?}", loc);
                 let h = xy2h(x, y, 32);
 
@@ -197,4 +197,56 @@ impl Prog {
     fn finish(&self) {
         info!("Finished in {} secs.", self.t.elapsed().as_secs());
     }
+}
+
+mod tests {
+    #[allow(unused_imports)]
+    use super::*;
+
+    use crate::util::dm7_to_decimal;
+    
+    #[test]
+    fn test_a_few_hilbert_pairs() {
+        let d = PathBuf::from("/Users/n/geodata/flatdata/santacruz");
+        let m = Mutant::<HilbertNodePair>::open(&d, "hilbert_node_pairs").unwrap();
+        let ns = m.slice();
+        let m2 = Mutant::<HilbertWayPair>::open(&d, "hilbert_way_pairs").unwrap();
+        let ws = m2.slice();
+
+        // Print a sanity check
+        // let mut it = ws.iter();
+        // for n in &ns[0..5] {
+        //     let w = it.next().unwrap();
+        //     let nh = n.h();
+        //     let wh = w.h();
+        //     let nc = fast_hilbert::h2xy::<u32>(nh, 32);
+        //     let wc = fast_hilbert::h2xy::<u32>(wh, 32);
+        //     let n_lonlat = dm7_to_decimal(nc);
+        //     let w_lonlat = dm7_to_decimal(wc);
+
+        //     println!("n {} w {}", n.h(), w.h());
+        //     println!("n {:?} w {:?}", n_lonlat, w_lonlat);
+        // }
+
+        let n = ns.first().unwrap();
+        let w = ws.first().unwrap();
+        let n_h = n.h();
+        let w_h = w.h();
+        let n_coord = fast_hilbert::h2xy::<u32>(n_h, 32);
+        let w_coord = fast_hilbert::h2xy::<u32>(w_h, 32);
+        let (n_lon, n_lat) = dm7_to_decimal(n_coord);
+        let (w_lon, w_lat) = dm7_to_decimal(w_coord);
+
+        // println!("n {} w {}", n_h, w_h);
+        // println!("n {:?} {:?} w {:?} {:?}", n_lon, n_lat, w_lon, w_lat);
+
+        assert_eq!(n_h, 5055384463774690405);
+        assert_eq!(w_h, 5056311634151337179);
+        assert_eq!(n_lon, -122.4891643);
+        assert_eq!(n_lat, 36.9479216);
+        assert_eq!(w_lon, -122.1471753);
+        assert_eq!(w_lat, 37.2459612);
+
+    }
+
 }

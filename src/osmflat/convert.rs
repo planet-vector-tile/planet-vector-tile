@@ -46,7 +46,9 @@ pub fn convert(args: Args) -> Result<osmflat::Osm, Error> {
 
     info!("Building index of PBF blocks...");
     let block_index = build_block_index(&input_data);
-    let mut greatest_common_granularity = 1000000000;
+
+    // NHTODO Remove this granularity stuff. It's always DM7.
+    let mut greatest_common_granularity = 1_000_000_000;
     for block in &block_index {
         if block.block_type == BlockType::DenseNodes {
             // only DenseNodes have coordinate we need to scale
@@ -56,7 +58,7 @@ pub fn convert(args: Args) -> Result<osmflat::Osm, Error> {
             }
         }
     }
-    let coord_scale = 1000000000 / greatest_common_granularity;
+    let coord_scale = 1_000_000_000 / greatest_common_granularity;
     info!(
         "Greatest common granularity: {}, Coordinate scaling factor: {}",
         greatest_common_granularity, coord_scale

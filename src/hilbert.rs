@@ -34,24 +34,24 @@ impl HilbertTiles {
             )));
         }
 
-        let tree = Mutant::<NodeTile>::new(dir, "pyramid", 1000)?;
-        // let leaves = Mutant::<LeafTile>::new(dir, "leaves", 1000)?;
+        let tree = Mutant::<NodeTile>::new(dir, "hilbert_tree", 1000)?;
+        let leaves = Mutant::<LeafTile>::new(dir, "leaves", 1000)?;
         let n_chunks = Mutant::<Chunk>::new(dir, "n_chunks", 1000)?;
         let w_chunks = Mutant::<Chunk>::new(dir, "w_chunks", 1000)?;
         let r_chunks = Mutant::<Chunk>::new(dir, "r_chunks", 1000)?;
         
     
 
-        let path = dir.join("leaves");
         let leaves_file = OpenOptions::new()
             .read(true)
             .write(true)
             .create(true)
-            .open(&path)?;
+            .open(&dir.join("hilbert_leaves"))?;
+
         let leaves_writer = BufWriter::with_capacity(MB_500, leaves_file);
 
-        let nodes_mut = Mutant::<Node>::open(dir, "nodes")?;
-        let hilbert_node_pairs_mut = Mutant::<HilbertNodePair>::open(dir, "hilbert_node_pairs")?;
+        let nodes_mut = Mutant::<Node>::open(dir, "nodes", true)?;
+        let hilbert_node_pairs_mut = Mutant::<HilbertNodePair>::open(dir, "hilbert_node_pairs", true)?;
         let hilbert_node_pairs = hilbert_node_pairs_mut.slice();
         
         let first_node_h = hilbert_node_pairs[0].h();
@@ -68,7 +68,6 @@ impl HilbertTiles {
 
 
 
-        let leaves = Mutant::<LeafTile>::open(dir, "leaves")?;
 
         Ok(Self {
             leaf_zoom,
@@ -90,20 +89,25 @@ impl HilbertTiles {
 
 }
 
-struct LeafTile {
+struct NWR {
     n: u64,
-    w: u32,
-    r: u32,
-    chunks: Chunks,
+    w: u64,
+    r: u64
+}
+
+struct LeafTile {
+    first_idx: NWR,
+    first_chunk_idx: NWR,
 }
 
 struct NodeTile {
+    // children array is 0 if there are no children
     children: [u32; 16], // offsets from current index
-    chunks: Chunks,
+    first_chunk_idx: NWRChunk,
 }
 
-struct Chunks {
-    n: u32,
+struct NWRChunk {
+    n: u32, // offset, so it doesn't need to be u64
     w: u32,
     r: u32,
 }
