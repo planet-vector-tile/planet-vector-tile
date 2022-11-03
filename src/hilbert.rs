@@ -33,7 +33,7 @@ impl HilbertTiles {
         }
 
         let tree = Mutant::<NodeTile>::new(dir, "hilbert_tree", 1000)?;
-        let m_leaves = Mutant::<LeafTile>::new(dir, "leaves", 100000)?;
+        let mut m_leaves = Mutant::<LeafTile>::new(dir, "leaves", 100000)?;
         let n_chunks = Mutant::<Chunk>::new(dir, "n_chunks", 1000)?;
         let w_chunks = Mutant::<Chunk>::new(dir, "w_chunks", 1000)?;
         let r_chunks = Mutant::<Chunk>::new(dir, "r_chunks", 1000)?;
@@ -61,43 +61,60 @@ impl HilbertTiles {
         let mut w_i: usize = 1;
 
         let leaves = m_leaves.mutable_slice();
-        leaves[t_i] = LeafTile {
-            first_entity_idx: NWR {
-                n: 0,
-                w: 0,
-                r: 0,
-            },
-            first_chunk_idx: NWRChunk {
-                n: 0,
-                w: 0,
-                r: 0,
-            },
-            tile_h,
-        };
+        let leaves_len = leaves.len();
+        while t_i < leaves_len {
 
-        let node_pairs = m_node_pairs.slice();
-        let node_pairs_len = node_pairs.len();
-        while n_i < node_pairs_len {
-            let p = &node_pairs[n_i];
-            let node_h = p.h();
-            let node_tile_h = idx_h_to_zoom(node_h, leaf_zoom);
-            if node_tile_h > tile_h {
-                t_i += 1;
-                tile_h = node_tile_h;
-                leaves[t_i].tile_h = node_tile_h;
-                leaves[t_i].first_entity_idx.n = n_i as u64;
+            leaves[t_i] = LeafTile {
+                first_entity_idx: NWR {
+                    n: n_i as u64,
+                    w: w_i as u32,
+                    r: 0,
+                },
+                first_chunk_idx: NWRChunk {
+                    n: 0,
+                    w: 0,
+                    r: 0,
+                },
+                tile_h,
+            };
+
+            let mut node_tile_h = tile_h;
+            let mut way_tile_h = tile_h;
+    
+            let node_pairs = m_node_pairs.slice();
+            let node_pairs_len = node_pairs.len();
+            while n_i < node_pairs_len {
+                let p = &node_pairs[n_i];
+                let node_h = p.h();
+                node_tile_h = idx_h_to_zoom(node_h, leaf_zoom);
+                if node_tile_h > tile_h {
+                    break;
+                }
+                n_i += 1;
             }
-            n_i += 1;
-        }
-  
-        let way_pairs = m_way_pairs.slice();
-        let way_pairs_len = way_pairs.len();
-        while w_i < way_pairs_len {
-            let p = &way_pairs[w_i];
-            let way_h = p.h();
-            let way_tile_h = idx_h_to_zoom(way_h, leaf_zoom);
+      
+            let way_pairs = m_way_pairs.slice();
+            let way_pairs_len = way_pairs.len();
+            while w_i < way_pairs_len {
+                let p = &way_pairs[w_i];
+                let way_h = p.h();
+                way_tile_h = idx_h_to_zoom(way_h, leaf_zoom);
+                if way_tile_h > tile_h {
+                    break;
+                }
+                w_i += 1;
+            }
+    
+            if node_tile_h > tile_h && node_tile_h < way_tile_h {
+                tile_h = node_tile_h;
+            } else {
+                tile_h = way_tile_h;
+            }
 
+            t_i += 1;
         }
+
+        m_leaves.set_len(leaves_len);
 
         Ok(Self {
             leaf_zoom,

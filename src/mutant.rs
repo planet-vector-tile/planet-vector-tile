@@ -106,12 +106,16 @@ impl<T: Sized> Mutant<T> {
     /// It's up to you to set what the len is.
     pub fn set_len(&mut self, len: usize) {
         self.len = len;
+        let header_ptr = self.mmap.as_ptr() as *mut u64;
+        unsafe {
+            *header_ptr = len as u64;            
+        }
     }
 
     /// Trims the file size to the len, making the capacity == len.
     pub fn trim(&mut self) {
         let size = 8 + size_of::<T>() * self.len;
-        self.file.set_len(size as u64);
+        self.file.set_len(size as u64).unwrap(); // NHTODO ? and return result
         self.capacity = self.len;
     }
 
