@@ -1,0 +1,41 @@
+fn main() {
+    let z = 8_u32;
+    let h = 0xFFFF_u32;   // z8
+    // let h = 0xFFF_u32;   // z6
+    // let h = 0xFF_u32;   // z4
+    // let h = 0xF_u32;    // z2
+    let s = h >> 4 * (z / 2 - 1);
+
+    println!("z {:x?}", z);
+    println!("h {:x?}", h);
+    println!("s {:x?}", s);
+    println!();
+    println!("z {:o}", z);
+    println!("h {:o}", h);
+    println!("s {:o}", s);
+    println!();
+    println!("z {:b}", z);
+    println!("h {:b}", h);
+    println!("s {:b}", s);
+    println!();
+    println!("z {}", z);
+    println!("h {}", h);
+    println!("s {}", s);
+
+}
+
+z 8
+h ffff
+s f
+
+z 10
+h 177777
+s 17
+
+z 1000
+h 1111111111111111
+s 1111
+
+z 8
+h 65535
+s 15

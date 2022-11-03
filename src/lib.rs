@@ -3,6 +3,9 @@
 pub mod info_tile;
 pub mod tile;
 pub mod tile_attributes;
+mod hilbert;
+mod mutant;
+mod osmflat;
 
 #[macro_use]
 extern crate napi_derive;

@@ -1,8 +1,10 @@
 mod args;
+mod hilbert;
 mod mutant;
 mod osmflat;
 mod parallel;
 mod sort_archive;
+mod tile;
 
 use args::*;
 use clap::Parser;

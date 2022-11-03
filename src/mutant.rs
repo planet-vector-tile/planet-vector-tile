@@ -15,7 +15,7 @@ pub struct Mutant<T: Sized> {
 
 impl<T: Sized> Mutant<T> {
 
-    pub fn new(dir: &PathBuf, file_name: &str, len: usize) -> Result<Self> {
+    pub fn new(dir: &Path, file_name: &str, len: usize) -> Result<Self> {
         // 8 bit header for flatdata
         let size = 8 + size_of::<T>() * len;
         let path = dir.join(file_name);
@@ -33,7 +33,7 @@ impl<T: Sized> Mutant<T> {
         Ok(Mutant { file, path, mmap, len, phantom: PhantomData })
     }
 
-    pub fn open(dir: &PathBuf, file_name: &str) -> Result<Self> {
+    pub fn open(dir: &Path, file_name: &str) -> Result<Self> {
         let path = dir.join(file_name);
         let file = OpenOptions::new()
             .read(true)
