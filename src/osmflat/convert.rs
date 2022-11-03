@@ -23,7 +23,7 @@ use super::strings::StringTable;
 
 type Error = Box<dyn std::error::Error>;
 
-pub fn convert(args: Args) -> Result<osmflat::Osm, Error> {
+pub fn convert(args: &Args) -> Result<osmflat::Osm, Error> {
     let time = Instant::now();
     println!("Converting osm.pbf to osm.flatdata...");
 

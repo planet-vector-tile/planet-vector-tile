@@ -31,8 +31,9 @@ fn main() {
 
     let dir = args.output.clone();
 
-    let archive = osmflat::convert(args).unwrap_or_else(quit);
-    let _ = sort_archive::sort(archive, dir).unwrap_or_else(quit);
+    let archive = osmflat::convert(&args).unwrap_or_else(quit);
+    let _ = sort_archive::sort(archive, &dir).unwrap_or_else(quit);
+    let _ = hilbert::HilbertTiles::build(&dir, args.leafzoom);
 
     println!("Total Time: {}", format_duration(time.elapsed()));
 }

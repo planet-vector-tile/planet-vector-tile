@@ -17,4 +17,8 @@ pub struct Args {
     /// Overwrite existing osmflat output directory
     #[arg(short, long, default_value_t = false)]
     pub overwrite: bool,
+
+    /// Highest zoom at which tiles are indexed.
+    #[arg(short, long, default_value_t = 12)]
+    pub leafzoom: u8,
 }

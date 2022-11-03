@@ -8,7 +8,7 @@ use pbr::ProgressBar;
 use rayon::prelude::*;
 use crate::{mutant::Mutant, osmflat::osmflat_generated::osm::{Osm, HilbertNodePair, HilbertWayPair, Node, TagIndex, NodeIndex, Way}};
 
-pub fn sort(archive: Osm, dir: PathBuf) -> Result<(), Box<dyn std::error::Error>> { 
+pub fn sort(archive: Osm, dir: &PathBuf) -> Result<(), Box<dyn std::error::Error>> { 
     match archive.hilbert_node_pairs() {
         Some(p) => p,
         None => {
@@ -22,7 +22,7 @@ pub fn sort(archive: Osm, dir: PathBuf) -> Result<(), Box<dyn std::error::Error>
     // Build hilbert way pairs.
     let ways = archive.ways();
     let ways_len = archive.ways().len();
-    let way_pairs_mut = Mutant::<HilbertWayPair>::new(&dir, "hilbert_way_pairs", ways_len)?;
+    let way_pairs_mut = Mutant::<HilbertWayPair>::new(dir, "hilbert_way_pairs", ways_len)?;
     let way_pairs = way_pairs_mut.mutable_slice();
     build_hilbert_way_pairs(way_pairs, &archive)?;
 
@@ -36,7 +36,7 @@ pub fn sort(archive: Osm, dir: PathBuf) -> Result<(), Box<dyn std::error::Error>
     info!("Sorting hilbert node pairs.");
     let t = Instant::now();
     let nodes_len = archive.nodes().len();
-    let node_pairs_mut = Mutant::<HilbertNodePair>::new(&dir, "hilbert_node_pairs", nodes_len)?;
+    let node_pairs_mut = Mutant::<HilbertNodePair>::new(dir, "hilbert_node_pairs", nodes_len)?;
     let node_pairs = node_pairs_mut.mutable_slice();
     node_pairs.par_sort_unstable_by_key(|idx| idx.h());
     info!("Finished in {} secs.", t.elapsed().as_secs());
@@ -49,7 +49,7 @@ pub fn sort(archive: Osm, dir: PathBuf) -> Result<(), Box<dyn std::error::Error>
     let mut tag_counter: usize = 0;
     let tags_index = archive.tags_index();
     let tags_index_len = tags_index.len();
-    let sorted_tags_index_mut = Mutant::<TagIndex>::new(&dir, "sorted_tags_index", tags_index_len)?;
+    let sorted_tags_index_mut = Mutant::<TagIndex>::new(dir, "sorted_tags_index", tags_index_len)?;
     let sorted_tags_index = sorted_tags_index_mut.mutable_slice();
     sorted_nodes
         .iter_mut()
@@ -74,12 +74,12 @@ pub fn sort(archive: Osm, dir: PathBuf) -> Result<(), Box<dyn std::error::Error>
 
     // Reorder ways to sorted hilbert way pairs.
     let mut pb = Prog::new("Reordering ways. ", ways_len);
-    let sorted_ways_mut = Mutant::<Way>::new(&dir, "sorted_ways", ways_len)?;
+    let sorted_ways_mut = Mutant::<Way>::new(dir, "sorted_ways", ways_len)?;
     let sorted_ways = sorted_ways_mut.mutable_slice();
     let mut nodes_index_counter: usize = 0;
     let nodes_index = archive.nodes_index();
     let nodes_index_len = nodes_index.len();
-    let sorted_nodes_index_mut = Mutant::<NodeIndex>::new(&dir, "sorted_nodes_index", nodes_index_len)?;
+    let sorted_nodes_index_mut = Mutant::<NodeIndex>::new(dir, "sorted_nodes_index", nodes_index_len)?;
     let sorted_nodes_index = sorted_nodes_index_mut.mutable_slice();
     sorted_ways.iter_mut().zip(way_pairs.iter_mut()).for_each(|(sorted_way, hilbert_way_pair)| {
         let i = hilbert_way_pair.i() as usize;

@@ -12,7 +12,7 @@ use crate::osmflat::osmflat_generated::osm::{Node, HilbertNodePair, Way, Hilbert
 // 4^16 = 4,294,967,296
 // 2^32 = 4,294,967,296
 
-struct HilbertTiles {
+pub struct HilbertTiles {
     leaf_zoom: u8,
     tree: Cell<Mutant<NodeTile>>,
     leaves: Cell<Mutant<LeafTile>>,
@@ -22,7 +22,7 @@ struct HilbertTiles {
 }
 
 impl HilbertTiles {
-    pub fn new(dir: &Path, leaf_zoom: u8) -> Result<Self, Box<dyn std::error::Error>> {
+    pub fn build(dir: &Path, leaf_zoom: u8) -> Result<Self, Box<dyn std::error::Error>> {
         
         // Leaf zoom must be even
         if leaf_zoom & 1 == 0 {
