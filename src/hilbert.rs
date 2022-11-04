@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use std::cell::Cell;
 use std::fs::OpenOptions;
 use std::io::{Error, ErrorKind};
@@ -34,14 +36,11 @@ impl HilbertTiles {
         }
 
         let tree = Mutant::<NodeTile>::new(dir, "hilbert_tree", 1000)?;
-        let mut m_leaves = Mutant::<LeafTile>::new(dir, "hilbert_leaves", 100000)?;
+        let mut m_leaves = Mutant::<LeafTile>::new(dir, "hilbert_leaves", 10_000_000)?;
         let n_chunks = Mutant::<Chunk>::new(dir, "n_chunks", 1000)?;
         let w_chunks = Mutant::<Chunk>::new(dir, "w_chunks", 1000)?;
         let r_chunks = Mutant::<Chunk>::new(dir, "r_chunks", 1000)?;
         
-        let m_nodes = Mutant::<Node>::open(dir, "nodes", true)?;
-        let m_ways = Mutant::<Way>::open(dir, "ways", true)?;
-        let m_relations = Mutant::<Relation>::open(dir, "relations", true)?;
         let m_node_pairs = Mutant::<HilbertNodePair>::open(dir, "hilbert_node_pairs", true)?;
         let m_way_pairs = Mutant::<HilbertWayPair>::open(dir, "hilbert_way_pairs", true)?;
 
@@ -63,7 +62,11 @@ impl HilbertTiles {
 
         let leaves = m_leaves.mutable_slice();
         let leaves_len = leaves.len();
-        while t_i < leaves_len {
+        let node_pairs = m_node_pairs.slice();
+        let node_pairs_len = node_pairs.len();
+        let way_pairs = m_way_pairs.slice();
+        let way_pairs_len = way_pairs.len();
+        while t_i < leaves_len && (n_i < node_pairs_len || w_i < way_pairs_len) {
 
             leaves[t_i] = LeafTile {
                 first_entity_idx: NWR {
@@ -82,8 +85,6 @@ impl HilbertTiles {
             let mut node_tile_h = tile_h;
             let mut way_tile_h = tile_h;
     
-            let node_pairs = m_node_pairs.slice();
-            let node_pairs_len = node_pairs.len();
             while n_i < node_pairs_len {
                 let p = &node_pairs[n_i];
                 let node_h = p.h();
@@ -94,8 +95,6 @@ impl HilbertTiles {
                 n_i += 1;
             }
       
-            let way_pairs = m_way_pairs.slice();
-            let way_pairs_len = way_pairs.len();
             while w_i < way_pairs_len {
                 let p = &way_pairs[w_i];
                 let way_h = p.h();
@@ -115,7 +114,8 @@ impl HilbertTiles {
             t_i += 1;
         }
 
-        m_leaves.set_len(leaves_len);
+        m_leaves.set_len(t_i);
+        m_leaves.trim();
 
         Ok(Self {
             leaf_zoom,
@@ -157,10 +157,6 @@ struct NodeTile {
     first_chunk_idx: NWRChunk,
     children_idx: u32,
     children_mask: u16,
-}
-
-impl NodeTile {
-
 }
 
 fn mask_has_children(mask: u16) -> bool {
