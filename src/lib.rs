@@ -7,7 +7,7 @@ mod parallel;
 mod sort_archive;
 pub mod tile;
 pub mod tile_attributes;
-mod util;
+pub mod dm7;
 
 #[macro_use]
 extern crate napi_derive;

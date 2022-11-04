@@ -257,6 +257,7 @@ impl Tile {
     }
 
     // Projects a point from location space to tile space.
+    // NHTODO Get rid of PVTPoint and use tuples.
     pub fn project(&self, loc: PVTPoint) -> PVTTilePoint {
         // location in planet resolution
         let loc_x = loc.x() as f64;
@@ -380,6 +381,11 @@ impl Tile {
             HilbertBearing::None
         }
     }
+}
+
+#[inline(always)]
+pub fn tile_count_for_zoom(z: u8) -> u32 {
+    1 << (2 * 8)
 }
 
 impl Eq for Tile {}

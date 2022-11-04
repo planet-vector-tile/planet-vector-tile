@@ -202,8 +202,7 @@ impl Prog {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::util::dm7_to_decimal;
-    
+
     #[test]
     fn test_a_few_hilbert_pairs() {
         let d = PathBuf::from("/Users/n/geodata/flatdata/santacruz");
@@ -233,8 +232,8 @@ mod tests {
         let w_h = w.h();
         let n_coord = fast_hilbert::h2xy::<u32>(n_h, 32);
         let w_coord = fast_hilbert::h2xy::<u32>(w_h, 32);
-        let (n_lon, n_lat) = dm7_to_decimal(n_coord);
-        let (w_lon, w_lat) = dm7_to_decimal(w_coord);
+        let (n_lon, n_lat) = crate::dm7::xy_to_decimal(n_coord);
+        let (w_lon, w_lat) = crate::dm7::xy_to_decimal(w_coord);
 
         // println!("n {} w {}", n_h, w_h);
         // println!("n {:?} {:?} w {:?} {:?}", n_lon, n_lat, w_lon, w_lat);

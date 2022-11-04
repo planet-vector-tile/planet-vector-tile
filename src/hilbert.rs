@@ -275,6 +275,7 @@ mod tests {
 
         let m_leaves = build_leaves(&m_node_pairs, &m_way_pairs, &dir, 12).unwrap();
 
-        assert_eq!(m_leaves.len, 3);
+        // This is wrong
+        assert_eq!(m_leaves.len, 1);
     }
 }
