@@ -430,14 +430,14 @@ pub enum HilbertBearing {
     None,
 }
 
+#[cfg(test)]
 mod tests {
-    #[allow(unused_imports)]
     use super::*;
     
     #[test]
     fn test_basic_tile() {
         let t = Tile::from_zxy(9, 82, 199);
-        let t2 = Tile::from_zxy(9, 83, 300);
+        // let t2 = Tile::from_zxy(9, 83, 300);
 
         // assert_eq!(t.id(), 5188146770730836249);
         // assert_eq!(t2.id(), 5188146770731048437);

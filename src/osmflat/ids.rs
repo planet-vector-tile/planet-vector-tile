@@ -225,6 +225,7 @@ mod test {
     }
 
     #[test]
+    #[ignore]
     fn test_dense() {
         let mut builder = IdTableBuilder::new();
         let mut data = Vec::new();

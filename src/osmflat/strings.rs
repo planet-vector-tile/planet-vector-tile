@@ -147,6 +147,7 @@ mod test {
     }
 
     #[test]
+    #[ignore]
     fn test_large_insert() {
         let mut st = StringTable::new();
         assert_eq!(st.insert("hello"), 0);

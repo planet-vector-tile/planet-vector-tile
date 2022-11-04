@@ -199,11 +199,10 @@ impl Prog {
     }
 }
 
+#[cfg(test)]
 mod tests {
-    #[allow(unused_imports)]
     use super::*;
-
-    // use crate::util::dm7_to_decimal;
+    use crate::util::dm7_to_decimal;
     
     #[test]
     fn test_a_few_hilbert_pairs() {
