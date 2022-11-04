@@ -14,8 +14,8 @@ pub struct Args {
     #[structopt(long = "ids")]
     pub ids: bool,
 
-    /// Overwrite existing osmflat output directory
-    #[arg(short, long, default_value_t = false)]
+    /// Overwrite existing archive output directory
+    #[arg(long, default_value_t = false)]
     pub overwrite: bool,
 
     /// Highest zoom at which tiles are indexed.

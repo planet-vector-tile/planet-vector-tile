@@ -1,14 +1,10 @@
 #![allow(dead_code)]
 
 use std::cell::Cell;
-use std::fs::OpenOptions;
 use std::io::{Error, ErrorKind};
 use std::path::Path;
-use std::io::BufWriter;
-
-use crate::tile::Tile;
 use crate::mutant::Mutant;
-use crate::osmflat::osmflat_generated::osm::{Node, HilbertNodePair, Way, HilbertWayPair, Relation, HilbertRelationPair};
+use crate::osmflat::osmflat_generated::osm::{HilbertNodePair, HilbertWayPair};
 
 // 4^14 = 268,435,456
 // 4^16 = 4,294,967,296

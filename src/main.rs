@@ -23,16 +23,16 @@ fn main() {
         .format_timestamp_nanos()
         .init();
 
-    // if args.overwrite {
-    //     if let Err(e) = fs::remove_dir_all(args.output.clone()) {
-    //         eprintln!("Unable to remove output dir: {}", e);
-    //     }
-    // }
+    if args.overwrite {
+        if let Err(e) = fs::remove_dir_all(args.output.clone()) {
+            eprintln!("Unable to remove output dir: {}", e);
+        }
+    }
 
     let dir = args.output.clone();
 
-    // let archive = osmflat::convert(&args).unwrap_or_else(quit);
-    // sort_archive::sort(archive, &dir).unwrap_or_else(quit);
+    let archive = osmflat::convert(&args).unwrap_or_else(quit);
+    sort_archive::sort(archive, &dir).unwrap_or_else(quit);
     hilbert::HilbertTiles::build(&dir, args.leafzoom).unwrap_or_else(quit);
 
     println!("Total Time: {}", format_duration(time.elapsed()));
