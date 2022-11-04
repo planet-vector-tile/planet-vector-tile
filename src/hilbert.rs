@@ -86,17 +86,19 @@ fn build_leaves(
 
     let mut tile_h = zoom_h(lowest_h, 32, leaf_zoom);
     let mut t_i: usize = 0;
-    let mut n_i: usize = 1;
-    let mut w_i: usize = 1;
+    let mut n_i: usize = 0;
+    let mut w_i: usize = 0;
 
-    let mut m_leaves = Mutant::<LeafTile>::new(dir, "hilbert_leaves", 10_000_000)?;
+    let max_len = tile_count_for_zoom(leaf_zoom);
+    let mut m_leaves = Mutant::<LeafTile>::new(dir, "hilbert_leaves", max_len)?;
     let leaves = m_leaves.mutable_slice();
-    let leaves_len = leaves.len();
+
     let node_pairs = m_node_pairs.slice();
     let node_pairs_len = node_pairs.len();
     let way_pairs = m_way_pairs.slice();
     let way_pairs_len = way_pairs.len();
-    while t_i < leaves_len && (n_i < node_pairs_len || w_i < way_pairs_len) {
+
+    while n_i < node_pairs_len || w_i < way_pairs_len {
         leaves[t_i] = LeafTile {
             first_entity_idx: NWR {
                 n: n_i as u64,
@@ -106,6 +108,8 @@ fn build_leaves(
             first_chunk_idx: NWRChunk { n: 0, w: 0, r: 0 },
             tile_h,
         };
+        n_i += 1;
+        w_i += 1;
 
         let mut node_tile_h = tile_h;
         let mut way_tile_h = tile_h;
@@ -130,12 +134,21 @@ fn build_leaves(
             w_i += 1;
         }
 
-        if node_tile_h > tile_h && node_tile_h < way_tile_h {
-            tile_h = node_tile_h;
-        } else {
-            tile_h = way_tile_h;
+        let mut next_tile_h = node_tile_h;
+
+        if way_tile_h > tile_h && way_tile_h < next_tile_h {
+            next_tile_h = way_tile_h
         }
 
+        // then do the same for relations
+
+        if next_tile_h == tile_h {
+            break;
+        }
+
+        debug_assert!(next_tile_h > tile_h);
+
+        tile_h = next_tile_h;
         t_i += 1;
     }
 
@@ -146,6 +159,10 @@ fn build_leaves(
 
 fn zoom_h(h: u64, from_z: u8, to_z: u8) -> u32 {
     (h >> 2 * (from_z - to_z)) as u32
+}
+
+fn tile_count_for_zoom(z: u8) -> usize {
+    1 << (2 * (z as usize))
 }
 
 struct NWR {
@@ -252,12 +269,12 @@ mod tests {
     #[test]
     fn test_build_leaves() {
         let dir = PathBuf::from("./test/fixtures/4nodes/archive");
-        let m_node_pairs = Mutant::<HilbertNodePair>::open(&dir, "hilbert_node_pairs", true).unwrap();
+        let m_node_pairs =
+            Mutant::<HilbertNodePair>::open(&dir, "hilbert_node_pairs", true).unwrap();
         let m_way_pairs = Mutant::<HilbertWayPair>::open(&dir, "hilbert_way_pairs", true).unwrap();
 
         let m_leaves = build_leaves(&m_node_pairs, &m_way_pairs, &dir, 12).unwrap();
 
         assert_eq!(m_leaves.len, 3);
     }
-
 }

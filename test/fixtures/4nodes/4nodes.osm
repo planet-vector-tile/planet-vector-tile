@@ -1,13 +1,13 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <osm version='0.6' generator='JOSM'>
-  <node id='137747' action='modify' visible='true' lat='37.0491457' lon='-122.0279745'>
+  <node id='137747' action='modify' visible='true' lat='37.0491457' lon='-122.0279745' version="1" changeset="31575771" timestamp="2014-05-30T02:33:56Z" user="TheOutpost" uid="1371102" >
     <tag k='amenity' v='bus_station' />
     <tag k='bus' v='yes' />
     <tag k='name' v='Cavallaro Transit Center (Scotts Valley)' />
     <tag k='network' v='SCMTD' />
     <tag k='public_transport' v='station' />
   </node>
-  <node id='137750' action='modify' visible='true' lat='36.9514859' lon='-122.026736'>
+  <node id='137750' action='modify' visible='true' lat='36.9514859' lon='-122.026736' version="2" changeset="31575771" timestamp="2015-05-30T02:33:56Z" user="TheOutpost" uid="1371102" >
     <tag k='alt_name' v='Mark Abbott Memorial Lighthouse' />
     <tag k='man_made' v='lighthouse' />
     <tag k='name' v='Santa Cruz Lighthouse' />
@@ -22,7 +22,7 @@
     <tag k='seamark:name' v='Santa Cruz' />
     <tag k='seamark:type' v='landmark' />
   </node>
-  <node id='137752' action='modify' visible='true' lat='36.9514589' lon='-122.0267093'>
+  <node id='137752' action='modify' visible='true' lat='36.9514589' lon='-122.0267093' version="3" changeset="31575771" timestamp="2016-05-30T02:33:56Z" user="TheOutpost" uid="1371102" >
     <tag k='addr:city' v='Santa Cruz' />
     <tag k='addr:state' v='CA' />
     <tag k='addr:street' v='West Cliff Drive' />
@@ -39,7 +39,7 @@
     <tag k='wikidata' v='Q7419431' />
     <tag k='wikipedia' v='en:Santa Cruz Surfing Museum' />
   </node>
-  <node id='137754' action='modify' visible='true' lat='36.9495675' lon='-122.0268977'>
+  <node id='137754' action='modify' visible='true' lat='36.9495675' lon='-122.0268977' version="4" changeset="31575771" timestamp="2017-05-30T02:33:56Z" user="TheOutpost" uid="1371102" >
     <tag k='ele' v='2' />
     <tag k='gnis:county_id' v='087' />
     <tag k='gnis:created' v='06/13/2000' />
