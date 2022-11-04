@@ -1,0 +1,7 @@
+namespace osm {
+archive Osm
+{
+    stringtable : raw_data;
+}
+}
+

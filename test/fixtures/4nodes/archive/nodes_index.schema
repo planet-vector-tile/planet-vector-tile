@@ -1,0 +1,20 @@
+namespace osm {
+const u64 INVALID_IDX = 1099511627775;
+}
+
+namespace osm {
+struct NodeIndex
+{
+    @optional( .osm.INVALID_IDX )
+    value : u64 : 40;
+}
+}
+
+namespace osm {
+archive Osm
+{
+    @explicit_reference( .osm.NodeIndex.value, .osm.Osm.nodes )
+    nodes_index : vector< .osm.NodeIndex >;
+}
+}
+

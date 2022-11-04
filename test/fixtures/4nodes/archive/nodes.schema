@@ -1,0 +1,18 @@
+namespace osm {
+struct Node
+{
+    lat : i32 : 32;
+    lon : i32 : 32;
+    @range( tags )
+    tag_first_idx : u64 : 40;
+}
+}
+
+namespace osm {
+archive Osm
+{
+    @explicit_reference( .osm.Node.tag_first_idx, .osm.Osm.tags_index )
+    nodes : vector< .osm.Node >;
+}
+}
+

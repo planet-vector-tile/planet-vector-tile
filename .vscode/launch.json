@@ -19,7 +19,7 @@
                     "kind": "bin"
                 }
             },
-            "args": ["--overwrite", "/Users/n/geodata/extracts/santacruz.pbf", "/Users/n/geodata/flatdata/santacruz"],
+            "args": ["--overwrite", "./test/fixtures/4nodes/4nodes.osm.pbf", "./test/fixtures/4nodes/archive"],
             "cwd": "${workspaceFolder}"
         },
         {
