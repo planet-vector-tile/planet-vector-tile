@@ -32,9 +32,7 @@ impl HilbertTiles {
 
         let m_node_pairs = Mutant::<HilbertNodePair>::open(dir, "hilbert_node_pairs", true)?;
         let m_way_pairs = Mutant::<HilbertWayPair>::open(dir, "hilbert_way_pairs", true)?;
-        let mut m_leaves = Mutant::<LeafTile>::new(dir, "hilbert_leaves", 10_000_000)?;
-
-        build_leaves(&m_node_pairs, &m_way_pairs, &mut m_leaves, leaf_zoom);
+        let m_leaves = build_leaves(&m_node_pairs, &m_way_pairs, &dir, leaf_zoom)?;
 
         let tree = Mutant::<NodeTile>::new(dir, "hilbert_tree", 1000)?;
         let n_chunks = Mutant::<Chunk>::new(dir, "hilbert_n_chunks", 1000)?;
@@ -55,24 +53,43 @@ impl HilbertTiles {
 fn build_leaves(
     m_node_pairs: &Mutant<HilbertNodePair>,
     m_way_pairs: &Mutant<HilbertWayPair>,
-    m_leaves: &mut Mutant<LeafTile>,
+    dir: &Path,
     leaf_zoom: u8,
-) {
+) -> Result<Mutant<LeafTile>, Box<dyn std::error::Error>> {
     let node_pairs = m_node_pairs.slice();
     let way_pairs = m_way_pairs.slice();
 
     // Find the lowest hilbert tile
-    let mut lowest_h = node_pairs.first().unwrap().h();
-    let way_h = way_pairs.first().unwrap().h();
-    if way_h < lowest_h {
-        lowest_h = way_h;
+    // NHTODO Yuck, how do I do this nicely in Rust?
+    let mut lowest_h_opt = None;
+    if let Some(first_node_pair) = node_pairs.first() {
+        lowest_h_opt = Some(first_node_pair.h());
     }
+    if let Some(first_way_pair) = way_pairs.first() {
+        let first_way_h = first_way_pair.h();
+        if let Some(lh) = lowest_h_opt {
+            if first_way_h < lh {
+                lowest_h_opt = Some(first_way_h);
+            }
+        }
+    }
+
+    if lowest_h_opt.is_none() {
+        return Err(Box::new(Error::new(
+            ErrorKind::NotFound,
+            "No hilbert pairs found!",
+        )));
+    }
+    let lowest_h = lowest_h_opt.unwrap();
+
+    println!("lowest_h {}", lowest_h);
 
     let mut tile_h = zoom_h(lowest_h, 32, leaf_zoom);
     let mut t_i: usize = 0;
     let mut n_i: usize = 1;
     let mut w_i: usize = 1;
 
+    let mut m_leaves = Mutant::<LeafTile>::new(dir, "hilbert_leaves", 10_000_000)?;
     let leaves = m_leaves.mutable_slice();
     let leaves_len = leaves.len();
     let node_pairs = m_node_pairs.slice();
@@ -124,6 +141,7 @@ fn build_leaves(
 
     m_leaves.set_len(t_i);
     m_leaves.trim();
+    Ok(m_leaves)
 }
 
 fn zoom_h(h: u64, from_z: u8, to_z: u8) -> u32 {
@@ -230,4 +248,16 @@ mod tests {
         assert!(mask_has(m3, 5));
         assert!(mask_has(m3, 15));
     }
+
+    #[test]
+    fn test_build_leaves() {
+        let dir = PathBuf::from("./test/fixtures/4nodes/archive");
+        let m_node_pairs = Mutant::<HilbertNodePair>::open(&dir, "hilbert_node_pairs", true).unwrap();
+        let m_way_pairs = Mutant::<HilbertWayPair>::open(&dir, "hilbert_way_pairs", true).unwrap();
+
+        let m_leaves = build_leaves(&m_node_pairs, &m_way_pairs, &dir, 12).unwrap();
+
+        assert_eq!(m_leaves.len, 3);
+    }
+
 }

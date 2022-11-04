@@ -9,8 +9,8 @@ pub struct Mutant<T: Sized> {
     file: File,
     path: PathBuf,
     mmap: MmapMut,
-    len: usize,
-    capacity: usize,
+    pub len: usize,
+    pub capacity: usize,
     phantom: PhantomData<T>,
 }
 
