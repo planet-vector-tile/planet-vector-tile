@@ -132,8 +132,8 @@ fn build_hilbert_way_pairs(way_pairs: &mut [HilbertWayPair], archive: &Osm) -> R
             for r in refs {
                 if let Some(idx) = nodes_index[r as usize].value() {
                     let node = &nodes[idx as usize];
-                    let decimal_lonlat = location::lonlat_to_decimal_lonlat((node.lon(), node.lat()));
-                    coords.push(coord! { x: decimal_lonlat.0, y: decimal_lonlat.1 });
+                    // georust lib requires f64 for a coordinate.
+                    coords.push(coord! { x: node.lon() as f64, y: node.lat() as f64 });
                 };
             }
 
@@ -149,9 +149,9 @@ fn build_hilbert_way_pairs(way_pairs: &mut [HilbertWayPair], archive: &Osm) -> R
             };
 
             if let Some(pos) = point_on_surface {
-                let dec_lonlat = (pos.x(), pos.y());
-                // info!("way point on surface {:#?}", dec_lonlat);
-                let h = location::decimal_lonlat_to_h(dec_lonlat);
+                let lonlat = (pos.x() as i32, pos.y() as i32);
+                // info!("way point on surface {:#?}", lonlat);
+                let h = location::lonlat_to_h(lonlat);
 
                 pair.set_i(i as u64);
                 pair.set_h(h);
@@ -217,8 +217,8 @@ mod tests {
             let w = it.next().unwrap();
             let nh = n.h();
             let wh = w.h();
-            let n_lonlat = location::h_to_decimal_lonlatl(nh);
-            let w_lonlat = location::h_to_decimal_lonlatl(wh);
+            let n_lonlat = location::h_to_decimal_lonlat(nh);
+            let w_lonlat = location::h_to_decimal_lonlat(wh);
 
             println!("n {} w {}", n.h(), w.h());
             println!("n {:?} w {:?}", n_lonlat, w_lonlat);
