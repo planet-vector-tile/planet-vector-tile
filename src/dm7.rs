@@ -1,28 +1,59 @@
 // LonLat, XY (unsigned LonLat), Hilbert Location conversion
 
+use std::f64::consts::PI;
+
 use fast_hilbert::{xy2h, h2xy};
+
 
 const I32_PLUS_1: i64 =  (i32::MAX as i64) + 1;
 const I32_MINUS_1: i64 =  (i32::MAX as i64) - 1;
 
-#[inline(always)]
-pub fn lonlat_to_xy(lonlat: (i32, i32)) -> (u32, u32) {
-    let x = ((lonlat.0 as i64) + I32_MINUS_1) as u32;
-    let y = ((lonlat.1 as i64) + I32_MINUS_1) as u32;
+/// Projects dm7 lonlat to mercator points in float space (0.0 -> 1.0)
+pub fn lonlat_to_mercator(lonlat: (i32, i32)) -> (f64, f64) {
+    let mut lon = lonlat.0 as f64 / 10_000_000f64;
+    let mut lat = lonlat.1 as f64 / 10_000_000f64;
+
+    // OSM doesn't wrap, but other formats might...
+    if lon < -180.0 {
+        lon = -180.0
+    }
+    if lon > 180.0 {
+        lon = 180.0
+    }
+
+    if lat > 89.9 {
+        lat = 89.9
+    }
+    if lat < -89.9 {
+        lat = -89.9
+    }
+
+    // Make x be 0..1
+    let x: f64 = (lon + 180.0) / 360.0;
+
+    let lat_rad: f64 = lat * PI / 180.0;
+
+    let sin: f64 = f64::sin(lat * PI / 180);
+    let y = 0.5 - 0.25 * f64::ln((1.0 + sin) / (1.0 - sin) / PI);
+
     (x, y)
 }
 
-pub fn xy_to_lonlat(xy: (u32, u32)) -> (i32, i32) {
-    // let x = xy.0 as i64;
-    // let y = xy.1 as i64;
-    // println!("x {} I32_MINUS_1 {}", x, I32_PLUS_1);
-    // let lon_i64 = x - I32_PLUS_1;
-    // let lat_i64 = y - I32_PLUS_1;
-    // let lon = lon_i64 as i32;
-    // let lat = lat_i64 as i32;
+pub fn lonlat_to_xy(lonlat: (i32, i32)) -> (u32, u32) {
+    let floats = lonlat_to_mercator(lonlat);
+    
+    let x = (floats.0 * (u32::MAX as f64)) as u32;
+    let y = (floats.1 * (u32::MAX as f64)) as u32;
+    (x, y)
+}
 
-    let lon = ((xy.0 as i64) + I32_PLUS_1) as i32;
-    let lat = ((xy.1 as i64) + I32_PLUS_1) as i32;
+
+pub fn xy_to_lonlat(xy: (u32, u32)) -> (i32, i32) {
+    let x = xy.0 as f64;
+    let y = xy.1 as f64;
+
+
+
     (lon, lat)
 }
 
