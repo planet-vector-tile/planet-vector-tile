@@ -5,7 +5,7 @@ mod osmflat;
 mod parallel;
 mod sort_archive;
 mod tile;
-mod dm7;
+mod location;
 
 use args::*;
 use clap::Parser;

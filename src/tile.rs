@@ -445,6 +445,8 @@ pub enum HilbertBearing {
 
 #[cfg(test)]
 mod tests {
+    use crate::location::lonlat_to_xy;
+
     use super::*;
     
     #[test]
@@ -503,7 +505,8 @@ mod tests {
         assert_eq!(barrow.at_zoom(9).h, 6144);
         assert_eq!(barrow.at_zoom(10).h, 24576);
 
-        let cavallero = Tile::from_zh(32, 5056332410240376830);
+        let xy = lonlat_to_xy((-1220279745, 370491457));
+        let cavallero = Tile::from_zxy(32, xy.0, xy.1);
 
         assert_eq!(cavallero.at_zoom(4).h, 50);
         assert_eq!(cavallero.at_zoom(3).h, 12);

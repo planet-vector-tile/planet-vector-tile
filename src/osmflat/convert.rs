@@ -1,5 +1,4 @@
 use ahash::AHashMap;
-use fast_hilbert::xy2h;
 use flatdata::FileResourceStorage;
 use itertools::Itertools;
 use log::info;
@@ -12,7 +11,7 @@ use std::str;
 use std::time::Instant;
 
 use crate::args::Args;
-use crate::dm7;
+use crate::location;
 use crate::parallel;
 
 use super::ids;
@@ -344,7 +343,7 @@ fn serialize_dense_nodes(
             node.set_lat(lat_dm7);
             node.set_lon(lon_dm7);
 
-            let h = dm7::lonlat_to_h((lon_dm7, lat_dm7));
+            let h = location::lonlat_to_h((lon_dm7, lat_dm7));
             
             let pair = hilbert_node_pairs.grow()?;
             pair.set_i(index);
