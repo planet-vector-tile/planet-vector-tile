@@ -4,16 +4,13 @@ use std::f64::consts::PI;
 
 use fast_hilbert::{xy2h, h2xy};
 
-/// Projects dm7 lonlat to mercator points in float space (0.0 -> 1.0)
-pub fn project_lonlat_to_mercator(lonlat: (i32, i32)) -> (f64, f64) {
-    let mut lon = lonlat.0 as f64 / 10_000_000f64;
-    let mut lat = lonlat.1 as f64 / 10_000_000f64;
-
-    // Make x be 0..1
-    let mut x: f64 = (lon + 180.0) / 360.0;
-
-    let sin: f64 = f64::sin(lat * PI / 180.0);
-    let mut y = 0.5 - 0.25 * f64::ln((1.0 + sin) / (1.0 - sin) / PI);
+/// Projects dm7 lonlat to Web Mercator points in float space (0.0 -> 1.0).
+fn project_lonlat_to_mercator(lonlat: (i32, i32)) -> (f64, f64) {
+    let lon = lonlat.0 as f64 / 10_000_000f64;
+    let lat = lonlat.1 as f64 / 10_000_000f64;
+    let mut x = lon / 360.0 + 0.5;
+    let mut y = lat * PI / 180.0;
+    y = 0.5 - 0.25 * (1.0 + y.sin() / (1.0 - y.sin())).ln() / PI;
 
     if x < 0.0 {
         x = 0.0;
@@ -31,6 +28,19 @@ pub fn project_lonlat_to_mercator(lonlat: (i32, i32)) -> (f64, f64) {
     (x, y)
 }
 
+fn project_mercator_to_lonlat(xy: (f64, f64)) -> (i32, i32) {
+    let x = xy.0;
+    let y = xy.1;
+
+    let lon = x * 360.0 - 180.0;
+    let lat = f64::atan(f64::sinh(PI * (1.0 - 2.0 * y))) * 180.0 / PI;
+
+    let lon = (lon * 10_000_000f64) as i32;
+    let lat = (lat * 10_000_000f64) as i32;
+
+    (lon, lat)
+}
+
 
 pub fn lonlat_to_xy(lonlat: (i32, i32)) -> (u32, u32) {
     let floats = project_lonlat_to_mercator(lonlat);
@@ -44,13 +54,7 @@ pub fn xy_to_lonlat(xy: (u32, u32)) -> (i32, i32) {
     let x = xy.0 as f64 / (u32::MAX as f64);
     let y = xy.1 as f64 / (u32::MAX as f64);
 
-    let lon = x * 360.0 - 180.0;
-    let lat = f64::atan(f64::sinh(PI * (1.0 - 2.0 * y))) * 180.0 / PI;
-
-    let lon = (lon * 10_000_000f64) as i32;
-    let lat = (lat * 10_000_000f64) as i32;
-
-    (lon, lat)
+    project_mercator_to_lonlat((x, y))
 }
 
 #[inline(always)]
@@ -110,52 +114,38 @@ mod tests {
     use crate::tile::*;
 
     #[test]
-    pub fn test_lonlat_to_xy() {
-        // assert_eq!(lonlat_to_xy((-1213696037, 386494418)), (933787610, 2533978065));
-        // assert_eq!(xy_to_lonlat((933787610, 2533978065)), (-1213696037, 386494418));
+    pub fn test_project_lonlat_to_mercator() {
+        let lonlat = (0, 0);
+        let mercator = project_lonlat_to_mercator(lonlat);
+        assert_eq!(mercator, (0.5, 0.5));
+    }
 
-        println!("{}", i32::MIN);
-        println!("{}", i32::MAX);
-        println!("{}", u32::MIN);
-        println!("{}", u32::MAX);
-        // -2147483648
-        // 2147483647
-        // 0
-        // 4294967295
-        
-        assert_eq!(lonlat_to_xy((i32::MAX, i32::MAX)), (u32::MAX, u32::MAX));
-        // assert_eq!(lonlat_to_xy((0, 0)), (i32::MIN, i32::MIN));
+    #[test]
+    pub fn test_lonlat_to_xy() {
+        let lonlat = (0, 0);
+        let xy = lonlat_to_xy(lonlat);
+        assert_eq!(xy, (i32::MAX as u32, i32::MAX as u32));
     }
 
     #[test]
     pub fn test_xy_to_lonlat() {
-        // let lon = ((xy.0 as i64) - (i32::MAX as i64)) as i32;
-        // let lat = ((xy.1 as i64) - (i32::MAX as i64)) as i32;
-
-        // let x: u32 = 0;
-        // let x1 = x as i64;
-        // let max_i32 = i32::MAX as i64;
-        // let x2 = x1 - max_i32 - 1;
-        // let x3 = x2 as i32;
-
-        // println!("{}", x1);
-        // println!("{}", max_i32);
-        // println!("{}", x2);
-        // println!("{}", x3);
-
-        assert_eq!(xy_to_lonlat((4294967295, 4294967295)), (2147483647, 2147483647));
-        assert_eq!(xy_to_lonlat((0, 0)), (-2147483648, -2147483648));
-        assert_eq!(xy_to_lonlat((u32::MAX, u32::MAX)), (i32::MAX, i32::MAX));
-        assert_eq!(xy_to_lonlat((0, 0)), (i32::MIN, i32::MIN));
+        let xy = (i32::MAX as u32, i32::MAX as u32);
+        let lonlat = xy_to_lonlat(xy);
+        assert_eq!(lonlat, (0, 0));
     }
 
     #[test]
     pub fn test_lonlat_to_h() {
-        // Cavallero Transit Center
-        assert_eq!(lonlat_to_h((-1220279745, 370491457)), 5056332410240376830);
+        let lonlat = (0, 0);
+        let h = lonlat_to_h(lonlat);
 
-        assert_eq!(lonlat_to_h((-1220267360, 369514859)), 5056328721337122201);
-        assert_eq!(lonlat_to_h((-1220267093, 369514589)), 5056328721336989468);
+        let zoom_h = dm7_h_to_zoom_h(h, 4);
+        assert_eq!(zoom_h, 128);
+        
+        // Cavallero Transit Center
+        // assert_eq!(lonlat_to_h((-1220279745, 370491457)), 5056332410240376830);
+        // assert_eq!(lonlat_to_h((-1220267360, 369514859)), 5056328721337122201);
+        // assert_eq!(lonlat_to_h((-1220267093, 369514589)), 5056328721336989468);
     }
 
     #[test]
