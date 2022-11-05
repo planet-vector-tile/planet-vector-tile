@@ -12,6 +12,7 @@ use std::str;
 use std::time::Instant;
 
 use crate::args::Args;
+use crate::dm7;
 use crate::parallel;
 
 use super::ids;
@@ -338,17 +339,15 @@ fn serialize_dense_nodes(
 
             lat += dense_nodes.lat[i];
             lon += dense_nodes.lon[i];
-            let lat_dm7 = (lat_offset + (i64::from(pbf_granularity) * lat)) / granularity as i64;
-            let lon_dm7 = (lon_offset + (i64::from(pbf_granularity) * lon)) / granularity as i64;
-            node.set_lat(lat_dm7 as i32);
-            node.set_lon(lon_dm7 as i32);
+            let lat_dm7 = ((lat_offset + (i64::from(pbf_granularity) * lat)) / granularity as i64) as i32;
+            let lon_dm7 = ((lon_offset + (i64::from(pbf_granularity) * lon)) / granularity as i64) as i32;
+            node.set_lat(lat_dm7);
+            node.set_lon(lon_dm7);
 
-            let u_lon = (lon_dm7 + i32::MAX as i64) as u32;
-            let u_lat = (lat_dm7 + i32::MAX as i64) as u32;
+            let h = dm7::lonlat_to_h((lon_dm7, lat_dm7));
+            
             let pair = hilbert_node_pairs.grow()?;
             pair.set_i(index);
-            // The order is 32, because our lat / lon are 32 bits.
-            let h = xy2h(u_lon, u_lat, 32);
             pair.set_h(h);
 
             if tags_offset < dense_nodes.keys_vals.len() {

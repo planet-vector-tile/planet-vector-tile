@@ -65,16 +65,23 @@ impl Tile {
     }
 
     pub fn at_zoom(&self, z: u8) -> Tile {
-        let z_delta = (z - self.z) as u32;
         if z == self.z {
             self.clone()
-        } else if z == 32 && self.z == 0 {
+        } 
+        else if z == 0 {
+            Tile { z: 0, x: 0, y: 0, h: 0}
+        }
+        else if z == 32 && self.z == 0 {
             Tile::from_zxy(32, 0, 0)
-        } else if z > self.z {
+        } 
+        else if z > self.z {
+            let z_delta = (z - self.z) as u32;
             let x = self.x << z_delta;
             let y = self.y << z_delta;
             Tile::from_zxy(z, x, y)
-        } else {
+        } 
+        else {
+            let z_delta = (self.z - z) as u32;
             let x = self.x >> z_delta;
             let y = self.y >> z_delta;
             Tile::from_zxy(z, x, y)
@@ -481,6 +488,33 @@ mod tests {
         assert_eq!(zt32.x, 0);
         assert_eq!(zt32.y, 0);
         assert_eq!(zt32.h, 0);
+
+        let barrow = Tile::from_zh(5, 24);
+
+        assert_eq!(barrow.at_zoom(4).h, 6);
+        assert_eq!(barrow.at_zoom(3).h, 1);
+        assert_eq!(barrow.at_zoom(2).h, 0);
+        assert_eq!(barrow.at_zoom(1).h, 0);
+        assert_eq!(barrow.at_zoom(0).h, 0);
+
+        assert_eq!(barrow.at_zoom(6).h, 96);
+        assert_eq!(barrow.at_zoom(7).h, 384);
+        assert_eq!(barrow.at_zoom(8).h, 1536);
+        assert_eq!(barrow.at_zoom(9).h, 6144);
+        assert_eq!(barrow.at_zoom(10).h, 24576);
+
+        let cavallero = Tile::from_zh(32, 5056332410240376830);
+
+        assert_eq!(cavallero.at_zoom(4).h, 50);
+        assert_eq!(cavallero.at_zoom(3).h, 12);
+        assert_eq!(cavallero.at_zoom(2).h, 3);
+        assert_eq!(cavallero.at_zoom(1).h, 0);
+        assert_eq!(cavallero.at_zoom(0).h, 0);
+
+        assert_eq!(cavallero.at_zoom(8).h, 13004);
+        assert_eq!(cavallero.at_zoom(9).h, 52017);
+        assert_eq!(cavallero.at_zoom(10).h, 208070);
+
     }
 
     #[test]
