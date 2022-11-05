@@ -4,55 +4,51 @@ use std::f64::consts::PI;
 
 use fast_hilbert::{xy2h, h2xy};
 
-
-const I32_PLUS_1: i64 =  (i32::MAX as i64) + 1;
-const I32_MINUS_1: i64 =  (i32::MAX as i64) - 1;
-
 /// Projects dm7 lonlat to mercator points in float space (0.0 -> 1.0)
-pub fn lonlat_to_mercator(lonlat: (i32, i32)) -> (f64, f64) {
+pub fn project_lonlat_to_mercator(lonlat: (i32, i32)) -> (f64, f64) {
     let mut lon = lonlat.0 as f64 / 10_000_000f64;
     let mut lat = lonlat.1 as f64 / 10_000_000f64;
 
-    // OSM doesn't wrap, but other formats might...
-    if lon < -180.0 {
-        lon = -180.0
-    }
-    if lon > 180.0 {
-        lon = 180.0
-    }
-
-    if lat > 89.9 {
-        lat = 89.9
-    }
-    if lat < -89.9 {
-        lat = -89.9
-    }
-
     // Make x be 0..1
-    let x: f64 = (lon + 180.0) / 360.0;
+    let mut x: f64 = (lon + 180.0) / 360.0;
 
-    let lat_rad: f64 = lat * PI / 180.0;
+    let sin: f64 = f64::sin(lat * PI / 180.0);
+    let mut y = 0.5 - 0.25 * f64::ln((1.0 + sin) / (1.0 - sin) / PI);
 
-    let sin: f64 = f64::sin(lat * PI / 180);
-    let y = 0.5 - 0.25 * f64::ln((1.0 + sin) / (1.0 - sin) / PI);
+    if x < 0.0 {
+        x = 0.0;
+    }
+    if x > 1.0 {
+        x = 1.0;
+    }
+    if y < 0.0 {
+        y = 0.0;
+    }
+    if y > 1.0 {
+        y = 1.0;
+    }
 
     (x, y)
 }
+
 
 pub fn lonlat_to_xy(lonlat: (i32, i32)) -> (u32, u32) {
-    let floats = lonlat_to_mercator(lonlat);
+    let floats = project_lonlat_to_mercator(lonlat);
     
-    let x = (floats.0 * (u32::MAX as f64)) as u32;
-    let y = (floats.1 * (u32::MAX as f64)) as u32;
+    let x = (floats.0 as f64 * (u32::MAX as f64)) as u32;
+    let y = (floats.1 as f64 * (u32::MAX as f64)) as u32;
     (x, y)
 }
 
-
 pub fn xy_to_lonlat(xy: (u32, u32)) -> (i32, i32) {
-    let x = xy.0 as f64;
-    let y = xy.1 as f64;
+    let x = xy.0 as f64 / (u32::MAX as f64);
+    let y = xy.1 as f64 / (u32::MAX as f64);
 
+    let lon = x * 360.0 - 180.0;
+    let lat = f64::atan(f64::sinh(PI * (1.0 - 2.0 * y))) * 180.0 / PI;
 
+    let lon = (lon * 10_000_000f64) as i32;
+    let lat = (lat * 10_000_000f64) as i32;
 
     (lon, lat)
 }
