@@ -37,8 +37,6 @@ pub struct Tile {
     pub h: u64,
 }
 
-// Why do I get these dead code complaints on functions I am using?
-#[allow(dead_code)]
 impl Tile {
     pub fn from_zh(z: u8, h: u64) -> Self {
         if z == 0 {
@@ -155,6 +153,13 @@ impl Tile {
             let y = self.y << z_delta;
             PVTPoint::new(x, y)
         }
+    }
+
+    pub fn origin_float(&self) -> (f64, f64) {
+        let count = self.axis_tile_count();
+        let x = self.x as f64 / count as f64;
+        let y = self.y as f64 / count as f64;
+        (x, y)
     }
 
     // The extent of a tile in location space
@@ -412,8 +417,6 @@ pub struct BBox {
     se: PVTPoint,
 }
 
-// Why do I get these dead code complaints on functions I am using?
-#[allow(dead_code)]
 impl BBox {
     pub fn nw(&self) -> PVTPoint {
         self.nw

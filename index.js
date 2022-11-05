@@ -218,7 +218,8 @@ if (!nativeBinding) {
     throw new Error(`Failed to load native binding`);
 }
 
-const { loadPlanet, Planet } = nativeBinding;
+const { loadPlanet, Planet, pvt } = nativeBinding;
 
 module.exports.loadPlanet = loadPlanet;
 module.exports.Planet = Planet;
+module.exports.pvt = pvt;

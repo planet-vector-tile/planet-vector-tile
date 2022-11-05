@@ -13,7 +13,7 @@ pub struct InfoTile {
 
 impl InfoTile {
     pub fn new(tile: Tile, child_levels: Option<u8>) -> Self {
-        let levels = child_levels.unwrap_or(6);
+        let levels = child_levels.unwrap_or(4);
         InfoTile {
             tile,
             pyramid: tile.pyramid(levels),
@@ -116,9 +116,11 @@ impl InfoTile {
         let x_key = self.attributes.upsert_string("x");
         let y_key = self.attributes.upsert_string("y");
         let h_key = self.attributes.upsert_string("h");
+        let o_key = self.attributes.upsert_string("o");
 
         let tile_val = self.attributes.upsert_string_value(&tile.to_string());
         let render_tile_val = self.attributes.upsert_string_value(&self.tile.to_string());
+        let o_val = self.attributes.upsert_string_value(format!("{:?}", &tile.origin_float()).as_str());
         let is_render_tile_val = self
             .attributes
             .upsert_value(PVTValue::new(PVTValueType::Boolean, is_render_tile));
@@ -148,6 +150,7 @@ impl InfoTile {
             x_key,
             y_key,
             h_key,
+            o_key,
         ]);
         let vals = builder.create_vector::<u32>(&[
             tile_val,
@@ -158,6 +161,7 @@ impl InfoTile {
             x_val,
             y_val,
             h_val,
+            o_val,
         ]);
 
         // Create boundary geometry

@@ -9,11 +9,7 @@
             "request": "launch",
             "name": "Debug executable 'pvt'",
             "cargo": {
-                "args": [
-                    "build",
-                    "--bin=pvt",
-                    "--package=planet-vector-tile"
-                ],
+                "args": ["build", "--bin=pvt", "--package=planet-vector-tile"],
                 "filter": {
                     "name": "pvt",
                     "kind": "bin"
@@ -27,12 +23,7 @@
             "request": "launch",
             "name": "Debug unit tests in executable 'pvt'",
             "cargo": {
-                "args": [
-                    "test",
-                    "--no-run",
-                    "--bin=pvt",
-                    "--package=planet-vector-tile"
-                ],
+                "args": ["test", "--no-run", "--bin=pvt", "--package=planet-vector-tile"],
                 "filter": {
                     "name": "pvt",
                     "kind": "bin"
