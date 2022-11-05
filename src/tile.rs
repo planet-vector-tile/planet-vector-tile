@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use fast_hilbert::{h2xy, xy2h};
 use queue::Queue;
 use std::{fmt, ops::Range};
@@ -392,7 +394,7 @@ impl Tile {
 
 #[inline(always)]
 pub fn tile_count_for_zoom(z: u8) -> u32 {
-    1 << (2 * 8)
+    1 << (2 * z)
 }
 
 impl Eq for Tile {}
@@ -445,7 +447,7 @@ pub enum HilbertBearing {
 
 #[cfg(test)]
 mod tests {
-    use crate::location::lonlat_to_xy;
+    // use crate::location::lonlat_to_xy;
 
     use super::*;
     
@@ -505,8 +507,11 @@ mod tests {
         assert_eq!(barrow.at_zoom(9).h, 6144);
         assert_eq!(barrow.at_zoom(10).h, 24576);
 
-        let xy = lonlat_to_xy((-1220279745, 370491457));
-        let cavallero = Tile::from_zxy(32, xy.0, xy.1);
+        // "z": 28,
+        // "x": 43227083,
+        // "y": 104437248,
+        // "h": 14298523837747280
+        let cavallero = Tile::from_zh(28, 14298523837747280);
 
         assert_eq!(cavallero.at_zoom(4).h, 50);
         assert_eq!(cavallero.at_zoom(3).h, 12);

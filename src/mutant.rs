@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use std::fs::File;
 use std::{marker::PhantomData, path::{Path, PathBuf}, fs::OpenOptions};
 use std::io::Result;
