@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 
+use fast_hilbert::{h2xy, xy2h};
 use std::f64::consts::PI;
-use fast_hilbert::{xy2h, h2xy};
 
 /// Projects dm7 lonlat to Web Mercator points in float space (0.0 -> 1.0).
 fn project_lonlat_to_mercator(lonlat: (i32, i32)) -> (f64, f64) {
@@ -9,7 +9,7 @@ fn project_lonlat_to_mercator(lonlat: (i32, i32)) -> (f64, f64) {
     let lat = lonlat.1 as f64 / 10_000_000f64;
     let mut x = lon / 360.0 + 0.5;
 
-    let mut y= lat * PI / 180.0;
+    let mut y = lat * PI / 180.0;
     y = (1.0 - (y.tan() + (1.0 / y.cos())).ln() / PI) / 2.0;
 
     if x < 0.0 {
@@ -30,10 +30,10 @@ fn project_lonlat_to_mercator(lonlat: (i32, i32)) -> (f64, f64) {
 
 fn project_mercator_to_lonlat(xy: (f64, f64)) -> (i32, i32) {
     let x = xy.0;
-    let y = xy.1;
+    let y = 180.0 - xy.1 * 360.0; // Flip y axis
 
     let lon = x * 360.0 - 180.0;
-    let lat = f64::atan(f64::sinh(PI * (1.0 - 2.0 * y))) * 180.0 / PI;
+    let lat = 360.0 / PI * (y * PI / 180.0).exp().atan() - 90.0;
 
     let lon = (lon * 10_000_000f64) as i32;
     let lat = (lat * 10_000_000f64) as i32;
@@ -41,10 +41,9 @@ fn project_mercator_to_lonlat(xy: (f64, f64)) -> (i32, i32) {
     (lon, lat)
 }
 
-
 pub fn lonlat_to_xy(lonlat: (i32, i32)) -> (u32, u32) {
     let floats = project_lonlat_to_mercator(lonlat);
-    
+
     let x = (floats.0 as f64 * (u32::MAX as f64)) as u32;
     let y = (floats.1 as f64 * (u32::MAX as f64)) as u32;
     (x, y)
@@ -160,6 +159,35 @@ mod tests {
 
         assert!(merc.0 > 0.16103339195251465 && merc.0 < 0.16103363037109375);
         assert!(merc.1 > 0.38905906677246094 && merc.1 < 0.38905930519104004);
-        }
+    }
 
+    #[test]
+    pub fn test_project_mercator_to_lonlat_cavallero() {
+        // Cavallero Transit Center
+        // -122.0279745, 37.0491457,
+        let lonlat = (-1220279745, 370491457);
+        let merc = project_lonlat_to_mercator(lonlat);
+        let lonlat2 = project_mercator_to_lonlat(merc);
+        assert_eq!(lonlat.0, lonlat2.0);
+        // slight loss in precision
+        assert_eq!(lonlat.1 / 10, lonlat2.1 / 10);
+    }
+
+    #[test]
+    pub fn test_project_mercator_to_lonlat() {
+        let merc = (0.5, 0.5);
+        let lonlat = project_mercator_to_lonlat(merc);
+        assert_eq!(lonlat, (0, 0));
+
+        let merc = (0.0, 0.0);
+        let lonlat = project_mercator_to_lonlat(merc);
+        // Remember, y axis is flipped.
+        // Also, this number is correct.
+        // See https://en.wikipedia.org/wiki/Web_Mercator_projection
+        assert_eq!(lonlat, (-1800000000, 850511287));
+
+        let merc = (1.0, 1.0);
+        let lonlat = project_mercator_to_lonlat(merc);
+        assert_eq!(lonlat, (1800000000, -850511287));
+    }
 }
