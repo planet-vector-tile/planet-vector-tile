@@ -261,13 +261,7 @@ impl Tile {
     }
 
     pub fn axis_tile_count(&self) -> f64 {
-        if self.z == 0 {
-            1_f64
-        } else if self.z == 32 {
-            U32_SIZE
-        } else {
-            (2u32 << (self.z - 1) as u32) as f64
-        }
+        axis_tile_count(self.z)
     }
 
     // Projects a point from location space to tile space.
@@ -397,9 +391,24 @@ impl Tile {
     }
 }
 
-#[inline(always)]
-pub fn tile_count_for_zoom(z: u8) -> u32 {
-    1 << (2 * z)
+pub fn axis_tile_count(z: u8) -> f64 {
+    if z == 0 {
+        1_f64
+    } else if z == 32 {
+        U32_SIZE
+    } else {
+        (2u32 << (z - 1) as u32) as f64
+    }
+}
+
+pub fn tile_count_for_zoom(z: u8) -> u128 {
+    if z == 0 {
+        1_u128
+    } else if z == 32 {
+        u64::MAX as u128 + 1
+    } else {
+        1_u128 << (2 * z)
+    }
 }
 
 impl Eq for Tile {}
@@ -605,5 +614,25 @@ mod tests {
         let range3 = t.h_range_for_zoom(12);
         assert_eq!(range3.start, 3_329_088);
         assert_eq!(range3.end, 3_329_152);
+    }
+
+    #[test]
+    fn test_axis_tile_count() {
+        assert_eq!(axis_tile_count(0), 1_f64);
+        assert_eq!(axis_tile_count(1), 2_f64);
+        assert_eq!(axis_tile_count(2), 4_f64);
+        assert_eq!(axis_tile_count(3), 8_f64);
+        assert_eq!(axis_tile_count(31), 2147483648_f64);
+        assert_eq!(axis_tile_count(32), 4294967296_f64);
+    }
+
+    #[test]
+    fn test_tile_count_for_zoom() {
+        assert_eq!(tile_count_for_zoom(0), 1_u128);
+        assert_eq!(tile_count_for_zoom(1), 4_u128);
+        assert_eq!(tile_count_for_zoom(2), 16_u128);
+        assert_eq!(tile_count_for_zoom(3), 64_u128);
+        assert_eq!(tile_count_for_zoom(31), 4611686018427387904_u128);
+        assert_eq!(tile_count_for_zoom(32), 18446744073709551616_u128);
     }
 }
