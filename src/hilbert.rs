@@ -79,7 +79,6 @@ fn build_leaves(
         )));
     }
 
-    let mut t_i: usize = 0; // tile index
     let mut n_i: usize = 0; // node hilbert pair index
     let mut w_i: usize = 0; // way hilbert pair index
 
@@ -116,16 +115,17 @@ fn build_leaves(
     let way_pairs_len = way_pairs.len();
 
     // First tile
-    leaves[t_i] = LeafTile {
+    leaves[0] = LeafTile {
         first_entity_idx: NWR { n: 0, w: 0, r: 0 },
         first_chunk_idx: NWRChunk { n: 0, w: 0, r: 0 },
         tile_h,
     };
+    let mut t_i = 1;
 
     let mut node_tile_h = tile_h;
     let mut way_tile_h = tile_h;
 
-    while n_i < node_pairs_len || w_i < way_pairs_len {
+    loop {
         let mut next_tile_h = None;
 
         while n_i < node_pairs_len && node_tile_h == tile_h {
@@ -153,14 +153,27 @@ fn build_leaves(
         }
 
         if let Some(next_tile_h) = next_tile_h {
+            leaves[t_i] = LeafTile {
+                first_entity_idx: NWR {
+                    n: n_i as u64,
+                    w: w_i as u32,
+                    r: 0,
+                },
+                first_chunk_idx: NWRChunk {
+                    n: 0,
+                    w: 0,
+                    r: 0,
+                },
+                tile_h: next_tile_h,
+            };
             tile_h = next_tile_h;
+            t_i += 1;
         } else {
             break;
         }
-
-        t_i += 1;
     }
 
+    // The last increment of t_i falls through both whiles, so it is equal to the length.
     m_leaves.set_len(t_i);
     m_leaves.trim();
     Ok(m_leaves)
