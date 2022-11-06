@@ -56,14 +56,13 @@ pub fn xy_to_lonlat(xy: (u32, u32)) -> (i32, i32) {
     project_mercator_to_lonlat((x, y))
 }
 
-/// Only use this for debugging. There is precision loss. Stay in DM7 when possible.
+/// There is precision loss here. Stay in DM7 when possible.
 pub fn lonlat_to_decimal_lonlat(lonlat: (i32, i32)) -> (f64, f64) {
     let dlon = lonlat.0 as f64 / 10_000_000f64;
     let dlat = lonlat.1 as f64 / 10_000_000f64;
     (dlon, dlat)
 }
 
-/// Only use this for debugging. There is precision loss. Stay in DM7 when possible.
 pub fn decimal_lonlat_to_lonlat(lonlat: (f64, f64)) -> (i32, i32) {
     let lon = (lonlat.0 * 10_000_000f64) as i32;
     let lat = (lonlat.1 * 10_000_000f64) as i32;
@@ -130,20 +129,6 @@ mod tests {
     }
 
     #[test]
-    pub fn test_lonlat_to_xy() {
-        let lonlat = (0, 0);
-        let xy = lonlat_to_xy(lonlat);
-        assert_eq!(xy, (i32::MAX as u32, i32::MAX as u32));
-    }
-
-    #[test]
-    pub fn test_xy_to_lonlat() {
-        let xy = (i32::MAX as u32, i32::MAX as u32);
-        let lonlat = xy_to_lonlat(xy);
-        assert_eq!(lonlat, (0, 0));
-    }
-
-    #[test]
     pub fn test_project_is_in_tile() {
         // Cavallero Transit Center
         // -122.0279745, 37.0491457,
@@ -190,4 +175,61 @@ mod tests {
         let lonlat = project_mercator_to_lonlat(merc);
         assert_eq!(lonlat, (1800000000, -850511287));
     }
+
+    #[test]
+    pub fn test_lonlat_to_xy() {
+        let lonlat = (0, 0);
+        let xy = lonlat_to_xy(lonlat);
+        assert_eq!(xy, (i32::MAX as u32, i32::MAX as u32));
+
+        // Cavallero Transit Center
+        let lonlat = (-1220279745, 370491457);
+        let xy = lonlat_to_xy(lonlat);
+        assert_eq!(xy, (691633204, 1670996018));
+
+        // Origin
+        let lonlat = (-1800000000, 900000000);
+        let xy = lonlat_to_xy(lonlat);
+        assert_eq!(xy, (0, 0));
+
+        // End of the world
+        let lonlat = (1800000000, -900000000);
+        let xy = lonlat_to_xy(lonlat);
+        assert_eq!(xy, (u32::MAX, u32::MAX));
+    }
+
+    #[test]
+    pub fn test_xy_to_lonlat() {
+        let xy = (i32::MAX as u32, i32::MAX as u32);
+        let lonlat = xy_to_lonlat(xy);
+        assert_eq!(lonlat, (0, 0));
+
+        // Cavallero Transit Center
+        let xy = (691633204, 1670996018);
+        let lonlat = xy_to_lonlat(xy);
+        assert_eq!(lonlat, (-1220279745, 370491457));
+
+        // Origin
+        let xy = (0, 0);
+        let lonlat = xy_to_lonlat(xy);
+        assert_eq!(lonlat, (-1800000000, 850511287));
+
+        // End of the world
+        let xy = (u32::MAX, u32::MAX);
+        let lonlat = xy_to_lonlat(xy);
+        assert_eq!(lonlat, (1800000000, -850511287));
+    }
+
+    // #[test]
+    // pub fn test_lonlat_to_h() {
+    //     let lonlat = (-180, 90);
+    //     let h = lonlat_to_h(lonlat);
+    //     assert_eq!(h, 0);
+
+    //     // // Cavallero Transit Center
+    //     // let lonlat = (-1220279745, 370491457);
+    //     // let h = lonlat_to_h(lonlat);
+    //     // assert_eq!(h, 0x8a0a0a0a0a0a0a0a);
+    // }
+
 }
