@@ -1,7 +1,10 @@
 #![allow(dead_code)]
 
+use crate::location;
 use crate::mutant::Mutant;
 use crate::osmflat::osmflat_generated::osm::{HilbertNodePair, HilbertWayPair};
+use crate::tile;
+use log::info;
 use std::cell::Cell;
 use std::io::{Error, ErrorKind};
 use std::path::Path;
@@ -10,7 +13,7 @@ use std::path::Path;
 // 4^16 = 4,294,967,296
 // 2^32 = 4,294,967,296
 
-pub struct HilbertTiles {
+pub struct HilbertTree {
     leaf_zoom: u8,
     tree: Cell<Mutant<NodeTile>>,
     leaves: Cell<Mutant<LeafTile>>,
@@ -19,7 +22,7 @@ pub struct HilbertTiles {
     r_chunks: Cell<Mutant<Chunk>>,
 }
 
-impl HilbertTiles {
+impl HilbertTree {
     pub fn build(dir: &Path, leaf_zoom: u8) -> Result<Self, Box<dyn std::error::Error>> {
         // Leaf zoom must be even
         if leaf_zoom & 1 != 0 {
@@ -27,6 +30,16 @@ impl HilbertTiles {
             return Err(Box::new(Error::new(
                 ErrorKind::Other,
                 "Leaf zoom must be even!",
+            )));
+        }
+
+        // To save space, we store the hilbert values in a u32,
+        // so the highest zoom guaranteeing no overflow is 16.
+        if leaf_zoom > 16 {
+            eprintln!("Leaf zoom too high! Must be <= 16 z: {}", leaf_zoom);
+            return Err(Box::new(Error::new(
+                ErrorKind::Other,
+                "Leaf zoom too high! Must be <= 16",
             )));
         }
 
@@ -59,37 +72,41 @@ fn build_leaves(
     let node_pairs = m_node_pairs.slice();
     let way_pairs = m_way_pairs.slice();
 
+    if node_pairs.len() == 0 && way_pairs.len() == 0 {
+        return Err(Box::new(Error::new(
+            ErrorKind::Other,
+            "No hilbert pairs found! Cannot build hilbert tiles.",
+        )));
+    }
+
+    let mut t_i: usize = 0; // tile index
+    let mut n_i: usize = 0; // node hilbert pair index
+    let mut w_i: usize = 0; // way hilbert pair index
+
+    let mut lowest_h = 0;
+
     // Find the lowest hilbert tile
-    // NHTODO Yuck, how do I do this nicely in Rust?
-    let mut lowest_h_opt = None;
     if let Some(first_node_pair) = node_pairs.first() {
-        lowest_h_opt = Some(first_node_pair.h());
+        lowest_h = first_node_pair.h();
+        n_i = 1;
     }
     if let Some(first_way_pair) = way_pairs.first() {
         let first_way_h = first_way_pair.h();
-        if let Some(lh) = lowest_h_opt {
-            if first_way_h < lh {
-                lowest_h_opt = Some(first_way_h);
-            }
+        if first_way_h < lowest_h {
+            lowest_h = first_way_h;
+            w_i = 1;
+            n_i = 0;
         }
     }
 
-    if lowest_h_opt.is_none() {
-        return Err(Box::new(Error::new(
-            ErrorKind::NotFound,
-            "No hilbert pairs found!",
-        )));
-    }
-    let lowest_h = lowest_h_opt.unwrap();
+    info!("lowest_h for leaves in hilbert tree: {}", lowest_h);
 
-    println!("lowest_h {}", lowest_h);
+    // First leaf Hilbert tile has the lowest hilbert location.
+    let mut tile_h = location::h_to_zoom_h(lowest_h, leaf_zoom) as u32;
+    info!("lowest tile_h for leaves in hilbert tree: {}, leaf_zoom: {}", lowest_h, leaf_zoom);
 
-    let mut tile_h = zoom_h(lowest_h, 32, leaf_zoom);
-    let mut t_i: usize = 0;
-    let mut n_i: usize = 0;
-    let mut w_i: usize = 0;
-
-    let max_len = tile_count_for_zoom(leaf_zoom);
+    // NHTODO Implement the ability to grow the LeafTile mutant so that we don't have to allocate max size upfront?
+    let max_len = tile::tile_count_for_zoom(leaf_zoom) as usize;
     let mut m_leaves = Mutant::<LeafTile>::new(dir, "hilbert_leaves", max_len)?;
     let leaves = m_leaves.mutable_slice();
 
@@ -98,71 +115,55 @@ fn build_leaves(
     let way_pairs = m_way_pairs.slice();
     let way_pairs_len = way_pairs.len();
 
+    // First tile
+    leaves[t_i] = LeafTile {
+        first_entity_idx: NWR { n: 0, w: 0, r: 0 },
+        first_chunk_idx: NWRChunk { n: 0, w: 0, r: 0 },
+        tile_h,
+    };
+
+    let mut node_tile_h = tile_h;
+    let mut way_tile_h = tile_h;
+
     while n_i < node_pairs_len || w_i < way_pairs_len {
-        leaves[t_i] = LeafTile {
-            first_entity_idx: NWR {
-                n: n_i as u64,
-                w: w_i as u32,
-                r: 0,
-            },
-            first_chunk_idx: NWRChunk { n: 0, w: 0, r: 0 },
-            tile_h,
-        };
-        n_i += 1;
-        w_i += 1;
+        let mut next_tile_h = None;
 
-        let mut node_tile_h = tile_h;
-        let mut way_tile_h = tile_h;
-
-        while n_i < node_pairs_len {
+        while n_i < node_pairs_len && node_tile_h == tile_h {
             let p = &node_pairs[n_i];
             let node_h = p.h();
-            node_tile_h = zoom_h(node_h, 32, leaf_zoom);
+            node_tile_h = location::h_to_zoom_h(node_h, leaf_zoom) as u32;
             if node_tile_h > tile_h {
+                next_tile_h = Some(node_tile_h);
                 break;
             }
             n_i += 1;
         }
 
-        while w_i < way_pairs_len {
+        while w_i < way_pairs_len && way_tile_h == tile_h {
             let p = &way_pairs[w_i];
             let way_h = p.h();
-            way_tile_h = zoom_h(way_h, 32, leaf_zoom);
+            way_tile_h = location::h_to_zoom_h(way_h, leaf_zoom) as u32;
             if way_tile_h > tile_h {
+                if way_tile_h < node_tile_h {
+                    next_tile_h = Some(way_tile_h);
+                }
                 break;
             }
             w_i += 1;
         }
 
-        let mut next_tile_h = node_tile_h;
-
-        if way_tile_h > tile_h && way_tile_h < next_tile_h {
-            next_tile_h = way_tile_h
-        }
-
-        // then do the same for relations
-
-        if next_tile_h == tile_h {
+        if let Some(next_tile_h) = next_tile_h {
+            tile_h = next_tile_h;
+        } else {
             break;
         }
 
-        debug_assert!(next_tile_h > tile_h);
-
-        tile_h = next_tile_h;
         t_i += 1;
     }
 
     m_leaves.set_len(t_i);
     m_leaves.trim();
     Ok(m_leaves)
-}
-
-fn zoom_h(h: u64, from_z: u8, to_z: u8) -> u32 {
-    (h >> 2 * (from_z - to_z)) as u32
-}
-
-fn tile_count_for_zoom(z: u8) -> usize {
-    1 << (2 * (z as usize))
 }
 
 struct NWR {
@@ -216,7 +217,7 @@ unsafe fn to_bytes<T: Sized>(p: &T) -> &[u8] {
 
 #[cfg(test)]
 mod tests {
-    use std::path::PathBuf;
+    use std::{path::PathBuf, collections::HashSet};
 
     use super::*;
 
@@ -267,6 +268,21 @@ mod tests {
     }
 
     #[test]
+    fn test_4nodes_leaf_tiles() {
+        let dir = PathBuf::from("./test/fixtures/4nodes/archive");
+        let m_node_pairs = Mutant::<HilbertNodePair>::open(&dir, "hilbert_node_pairs", true).unwrap();
+        let node_pairs = m_node_pairs.slice();
+        let mut leaf_tiles = HashSet::<u32>::new();
+        for p in node_pairs {
+            let zoom_h = location::h_to_zoom_h(p.h(), 12) as u32;
+            leaf_tiles.insert(zoom_h);
+            // println!("{:?} zoom_h: {}", p, zoom_h);
+        }
+        // Should be a total of 3 unique tiles for the 4 nodes.
+        assert_eq!(leaf_tiles.len(), 3);
+    }
+
+    #[test]
     fn test_build_leaves() {
         let dir = PathBuf::from("./test/fixtures/4nodes/archive");
         let m_node_pairs =
@@ -275,7 +291,7 @@ mod tests {
 
         let m_leaves = build_leaves(&m_node_pairs, &m_way_pairs, &dir, 12).unwrap();
 
-        // This is wrong
-        assert_eq!(m_leaves.len, 1);
+        // We know there are 3 unique leaf tiles for the 4 nodes.
+        assert_eq!(m_leaves.len, 3);
     }
 }

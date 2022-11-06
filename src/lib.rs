@@ -83,7 +83,7 @@ pub async fn pvt() -> Result<()> {
     let dir = args.output.clone();
     let archive = osmflat::convert(&args).unwrap_or_else(quit);
     sort_archive::sort(archive, &dir).unwrap_or_else(quit);
-    hilbert::HilbertTiles::build(&dir, args.leafzoom).unwrap_or_else(quit);
+    hilbert::HilbertTree::build(&dir, args.leafzoom).unwrap_or_else(quit);
     Ok(())
 }
 

@@ -1,6 +1,5 @@
 use std::{io::{Error, ErrorKind, Stdout}, path::PathBuf, time::Instant};
 use geo::{coord, Polygon};
-use fast_hilbert::xy2h;
 use geo::algorithm::interior_point::InteriorPoint;
 use geo::geometry::{Coordinate, LineString};
 use log::info;
