@@ -3,6 +3,9 @@
 use fast_hilbert::{h2xy, xy2h};
 use std::f64::consts::PI;
 
+const I32_SIZE: u32 = i32::MAX as u32 + 1;
+const U32_SIZE: f64 = u32::MAX as f64 + 1.0;
+
 /// Projects dm7 lonlat to Web Mercator points in float space (0.0 -> 1.0).
 fn project_lonlat_to_mercator(lonlat: (i32, i32)) -> (f64, f64) {
     let lon = lonlat.0 as f64 / 10_000_000f64;
@@ -44,14 +47,14 @@ fn project_mercator_to_lonlat(xy: (f64, f64)) -> (i32, i32) {
 pub fn lonlat_to_xy(lonlat: (i32, i32)) -> (u32, u32) {
     let floats = project_lonlat_to_mercator(lonlat);
 
-    let x = (floats.0 as f64 * (u32::MAX as f64)) as u32;
-    let y = (floats.1 as f64 * (u32::MAX as f64)) as u32;
+    let x = (floats.0 as f64 * U32_SIZE) as u32;
+    let y = (floats.1 as f64 * U32_SIZE) as u32;
     (x, y)
 }
 
 pub fn xy_to_lonlat(xy: (u32, u32)) -> (i32, i32) {
-    let x = xy.0 as f64 / (u32::MAX as f64);
-    let y = xy.1 as f64 / (u32::MAX as f64);
+    let x = xy.0 as f64 / U32_SIZE;
+    let y = xy.1 as f64 / U32_SIZE;
 
     project_mercator_to_lonlat((x, y))
 }
@@ -180,7 +183,7 @@ mod tests {
     pub fn test_lonlat_to_xy() {
         let lonlat = (0, 0);
         let xy = lonlat_to_xy(lonlat);
-        assert_eq!(xy, (i32::MAX as u32, i32::MAX as u32));
+        assert_eq!(xy, (I32_SIZE, I32_SIZE));
 
         // Cavallero Transit Center
         let lonlat = (-1220279745, 370491457);
@@ -220,16 +223,52 @@ mod tests {
         assert_eq!(lonlat, (1800000000, -850511287));
     }
 
-    // #[test]
-    // pub fn test_lonlat_to_h() {
-    //     let lonlat = (-180, 90);
-    //     let h = lonlat_to_h(lonlat);
-    //     assert_eq!(h, 0);
+    #[test]
+    pub fn test_lonlat_to_h() {
+        let lonlat = (-1800000000, 900000000);
+        let h = lonlat_to_h(lonlat);
+        assert_eq!(h, 0);
 
-    //     // // Cavallero Transit Center
-    //     // let lonlat = (-1220279745, 370491457);
-    //     // let h = lonlat_to_h(lonlat);
-    //     // assert_eq!(h, 0x8a0a0a0a0a0a0a0a);
-    // }
+        // Bering Strait
+        let lonlat = (1800000000, 900000000);
+        let xy = lonlat_to_xy(lonlat);
+        assert_eq!(xy, (u32::MAX, 0));
+
+        let h = xy2h(xy.0, xy.1, 32);
+        assert_eq!(h, u64::MAX);
+
+        let h = lonlat_to_h(lonlat);
+        assert_eq!(h, u64::MAX);
+    }
+
+    #[test]
+    pub fn test_lonlat_to_h_null_island() {
+        let lonlat = (0, 0);
+        let xy = lonlat_to_xy(lonlat);
+        assert_eq!(xy, (I32_SIZE, I32_SIZE));
+
+        // Null Island Tile
+        let t = Tile::from_zxy(1, 1, 1).at_zoom(32);
+        assert_eq!(t.x, i32::MAX as u32 + 1);
+        assert_eq!(t.y, i32::MAX as u32 + 1);
+        let null_island_h = t.h;
+
+        let h = lonlat_to_h(lonlat);
+        assert_eq!(h, null_island_h);
+    }
+
+    #[test]
+    pub fn test_lonlat_to_h_cavallero() {
+        // Cavallero Transit Center
+        let lonlat = (-1220279745, 370491457);
+        let xy = lonlat_to_xy(lonlat);
+        assert_eq!(xy, (691633204, 1670996018));
+
+        let h = lonlat_to_h(lonlat);
+        assert_eq!(h, 3660422102463285814);
+
+        let h2 = xy2h(xy.0, xy.1, 32);
+        assert_eq!(h, h2);
+    }
 
 }
