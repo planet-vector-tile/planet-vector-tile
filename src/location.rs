@@ -8,8 +8,9 @@ fn project_lonlat_to_mercator(lonlat: (i32, i32)) -> (f64, f64) {
     let lon = lonlat.0 as f64 / 10_000_000f64;
     let lat = lonlat.1 as f64 / 10_000_000f64;
     let mut x = lon / 360.0 + 0.5;
-    let mut y = lat * PI / 180.0;
-    y = 0.5 - 0.25 * (1.0 + y.sin() / (1.0 - y.sin())).ln() / PI;
+
+    let mut y= lat * PI / 180.0;
+    y = (1.0 - (y.tan() + (1.0 / y.cos())).ln() / PI) / 2.0;
 
     if x < 0.0 {
         x = 0.0;
@@ -144,16 +145,21 @@ mod tests {
     }
 
     #[test]
-    pub fn test_round_robin() {
+    pub fn test_project_is_in_tile() {
         // Cavallero Transit Center
         // -122.0279745, 37.0491457,
-        let dec_lonlat = (-122.0279745, 37.0491457);
-        let lonlat = decimal_lonlat_to_lonlat(dec_lonlat);
-        assert_eq!(lonlat, (-1220279745, 370491457));
+        let lonlat = (-1220279745, 370491457);
+        let merc = project_lonlat_to_mercator(lonlat);
+        println!("merc: {:?}", merc);
 
-        // let xy = lonlat_to_xy(lonlat);
-        // assert_eq!(xy, (0x7FFFFFFF, 0x7FFFFFFF));
+        let t = Tile::from_zxy(22, 675423, 1631832);
+        let tile_x = (merc.0 * t.axis_tile_count()) as u32;
+        let tile_y = (merc.1 * t.axis_tile_count()) as u32;
+        assert_eq!(tile_x, 675423);
+        assert_eq!(tile_y, 1631832);
 
-    }
+        assert!(merc.0 > 0.16103339195251465 && merc.0 < 0.16103363037109375);
+        assert!(merc.1 > 0.38905906677246094 && merc.1 < 0.38905930519104004);
+        }
 
 }

@@ -260,7 +260,7 @@ impl Tile {
         }
     }
 
-    fn axis_tile_count(&self) -> f64 {
+    pub fn axis_tile_count(&self) -> f64 {
         if self.z == 0 {
             1_f64
         } else if self.z == 32 {
