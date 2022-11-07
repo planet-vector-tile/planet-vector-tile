@@ -46,15 +46,58 @@ impl HilbertTree {
         let m_node_pairs = Mutant::<HilbertNodePair>::open(dir, "hilbert_node_pairs", true)?;
         let m_way_pairs = Mutant::<HilbertWayPair>::open(dir, "hilbert_way_pairs", true)?;
         let m_leaves = build_leaves(&m_node_pairs, &m_way_pairs, &dir, leaf_zoom)?;
+        
+        let leaves = m_leaves.slice();
+        let max_tree_len = maximum_tree_length(&leaves, leaf_zoom);
 
-        let tree = Mutant::<NodeTile>::new(dir, "hilbert_tree", 1000)?;
+        let mut m_tree = Mutant::<NodeTile>::new(dir, "hilbert_tree", max_tree_len)?;
+        let tree = m_tree.mutable_slice();
+
+
+
+        let mut z = leaf_zoom - 2;
+        let start_leaf = leaves.first().unwrap();
+        let mut start_parent_h = start_leaf.tile_h >> (2 * (leaf_zoom - 2));
+
+        // which child the leaf tile is from 0 -> 16
+        let child_idx = (start_leaf.tile_h & 0xf) as u16;
+        let child_bit = 1 << child_idx;
+        let mut children_mask = child_bit;
+
+        let mut first_child_idx = 0;
+        let mut tree_idx = 0;
+
+        for (leaf_i, leaf) in leaves[1..].iter().enumerate() {
+            let h = leaf.tile_h;
+            let child_idx: u16 = (h & 0xf) as u16;
+            let child_bit: u16 = (1 << child_idx) as u16;
+            let parent_h = h >> (2 * (leaf_zoom - 2));
+            if parent_h > start_parent_h {
+                // this leaf will be the start leaf for the next node
+                start_parent_h = parent_h;
+                tree[tree_idx] = NodeTile::new(first_child_idx, children_mask);
+                first_child_idx = leaf_i as u32;
+                tree_idx += 1;
+                
+                // reset to just be this first child we are seeing
+                children_mask = child_bit;
+            } else {
+                
+                // flip the child bit in the mask corresponding to the visited child
+                children_mask |= child_bit;
+            }
+        }
+        
+        m_tree.set_len(tree_idx);
+        m_tree.trim();
+
         let n_chunks = Mutant::<Chunk>::new(dir, "hilbert_n_chunks", 1000)?;
         let w_chunks = Mutant::<Chunk>::new(dir, "hilbert_w_chunks", 1000)?;
         let r_chunks = Mutant::<Chunk>::new(dir, "hilbert_r_chunks", 1000)?;
 
         Ok(Self {
             leaf_zoom,
-            tree: Cell::new(tree),
+            tree: Cell::new(m_tree),
             leaves: Cell::new(m_leaves),
             n_chunks: Cell::new(n_chunks),
             w_chunks: Cell::new(w_chunks),
@@ -102,7 +145,10 @@ fn build_leaves(
 
     // First leaf Hilbert tile has the lowest hilbert location.
     let mut tile_h = location::h_to_zoom_h(lowest_h, leaf_zoom) as u32;
-    info!("lowest tile_h for leaves in hilbert tree: {}, leaf_zoom: {}", lowest_h, leaf_zoom);
+    info!(
+        "lowest tile_h for leaves in hilbert tree: {}, leaf_zoom: {}",
+        lowest_h, leaf_zoom
+    );
 
     // NHTODO Implement the ability to grow the LeafTile mutant so that we don't have to allocate max size upfront?
     let max_len = tile::tile_count_for_zoom(leaf_zoom) as usize;
@@ -159,11 +205,7 @@ fn build_leaves(
                     w: w_i as u32,
                     r: 0,
                 },
-                first_chunk_idx: NWRChunk {
-                    n: 0,
-                    w: 0,
-                    r: 0,
-                },
+                first_chunk_idx: NWRChunk { n: 0, w: 0, r: 0 },
                 tile_h: next_tile_h,
             };
             tile_h = next_tile_h;
@@ -179,6 +221,28 @@ fn build_leaves(
     Ok(m_leaves)
 }
 
+fn maximum_tree_length(leaves: &[LeafTile], leaf_zoom: u8) -> usize {
+    if leaves.len() == 0 {
+        0
+    } else if leaves.len() == 1 {
+        (leaf_zoom / 2) as usize
+    } else {
+        let len = leaves.len();
+        let first = leaves[0].tile_h;
+        let last = leaves[len - 1].tile_h;
+        let mut potential_leaves = last - first + 1;
+        
+        let mut count = potential_leaves;
+        let mut zoom = leaf_zoom - 2;
+        while zoom > 0 {
+            potential_leaves = potential_leaves / 4;
+            count += potential_leaves;
+            zoom -= 2;
+        }
+        (count + 1) as usize
+    }
+}
+
 struct NWR {
     n: u64,
     w: u32,
@@ -191,10 +255,21 @@ struct LeafTile {
     tile_h: u32, // At the leaf zoom
 }
 
+#[derive(Debug)]
 struct NodeTile {
     first_chunk_idx: NWRChunk,
-    children_idx: u32,
+    first_child_idx: u32,
     children_mask: u16,
+}
+
+impl NodeTile {
+    fn new(first_child_idx: u32, children_mask: u16) -> Self {
+        Self {
+            first_chunk_idx: NWRChunk { n: 0, w: 0, r: 0 },
+            first_child_idx,
+            children_mask,
+        }
+    }
 }
 
 fn mask_has_children(mask: u16) -> bool {
@@ -209,6 +284,7 @@ fn mask_has(mask: u16, child_idx: u8) -> bool {
     (mask >> child_idx & 1) == 1
 }
 
+#[derive(Debug)]
 struct NWRChunk {
     n: u32, // offset, so it doesn't need to be u64
     w: u32,
@@ -230,7 +306,7 @@ unsafe fn to_bytes<T: Sized>(p: &T) -> &[u8] {
 
 #[cfg(test)]
 mod tests {
-    use std::{path::PathBuf, collections::HashSet};
+    use std::{collections::HashSet, path::PathBuf};
 
     use super::*;
 
@@ -283,7 +359,8 @@ mod tests {
     #[test]
     fn test_4nodes_leaf_tiles() {
         let dir = PathBuf::from("./test/fixtures/4nodes/archive");
-        let m_node_pairs = Mutant::<HilbertNodePair>::open(&dir, "hilbert_node_pairs", true).unwrap();
+        let m_node_pairs =
+            Mutant::<HilbertNodePair>::open(&dir, "hilbert_node_pairs", true).unwrap();
         let node_pairs = m_node_pairs.slice();
         let mut leaf_tiles = HashSet::<u32>::new();
         for p in node_pairs {
@@ -307,4 +384,55 @@ mod tests {
         // We know there are 3 unique leaf tiles for the 4 nodes.
         assert_eq!(m_leaves.len, 3);
     }
+
+    #[test]
+    #[ignore]
+    fn test_santacruz() {
+        let dir = PathBuf::from("/Users/n/geodata/flatdata/santacruz");
+        let m_node_pairs =
+            Mutant::<HilbertNodePair>::open(&dir, "hilbert_node_pairs", true).unwrap();
+        let m_way_pairs = Mutant::<HilbertWayPair>::open(&dir, "hilbert_way_pairs", true).unwrap();
+
+        let m_leaves = build_leaves(&m_node_pairs, &m_way_pairs, &dir, 12).unwrap();
+
+        assert_eq!(m_leaves.len, 189);
+
+        // let leaves = m_leaves.slice();
+        // for l in leaves {
+        //     println!("{:?}", l.tile_h);
+        // }
+
+        let mut tree = HilbertTree::build(&dir, 12).unwrap();
+        let m_node_tiles = tree.tree.get_mut();
+        let node_tiles = m_node_tiles.slice();
+        for t in node_tiles {
+            println!("{:?}", t);
+        }
+
+    }
+
+    #[test]
+    #[ignore]
+    fn test_asdf() {
+        let h =3329120;
+        let p = h >> 4;
+        println!("{:x?}", h);
+        println!("{:x?}", p);
+        println!("{}", p);
+
+
+        let mut hs = Vec::<u32>::new();
+        let mut ms = Vec::<u32>::new();
+        for h in 3329120..3329136 {
+        // for h in 3329124..3329136 {
+            hs.push(h);
+            let m = h & 0xf;
+            let leaf_m = m | 0x10;
+            ms.push(leaf_m);
+        }
+        println!("{:?}", hs);
+        println!("{:x?}", hs);
+        println!("{:x?}", ms);
+    }
+
 }
