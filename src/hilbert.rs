@@ -57,7 +57,7 @@ impl HilbertTree {
 
         let mut z = leaf_zoom - 2;
         let start_leaf = leaves.first().unwrap();
-        let mut start_parent_h = start_leaf.tile_h >> (2 * (leaf_zoom - 2));
+        let mut start_parent_h = start_leaf.tile_h >> (2 * (leaf_zoom - z));
 
         // which child the leaf tile is from 0 -> 16
         let child_idx = (start_leaf.tile_h & 0xf) as u16;
@@ -71,7 +71,7 @@ impl HilbertTree {
             let h = leaf.tile_h;
             let child_idx: u16 = (h & 0xf) as u16;
             let child_bit: u16 = (1 << child_idx) as u16;
-            let parent_h = h >> (2 * (leaf_zoom - 2));
+            let parent_h = h >> (2 * (leaf_zoom - z));
             if parent_h > start_parent_h {
                 // this leaf will be the start leaf for the next node
                 start_parent_h = parent_h;
@@ -397,10 +397,15 @@ mod tests {
 
         assert_eq!(m_leaves.len, 189);
 
-        // let leaves = m_leaves.slice();
-        // for l in leaves {
-        //     println!("{:?}", l.tile_h);
-        // }
+        let leaves = m_leaves.slice();
+        for l in leaves {
+            let h = l.tile_h;
+            println!("leaf tile_h {:?}", h);
+            let leaf_zoom = 12;
+            let z = 10;
+            let parent_h = h >> (2 * (leaf_zoom - z));
+            println!("leaf parent h {:?}", parent_h);
+        }
 
         let mut tree = HilbertTree::build(&dir, 12).unwrap();
         let m_node_tiles = tree.tree.get_mut();
