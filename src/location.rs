@@ -3,7 +3,8 @@
 use fast_hilbert::{h2xy, xy2h};
 use std::f64::consts::PI;
 
-const I32_SIZE: u32 = i32::MAX as u32 + 1;
+// i32 can contain 1 less value than u32 due to the fact that the MSB needs to store the sign.
+const I32_SIZE: f64 = u32::MAX as f64;
 const U32_SIZE: f64 = u32::MAX as f64 + 1.0;
 
 /// Projects dm7 lonlat to Web Mercator points in float space (0.0 -> 1.0).
@@ -53,8 +54,8 @@ pub fn lonlat_to_xy(lonlat: (i32, i32)) -> (u32, u32) {
 }
 
 pub fn xy_to_lonlat(xy: (u32, u32)) -> (i32, i32) {
-    let x = xy.0 as f64 / U32_SIZE;
-    let y = xy.1 as f64 / U32_SIZE;
+    let x = xy.0 as f64 / I32_SIZE;
+    let y = xy.1 as f64 / I32_SIZE;
 
     project_mercator_to_lonlat((x, y))
 }
@@ -181,9 +182,11 @@ mod tests {
 
     #[test]
     pub fn test_lonlat_to_xy() {
+        let middle = i32::MAX as u32 + 1;
+
         let lonlat = (0, 0);
         let xy = lonlat_to_xy(lonlat);
-        assert_eq!(xy, (I32_SIZE, I32_SIZE));
+        assert_eq!(xy, (middle, middle));
 
         // Cavallero Transit Center
         let lonlat = (-1220279745, 370491457);
@@ -194,11 +197,6 @@ mod tests {
         let lonlat = (-1800000000, 900000000);
         let xy = lonlat_to_xy(lonlat);
         assert_eq!(xy, (0, 0));
-
-        // End of the world
-        let lonlat = (1800000000, -900000000);
-        let xy = lonlat_to_xy(lonlat);
-        assert_eq!(xy, (u32::MAX, u32::MAX));
     }
 
     #[test]
@@ -216,9 +214,21 @@ mod tests {
         let xy = (0, 0);
         let lonlat = xy_to_lonlat(xy);
         assert_eq!(lonlat, (-1800000000, 850511287));
+    }
+
+    #[test]
+    pub fn test_lonlat_to_xy_and_back_again() {
+        // Origin
+        let xy = (0, 0);
+        let lonlat = xy_to_lonlat(xy);
+        let xy = lonlat_to_xy(lonlat);
+        assert_eq!(xy, (0, 11));
 
         // End of the world
-        let xy = (u32::MAX, u32::MAX);
+        let lonlat = (1800000000, -900000000);
+        let xy = lonlat_to_xy(lonlat);
+        assert_eq!(xy, (u32::MAX, u32::MAX));
+
         let lonlat = xy_to_lonlat(xy);
         assert_eq!(lonlat, (1800000000, -850511287));
     }
@@ -243,9 +253,11 @@ mod tests {
 
     #[test]
     pub fn test_lonlat_to_h_null_island() {
+        let middle = i32::MAX as u32 + 1;
+
         let lonlat = (0, 0);
         let xy = lonlat_to_xy(lonlat);
-        assert_eq!(xy, (I32_SIZE, I32_SIZE));
+        assert_eq!(xy, (middle, middle));
 
         // Null Island Tile
         let t = Tile::from_zxy(1, 1, 1).at_zoom(32);

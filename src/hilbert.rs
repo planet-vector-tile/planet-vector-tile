@@ -9,14 +9,55 @@ use std::cell::Cell;
 use std::io::{Error, ErrorKind};
 use std::path::Path;
 
-// 4^14 = 268,435,456
-// 4^16 = 4,294,967,296
-// 2^32 = 4,294,967,296
+// Leaves correspond to additional info we need to know about the tiles at the leaf level.
+// We need to know:
+//  - The indices into the nodes, ways, relations vectors.
+//  - The hilbert index that the given tile starts at. 
+// Though the hilbert index can be derived from the n,w,r by looking at the hilbert pairs,
+// This is referenced often, so this is simpler and saves us from paging into the entity 
+// (nodes, ways, relations) vectors unnecessarily.
+#[derive(Debug)]
+struct Leaf {
+    // Indices to the first node of the given leaf tile.
+    n: u64,
+    w: u32,
+    r: u32,
+    // Hilbert index for the leaf tile, at the leaf zoom
+    h: u32,
+}
+
+// Each vector tile corresponds to one of these tiles.
+//
+// n,w,r are the indices to the entity chunk vectors (n_chunks, w_chunks, r_chunks).
+// These are used to retrieve the chunks that tell us what chunks of the entity vectors
+// we need to retrieve to construct the given tile.
+//
+// The levels are descending, with the first level corresponding to the highest zoom,
+// in parity with the leaf vector. Each level is z - 2, allowing 16 children per tile.
+#[derive(Debug)]
+struct Tile {
+    // Indices to the first chunk of nodes, ways, relations, for the tile.
+    n: u32,
+    w: u32,
+    r: u32,
+    // Index of the first child of the tile.
+    child: u32,
+    // Bit mask denoting which of the 16 children for the given tile exist.
+    // MSB is index 15, MSB is index 0.
+    mask: u16,
+}
+
+// Chunks are offsets and run lengths of entities used for a given tile in the entity. 
+#[derive(Debug)]
+struct Chunk {
+    offset: u32, // offset from the w or r of the leaf tile
+    len: u32,
+}
 
 pub struct HilbertTree {
     leaf_zoom: u8,
-    tree: Cell<Mutant<NodeTile>>,
-    leaves: Cell<Mutant<LeafTile>>,
+    tiles: Cell<Mutant<Tile>>,
+    leaves: Cell<Mutant<Leaf>>,
     n_chunks: Cell<Mutant<Chunk>>,
     w_chunks: Cell<Mutant<Chunk>>,
     r_chunks: Cell<Mutant<Chunk>>,
@@ -29,7 +70,7 @@ impl HilbertTree {
             eprintln!("leaf zoom not even: {}", leaf_zoom);
             return Err(Box::new(Error::new(
                 ErrorKind::Other,
-                "Leaf zoom must be even!",
+                "leaf_zoom must be even!",
             )));
         }
 
@@ -45,56 +86,58 @@ impl HilbertTree {
 
         let m_node_pairs = Mutant::<HilbertNodePair>::open(dir, "hilbert_node_pairs", true)?;
         let m_way_pairs = Mutant::<HilbertWayPair>::open(dir, "hilbert_way_pairs", true)?;
+
         let m_leaves = build_leaves(&m_node_pairs, &m_way_pairs, &dir, leaf_zoom)?;
-        
-        let leaves = m_leaves.slice();
-        let max_tree_len = maximum_tree_length(&leaves, leaf_zoom);
 
-        let mut m_tree = Mutant::<NodeTile>::new(dir, "hilbert_tree", max_tree_len)?;
-        let tree = m_tree.mutable_slice();
+        let max_tiles_len = max_tiles_len(&m_leaves, leaf_zoom);
+        let mut m_tiles = Mutant::<Tile>::new(dir, "hilbert_tree", max_tiles_len)?;
+        let tiles = m_tiles.mutable_slice();
 
 
 
-        let mut z = leaf_zoom - 2;
-        let start_leaf = leaves.first().unwrap();
-        let mut start_parent_h = start_leaf.tile_h >> (2 * (leaf_zoom - z));
+        // let mut z = leaf_zoom - 2;
+        // let mut leaf_i = 0;
+        // let start_leaf = &leaves[leaf_i];
+        // let mut start_parent_h = start_leaf.tile_h >> (2 * (leaf_zoom - z));
 
-        // which child the leaf tile is from 0 -> 16
-        let child_idx = (start_leaf.tile_h & 0xf) as u16;
-        let child_bit = 1 << child_idx;
-        let mut children_mask = child_bit;
+        // // which child the leaf tile is from 0 -> 16
+        // let child_idx = (start_leaf.tile_h & 0xf) as u16;
+        // let child_bit = 1 << child_idx;
+        // let mut children_mask = child_bit;
 
-        let mut first_child_idx = 0;
-        let mut tree_idx = 0;
+        // let mut first_child_idx = 0;
+        // let mut tree_idx = 0;
 
-        let mut leaf_i = 1;
-        let leaves_len = leaves.len();
-        while leaf_i < leaves_len {
+        // leaf_i = 1;
+        // let leaves_len = leaves.len();
+        // while leaf_i < leaves_len {
 
-            let h = leaves[leaf_i].tile_h;
-            let child_idx: u16 = (h & 0xf) as u16;
-            let child_bit: u16 = (1 << child_idx) as u16;
-            let parent_h = h >> (2 * (leaf_zoom - z));
-            if parent_h > start_parent_h {
-                // this leaf will be the start leaf for the next node
-                start_parent_h = parent_h;
-                tree[tree_idx] = NodeTile::new(first_child_idx, children_mask);
-                first_child_idx = leaf_i as u32;
-                tree_idx += 1;
+        //     let h = leaves[leaf_i].tile_h;
+        //     let child_idx: u16 = (h & 0xf) as u16;
+        //     let child_bit: u16 = (1 << child_idx) as u16;
+        //     let parent_h = h >> (2 * (leaf_zoom - z));
+        //     if parent_h > start_parent_h {
+        //         // this leaf will be the start leaf for the next node
+        //         start_parent_h = parent_h;
+        //         tree[tree_idx] = NodeTile::new(first_child_idx, children_mask);
+        //         first_child_idx = leaf_i as u32;
+        //         tree_idx += 1;
                 
-                // reset to just be this first child we are seeing
-                children_mask = child_bit;
-            } else {
+        //         // reset to just be this first child we are seeing
+        //         children_mask = child_bit;
+        //     } else {
                 
-                // flip the child bit in the mask corresponding to the visited child
-                children_mask |= child_bit;
-            }
+        //         // flip the child bit in the mask corresponding to the visited child
+        //         children_mask |= child_bit;
+        //     }
 
-            leaf_i += 1;
-        }
-        
-        m_tree.set_len(tree_idx);
-        m_tree.trim();
+        //     leaf_i += 1;
+        // }
+
+        // let mut last_level_i = leaf_i;
+
+        // m_tiles.set_len(tile_idx);
+        // m_tiles.trim();
 
         let n_chunks = Mutant::<Chunk>::new(dir, "hilbert_n_chunks", 1000)?;
         let w_chunks = Mutant::<Chunk>::new(dir, "hilbert_w_chunks", 1000)?;
@@ -102,7 +145,7 @@ impl HilbertTree {
 
         Ok(Self {
             leaf_zoom,
-            tree: Cell::new(m_tree),
+            tiles: Cell::new(m_tiles),
             leaves: Cell::new(m_leaves),
             n_chunks: Cell::new(n_chunks),
             w_chunks: Cell::new(w_chunks),
@@ -116,7 +159,7 @@ fn build_leaves(
     m_way_pairs: &Mutant<HilbertWayPair>,
     dir: &Path,
     leaf_zoom: u8,
-) -> Result<Mutant<LeafTile>, Box<dyn std::error::Error>> {
+) -> Result<Mutant<Leaf>, Box<dyn std::error::Error>> {
     let node_pairs = m_node_pairs.slice();
     let way_pairs = m_way_pairs.slice();
 
@@ -157,7 +200,7 @@ fn build_leaves(
 
     // NHTODO Implement the ability to grow the LeafTile mutant so that we don't have to allocate max size upfront?
     let max_len = tile::tile_count_for_zoom(leaf_zoom) as usize;
-    let mut m_leaves = Mutant::<LeafTile>::new(dir, "hilbert_leaves", max_len)?;
+    let mut m_leaves = Mutant::<Leaf>::new(dir, "hilbert_leaves", max_len)?;
     let leaves = m_leaves.mutable_slice();
 
     let node_pairs = m_node_pairs.slice();
@@ -165,12 +208,14 @@ fn build_leaves(
     let way_pairs = m_way_pairs.slice();
     let way_pairs_len = way_pairs.len();
 
-    // First tile
-    leaves[0] = LeafTile {
-        first_entity_idx: NWR { n: 0, w: 0, r: 0 },
-        first_chunk_idx: NWRChunk { n: 0, w: 0, r: 0 },
-        tile_h,
+    // First leaf tile
+    leaves[0] = Leaf {
+        n: 0,
+        w: 0,
+        r: 0,
+        h: tile_h,
     };
+
     let mut t_i = 1;
 
     let mut node_tile_h = tile_h;
@@ -204,14 +249,11 @@ fn build_leaves(
         }
 
         if let Some(next_tile_h) = next_tile_h {
-            leaves[t_i] = LeafTile {
-                first_entity_idx: NWR {
-                    n: n_i as u64,
-                    w: w_i as u32,
-                    r: 0,
-                },
-                first_chunk_idx: NWRChunk { n: 0, w: 0, r: 0 },
-                tile_h: next_tile_h,
+            leaves[t_i] = Leaf {
+                n: n_i as u64,
+                w: w_i as u32,
+                r: 0,
+                h: next_tile_h,
             };
             tile_h = next_tile_h;
             t_i += 1;
@@ -226,15 +268,16 @@ fn build_leaves(
     Ok(m_leaves)
 }
 
-fn maximum_tree_length(leaves: &[LeafTile], leaf_zoom: u8) -> usize {
+fn max_tiles_len(m_leaves: &Mutant<Leaf>, leaf_zoom: u8) -> usize {
+    let leaves = m_leaves.slice();
     if leaves.len() == 0 {
         0
     } else if leaves.len() == 1 {
         (leaf_zoom / 2) as usize
     } else {
         let len = leaves.len();
-        let first = leaves[0].tile_h;
-        let last = leaves[len - 1].tile_h;
+        let first = leaves[0].h;
+        let last = leaves[len - 1].h;
         let mut potential_leaves = last - first + 1;
         
         let mut count = potential_leaves;
@@ -248,31 +291,14 @@ fn maximum_tree_length(leaves: &[LeafTile], leaf_zoom: u8) -> usize {
     }
 }
 
-struct NWR {
-    n: u64,
-    w: u32,
-    r: u32,
-}
-
-struct LeafTile {
-    first_entity_idx: NWR,
-    first_chunk_idx: NWRChunk,
-    tile_h: u32, // At the leaf zoom
-}
-
-#[derive(Debug)]
-struct NodeTile {
-    first_chunk_idx: NWRChunk,
-    first_child_idx: u32,
-    children_mask: u16,
-}
-
-impl NodeTile {
-    fn new(first_child_idx: u32, children_mask: u16) -> Self {
+impl Tile {
+    fn default() -> Self {
         Self {
-            first_chunk_idx: NWRChunk { n: 0, w: 0, r: 0 },
-            first_child_idx,
-            children_mask,
+            n: 0,
+            w: 0,
+            r: 0,
+            child: 0,
+            mask: 0
         }
     }
 }
@@ -289,22 +315,12 @@ fn mask_has(mask: u16, child_idx: u8) -> bool {
     (mask >> child_idx & 1) == 1
 }
 
-#[derive(Debug)]
-struct NWRChunk {
-    n: u32, // offset, so it doesn't need to be u64
-    w: u32,
-    r: u32,
-}
-
-struct Chunk {
-    offset: u32, // offset from the w or r of the leaf tile
-    len: u32,
-}
-
 // https://doc.rust-lang.org/nomicon/other-reprs.html
 // https://adventures.michaelfbryan.com/posts/deserializing-binary-data-files/
 // https://stackoverflow.com/questions/28127165/how-to-convert-struct-to-u8
-
+// We don't actually need to use this, but it is helpful for tests.
+// The mutant memmap vectors get allocated in bulk, and they are effectively this on disk.
+// No serde is necessary, due to the memmap mechanism.
 unsafe fn to_bytes<T: Sized>(p: &T) -> &[u8] {
     ::std::slice::from_raw_parts((p as *const T) as *const u8, ::std::mem::size_of::<T>())
 }
@@ -391,7 +407,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn test_santacruz() {
         let dir = PathBuf::from("/Users/n/geodata/flatdata/santacruz");
         let m_node_pairs =
@@ -402,20 +417,20 @@ mod tests {
 
         assert_eq!(m_leaves.len, 189);
 
-        // let leaves = m_leaves.slice();
-        // for l in leaves {
-        //     let h = l.tile_h;
-        //     println!("leaf tile_h {:?}", h);
-        //     let leaf_zoom = 12;
-        //     let z = 10;
-        //     let parent_h = h >> (2 * (leaf_zoom - z));
-        //     println!("leaf parent h {:?}", parent_h);
-        // }
+        let leaves = m_leaves.slice();
+        for l in leaves {
+            let h = l.h;
+            println!("leaf tile h {:?}", h);
+            let leaf_zoom = 12;
+            let z = 10;
+            let parent_h = h >> (2 * (leaf_zoom - z));
+            println!("leaf parent h {:?}", parent_h);
+        }
 
         let mut tree = HilbertTree::build(&dir, 12).unwrap();
-        let m_node_tiles = tree.tree.get_mut();
-        let node_tiles = m_node_tiles.slice();
-        for t in node_tiles {
+        let m_tiles = tree.tiles.get_mut();
+        let tiles = m_tiles.slice();
+        for t in tiles {
             println!("{:?}", t);
         }
 

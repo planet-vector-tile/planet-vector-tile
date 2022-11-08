@@ -34,7 +34,6 @@ cargo run -r -- --overwrite ~/geodata/extracts/santacruz.pbf ~/geodata/flatdata/
 
 Note that if you are not using a release build, the tool will run much more slowly.
 
-
 ## Run the Electron app.
 
 ```
