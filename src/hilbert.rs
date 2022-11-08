@@ -35,7 +35,7 @@ struct Leaf {
 // The levels are descending, with the first level corresponding to the highest zoom,
 // in parity with the leaf vector. Each level is z - 2, allowing 16 children per tile.
 #[derive(Debug)]
-struct Tile {
+struct HilbertTile {
     // Indices to the first chunk of nodes, ways, relations, for the tile.
     n: u32,
     w: u32,
@@ -56,7 +56,7 @@ struct Chunk {
 
 pub struct HilbertTree {
     leaf_zoom: u8,
-    tiles: Cell<Mutant<Tile>>,
+    tiles: Cell<Mutant<HilbertTile>>,
     leaves: Cell<Mutant<Leaf>>,
     n_chunks: Cell<Mutant<Chunk>>,
     w_chunks: Cell<Mutant<Chunk>>,
@@ -90,7 +90,7 @@ impl HilbertTree {
         let m_leaves = build_leaves(&m_node_pairs, &m_way_pairs, &dir, leaf_zoom)?;
 
         let max_tiles_len = max_tiles_len(&m_leaves, leaf_zoom);
-        let mut m_tiles = Mutant::<Tile>::new(dir, "hilbert_tree", max_tiles_len)?;
+        let mut m_tiles = Mutant::<HilbertTile>::new(dir, "hilbert_tree", max_tiles_len)?;
         let tiles = m_tiles.mutable_slice();
 
 
@@ -101,7 +101,7 @@ impl HilbertTree {
         for _ in leaves {
             // The default leaf has a 0 tile mask, 
             // which is needed to know we are at a leaf tile.
-            let t = Tile::default();
+            let t = HilbertTile::default();
             tiles[tiles_i] = t;
             tiles_i += 1;
         }
@@ -138,7 +138,7 @@ impl HilbertTree {
                     child_i += 1;
                 }
 
-                let mut t = Tile::default();
+                let mut t = HilbertTile::default();
 
                 // NHTODO Here is where we figure out chunk offsets.
 
@@ -334,7 +334,7 @@ const CHILD_POSITIONS: [u16; 16] = [
     0b1000000000000000,
 ];
 
-fn get_leaf_h(tiles_idx: usize, tiles: &[Tile], leaves: &[Leaf]) -> u32 {
+fn get_leaf_h(tiles_idx: usize, tiles: &[HilbertTile], leaves: &[Leaf]) -> u32 {
     let mut i = tiles_idx;
     let mut tile = &tiles[tiles_idx];
     while tile.mask != 0 {
@@ -351,7 +351,7 @@ fn leaf_to_tile_h(h: u32, leaf_zoom: u8, zoom: u8) -> u32 {
     h >> (2 * (leaf_zoom - zoom))
 }
 
-fn get_child_h(tiles_idx: usize, leaf_zoom: u8, zoom: u8, tiles: &[Tile], leaves: &[Leaf]) -> u32 {
+fn get_child_h(tiles_idx: usize, leaf_zoom: u8, zoom: u8, tiles: &[HilbertTile], leaves: &[Leaf]) -> u32 {
     let leaf_h = get_leaf_h(tiles_idx, tiles, leaves);
     leaf_to_tile_h(leaf_h, leaf_zoom, zoom)
 }
@@ -361,7 +361,7 @@ fn child_h_range_end(h: u32) -> u32 {
     start + 16
 }
 
-impl Tile {
+impl HilbertTile {
     fn default() -> Self {
         Self {
             n: 0,
