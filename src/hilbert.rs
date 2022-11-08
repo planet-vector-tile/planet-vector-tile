@@ -109,7 +109,7 @@ impl HilbertTree {
         let mut level_range = 0..tiles_i;
         z -= 2;
 
-        while z > 0 {
+        loop {
             println!("zoom {}", z);
             let level_start = tiles_i;
 
@@ -151,6 +151,10 @@ impl HilbertTree {
             }
             
             level_range = level_start..tiles_i;
+
+            if z == 0 {
+                break;
+            }
             z -= 2;
         }
 
