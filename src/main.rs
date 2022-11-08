@@ -33,7 +33,7 @@ fn main() {
 
     let archive = osmflat::convert(&args).unwrap_or_else(quit);
     sort_archive::sort(archive, &dir).unwrap_or_else(quit);
-    // hilbert::HilbertTiles::build(&dir, args.leafzoom).unwrap_or_else(quit);
+    hilbert::HilbertTree::build(&dir, args.leafzoom).unwrap_or_else(quit);
 
     println!("Total Time: {}", format_duration(time.elapsed()));
 }

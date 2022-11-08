@@ -28,7 +28,7 @@ pvt ~/geodata/extracts/california.osm.pbf ~/geodata/flatdata/california
 or
 
 ```
-cargo run -r -- ~/geodata/extracts/california.osm.pbf ~/geodata/flatdata/california
+cargo run -r -- --overwrite ~/geodata/extracts/california.osm.pbf ~/geodata/flatdata/california
 cargo run -r -- --overwrite ~/geodata/extracts/santacruz.pbf ~/geodata/flatdata/santacruz
 ```
 
