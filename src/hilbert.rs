@@ -7,7 +7,6 @@ use crate::tile;
 use log::info;
 use std::cell::Cell;
 use std::io::{Error, ErrorKind};
-use std::ops::Range;
 use std::path::Path;
 
 // Leaves correspond to additional info we need to know about the tiles at the leaf level.
@@ -108,9 +107,10 @@ impl HilbertTree {
         }
 
         let mut level_range = 0..tiles_i;
-        
         z -= 2;
-        while z >= 2 {
+
+        while z > 0 {
+            println!("zoom {}", z);
             let level_start = tiles_i;
 
             // The first child for the tile we are building.
@@ -144,6 +144,7 @@ impl HilbertTree {
 
                 t.child = first_child_i as u32;
                 t.mask = mask;
+                println!("h {} mask {:#018b} {:?}", tile_h, t.mask, t);
                 tiles[tiles_i] = t;
 
                 tiles_i += 1;
@@ -482,22 +483,22 @@ mod tests {
 
         assert_eq!(m_leaves.len, 189);
 
-        let leaves = m_leaves.slice();
-        for l in leaves {
-            let h = l.h;
-            println!("leaf tile h {:?}", h);
-            let leaf_zoom = 12;
-            let z = 10;
-            let parent_h = h >> (2 * (leaf_zoom - z));
-            println!("leaf parent h {:?}", parent_h);
-        }
+        // let leaves = m_leaves.slice();
+        // for l in leaves {
+        //     let h = l.h;
+        //     println!("leaf tile h {:?}", h);
+        //     let leaf_zoom = 12;
+        //     let z = 10;
+        //     let parent_h = h >> (2 * (leaf_zoom - z));
+        //     println!("leaf parent h {:?}", parent_h);
+        // }
 
         let mut tree = HilbertTree::build(&dir, 12).unwrap();
         let m_tiles = tree.tiles.get_mut();
         let tiles = m_tiles.slice();
-        for t in tiles {
-            println!("{:?}", t);
-        }
+        // for t in tiles {
+        //     println!("{:?}", t);
+        // }
 
     }
 
