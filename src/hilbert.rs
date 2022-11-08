@@ -310,11 +310,30 @@ fn max_tiles_len(m_leaves: &Mutant<Leaf>, leaf_zoom: u8) -> usize {
     }
 }
 
+const CHILD_POSITIONS: [u16; 16] = [
+    0b0000000000000001,
+    0b0000000000000010,
+    0b0000000000000100,
+    0b0000000000001000,
+    0b0000000000010000,
+    0b0000000000100000,
+    0b0000000001000000,
+    0b0000000010000000,
+    0b0000000100000000,
+    0b0000001000000000,
+    0b0000010000000000,
+    0b0000100000000000,
+    0b0001000000000000,
+    0b0010000000000000,
+    0b0100000000000000,
+    0b1000000000000000,
+];
+
 fn get_leaf_h(tiles_idx: usize, tiles: &[Tile], leaves: &[Leaf]) -> u32 {
     let mut i = tiles_idx;
     let mut tile = &tiles[tiles_idx];
     while tile.mask != 0 {
-        i = tile.mask as usize;
+        i = tile.child as usize;
         tile = &tiles[i];
     }
     if i > leaves.len() {
