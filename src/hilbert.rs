@@ -67,8 +67,11 @@ impl HilbertTree {
         let mut first_child_idx = 0;
         let mut tree_idx = 0;
 
-        for (leaf_i, leaf) in leaves[1..].iter().enumerate() {
-            let h = leaf.tile_h;
+        let mut leaf_i = 1;
+        let leaves_len = leaves.len();
+        while leaf_i < leaves_len {
+
+            let h = leaves[leaf_i].tile_h;
             let child_idx: u16 = (h & 0xf) as u16;
             let child_bit: u16 = (1 << child_idx) as u16;
             let parent_h = h >> (2 * (leaf_zoom - z));
@@ -86,6 +89,8 @@ impl HilbertTree {
                 // flip the child bit in the mask corresponding to the visited child
                 children_mask |= child_bit;
             }
+
+            leaf_i += 1;
         }
         
         m_tree.set_len(tree_idx);
@@ -397,15 +402,15 @@ mod tests {
 
         assert_eq!(m_leaves.len, 189);
 
-        let leaves = m_leaves.slice();
-        for l in leaves {
-            let h = l.tile_h;
-            println!("leaf tile_h {:?}", h);
-            let leaf_zoom = 12;
-            let z = 10;
-            let parent_h = h >> (2 * (leaf_zoom - z));
-            println!("leaf parent h {:?}", parent_h);
-        }
+        // let leaves = m_leaves.slice();
+        // for l in leaves {
+        //     let h = l.tile_h;
+        //     println!("leaf tile_h {:?}", h);
+        //     let leaf_zoom = 12;
+        //     let z = 10;
+        //     let parent_h = h >> (2 * (leaf_zoom - z));
+        //     println!("leaf parent h {:?}", parent_h);
+        // }
 
         let mut tree = HilbertTree::build(&dir, 12).unwrap();
         let m_node_tiles = tree.tree.get_mut();
