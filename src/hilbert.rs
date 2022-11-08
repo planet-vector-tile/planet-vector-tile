@@ -7,6 +7,7 @@ use crate::tile;
 use log::info;
 use std::cell::Cell;
 use std::io::{Error, ErrorKind};
+use std::ops::Range;
 use std::path::Path;
 
 // Leaves correspond to additional info we need to know about the tiles at the leaf level.
@@ -94,50 +95,68 @@ impl HilbertTree {
         let tiles = m_tiles.mutable_slice();
 
 
+        let mut z = leaf_zoom;
+        let mut tiles_i = 0;
 
-        // let mut z = leaf_zoom - 2;
-        // let mut leaf_i = 0;
-        // let start_leaf = &leaves[leaf_i];
-        // let mut start_parent_h = start_leaf.tile_h >> (2 * (leaf_zoom - z));
+        let leaves = m_leaves.slice();
+        for _ in leaves {
+            // The default leaf has a 0 tile mask, 
+            // which is needed to know we are at a leaf tile.
+            let t = Tile::default();
+            tiles[tiles_i] = t;
+            tiles_i += 1;
+        }
 
-        // // which child the leaf tile is from 0 -> 16
-        // let child_idx = (start_leaf.tile_h & 0xf) as u16;
-        // let child_bit = 1 << child_idx;
-        // let mut children_mask = child_bit;
+        let mut level_range = 0..tiles_i;
+        
+        z -= 2;
+        while z >= 2 {
+            let level_start = tiles_i;
 
-        // let mut first_child_idx = 0;
-        // let mut tree_idx = 0;
+            // The first child for the tile we are building.
+            let mut child_i = level_range.start;
 
-        // leaf_i = 1;
-        // let leaves_len = leaves.len();
-        // while leaf_i < leaves_len {
+            while child_i < level_range.end {
 
-        //     let h = leaves[leaf_i].tile_h;
-        //     let child_idx: u16 = (h & 0xf) as u16;
-        //     let child_bit: u16 = (1 << child_idx) as u16;
-        //     let parent_h = h >> (2 * (leaf_zoom - z));
-        //     if parent_h > start_parent_h {
-        //         // this leaf will be the start leaf for the next node
-        //         start_parent_h = parent_h;
-        //         tree[tree_idx] = NodeTile::new(first_child_idx, children_mask);
-        //         first_child_idx = leaf_i as u32;
-        //         tree_idx += 1;
-                
-        //         // reset to just be this first child we are seeing
-        //         children_mask = child_bit;
-        //     } else {
-                
-        //         // flip the child bit in the mask corresponding to the visited child
-        //         children_mask |= child_bit;
-        //     }
+                // The tile we are building.
+                let leaf_h = get_leaf_h(child_i, tiles, leaves);
+                let tile_h = leaf_to_tile_h(leaf_h, leaf_zoom, z);
+                let h_range_end = child_h_range_end(tile_h);
 
-        //     leaf_i += 1;
-        // }
+                let first_child_i = child_i;
+                let mut child_h: u32 = 0;
+                let mut mask: u16 = 0;
 
-        // let mut last_level_i = leaf_i;
+                while child_h < h_range_end  && child_i < level_range.end {
+                    child_h =  get_child_h(child_i, leaf_zoom, z + 2, tiles, leaves);
 
-        // m_tiles.set_len(tile_idx);
-        // m_tiles.trim();
+                    // Position of the possible children of the tile. 0 -> 16
+                    let child_pos = (child_h & 0xf) as u16;
+                    let child_bit = 1 << child_pos;
+                    mask |= child_bit;
+
+                    child_i += 1;
+                }
+
+                let mut t = Tile::default();
+
+                // NHTODO Here is where we figure out chunk offsets.
+
+                t.child = first_child_i as u32;
+                t.mask = mask;
+                tiles[tiles_i] = t;
+
+                tiles_i += 1;
+            }
+            
+            level_range = level_start..tiles_i;
+            z -= 2;
+        }
+
+        m_tiles.set_len(tiles_i);
+        m_tiles.trim();
+
+
 
         let n_chunks = Mutant::<Chunk>::new(dir, "hilbert_n_chunks", 1000)?;
         let w_chunks = Mutant::<Chunk>::new(dir, "hilbert_w_chunks", 1000)?;
@@ -216,7 +235,7 @@ fn build_leaves(
         h: tile_h,
     };
 
-    let mut t_i = 1;
+    let mut leaf_i = 1;
 
     let mut node_tile_h = tile_h;
     let mut way_tile_h = tile_h;
@@ -249,21 +268,21 @@ fn build_leaves(
         }
 
         if let Some(next_tile_h) = next_tile_h {
-            leaves[t_i] = Leaf {
+            leaves[leaf_i] = Leaf {
                 n: n_i as u64,
                 w: w_i as u32,
                 r: 0,
                 h: next_tile_h,
             };
             tile_h = next_tile_h;
-            t_i += 1;
+            leaf_i += 1;
         } else {
             break;
         }
     }
 
     // The last increment of t_i falls through both whiles, so it is equal to the length.
-    m_leaves.set_len(t_i);
+    m_leaves.set_len(leaf_i);
     m_leaves.trim();
     Ok(m_leaves)
 }
@@ -289,6 +308,33 @@ fn max_tiles_len(m_leaves: &Mutant<Leaf>, leaf_zoom: u8) -> usize {
         }
         (count + 1) as usize
     }
+}
+
+fn get_leaf_h(tiles_idx: usize, tiles: &[Tile], leaves: &[Leaf]) -> u32 {
+    let mut i = tiles_idx;
+    let mut tile = &tiles[tiles_idx];
+    while tile.mask != 0 {
+        i = tile.mask as usize;
+        tile = &tiles[i];
+    }
+    if i > leaves.len() {
+        println!("ohno");
+    }
+    leaves[i].h
+}
+
+fn leaf_to_tile_h(h: u32, leaf_zoom: u8, zoom: u8) -> u32 {
+    h >> (2 * (leaf_zoom - zoom))
+}
+
+fn get_child_h(tiles_idx: usize, leaf_zoom: u8, zoom: u8, tiles: &[Tile], leaves: &[Leaf]) -> u32 {
+    let leaf_h = get_leaf_h(tiles_idx, tiles, leaves);
+    leaf_to_tile_h(leaf_h, leaf_zoom, zoom)
+}
+
+fn child_h_range_end(h: u32) -> u32 {
+    let start = h << 4;
+    start + 16
 }
 
 impl Tile {
