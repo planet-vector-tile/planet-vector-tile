@@ -5,7 +5,7 @@ use crate::mutant::Mutant;
 use crate::osmflat::osmflat_generated::osm::{HilbertNodePair, HilbertWayPair};
 use crate::tile::{self, Tile};
 use log::info;
-use std::cell::Cell;
+use std::sync::Arc;
 use std::io::{Error, ErrorKind};
 use std::path::Path;
 
@@ -56,11 +56,11 @@ struct Chunk {
 
 pub struct HilbertTree {
     leaf_zoom: u8,
-    tiles: Cell<Mutant<HilbertTile>>,
-    leaves: Cell<Mutant<Leaf>>,
-    n_chunks: Cell<Mutant<Chunk>>,
-    w_chunks: Cell<Mutant<Chunk>>,
-    r_chunks: Cell<Mutant<Chunk>>,
+    tiles: Arc<Mutant<HilbertTile>>,
+    leaves: Arc<Mutant<Leaf>>,
+    n_chunks: Arc<Mutant<Chunk>>,
+    w_chunks: Arc<Mutant<Chunk>>,
+    r_chunks: Arc<Mutant<Chunk>>,
 }
 
 impl HilbertTree {
@@ -165,11 +165,11 @@ impl HilbertTree {
 
         Ok(Self {
             leaf_zoom,
-            tiles: Cell::new(m_tiles),
-            leaves: Cell::new(m_leaves),
-            n_chunks: Cell::new(n_chunks),
-            w_chunks: Cell::new(w_chunks),
-            r_chunks: Cell::new(r_chunks),
+            tiles: Arc::new(m_tiles),
+            leaves: Arc::new(m_leaves),
+            n_chunks: Arc::new(n_chunks),
+            w_chunks: Arc::new(w_chunks),
+            r_chunks: Arc::new(r_chunks),
         })
     }
 
@@ -341,9 +341,6 @@ fn get_leaf_h(tiles_idx: usize, tiles: &[HilbertTile], leaves: &[Leaf]) -> u32 {
     while tile.mask != 0 {
         i = tile.child as usize;
         tile = &tiles[i];
-    }
-    if i > leaves.len() {
-        println!("ohno");
     }
     leaves[i].h
 }
@@ -518,8 +515,8 @@ mod tests {
         //     println!("leaf parent h {:?}", parent_h);
         // }
 
-        let mut tree = HilbertTree::build(&dir, 12).unwrap();
-        let m_tiles = tree.tiles.get_mut();
+        let tree = HilbertTree::build(&dir, 12).unwrap();
+        let m_tiles = tree.tiles;
         let tiles = m_tiles.slice();
         // for t in tiles {
         //     println!("{:?}", t);
