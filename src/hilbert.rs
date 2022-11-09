@@ -96,11 +96,14 @@ impl HilbertTree {
         let mut z = leaf_zoom;
         let mut tiles_i = 0;
 
+        println!("zoom {} level_start {}", leaf_zoom, 0);
+
         let leaves = m_leaves.slice();
         for _ in leaves {
             // The default leaf has a 0 tile mask,
             // which is needed to know we are at a leaf tile.
             let t = HilbertTile::default();
+            println!("tiles_i {} h {} mask {:#018b} {:?}", tiles_i, leaves[tiles_i].h, t.mask, t);
             tiles[tiles_i] = t;
             tiles_i += 1;
         }
@@ -547,7 +550,7 @@ mod tests {
         //     println!("{:?}", t);
         // }
 
-        let vec_u8 = tree.compose_tile(Tile::from_zh(12, 3329090));
+        // let vec_u8 = tree.compose_tile(Tile::from_zh(12, 3329090));
 
 
     }
