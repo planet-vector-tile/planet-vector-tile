@@ -28,12 +28,11 @@ pvt ~/geodata/extracts/california.osm.pbf ~/geodata/flatdata/california
 or
 
 ```
-cargo run -r -- ~/geodata/extracts/california.osm.pbf ~/geodata/flatdata/california
+cargo run -r -- --overwrite ~/geodata/extracts/california.osm.pbf ~/geodata/flatdata/california
 cargo run -r -- --overwrite ~/geodata/extracts/santacruz.pbf ~/geodata/flatdata/santacruz
 ```
 
 Note that if you are not using a release build, the tool will run much more slowly.
-
 
 ## Run the Electron app.
 
