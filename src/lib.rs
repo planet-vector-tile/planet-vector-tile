@@ -50,7 +50,7 @@ impl Planet {
     pub async fn tile(&self, z: u8, x: u32, y: u32) -> Result<Uint8Array> {
         let tiles = self.tiles.clone();
         tokio::task::spawn(async move {
-            println!("tiles {:?}", tiles);
+            // println!("tiles {:?}", tiles);
 
             let tile = Tile::from_zxy(z, x, y);
             let vec_u8 = info_tile(tile, 4);

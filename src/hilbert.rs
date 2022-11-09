@@ -109,8 +109,8 @@ impl HilbertTree {
         z -= 2;
 
         loop {
-            println!("zoom {}", z);
             let level_start = tiles_i;
+            println!("zoom {} level_start {}", z, level_start);
 
             // The first child for the tile we are building.
             let mut child_i = level_range.start;
@@ -142,7 +142,7 @@ impl HilbertTree {
 
                 t.child = first_child_i as u32;
                 t.mask = mask;
-                println!("h {} mask {:#018b} {:?}", tile_h, t.mask, t);
+                println!("tiles_i {} h {} mask {:#018b} {:?}", tiles_i, tile_h, t.mask, t);
                 tiles[tiles_i] = t;
 
                 tiles_i += 1;
@@ -173,8 +173,24 @@ impl HilbertTree {
         })
     }
 
-    pub fn compose_tile(tile: Tile) -> Vec<u8> {
+    pub fn compose_tile(&self, tile: Tile) -> Vec<u8> {
+        let path = level_path(tile);
+        let hilbert_tiles = self.tiles.slice();
+
+        let mut hilbert_tile = hilbert_tiles.last().unwrap();
+        println!("root hilbert_tile {:?}", hilbert_tile);
+
+        let h: u32 = 0;
         
+        for &p in path.iter().rev() {
+            let child = hilbert_tile.child as usize;
+            let first_i = first_child_idx(hilbert_tile.mask) as usize;
+            let i = child + p as usize - first_i;
+            hilbert_tile = &hilbert_tiles[i as usize];
+            println!("i {} hilbert_tile {:?}", i, hilbert_tile);
+        }
+
+
         Vec::new()
     }
 }
@@ -377,6 +393,15 @@ impl HilbertTile {
     }
 }
 
+fn first_child_idx(mask: u16) -> u8{
+    for i in 0..16 {
+        if (mask >> i) & 1 == 1 {
+            return i;
+        }
+    }
+    0
+}
+
 fn mask_has_children(mask: u16) -> bool {
     mask != 0
 }
@@ -516,11 +541,15 @@ mod tests {
         // }
 
         let tree = HilbertTree::build(&dir, 12).unwrap();
-        let m_tiles = tree.tiles;
-        let tiles = m_tiles.slice();
+        // let m_tiles = tree.tiles;
+        // let tiles = m_tiles.slice();
         // for t in tiles {
         //     println!("{:?}", t);
         // }
+
+        let vec_u8 = tree.compose_tile(Tile::from_zh(12, 3329090));
+
+
     }
 
     #[test]
