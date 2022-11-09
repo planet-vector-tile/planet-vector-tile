@@ -3,9 +3,10 @@
 use crate::location;
 use crate::mutant::Mutant;
 use crate::osmflat::osmflat_generated::osm::{
-    HilbertNodePair, HilbertWayPair, Node, NodeIndex, TagIndex, Way,
+    HilbertNodePair, HilbertWayPair, Node, NodeIndex, Osm, TagIndex, Way,
 };
 use crate::tile::{self, Tile};
+use flatdata::FileResourceStorage;
 use log::info;
 use std::io::{Error, ErrorKind};
 use std::path::Path;
@@ -63,6 +64,7 @@ pub struct HilbertTree {
     n_chunks: Arc<Mutant<Chunk>>,
     w_chunks: Arc<Mutant<Chunk>>,
     r_chunks: Arc<Mutant<Chunk>>,
+    archive: Osm,
 }
 
 impl HilbertTree {
@@ -95,6 +97,8 @@ impl HilbertTree {
         let w_chunks = Mutant::<Chunk>::new(dir, "hilbert_w_chunks", 1000)?;
         let r_chunks = Mutant::<Chunk>::new(dir, "hilbert_r_chunks", 1000)?;
 
+        let archive = Osm::open(FileResourceStorage::new(dir))?;
+
         Ok(Self {
             leaf_zoom,
             tiles: Arc::new(m_tiles),
@@ -102,6 +106,7 @@ impl HilbertTree {
             n_chunks: Arc::new(n_chunks),
             w_chunks: Arc::new(w_chunks),
             r_chunks: Arc::new(r_chunks),
+            archive,
         })
     }
 
@@ -131,6 +136,8 @@ impl HilbertTree {
         let w_chunks = Mutant::<Chunk>::new(dir, "hilbert_w_chunks", 1000)?;
         let r_chunks = Mutant::<Chunk>::new(dir, "hilbert_r_chunks", 1000)?;
 
+        let archive = Osm::open(FileResourceStorage::new(dir))?;
+
         Ok(Self {
             leaf_zoom,
             tiles: Arc::new(m_tiles),
@@ -138,6 +145,7 @@ impl HilbertTree {
             n_chunks: Arc::new(n_chunks),
             w_chunks: Arc::new(w_chunks),
             r_chunks: Arc::new(r_chunks),
+            archive,
         })
     }
 

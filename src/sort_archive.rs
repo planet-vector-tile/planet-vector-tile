@@ -45,7 +45,7 @@ pub fn sort(archive: Osm, dir: &PathBuf) -> Result<(), Box<dyn std::error::Error
     info!("Sorting hilbert node pairs.");
     let t = Instant::now();
     let nodes_len = archive.nodes().len();
-    let node_pairs_mut = Mutant::<HilbertNodePair>::new(dir, "hilbert_node_pairs", nodes_len)?;
+    let node_pairs_mut = Mutant::<HilbertNodePair>::open(dir, "hilbert_node_pairs", true)?;
     let node_pairs = node_pairs_mut.mutable_slice();
     node_pairs.par_sort_unstable_by_key(|idx| idx.h());
     info!("Finished in {} secs.", t.elapsed().as_secs());
@@ -53,13 +53,11 @@ pub fn sort(archive: Osm, dir: &PathBuf) -> Result<(), Box<dyn std::error::Error
     // Reorder nodes to sorted hilbert node pairs.
     let mut pb = Prog::new("Reordering nodes. ", nodes_len);
     let nodes = archive.nodes();
-    let mut sorted_nodes_mut = Mutant::<Node>::new(&dir, "sorted_nodes", nodes_len)?;
+    let mut sorted_nodes_mut = Mutant::<Node>::new_from_flatdata(&dir, "sorted_nodes", "nodes")?;
     let sorted_nodes = sorted_nodes_mut.mutable_slice();
     let mut tag_counter: usize = 0;
     let tags_index = archive.tags_index();
-    let tags_index_len = tags_index.len();
-    let mut sorted_tags_index_mut =
-        Mutant::<TagIndex>::new(dir, "sorted_tags_index", tags_index_len)?;
+    let mut sorted_tags_index_mut = Mutant::<TagIndex>::new_from_flatdata(dir, "sorted_tags_index", "tags_index")?;
     let sorted_tags_index = sorted_tags_index_mut.mutable_slice();
     sorted_nodes.iter_mut().zip(node_pairs.iter_mut()).for_each(
         |(sorted_node, hilbert_node_pair)| {
@@ -83,13 +81,11 @@ pub fn sort(archive: Osm, dir: &PathBuf) -> Result<(), Box<dyn std::error::Error
 
     // Reorder ways to sorted hilbert way pairs.
     let mut pb = Prog::new("Reordering ways. ", ways_len);
-    let mut sorted_ways_mut = Mutant::<Way>::new(dir, "sorted_ways", ways_len)?;
+    let mut sorted_ways_mut = Mutant::<Way>::new_from_flatdata(dir, "sorted_ways", "ways")?;
     let sorted_ways = sorted_ways_mut.mutable_slice();
     let mut nodes_index_counter: usize = 0;
     let nodes_index = archive.nodes_index();
-    let nodes_index_len = nodes_index.len();
-    let mut sorted_nodes_index_mut =
-        Mutant::<NodeIndex>::new(dir, "sorted_nodes_index", nodes_index_len)?;
+    let mut sorted_nodes_index_mut = Mutant::<NodeIndex>::new_from_flatdata(dir, "sorted_nodes_index", "nodes_index")?;
     let sorted_nodes_index = sorted_nodes_index_mut.mutable_slice();
     sorted_ways
         .iter_mut()

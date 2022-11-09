@@ -52,6 +52,42 @@ impl<T: Sized> Mutant<T> {
         })
     }
 
+    pub fn new_from_flatdata(dir: &Path, file_name: &str, flatdata_file_name: &str) -> Result<Self> {
+        let flatdata_path = dir.join(flatdata_file_name);
+        let flatdata_file = OpenOptions::new().read(true).write(true).open(&flatdata_path)?;
+        let fd_mmap = unsafe { MmapMut::map_mut(&flatdata_file)? };
+        let fd_header_ptr = fd_mmap.as_ptr() as *const u64;
+        let flatdata_header = unsafe { *fd_header_ptr as u64 };
+        
+        let file_size = flatdata_file.metadata()?.len();
+        let contents_size = (file_size - 8) as usize;
+        let len = contents_size / size_of::<T>();
+
+        let path = dir.join(file_name);
+        let file = OpenOptions::new()
+            .read(true)
+            .write(true)
+            .create(true)
+            .open(&path)?;
+        file.set_len(file_size)?;
+
+        let mmap = unsafe { MmapMut::map_mut(&file)? };
+
+        let header_ptr = mmap.as_ptr() as *mut u64;
+        unsafe {
+            *header_ptr = flatdata_header;
+        }
+
+        Ok(Mutant {
+            file,
+            path,
+            mmap,
+            len,
+            capacity: len,
+            phantom: PhantomData,
+        })
+    }
+
     pub fn with_capacity(dir: &Path, file_name: &str, capacity: usize) -> Result<Self> {
         let size = 8 + size_of::<T>() * capacity;
         let path = dir.join(file_name);
@@ -82,7 +118,7 @@ impl<T: Sized> Mutant<T> {
 
     pub fn open(dir: &Path, file_name: &str, is_flatdata: bool) -> Result<Self> {
         // Don't use the header as info on length for flatdata,
-        // as I am not sure if it uses the header that way.
+        // as flatdata uses the header differently...
 
         let path = dir.join(file_name);
         let file = OpenOptions::new().read(true).write(true).open(&path)?;
