@@ -282,5 +282,4 @@ mod tests {
         let h2 = xy2h(xy.0, xy.1, 32);
         assert_eq!(h, h2);
     }
-
 }

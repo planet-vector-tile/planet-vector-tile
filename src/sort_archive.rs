@@ -1,13 +1,23 @@
-use std::{io::{Error, ErrorKind, Stdout}, path::PathBuf, time::Instant};
-use geo::{coord, Polygon};
+use crate::{
+    location,
+    mutant::Mutant,
+    osmflat::osmflat_generated::osm::{
+        HilbertNodePair, HilbertWayPair, Node, NodeIndex, Osm, TagIndex, Way,
+    },
+};
 use geo::algorithm::interior_point::InteriorPoint;
 use geo::geometry::{Coordinate, LineString};
+use geo::{coord, Polygon};
 use log::info;
 use pbr::ProgressBar;
 use rayon::prelude::*;
-use crate::{mutant::Mutant, osmflat::osmflat_generated::osm::{Osm, HilbertNodePair, HilbertWayPair, Node, TagIndex, NodeIndex, Way}, location};
+use std::{
+    io::{Error, ErrorKind, Stdout},
+    path::PathBuf,
+    time::Instant,
+};
 
-pub fn sort(archive: Osm, dir: &PathBuf) -> Result<(), Box<dyn std::error::Error>> { 
+pub fn sort(archive: Osm, dir: &PathBuf) -> Result<(), Box<dyn std::error::Error>> {
     match archive.hilbert_node_pairs() {
         Some(p) => p,
         None => {
@@ -15,7 +25,7 @@ pub fn sort(archive: Osm, dir: &PathBuf) -> Result<(), Box<dyn std::error::Error
                 ErrorKind::NotFound,
                 "No hilbert node pairs!",
             )));
-        },
+        }
     };
 
     // Build hilbert way pairs.
@@ -39,7 +49,7 @@ pub fn sort(archive: Osm, dir: &PathBuf) -> Result<(), Box<dyn std::error::Error
     let node_pairs = node_pairs_mut.mutable_slice();
     node_pairs.par_sort_unstable_by_key(|idx| idx.h());
     info!("Finished in {} secs.", t.elapsed().as_secs());
-    
+
     // Reorder nodes to sorted hilbert node pairs.
     let mut pb = Prog::new("Reordering nodes. ", nodes_len);
     let nodes = archive.nodes();
@@ -50,10 +60,8 @@ pub fn sort(archive: Osm, dir: &PathBuf) -> Result<(), Box<dyn std::error::Error
     let tags_index_len = tags_index.len();
     let sorted_tags_index_mut = Mutant::<TagIndex>::new(dir, "sorted_tags_index", tags_index_len)?;
     let sorted_tags_index = sorted_tags_index_mut.mutable_slice();
-    sorted_nodes
-        .iter_mut()
-        .zip(node_pairs.iter_mut())
-        .for_each(|(sorted_node, hilbert_node_pair)| {
+    sorted_nodes.iter_mut().zip(node_pairs.iter_mut()).for_each(
+        |(sorted_node, hilbert_node_pair)| {
             let i = hilbert_node_pair.i() as usize;
             let node = &nodes[i];
             let start = node.tag_first_idx() as usize;
@@ -68,7 +76,8 @@ pub fn sort(archive: Osm, dir: &PathBuf) -> Result<(), Box<dyn std::error::Error
             sorted_node.fill_from(node);
             sorted_node.set_tag_first_idx(tag_first_idx as u64);
             pb.tick(i);
-        });
+        },
+    );
     pb.finish();
 
     // Reorder ways to sorted hilbert way pairs.
@@ -78,40 +87,47 @@ pub fn sort(archive: Osm, dir: &PathBuf) -> Result<(), Box<dyn std::error::Error
     let mut nodes_index_counter: usize = 0;
     let nodes_index = archive.nodes_index();
     let nodes_index_len = nodes_index.len();
-    let sorted_nodes_index_mut = Mutant::<NodeIndex>::new(dir, "sorted_nodes_index", nodes_index_len)?;
+    let sorted_nodes_index_mut =
+        Mutant::<NodeIndex>::new(dir, "sorted_nodes_index", nodes_index_len)?;
     let sorted_nodes_index = sorted_nodes_index_mut.mutable_slice();
-    sorted_ways.iter_mut().zip(way_pairs.iter_mut()).for_each(|(sorted_way, hilbert_way_pair)| {
-        let i = hilbert_way_pair.i() as usize;
-        let way = &ways[i];
-        let start = way.tag_first_idx() as usize;
-        let end = way.tags().end as usize;
+    sorted_ways
+        .iter_mut()
+        .zip(way_pairs.iter_mut())
+        .for_each(|(sorted_way, hilbert_way_pair)| {
+            let i = hilbert_way_pair.i() as usize;
+            let way = &ways[i];
+            let start = way.tag_first_idx() as usize;
+            let end = way.tags().end as usize;
 
-        let tag_first_idx = tag_counter;
-        for t in &tags_index[start..end] {
-            sorted_tags_index[tag_counter].fill_from(t);
-            tag_counter += 1;
-        }
+            let tag_first_idx = tag_counter;
+            for t in &tags_index[start..end] {
+                sorted_tags_index[tag_counter].fill_from(t);
+                tag_counter += 1;
+            }
 
-        let ref_start = way.ref_first_idx() as usize;
-        let ref_end = way.refs().end as usize;
+            let ref_start = way.ref_first_idx() as usize;
+            let ref_end = way.refs().end as usize;
 
-        let nodes_first_idx = nodes_index_counter;
-        for r in &nodes_index[ref_start..ref_end] {
-            sorted_nodes_index[nodes_index_counter].fill_from(r);
-            nodes_index_counter += 1;
-        }
+            let nodes_first_idx = nodes_index_counter;
+            for r in &nodes_index[ref_start..ref_end] {
+                sorted_nodes_index[nodes_index_counter].fill_from(r);
+                nodes_index_counter += 1;
+            }
 
-        sorted_way.fill_from(way);
-        sorted_way.set_tag_first_idx(tag_first_idx as u64);
-        sorted_way.set_ref_first_idx(nodes_first_idx as u64);
-        pb.tick(i);
-    });
+            sorted_way.fill_from(way);
+            sorted_way.set_tag_first_idx(tag_first_idx as u64);
+            sorted_way.set_ref_first_idx(nodes_first_idx as u64);
+            pb.tick(i);
+        });
     pb.finish();
 
     Ok(())
 }
 
-fn build_hilbert_way_pairs(way_pairs: &mut [HilbertWayPair], archive: &Osm) -> Result<(), Box<dyn std::error::Error>> {
+fn build_hilbert_way_pairs(
+    way_pairs: &mut [HilbertWayPair],
+    archive: &Osm,
+) -> Result<(), Box<dyn std::error::Error>> {
     let nodes = archive.nodes();
     let nodes_index = archive.nodes_index();
     let ways = archive.ways();
@@ -119,52 +135,48 @@ fn build_hilbert_way_pairs(way_pairs: &mut [HilbertWayPair], archive: &Osm) -> R
     info!("Building hilbert way pairs.");
     let t = Instant::now();
 
-    way_pairs
-        .par_iter_mut()
-        .enumerate()
-        .for_each(|(i, pair)| {
-            let way = &ways[i];
-            let refs = way.refs();
-            let len = refs.end - refs.start;
-            let mut coords = Vec::<Coordinate<f64>>::with_capacity(len as usize);
+    way_pairs.par_iter_mut().enumerate().for_each(|(i, pair)| {
+        let way = &ways[i];
+        let refs = way.refs();
+        let len = refs.end - refs.start;
+        let mut coords = Vec::<Coordinate<f64>>::with_capacity(len as usize);
 
-            for r in refs {
-                if let Some(idx) = nodes_index[r as usize].value() {
-                    let node = &nodes[idx as usize];
-                    // georust lib requires f64 for a coordinate.
-                    coords.push(coord! { x: node.lon() as f64, y: node.lat() as f64 });
-                };
-            }
-
-            // Calculate point on surface.
-            // http://libgeos.org/doxygen/classgeos_1_1algorithm_1_1InteriorPointArea.html
-            // https://docs.rs/geo/latest/geo/algorithm/interior_point/trait.InteriorPoint.html
-            // https://github.com/georust/geo/blob/main/geo/src/algorithm/interior_point.rs
-
-            let point_on_surface = if coords.first() == coords.last() {
-                Polygon::new(LineString::new(coords), vec![]).interior_point()
-            } else {
-                LineString::new(coords).interior_point()
+        for r in refs {
+            if let Some(idx) = nodes_index[r as usize].value() {
+                let node = &nodes[idx as usize];
+                // georust lib requires f64 for a coordinate.
+                coords.push(coord! { x: node.lon() as f64, y: node.lat() as f64 });
             };
+        }
 
-            if let Some(pos) = point_on_surface {
-                let lonlat = (pos.x() as i32, pos.y() as i32);
-                // info!("way point on surface {:#?}", lonlat);
-                let h = location::lonlat_to_h(lonlat);
+        // Calculate point on surface.
+        // http://libgeos.org/doxygen/classgeos_1_1algorithm_1_1InteriorPointArea.html
+        // https://docs.rs/geo/latest/geo/algorithm/interior_point/trait.InteriorPoint.html
+        // https://github.com/georust/geo/blob/main/geo/src/algorithm/interior_point.rs
 
-                pair.set_i(i as u64);
-                pair.set_h(h);
-            } else {
-                eprintln!(
+        let point_on_surface = if coords.first() == coords.last() {
+            Polygon::new(LineString::new(coords), vec![]).interior_point()
+        } else {
+            LineString::new(coords).interior_point()
+        };
+
+        if let Some(pos) = point_on_surface {
+            let lonlat = (pos.x() as i32, pos.y() as i32);
+            // info!("way point on surface {:#?}", lonlat);
+            let h = location::lonlat_to_h(lonlat);
+
+            pair.set_i(i as u64);
+            pair.set_h(h);
+        } else {
+            eprintln!(
                 "Unable to find point on surface to compute hilbert location for way at index {}.",
                 i
             );
-            }
-        });
+        }
+    });
 
     info!("Finished in {} secs.", t.elapsed().as_secs());
     Ok(())
-
 }
 
 struct Prog {
@@ -241,7 +253,5 @@ mod tests {
         // assert_eq!(n_lat, 36.9479216);
         // assert_eq!(w_lon, -122.1471753);
         // assert_eq!(w_lat, 37.2459612);
-
     }
-
 }

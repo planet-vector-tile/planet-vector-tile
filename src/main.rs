@@ -1,16 +1,16 @@
 mod args;
 mod hilbert;
+mod location;
 mod mutant;
 mod osmflat;
 mod parallel;
 mod sort_archive;
 mod tile;
-mod location;
 
 use args::*;
 use clap::Parser;
 use humantime::format_duration;
-use std::{fs, time::Instant, error::Error};
+use std::{error::Error, fs, time::Instant};
 
 fn main() {
     let time = Instant::now();

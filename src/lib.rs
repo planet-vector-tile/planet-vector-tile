@@ -1,21 +1,21 @@
 mod args;
 mod hilbert;
 pub mod info_tile;
+pub mod location;
 mod mutant;
 mod osmflat;
 mod parallel;
 mod sort_archive;
 pub mod tile;
 pub mod tile_attributes;
-pub mod location;
 
 #[macro_use]
 extern crate napi_derive;
 
-use std::path::PathBuf;
-use std::error::Error;
 use args::Args;
 use info_tile::*;
+use std::error::Error;
+use std::path::PathBuf;
 use tile::Tile;
 
 use napi::bindgen_prelude::*;

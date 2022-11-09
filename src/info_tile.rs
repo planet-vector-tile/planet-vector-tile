@@ -15,7 +15,8 @@ pub fn info_tile(render_tile: Tile, child_levels: u8) -> Vec<u8> {
     let mut bearing_vec = Vec::<WIPOffset<PVTFeature>>::new();
 
     for tile in &pyramid {
-        let (boundary, center, bearing) = generate_features(render_tile, tile, &mut builder, &mut attributes, &pyramid);
+        let (boundary, center, bearing) =
+            generate_features(render_tile, tile, &mut builder, &mut attributes, &pyramid);
         boundary_vec.push(boundary);
         center_vec.push(center);
         bearing_vec.push(bearing);
@@ -77,14 +78,12 @@ pub fn generate_features<'a>(
     tile: &Tile,
     builder: &mut FlatBufferBuilder<'a>,
     attributes: &mut TileAttributes,
-    pyramid: &Vec<Tile>
+    pyramid: &Vec<Tile>,
 ) -> (
     WIPOffset<PVTFeature<'a>>,
     WIPOffset<PVTFeature<'a>>,
     WIPOffset<PVTFeature<'a>>,
 ) {
-
-
     let id = tile.id();
     let is_render_tile = if tile == tile { 1_f64 } else { 0_f64 };
     let is_highest_zoom = match pyramid.last() {
@@ -113,19 +112,15 @@ pub fn generate_features<'a>(
     let tile_val = attributes.upsert_string_value(&tile.to_string());
     let render_tile_val = attributes.upsert_string_value(&tile.to_string());
     let o_val = attributes.upsert_string_value(format!("{:?}", &tile.origin_float()).as_str());
-    let is_render_tile_val = attributes
-        .upsert_value(PVTValue::new(PVTValueType::Boolean, is_render_tile));
-    let is_highest_zoom_val = attributes
-        .upsert_value(PVTValue::new(PVTValueType::Boolean, is_highest_zoom));
+    let is_render_tile_val =
+        attributes.upsert_value(PVTValue::new(PVTValueType::Boolean, is_render_tile));
+    let is_highest_zoom_val =
+        attributes.upsert_value(PVTValue::new(PVTValueType::Boolean, is_highest_zoom));
 
-    let z_val = attributes
-        .upsert_value(PVTValue::new(PVTValueType::Number, tile.z as f64));
-    let x_val = attributes
-        .upsert_value(PVTValue::new(PVTValueType::Number, tile.x as f64));
-    let y_val = attributes
-        .upsert_value(PVTValue::new(PVTValueType::Number, tile.y as f64));
-    let h_val = attributes
-        .upsert_value(PVTValue::new(PVTValueType::Number, tile.h as f64));
+    let z_val = attributes.upsert_value(PVTValue::new(PVTValueType::Number, tile.z as f64));
+    let x_val = attributes.upsert_value(PVTValue::new(PVTValueType::Number, tile.x as f64));
+    let y_val = attributes.upsert_value(PVTValue::new(PVTValueType::Number, tile.y as f64));
+    let h_val = attributes.upsert_value(PVTValue::new(PVTValueType::Number, tile.h as f64));
 
     let keys = builder.create_vector::<u32>(&[
         tile_key,
@@ -219,19 +214,17 @@ pub fn generate_features<'a>(
     );
 
     (boundary_feature, center_feature, bearing_feature)
-
 }
-
 
 fn create_bearing_tile_points(render_tile: &Tile, tile: &Tile) -> Vec<PVTTilePoint> {
     let origin = tile.origin_location();
     let extent = tile.location_extent();
     let middle = extent >> 1;
 
-    let n = PVTPoint::new(origin.x() + middle, origin.y());
-    let w = PVTPoint::new(origin.x(), origin.y() + middle);
-    let s = PVTPoint::new(origin.x() + middle, origin.y() + extent);
-    let e = PVTPoint::new(origin.x() + extent, origin.y() + middle);
+    let n = (origin.0 + middle, origin.1);
+    let w = (origin.0, origin.1 + middle);
+    let s = (origin.0 + middle, origin.1 + extent);
+    let e = (origin.0 + extent, origin.1 + middle);
 
     let pn = render_tile.project(n);
     let pw = render_tile.project(w);
@@ -281,7 +274,6 @@ fn create_bearing_tile_points(render_tile: &Tile, tile: &Tile) -> Vec<PVTTilePoi
         }
     }
 }
-
 
 pub fn basic(tile: Tile) -> Vec<u8> {
     let mut builder = FlatBufferBuilder::with_capacity(1024);

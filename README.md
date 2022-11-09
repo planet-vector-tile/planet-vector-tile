@@ -32,7 +32,7 @@ cargo run -r -- --overwrite ~/geodata/extracts/california.osm.pbf ~/geodata/flat
 cargo run -r -- --overwrite ~/geodata/extracts/santacruz.pbf ~/geodata/flatdata/santacruz
 ```
 
-Note that if you are not using a release build, the tool will run much more slowly.
+Note that if you are not using the release flag (-r) for your the tool will run much more slowly.
 
 ## Run the Electron app.
 

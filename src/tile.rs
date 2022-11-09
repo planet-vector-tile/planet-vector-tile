@@ -67,20 +67,21 @@ impl Tile {
     pub fn at_zoom(&self, z: u8) -> Tile {
         if z == self.z {
             self.clone()
-        } 
-        else if z == 0 {
-            Tile { z: 0, x: 0, y: 0, h: 0}
-        }
-        else if z == 32 && self.z == 0 {
+        } else if z == 0 {
+            Tile {
+                z: 0,
+                x: 0,
+                y: 0,
+                h: 0,
+            }
+        } else if z == 32 && self.z == 0 {
             Tile::from_zxy(32, 0, 0)
-        } 
-        else if z > self.z {
+        } else if z > self.z {
             let z_delta = (z - self.z) as u32;
             let x = self.x << z_delta;
             let y = self.y << z_delta;
             Tile::from_zxy(z, x, y)
-        } 
-        else {
+        } else {
             let z_delta = (self.z - z) as u32;
             let x = self.x >> z_delta;
             let y = self.y >> z_delta;
@@ -142,16 +143,16 @@ impl Tile {
     }
 
     // The Northwest corner of the tile in location space.
-    pub fn origin_location(&self) -> PVTPoint {
+    pub fn origin_location(&self) -> (u32, u32) {
         if self.z == 0 {
-            PVTPoint::new(0, 0)
+            (0, 0)
         } else if self.z == 32 {
-            PVTPoint::new(self.x, self.y)
+            (self.x, self.y)
         } else {
             let z_delta = 32 - self.z as u32;
             let x = self.x << z_delta;
             let y = self.y << z_delta;
-            PVTPoint::new(x, y)
+            (x, y)
         }
     }
 
@@ -171,10 +172,10 @@ impl Tile {
     }
 
     // The center in location space
-    pub fn center(&self) -> PVTPoint {
+    pub fn center(&self) -> (u32, u32) {
         let middle = self.location_extent() >> 1;
         let origin = self.origin_location();
-        PVTPoint::new(origin.x() + middle, origin.y() + middle)
+        (origin.0 + middle, origin.1 + middle)
     }
 
     pub fn parent(&self) -> Option<Self> {
@@ -256,7 +257,7 @@ impl Tile {
         let extent = self.location_extent();
         BBox {
             nw: origin,
-            se: PVTPoint::new(origin.x() + extent, origin.y() + extent),
+            se: (origin.0 + extent, origin.1 + extent),
         }
     }
 
@@ -265,11 +266,10 @@ impl Tile {
     }
 
     // Projects a point from location space to tile space.
-    // NHTODO Get rid of PVTPoint and use tuples.
-    pub fn project(&self, loc: PVTPoint) -> PVTTilePoint {
+    pub fn project(&self, loc: (u32, u32)) -> PVTTilePoint {
         // location in planet resolution
-        let loc_x = loc.x() as f64;
-        let loc_y = loc.y() as f64;
+        let loc_x = loc.0 as f64;
+        let loc_y = loc.1 as f64;
 
         // where coord is between 0 -> 1 for planet space
         let unit_x = loc_x / U32_SIZE;
@@ -421,23 +421,23 @@ impl fmt::Display for Tile {
 
 pub struct BBox {
     // min
-    nw: PVTPoint,
+    nw: (u32, u32),
     // max
-    se: PVTPoint,
+    se: (u32, u32),
 }
 
 impl BBox {
-    pub fn nw(&self) -> PVTPoint {
+    pub fn nw(&self) -> (u32, u32) {
         self.nw
     }
-    pub fn sw(&self) -> PVTPoint {
-        PVTPoint::new(self.nw.x(), self.se.y())
+    pub fn sw(&self) -> (u32, u32) {
+        (self.nw.0, self.se.1)
     }
-    pub fn se(&self) -> PVTPoint {
+    pub fn se(&self) -> (u32, u32) {
         self.se
     }
-    pub fn ne(&self) -> PVTPoint {
-        PVTPoint::new(self.se.x(), self.nw.y())
+    pub fn ne(&self) -> (u32, u32) {
+        (self.se.0, self.nw.1)
     }
 }
 
@@ -462,7 +462,7 @@ mod tests {
     // use crate::location::lonlat_to_xy;
 
     use super::*;
-    
+
     #[test]
     fn test_basic_tile() {
         let t = Tile::from_zxy(9, 82, 199);
@@ -534,7 +534,6 @@ mod tests {
         assert_eq!(cavallero.at_zoom(8).h, 13004);
         assert_eq!(cavallero.at_zoom(9).h, 52017);
         assert_eq!(cavallero.at_zoom(10).h, 208070);
-
     }
 
     #[test]

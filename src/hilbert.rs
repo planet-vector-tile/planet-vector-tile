@@ -12,9 +12,9 @@ use std::path::Path;
 // Leaves correspond to additional info we need to know about the tiles at the leaf level.
 // We need to know:
 //  - The indices into the nodes, ways, relations vectors.
-//  - The hilbert index that the given tile starts at. 
+//  - The hilbert index that the given tile starts at.
 // Though the hilbert index can be derived from the n,w,r by looking at the hilbert pairs,
-// This is referenced often, so this is simpler and saves us from paging into the entity 
+// This is referenced often, so this is simpler and saves us from paging into the entity
 // (nodes, ways, relations) vectors unnecessarily.
 #[derive(Debug)]
 struct Leaf {
@@ -47,7 +47,7 @@ struct HilbertTile {
     mask: u16,
 }
 
-// Chunks are offsets and run lengths of entities used for a given tile in the entity. 
+// Chunks are offsets and run lengths of entities used for a given tile in the entity.
 #[derive(Debug)]
 struct Chunk {
     offset: u32, // offset from the w or r of the leaf tile
@@ -93,13 +93,12 @@ impl HilbertTree {
         let mut m_tiles = Mutant::<HilbertTile>::new(dir, "hilbert_tree", max_tiles_len)?;
         let tiles = m_tiles.mutable_slice();
 
-
         let mut z = leaf_zoom;
         let mut tiles_i = 0;
 
         let leaves = m_leaves.slice();
         for _ in leaves {
-            // The default leaf has a 0 tile mask, 
+            // The default leaf has a 0 tile mask,
             // which is needed to know we are at a leaf tile.
             let t = HilbertTile::default();
             tiles[tiles_i] = t;
@@ -117,7 +116,6 @@ impl HilbertTree {
             let mut child_i = level_range.start;
 
             while child_i < level_range.end {
-
                 // The tile we are building.
                 let leaf_h = get_leaf_h(child_i, tiles, leaves);
                 let tile_h = leaf_to_tile_h(leaf_h, leaf_zoom, z);
@@ -127,8 +125,8 @@ impl HilbertTree {
                 let mut child_h: u32 = 0;
                 let mut mask: u16 = 0;
 
-                while child_h < h_range_end  && child_i < level_range.end {
-                    child_h =  get_child_h(child_i, leaf_zoom, z + 2, tiles, leaves);
+                while child_h < h_range_end && child_i < level_range.end {
+                    child_h = get_child_h(child_i, leaf_zoom, z + 2, tiles, leaves);
 
                     // Position of the possible children of the tile. 0 -> 16
                     let child_pos = (child_h & 0xf) as u16;
@@ -149,7 +147,7 @@ impl HilbertTree {
 
                 tiles_i += 1;
             }
-            
+
             level_range = level_start..tiles_i;
 
             if z == 0 {
@@ -160,8 +158,6 @@ impl HilbertTree {
 
         m_tiles.set_len(tiles_i);
         m_tiles.trim();
-
-
 
         let n_chunks = Mutant::<Chunk>::new(dir, "hilbert_n_chunks", 1000)?;
         let w_chunks = Mutant::<Chunk>::new(dir, "hilbert_w_chunks", 1000)?;
@@ -303,7 +299,7 @@ fn max_tiles_len(m_leaves: &Mutant<Leaf>, leaf_zoom: u8) -> usize {
         let first = leaves[0].h;
         let last = leaves[len - 1].h;
         let mut potential_leaves = last - first + 1;
-        
+
         let mut count = potential_leaves;
         let mut zoom = leaf_zoom - 2;
         while zoom > 0 {
@@ -351,7 +347,13 @@ fn leaf_to_tile_h(h: u32, leaf_zoom: u8, zoom: u8) -> u32 {
     h >> (2 * (leaf_zoom - zoom))
 }
 
-fn get_child_h(tiles_idx: usize, leaf_zoom: u8, zoom: u8, tiles: &[HilbertTile], leaves: &[Leaf]) -> u32 {
+fn get_child_h(
+    tiles_idx: usize,
+    leaf_zoom: u8,
+    zoom: u8,
+    tiles: &[HilbertTile],
+    leaves: &[Leaf],
+) -> u32 {
     let leaf_h = get_leaf_h(tiles_idx, tiles, leaves);
     leaf_to_tile_h(leaf_h, leaf_zoom, zoom)
 }
@@ -368,7 +370,7 @@ impl HilbertTile {
             w: 0,
             r: 0,
             child: 0,
-            mask: 0
+            mask: 0,
         }
     }
 }
@@ -503,23 +505,21 @@ mod tests {
         // for t in tiles {
         //     println!("{:?}", t);
         // }
-
     }
 
     #[test]
     #[ignore]
     fn test_asdf() {
-        let h =3329120;
+        let h = 3329120;
         let p = h >> 4;
         println!("{:x?}", h);
         println!("{:x?}", p);
         println!("{}", p);
 
-
         let mut hs = Vec::<u32>::new();
         let mut ms = Vec::<u32>::new();
         for h in 3329120..3329136 {
-        // for h in 3329124..3329136 {
+            // for h in 3329124..3329136 {
             hs.push(h);
             let m = h & 0xf;
             let leaf_m = m | 0x10;
@@ -529,5 +529,4 @@ mod tests {
         println!("{:x?}", hs);
         println!("{:x?}", ms);
     }
-
 }
