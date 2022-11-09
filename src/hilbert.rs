@@ -184,22 +184,37 @@ impl HilbertTree {
     }
 
     pub fn compose_tile(&self, tile: Tile) -> Vec<u8> {
-        let path = level_path(tile);
-        let hilbert_tiles = self.tiles.slice();
-
-        let mut hilbert_tile = hilbert_tiles.last().unwrap();
-        println!("root hilbert_tile {:?}", hilbert_tile);
-
-        let h: u32 = 0;
-        
-        for &p in path.iter().rev() {
-            let child = hilbert_tile.child as usize;
-            let first_i = first_child_pos(hilbert_tile.mask) as usize;
-            let i = child + p as usize - first_i;
-            hilbert_tile = &hilbert_tiles[i as usize];
-            println!("i {} hilbert_tile {:?}", i, hilbert_tile);
+        if tile.z > self.leaf_zoom {
+            return Vec::new()
         }
 
+        println!("Finding {:?}", tile);
+
+        let h_tiles = self.tiles.slice();
+        let mut h_tile = h_tiles.last().unwrap();
+        println!("root {:?}", h_tile);
+
+        let mut z = 2;
+        let mut i = 0;
+        while z <= tile.z {
+
+            let h = tile.h >> (2 * (tile.z - z));
+            let child_pos = (h & 0xf) as i32;
+            i = (h_tile.child + child_pos) as usize;
+
+            h_tile = &h_tiles[i];
+            
+            println!("i {} {:?}", i, h_tile);
+
+            z += 2;
+        }
+
+        // leaf
+        if h_tile.mask == 0 {
+            let leaves = self.leaves.slice();
+            let leaf = &leaves[i];
+            println!("{:?}", leaf);
+        }
 
         Vec::new()
     }
@@ -405,6 +420,7 @@ impl HilbertTile {
 }
 
 fn first_child_pos(mask: u16) -> u8{
+
     for i in 0..16 {
         if (mask >> i) & 1 == 1 {
             return i;
@@ -541,15 +557,15 @@ mod tests {
 
         assert_eq!(m_leaves.len, 189);
 
-        // let leaves = m_leaves.slice();
-        // for l in leaves {
-        //     let h = l.h;
-        //     println!("leaf tile h {:?}", h);
-        //     let leaf_zoom = 12;
-        //     let z = 10;
-        //     let parent_h = h >> (2 * (leaf_zoom - z));
-        //     println!("leaf parent h {:?}", parent_h);
-        // }
+        let leaves = m_leaves.slice();
+        for l in leaves {
+            let h = l.h;
+            println!("leaf tile h {:?}", h);
+            let leaf_zoom = 12;
+            let z = 10;
+            let parent_h = h >> (2 * (leaf_zoom - z));
+            println!("leaf parent h {:?}", parent_h);
+        }
 
         let tree = HilbertTree::build(&dir, 12).unwrap();
         // let m_tiles = tree.tiles;
@@ -559,23 +575,24 @@ mod tests {
         // }
 
         // let vec_u8 = tree.compose_tile(Tile::from_zh(12, 3329090));
+        let vec_u8 = tree.compose_tile(Tile::from_zh(12, 3329140));
 
 
     }
 
-    #[test]
-    fn test_level_path() {
-        let tile = Tile::from_zh(12, 3329121);
-        let path = level_path(tile);
-        println!("path {:?}", path);
-        // [1, 6, 12, 12, 2, 3]
+    // #[test]
+    // fn test_level_path() {
+    //     let tile = Tile::from_zh(12, 3329121);
+    //     let path = level_path(tile);
+    //     println!("path {:?}", path);
+    //     // [1, 6, 12, 12, 2, 3]
 
-        let mut t = Tile::default();
-        for p in path.iter().rev() {
-            let mut grand_children = t.grand_children();
-            grand_children.sort_by_key(|c| c.h);
-            t = grand_children[*p as usize];
-        }
-        assert_eq!(t, tile);
-    }
+    //     let mut t = Tile::default();
+    //     for p in path.iter().rev() {
+    //         let mut grand_children = t.grand_children();
+    //         grand_children.sort_by_key(|c| c.h);
+    //         t = grand_children[*p as usize];
+    //     }
+    //     assert_eq!(t, tile);
+    // }
 }
