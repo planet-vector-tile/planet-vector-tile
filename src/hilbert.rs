@@ -2,7 +2,9 @@
 
 use crate::location;
 use crate::mutant::Mutant;
-use crate::osmflat::osmflat_generated::osm::{HilbertNodePair, HilbertWayPair, NodeIndex, Node, Way, TagIndex};
+use crate::osmflat::osmflat_generated::osm::{
+    HilbertNodePair, HilbertWayPair, Node, NodeIndex, TagIndex, Way,
+};
 use crate::tile::{self, Tile};
 use log::info;
 use std::io::{Error, ErrorKind};

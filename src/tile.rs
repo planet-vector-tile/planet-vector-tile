@@ -46,7 +46,7 @@ impl Tile {
             h: 0,
         }
     }
-    
+
     pub fn from_zh(z: u8, h: u64) -> Self {
         if z == 0 {
             return Self {

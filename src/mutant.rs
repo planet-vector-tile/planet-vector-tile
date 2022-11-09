@@ -115,9 +115,9 @@ impl<T: Sized> Mutant<T> {
     pub fn mv(&mut self, new_name: &str) -> Result<()> {
         let mut path = self.path.clone();
         path.pop();
-        path.set_file_name(new_name);
-        let _ = fs::remove_file(&self.path);
-        fs::rename(&self.path, new_name)
+        path.push(new_name);
+        let _ = fs::remove_file(&path);
+        fs::rename(&self.path, path)
     }
 
     pub fn mutable_slice(&self) -> &mut [T] {
