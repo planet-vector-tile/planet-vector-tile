@@ -40,8 +40,8 @@ struct HilbertTile {
     n: u32,
     w: u32,
     r: u32,
-    // Index of the first child of the tile.
-    child: u32,
+    // Index of the first child.
+    child: i32,
     // Bit mask denoting which of the 16 children for the given tile exist.
     // MSB is index 15, MSB is index 0.
     mask: u16,
@@ -74,13 +74,12 @@ impl HilbertTree {
             )));
         }
 
-        // To save space, we store the hilbert values in a u32,
-        // so the highest zoom guaranteeing no overflow is 16.
-        if leaf_zoom > 16 {
-            eprintln!("Leaf zoom too high! Must be <= 16 z: {}", leaf_zoom);
+        // Maximum supported zoom is 14.
+        if leaf_zoom > 14 {
+            eprintln!("Leaf zoom too high! Must be <= 14 z: {}", leaf_zoom);
             return Err(Box::new(Error::new(
                 ErrorKind::Other,
-                "Leaf zoom too high! Must be <= 16",
+                "Leaf zoom too high! Must be <= 14",
             )));
         }
 
@@ -124,26 +123,34 @@ impl HilbertTree {
                 let tile_h = leaf_to_tile_h(leaf_h, leaf_zoom, z);
                 let h_range_end = child_h_range_end(tile_h);
 
-                let first_child_i = child_i;
-                let mut child_h: u32 = 0;
                 let mut mask: u16 = 0;
 
-                while child_h < h_range_end && child_i < level_range.end {
-                    child_h = get_child_h(child_i, leaf_zoom, z + 2, tiles, leaves);
+                // First child for level
+                let mut child_h = get_child_h(child_i, leaf_zoom, z + 2, tiles, leaves);
 
+                // Position of the possible children of the tile. 0 -> 16
+                let child_pos = (child_h & 0xf) as u16;
+                let child_bit = 1 << child_pos;
+                mask |= child_bit;
+
+                // first child_i with offset
+                let child = child_i as i32 - child_pos as i32;
+
+                child_h = get_child_h(child_i, leaf_zoom, z + 2, tiles, leaves);
+                child_i += 1;
+
+                while child_h < h_range_end && child_i < level_range.end {
                     // Position of the possible children of the tile. 0 -> 16
                     let child_pos = (child_h & 0xf) as u16;
                     let child_bit = 1 << child_pos;
                     mask |= child_bit;
 
+                    child_h = get_child_h(child_i, leaf_zoom, z + 2, tiles, leaves);
                     child_i += 1;
                 }
 
                 let mut t = HilbertTile::default();
-
-                // NHTODO Here is where we figure out chunk offsets.
-
-                t.child = first_child_i as u32;
+                t.child = child;
                 t.mask = mask;
                 println!("tiles_i {} h {} mask {:#018b} {:?}", tiles_i, tile_h, t.mask, t);
                 tiles[tiles_i] = t;
@@ -187,7 +194,7 @@ impl HilbertTree {
         
         for &p in path.iter().rev() {
             let child = hilbert_tile.child as usize;
-            let first_i = first_child_idx(hilbert_tile.mask) as usize;
+            let first_i = first_child_pos(hilbert_tile.mask) as usize;
             let i = child + p as usize - first_i;
             hilbert_tile = &hilbert_tiles[i as usize];
             println!("i {} hilbert_tile {:?}", i, hilbert_tile);
@@ -354,11 +361,12 @@ const CHILD_POSITIONS: [u16; 16] = [
     0b1000000000000000,
 ];
 
-fn get_leaf_h(tiles_idx: usize, tiles: &[HilbertTile], leaves: &[Leaf]) -> u32 {
-    let mut i = tiles_idx;
-    let mut tile = &tiles[tiles_idx];
+fn get_leaf_h(tiles_i: usize, tiles: &[HilbertTile], leaves: &[Leaf]) -> u32 {
+    let mut i = tiles_i;
+    let mut tile = &tiles[tiles_i];
     while tile.mask != 0 {
-        i = tile.child as usize;
+        let pos = first_child_pos(tile.mask) as i32;
+        i = (tile.child + pos) as usize;
         tile = &tiles[i];
     }
     leaves[i].h
@@ -396,7 +404,7 @@ impl HilbertTile {
     }
 }
 
-fn first_child_idx(mask: u16) -> u8{
+fn first_child_pos(mask: u16) -> u8{
     for i in 0..16 {
         if (mask >> i) & 1 == 1 {
             return i;
