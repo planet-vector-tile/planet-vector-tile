@@ -3,7 +3,7 @@
 use crate::location;
 use crate::mutant::Mutant;
 use crate::osmflat::osmflat_generated::osm::{HilbertNodePair, HilbertWayPair};
-use crate::tile;
+use crate::tile::{self, Tile};
 use log::info;
 use std::cell::Cell;
 use std::io::{Error, ErrorKind};
@@ -171,6 +171,11 @@ impl HilbertTree {
             w_chunks: Cell::new(w_chunks),
             r_chunks: Cell::new(r_chunks),
         })
+    }
+
+    pub fn compose_tile(tile: Tile) -> Vec<u8> {
+        
+        Vec::new()
     }
 }
 
@@ -387,6 +392,20 @@ fn mask_has(mask: u16, child_idx: u8) -> bool {
     (mask >> child_idx & 1) == 1
 }
 
+fn level_path(tile: Tile) -> Vec<u8> {
+    let mut h = tile.h;
+    let mut z = tile.z;
+    let mut path: Vec<u8> = Vec::new();
+
+    while z > 0 {
+        let child_pos = (h & 0xf) as u8;
+        path.push(child_pos);
+        h = h >> 4;
+        z -= 2;
+    }
+    path
+}
+
 // https://doc.rust-lang.org/nomicon/other-reprs.html
 // https://adventures.michaelfbryan.com/posts/deserializing-binary-data-files/
 // https://stackoverflow.com/questions/28127165/how-to-convert-struct-to-u8
@@ -508,25 +527,18 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
-    fn test_asdf() {
-        let h = 3329120;
-        let p = h >> 4;
-        println!("{:x?}", h);
-        println!("{:x?}", p);
-        println!("{}", p);
+    fn test_level_path() {
+        let tile = Tile::from_zh(12, 3329121);
+        let path = level_path(tile);
+        println!("path {:?}", path);
+        // [1, 6, 12, 12, 2, 3]
 
-        let mut hs = Vec::<u32>::new();
-        let mut ms = Vec::<u32>::new();
-        for h in 3329120..3329136 {
-            // for h in 3329124..3329136 {
-            hs.push(h);
-            let m = h & 0xf;
-            let leaf_m = m | 0x10;
-            ms.push(leaf_m);
+        let mut t = Tile::default();
+        for p in path.iter().rev() {
+            let mut grand_children = t.grand_children();
+            grand_children.sort_by_key(|c| c.h);
+            t = grand_children[*p as usize];
         }
-        println!("{:?}", hs);
-        println!("{:x?}", hs);
-        println!("{:x?}", ms);
+        assert_eq!(t, tile);
     }
 }

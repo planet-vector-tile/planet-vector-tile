@@ -38,6 +38,15 @@ pub struct Tile {
 }
 
 impl Tile {
+    pub fn default() -> Self {
+        Self {
+            z: 0,
+            x: 0,
+            y: 0,
+            h: 0,
+        }
+    }
+    
     pub fn from_zh(z: u8, h: u64) -> Self {
         if z == 0 {
             return Self {
@@ -210,6 +219,18 @@ impl Tile {
         let se = Tile::from_zxy(z, w + 1, n + 1);
         let ne = Tile::from_zxy(z, w + 1, n);
         [nw, sw, se, ne]
+    }
+
+    pub fn grand_children(&self) -> [Tile; 16] {
+        let mut tiles = [Tile::default(); 16];
+        let mut i = 0;
+        for child in self.children().iter() {
+            for grand_child in child.children().iter() {
+                tiles[i] = *grand_child;
+                i += 1;
+            }
+        }
+        tiles
     }
 
     pub fn descendants(&self, child_levels: u8) -> Vec<Tile> {
@@ -551,42 +572,42 @@ mod tests {
     fn test_bbox() {
         let t = Tile::from_zxy(0, 0, 0);
         let b = t.bbox();
-        assert_eq!(b.nw.x(), 0);
-        assert_eq!(b.nw.y(), 0);
-        assert_eq!(b.se.x(), 4294967295);
-        assert_eq!(b.se.y(), 4294967295);
+        assert_eq!(b.nw.0, 0);
+        assert_eq!(b.nw.1, 0);
+        assert_eq!(b.se.0, 4294967295);
+        assert_eq!(b.se.1, 4294967295);
 
         let b2 = Tile::from_zxy(1, 0, 0).bbox();
-        assert_eq!(b2.nw.x(), 0);
-        assert_eq!(b2.nw.y(), 0);
-        assert_eq!(b2.se.x(), 2147483647);
-        assert_eq!(b2.se.y(), 2147483647);
+        assert_eq!(b2.nw.0, 0);
+        assert_eq!(b2.nw.1, 0);
+        assert_eq!(b2.se.0, 2147483647);
+        assert_eq!(b2.se.1, 2147483647);
 
         let b3 = Tile::from_zxy(1, 1, 0).bbox();
-        assert_eq!(b3.nw.x(), 2147483648);
-        assert_eq!(b3.nw.y(), 0);
-        assert_eq!(b3.se.x(), 4294967295);
-        assert_eq!(b3.se.y(), 2147483647);
+        assert_eq!(b3.nw.0, 2147483648);
+        assert_eq!(b3.nw.1, 0);
+        assert_eq!(b3.se.0, 4294967295);
+        assert_eq!(b3.se.1, 2147483647);
     }
 
     #[test]
     fn test_center() {
         let c = Tile::from_zxy(32, 0, 0).center();
-        assert_eq!(c.x(), 0);
-        assert_eq!(c.y(), 0);
+        assert_eq!(c.0, 0);
+        assert_eq!(c.1, 0);
 
         let c2 = Tile::from_zxy(31, 0, 0).center();
-        assert_eq!(c2.x(), 0);
-        assert_eq!(c2.y(), 0);
+        assert_eq!(c2.0, 0);
+        assert_eq!(c2.1, 0);
 
         let c3 = Tile::from_zxy(0, 0, 0).center();
-        assert_eq!(c3.x(), 2147483647);
-        assert_eq!(c3.y(), 2147483647);
+        assert_eq!(c3.0, 2147483647);
+        assert_eq!(c3.1, 2147483647);
 
         // Is this right?
         let c4 = Tile::from_zxy(30, 0, 0).center();
-        assert_eq!(c4.x(), 1);
-        assert_eq!(c4.y(), 1);
+        assert_eq!(c4.0, 1);
+        assert_eq!(c4.1, 1);
     }
 
     #[test]
