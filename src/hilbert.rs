@@ -183,9 +183,9 @@ impl HilbertTree {
         })
     }
 
-    pub fn compose_tile(&self, tile: Tile) -> Vec<u8> {
+    fn find(&self, tile: Tile) -> Option<(&HilbertTile, Option<&Leaf>)> {
         if tile.z > self.leaf_zoom {
-            return Vec::new()
+            return None;
         }
 
         println!("Finding {:?}", tile);
@@ -200,6 +200,13 @@ impl HilbertTree {
 
             let h = tile.h >> (2 * (tile.z - z));
             let child_pos = (h & 0xf) as i32;
+
+            // If the tile does not have the child position in the mask,
+            // then we don't have the tile.
+            if h_tile.mask >> child_pos & 1 != 1 {
+                return None;
+            }
+
             i = (h_tile.child + child_pos) as usize;
 
             h_tile = &h_tiles[i];
@@ -209,14 +216,27 @@ impl HilbertTree {
             z += 2;
         }
 
-        // leaf
+        let mut leaf = None;
         if h_tile.mask == 0 {
             let leaves = self.leaves.slice();
-            let leaf = &leaves[i];
-            println!("{:?}", leaf);
+            leaf = Some(&leaves[i]);
         }
 
-        Vec::new()
+        Some((h_tile, leaf))
+    }
+
+    pub fn compose_tile(&self, tile: Tile) -> Vec<u8> {
+        match self.find(tile) {
+            Some((h_tile, leaf)) => {
+
+                if let Some(leaf) = leaf {
+                    print!("leaf found {:?}", leaf);
+                }
+
+                Vec::new()
+            },
+            None => Vec::new(),
+        }
     }
 }
 
@@ -437,8 +457,8 @@ fn mask_include(mask: u16, child_idx: u8) -> u16 {
     mask | 1 << child_idx
 }
 
-fn mask_has(mask: u16, child_idx: u8) -> bool {
-    (mask >> child_idx & 1) == 1
+fn mask_has(mask: u16, child_pos: u8) -> bool {
+    (mask >> child_pos & 1) == 1
 }
 
 fn level_path(tile: Tile) -> Vec<u8> {
