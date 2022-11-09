@@ -1,6 +1,6 @@
 // use std::collections::HashMap;
 use indexmap::IndexMap;
-use std::cell::RefCell;
+use std::cell::Cell;
 use std::hash::{Hash, Hasher};
 
 use crate::tile::planet_vector_tile_generated::*;
@@ -14,21 +14,20 @@ impl Hash for PVTValue {
 impl Eq for PVTValue {}
 
 pub struct TileAttributes {
-    // NHTODO: Is RefCell necessary?
-    strings: RefCell<IndexMap<String, u32>>,
-    values: RefCell<IndexMap<PVTValue, u32>>,
+    strings: Cell<IndexMap<String, u32>>,
+    values: Cell<IndexMap<PVTValue, u32>>,
 }
 
 impl TileAttributes {
     pub fn new() -> Self {
         TileAttributes {
-            strings: RefCell::new(IndexMap::new()),
-            values: RefCell::new(IndexMap::new()),
+            strings: Cell::new(IndexMap::new()),
+            values: Cell::new(IndexMap::new()),
         }
     }
 
-    pub fn upsert_string(&self, str: &str) -> u32 {
-        let mut strings = self.strings.borrow_mut();
+    pub fn upsert_string(&mut self, str: &str) -> u32 {
+        let strings = self.strings.get_mut();
         match strings.get(str) {
             Some(str_idx) => *str_idx,
             None => {
@@ -39,8 +38,8 @@ impl TileAttributes {
         }
     }
 
-    pub fn upsert_value(&self, value: PVTValue) -> u32 {
-        let mut values = self.values.borrow_mut();
+    pub fn upsert_value(&mut self, value: PVTValue) -> u32 {
+        let values = self.values.get_mut();
         match values.get(&value) {
             Some(val_idx) => *val_idx,
             None => {
@@ -51,18 +50,18 @@ impl TileAttributes {
         }
     }
 
-    pub fn upsert_number_value(&self, value: f64) -> u32 {
+    pub fn upsert_number_value(&mut self, value: f64) -> u32 {
         self.upsert_value(PVTValue::new(PVTValueType::Number, value))
     }
 
-    pub fn upsert_bool_value(&self, value: bool) -> u32 {
+    pub fn upsert_bool_value(&mut self, value: bool) -> u32 {
         let v = if value { 1_f64 } else { 0_f64 };
         self.upsert_value(PVTValue::new(PVTValueType::Boolean, v))
     }
 
-    pub fn upsert_string_value(&self, str_val: &str) -> u32 {
-        let mut strings = self.strings.borrow_mut();
-        let mut values = self.values.borrow_mut();
+    pub fn upsert_string_value(&mut self, str_val: &str) -> u32 {
+        let strings = self.strings.get_mut();
+        let values = self.values.get_mut();
         match strings.get(str_val) {
             Some(str_idx) => {
                 let value = PVTValue::new(PVTValueType::String, *str_idx as f64);
@@ -87,14 +86,14 @@ impl TileAttributes {
     }
 
     // Is there a way we can have a Vec<&str> ?
-    pub fn strings(&self) -> Vec<String> {
-        let strings = self.strings.borrow();
+    pub fn strings(&mut self) -> Vec<String> {
+        let strings = self.strings.get_mut();
         strings.keys().map(|s| String::from(s)).collect()
     }
 
     // Is there a way we can have a Vec<&PVTValue> ?
-    pub fn values(&self) -> Vec<PVTValue> {
-        let values = self.values.borrow();
+    pub fn values(&mut self) -> Vec<PVTValue> {
+        let values = self.values.get_mut();
         values.keys().map(|v| v.clone()).collect()
     }
 }

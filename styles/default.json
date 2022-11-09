@@ -16,7 +16,7 @@
         },
         "planet": {
             "type": "planet",
-            "tiles": ["info_tile"],
+            "tiles": ["info_tile", "/Users/n/geodata/flatdata/california"],
             "minzoom": 0,
             "maxzoom": 18,
             "sprite": "https://storage.googleapis.com/hellopvt3/sprites"
