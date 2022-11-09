@@ -85,7 +85,7 @@ pub fn generate_features<'a>(
     WIPOffset<PVTFeature<'a>>,
 ) {
     let id = tile.id();
-    let is_render_tile = if tile == tile { 1_f64 } else { 0_f64 };
+    let is_render_tile = if render_tile == *tile { 1_f64 } else { 0_f64 };
     let is_highest_zoom = match pyramid.last() {
         Some(t) => {
             if t.z == tile.z {
