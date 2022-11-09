@@ -2,7 +2,7 @@
 
 use crate::location;
 use crate::mutant::Mutant;
-use crate::osmflat::osmflat_generated::osm::{HilbertNodePair, HilbertWayPair};
+use crate::osmflat::osmflat_generated::osm::{HilbertNodePair, HilbertWayPair, NodeIndex, Node, Way, TagIndex};
 use crate::tile::{self, Tile};
 use log::info;
 use std::io::{Error, ErrorKind};
@@ -103,6 +103,42 @@ impl HilbertTree {
         })
     }
 
+    pub fn open(dir: &Path, leaf_zoom: u8) -> Result<Self, Box<dyn std::error::Error>> {
+        // Leaf zoom must be even
+        if leaf_zoom & 1 != 0 {
+            eprintln!("leaf zoom not even: {}", leaf_zoom);
+            return Err(Box::new(Error::new(
+                ErrorKind::Other,
+                "leaf_zoom must be even!",
+            )));
+        }
+
+        // Maximum supported zoom is 14.
+        if leaf_zoom > 14 {
+            eprintln!("Leaf zoom too high! Must be <= 14 z: {}", leaf_zoom);
+            return Err(Box::new(Error::new(
+                ErrorKind::Other,
+                "Leaf zoom too high! Must be <= 14",
+            )));
+        }
+
+        let m_leaves = Mutant::<Leaf>::open(dir, "hilbert_leaves", false)?;
+        let m_tiles = Mutant::<HilbertTile>::open(dir, "hilbert_tiles", false)?;
+
+        let n_chunks = Mutant::<Chunk>::new(dir, "hilbert_n_chunks", 1000)?;
+        let w_chunks = Mutant::<Chunk>::new(dir, "hilbert_w_chunks", 1000)?;
+        let r_chunks = Mutant::<Chunk>::new(dir, "hilbert_r_chunks", 1000)?;
+
+        Ok(Self {
+            leaf_zoom,
+            tiles: Arc::new(m_tiles),
+            leaves: Arc::new(m_leaves),
+            n_chunks: Arc::new(n_chunks),
+            w_chunks: Arc::new(w_chunks),
+            r_chunks: Arc::new(r_chunks),
+        })
+    }
+
     fn find(&self, tile: Tile) -> Option<(&HilbertTile, Option<&Leaf>)> {
         if tile.z > self.leaf_zoom {
             return None;
@@ -146,7 +182,7 @@ impl HilbertTree {
 
     pub fn compose_tile(&self, tile: Tile) -> Vec<u8> {
         match self.find(tile) {
-            Some((h_tile, leaf)) => {
+            Some((_, leaf)) => {
                 if let Some(leaf) = leaf {
                     print!("leaf found {:?}", leaf);
                 }

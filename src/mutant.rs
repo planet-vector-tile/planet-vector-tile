@@ -2,10 +2,12 @@
 
 use core::mem::size_of;
 use core::slice::{from_raw_parts, from_raw_parts_mut};
+use log::info;
 use memmap2::MmapMut;
 use std::fs::File;
 use std::io::Result;
 use std::{
+    fs,
     fs::OpenOptions,
     marker::PhantomData,
     path::{Path, PathBuf},
@@ -108,6 +110,14 @@ impl<T: Sized> Mutant<T> {
             capacity,
             phantom: PhantomData,
         })
+    }
+
+    pub fn mv(&mut self, new_name: &str) -> Result<()> {
+        let mut path = self.path.clone();
+        path.pop();
+        path.set_file_name(new_name);
+        let _ = fs::remove_file(&self.path);
+        fs::rename(&self.path, new_name)
     }
 
     pub fn mutable_slice(&self) -> &mut [T] {

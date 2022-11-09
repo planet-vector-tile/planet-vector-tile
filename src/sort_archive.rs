@@ -12,6 +12,7 @@ use log::info;
 use pbr::ProgressBar;
 use rayon::prelude::*;
 use std::{
+    fs::rename,
     io::{Error, ErrorKind, Stdout},
     path::PathBuf,
     time::Instant,
@@ -53,12 +54,12 @@ pub fn sort(archive: Osm, dir: &PathBuf) -> Result<(), Box<dyn std::error::Error
     // Reorder nodes to sorted hilbert node pairs.
     let mut pb = Prog::new("Reordering nodes. ", nodes_len);
     let nodes = archive.nodes();
-    let sorted_nodes_mut = Mutant::<Node>::new(&dir, "sorted_nodes", nodes_len)?;
+    let mut sorted_nodes_mut = Mutant::<Node>::new(&dir, "sorted_nodes", nodes_len)?;
     let sorted_nodes = sorted_nodes_mut.mutable_slice();
     let mut tag_counter: usize = 0;
     let tags_index = archive.tags_index();
     let tags_index_len = tags_index.len();
-    let sorted_tags_index_mut = Mutant::<TagIndex>::new(dir, "sorted_tags_index", tags_index_len)?;
+    let mut sorted_tags_index_mut = Mutant::<TagIndex>::new(dir, "sorted_tags_index", tags_index_len)?;
     let sorted_tags_index = sorted_tags_index_mut.mutable_slice();
     sorted_nodes.iter_mut().zip(node_pairs.iter_mut()).for_each(
         |(sorted_node, hilbert_node_pair)| {
@@ -82,12 +83,12 @@ pub fn sort(archive: Osm, dir: &PathBuf) -> Result<(), Box<dyn std::error::Error
 
     // Reorder ways to sorted hilbert way pairs.
     let mut pb = Prog::new("Reordering ways. ", ways_len);
-    let sorted_ways_mut = Mutant::<Way>::new(dir, "sorted_ways", ways_len)?;
+    let mut sorted_ways_mut = Mutant::<Way>::new(dir, "sorted_ways", ways_len)?;
     let sorted_ways = sorted_ways_mut.mutable_slice();
     let mut nodes_index_counter: usize = 0;
     let nodes_index = archive.nodes_index();
     let nodes_index_len = nodes_index.len();
-    let sorted_nodes_index_mut =
+    let mut sorted_nodes_index_mut =
         Mutant::<NodeIndex>::new(dir, "sorted_nodes_index", nodes_index_len)?;
     let sorted_nodes_index = sorted_nodes_index_mut.mutable_slice();
     sorted_ways
@@ -120,6 +121,14 @@ pub fn sort(archive: Osm, dir: &PathBuf) -> Result<(), Box<dyn std::error::Error
             pb.tick(i);
         });
     pb.finish();
+
+
+    std::mem::drop(archive);
+    sorted_nodes_mut.mv("nodes")?;
+    sorted_nodes_index_mut.mv("nodes_index")?;
+    sorted_tags_index_mut.mv("tags_index")?;
+    sorted_ways_mut.mv("ways")?;
+    info!("Replaced original vectors with sorted vectors.");
 
     Ok(())
 }
