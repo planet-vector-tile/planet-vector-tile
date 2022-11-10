@@ -1,11 +1,32 @@
 use flatbuffers::FlatBufferBuilder;
 use flatbuffers::WIPOffset;
 
+use crate::source::Source;
 use crate::tile::planet_vector_tile_generated::*;
 use crate::tile::{HilbertBearing, Tile};
 use crate::tile_attributes::TileAttributes;
 
-pub fn info_tile(render_tile: Tile, child_levels: u8) -> Vec<u8> {
+pub struct Info {
+    child_levels: u8,
+}
+
+impl Info {
+    pub fn new() -> Self {
+        Info {
+            child_levels: 4,
+        }
+    }
+}
+
+impl Source for Info {
+    fn tile(&self, tile: &Tile) -> Vec<u8> {
+        info(tile, self.child_levels)
+    }
+}
+
+unsafe impl Send for Info {}
+
+fn info(render_tile: &Tile, child_levels: u8) -> Vec<u8> {
     let pyramid = render_tile.pyramid(child_levels);
     let mut attributes = TileAttributes::new();
     let mut builder = FlatBufferBuilder::new();
@@ -74,7 +95,7 @@ pub fn info_tile(render_tile: Tile, child_levels: u8) -> Vec<u8> {
 }
 
 pub fn generate_features<'a>(
-    render_tile: Tile,
+    render_tile: &Tile,
     tile: &Tile,
     builder: &mut FlatBufferBuilder<'a>,
     attributes: &mut TileAttributes,
@@ -85,7 +106,7 @@ pub fn generate_features<'a>(
     WIPOffset<PVTFeature<'a>>,
 ) {
     let id = tile.id();
-    let is_render_tile = if render_tile == *tile { 1_f64 } else { 0_f64 };
+    let is_render_tile = if render_tile == tile { 1_f64 } else { 0_f64 };
     let is_highest_zoom = match pyramid.last() {
         Some(t) => {
             if t.z == tile.z {
@@ -380,14 +401,14 @@ mod tests {
     #[test]
     fn test_basic_info_tile() {
         let tile = Tile::from_zxy(9, 82, 199);
-        let vec_u8 = info_tile(tile, 4);
+        let vec_u8 = info(tile, 4);
         assert_eq!(vec_u8.len(), 139304);
     }
 
     #[test]
     fn test_zero_info_tile() {
         let tile = Tile::from_zxy(0, 0, 0);
-        let vec_u8 = info_tile(tile, 4);
+        let vec_u8 = info(tile, 4);
         assert_eq!(vec_u8.len(), 125168);
     }
 }

@@ -6,6 +6,7 @@ mod mutant;
 mod osmflat;
 mod parallel;
 mod sort_archive;
+mod source;
 mod tile;
 
 use args::*;
