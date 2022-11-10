@@ -1,5 +1,6 @@
 mod args;
 mod hilbert;
+mod hilbert_compose;
 pub mod info_tile;
 pub mod location;
 mod mutant;

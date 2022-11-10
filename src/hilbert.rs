@@ -20,13 +20,13 @@ use std::sync::Arc;
 // This is referenced often, so this is simpler and saves us from paging into the entity
 // (nodes, ways, relations) vectors unnecessarily.
 #[derive(Debug)]
-struct Leaf {
+pub struct Leaf {
     // Indices to the first node of the given leaf tile.
-    n: u64,
-    w: u32,
-    r: u32,
+    pub n: u64,
+    pub w: u32,
+    pub r: u32,
     // Hilbert index for the leaf tile, at the leaf zoom
-    h: u32,
+    pub h: u32,
 }
 
 // Each vector tile corresponds to one of these tiles.
@@ -38,33 +38,33 @@ struct Leaf {
 // The levels are descending, with the first level corresponding to the highest zoom,
 // in parity with the leaf vector. Each level is z - 2, allowing 16 children per tile.
 #[derive(Debug)]
-struct HilbertTile {
+pub struct HilbertTile {
     // Indices to the first chunk of nodes, ways, relations, for the tile.
-    n: u32,
-    w: u32,
-    r: u32,
+    pub n: u32,
+    pub w: u32,
+    pub r: u32,
     // Index of the first child.
-    child: i32,
+    pub child: i32,
     // Bit mask denoting which of the 16 children for the given tile exist.
     // MSB is index 15, MSB is index 0.
-    mask: u16,
+    pub mask: u16,
 }
 
 // Chunks are offsets and run lengths of entities used for a given tile in the entity.
 #[derive(Debug)]
-struct Chunk {
-    offset: u32, // offset from the w or r of the leaf tile
-    len: u32,
+pub struct Chunk {
+    pub offset: u32, // offset from the w or r of the leaf tile
+    pub len: u32,
 }
 
 pub struct HilbertTree {
-    leaf_zoom: u8,
-    tiles: Arc<Mutant<HilbertTile>>,
-    leaves: Arc<Mutant<Leaf>>,
-    n_chunks: Arc<Mutant<Chunk>>,
-    w_chunks: Arc<Mutant<Chunk>>,
-    r_chunks: Arc<Mutant<Chunk>>,
-    archive: Osm,
+    pub leaf_zoom: u8,
+    pub tiles: Arc<Mutant<HilbertTile>>,
+    pub leaves: Arc<Mutant<Leaf>>,
+    pub n_chunks: Arc<Mutant<Chunk>>,
+    pub w_chunks: Arc<Mutant<Chunk>>,
+    pub r_chunks: Arc<Mutant<Chunk>>,
+    pub archive: Osm,
 }
 
 impl HilbertTree {
@@ -147,60 +147,6 @@ impl HilbertTree {
             r_chunks: Arc::new(r_chunks),
             archive,
         })
-    }
-
-    fn find(&self, tile: Tile) -> Option<(&HilbertTile, Option<&Leaf>)> {
-        if tile.z > self.leaf_zoom {
-            return None;
-        }
-
-        println!("Finding {:?}", tile);
-
-        let h_tiles = self.tiles.slice();
-        let mut h_tile = h_tiles.last().unwrap();
-        println!("root {:?}", h_tile);
-
-        let mut z = 2;
-        let mut i = 0;
-        while z <= tile.z {
-            let h = tile.h >> (2 * (tile.z - z));
-            let child_pos = (h & 0xf) as i32;
-
-            // If the tile does not have the child position in the mask,
-            // then we don't have the tile.
-            if h_tile.mask >> child_pos & 1 != 1 {
-                return None;
-            }
-
-            i = (h_tile.child + child_pos) as usize;
-
-            h_tile = &h_tiles[i];
-
-            println!("i {} {:?}", i, h_tile);
-
-            z += 2;
-        }
-
-        let mut leaf = None;
-        if h_tile.mask == 0 {
-            let leaves = self.leaves.slice();
-            leaf = Some(&leaves[i]);
-        }
-
-        Some((h_tile, leaf))
-    }
-
-    pub fn compose_tile(&self, tile: Tile) -> Vec<u8> {
-        match self.find(tile) {
-            Some((_, leaf)) => {
-                if let Some(leaf) = leaf {
-                    print!("leaf found {:?}", leaf);
-                }
-
-                Vec::new()
-            }
-            None => Vec::new(),
-        }
     }
 }
 
