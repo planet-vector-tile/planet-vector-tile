@@ -40,10 +40,20 @@ impl HilbertTree {
             z += 2;
         }
 
+        let next_h_tile = if i + 1 < h_tiles.len() {
+            Some(&h_tiles[i + 1])
+        } else {
+            None
+        };
+
         let mut leaf = None;
+        let mut next_leaf = None;
         if h_tile.mask == 0 {
             let leaves = self.leaves.slice();
             leaf = Some(&leaves[i]);
+            if i + 1 < leaves.len() {
+                next_leaf = Some(&leaves[i + 1]);
+            }
         }
 
         Some( Result {
@@ -56,9 +66,25 @@ impl HilbertTree {
 
     pub fn compose_tile(&self, tile: Tile) -> Vec<u8> {
         match self.find(tile) {
-            Some((_, leaf)) => {
-                if let Some(leaf) = leaf {
+            Some(res) => {
+                if let Some(leaf) = res.leaf {
+
                     print!("leaf found {:?}", leaf);
+
+                    let nodes = self.archive.nodes();
+                    let ways = self.archive.ways();
+                    let relations = self.archive.relations();
+
+                    let (n_end, w_end, r_end) = if let Some(next_leaf) = res.next_leaf {
+                        (next_leaf.n, next_leaf.w, next_leaf.r)
+                    } else {
+                        (nodes.len() as u64, ways.len() as u32, relations.len() as u32)
+                    };
+
+                    
+
+
+
                 }
 
                 Vec::new()
