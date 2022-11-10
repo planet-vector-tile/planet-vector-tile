@@ -52,13 +52,20 @@ impl<T: Sized> Mutant<T> {
         })
     }
 
-    pub fn new_from_flatdata(dir: &Path, file_name: &str, flatdata_file_name: &str) -> Result<Self> {
+    pub fn new_from_flatdata(
+        dir: &Path,
+        file_name: &str,
+        flatdata_file_name: &str,
+    ) -> Result<Self> {
         let flatdata_path = dir.join(flatdata_file_name);
-        let flatdata_file = OpenOptions::new().read(true).write(true).open(&flatdata_path)?;
+        let flatdata_file = OpenOptions::new()
+            .read(true)
+            .write(true)
+            .open(&flatdata_path)?;
         let fd_mmap = unsafe { MmapMut::map_mut(&flatdata_file)? };
         let fd_header_ptr = fd_mmap.as_ptr() as *const u64;
         let flatdata_header = unsafe { *fd_header_ptr as u64 };
-        
+
         let file_size = flatdata_file.metadata()?.len();
         let contents_size = (file_size - 8) as usize;
         let len = contents_size / size_of::<T>();

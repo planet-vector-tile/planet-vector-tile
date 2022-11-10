@@ -57,7 +57,8 @@ pub fn sort(archive: Osm, dir: &PathBuf) -> Result<(), Box<dyn std::error::Error
     let sorted_nodes = sorted_nodes_mut.mutable_slice();
     let mut tag_counter: usize = 0;
     let tags_index = archive.tags_index();
-    let mut sorted_tags_index_mut = Mutant::<TagIndex>::new_from_flatdata(dir, "sorted_tags_index", "tags_index")?;
+    let mut sorted_tags_index_mut =
+        Mutant::<TagIndex>::new_from_flatdata(dir, "sorted_tags_index", "tags_index")?;
     let sorted_tags_index = sorted_tags_index_mut.mutable_slice();
     sorted_nodes.iter_mut().zip(node_pairs.iter_mut()).for_each(
         |(sorted_node, hilbert_node_pair)| {
@@ -85,7 +86,8 @@ pub fn sort(archive: Osm, dir: &PathBuf) -> Result<(), Box<dyn std::error::Error
     let sorted_ways = sorted_ways_mut.mutable_slice();
     let mut nodes_index_counter: usize = 0;
     let nodes_index = archive.nodes_index();
-    let mut sorted_nodes_index_mut = Mutant::<NodeIndex>::new_from_flatdata(dir, "sorted_nodes_index", "nodes_index")?;
+    let mut sorted_nodes_index_mut =
+        Mutant::<NodeIndex>::new_from_flatdata(dir, "sorted_nodes_index", "nodes_index")?;
     let sorted_nodes_index = sorted_nodes_index_mut.mutable_slice();
     sorted_ways
         .iter_mut()
@@ -172,7 +174,7 @@ fn build_hilbert_way_pairs(
             // info!("way point on surface {:#?}", lonlat);
             let h = location::lonlat_to_h(lonlat);
 
-            pair.set_i(i as u64);
+            pair.set_i(i as u32);
             pair.set_h(h);
         } else {
             eprintln!(

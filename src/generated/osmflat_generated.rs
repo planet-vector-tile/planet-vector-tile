@@ -914,38 +914,38 @@ pub mod osm {
     #[repr(transparent)]
     #[derive(Clone)]
     pub struct HilbertWayPair {
-        data: [u8; 13],
+        data: [u8; 12],
     }
 
     impl HilbertWayPair {
         /// Unsafe since the struct might not be self-contained
         pub unsafe fn new_unchecked() -> Self {
-            Self { data: [0; 13] }
+            Self { data: [0; 12] }
         }
     }
 
     impl flatdata::Struct for HilbertWayPair {
         unsafe fn create_unchecked() -> Self {
-            Self { data: [0; 13] }
+            Self { data: [0; 12] }
         }
 
-        const SIZE_IN_BYTES: usize = 13;
+        const SIZE_IN_BYTES: usize = 12;
         const IS_OVERLAPPING_WITH_NEXT: bool = false;
     }
 
     impl HilbertWayPair {
         pub fn new() -> Self {
-            Self { data: [0; 13] }
+            Self { data: [0; 12] }
         }
 
         /// Create reference from byte array of matching size
-        pub fn from_bytes(data: &[u8; 13]) -> &Self {
+        pub fn from_bytes(data: &[u8; 12]) -> &Self {
             // Safety: This is safe since HilbertWayPair is repr(transparent)
             unsafe { std::mem::transmute(data) }
         }
 
         /// Create reference from byte array of matching size
-        pub fn from_bytes_mut(data: &mut [u8; 13]) -> &mut Self {
+        pub fn from_bytes_mut(data: &mut [u8; 12]) -> &mut Self {
             // Safety: This is safe since HilbertWayPair is repr(transparent)
             unsafe { std::mem::transmute(data) }
         }
@@ -953,11 +953,11 @@ pub mod osm {
         /// Create reference from byte array
         pub fn from_bytes_slice(data: &[u8]) -> Result<&Self, flatdata::ResourceStorageError> {
             // We cannot rely on TryFrom here, since it does not yet support > 33 bytes
-            if data.len() < 13 {
-                assert_eq!(data.len(), 13);
+            if data.len() < 12 {
+                assert_eq!(data.len(), 12);
                 return Err(flatdata::ResourceStorageError::UnexpectedDataSize);
             }
-            let ptr = data.as_ptr() as *const [u8; 13];
+            let ptr = data.as_ptr() as *const [u8; 12];
             // Safety: We checked length before
             Ok(Self::from_bytes(unsafe { &*ptr }))
         }
@@ -967,16 +967,16 @@ pub mod osm {
             data: &mut [u8],
         ) -> Result<&mut Self, flatdata::ResourceStorageError> {
             // We cannot rely on TryFrom here, since it does not yet support > 33 bytes
-            if data.len() < 13 {
-                assert_eq!(data.len(), 13);
+            if data.len() < 12 {
+                assert_eq!(data.len(), 12);
                 return Err(flatdata::ResourceStorageError::UnexpectedDataSize);
             }
-            let ptr = data.as_ptr() as *mut [u8; 13];
+            let ptr = data.as_ptr() as *mut [u8; 12];
             // Safety: We checked length before
             Ok(Self::from_bytes_mut(unsafe { &mut *ptr }))
         }
 
-        pub fn as_bytes(&self) -> &[u8; 13] {
+        pub fn as_bytes(&self) -> &[u8; 12] {
             &self.data
         }
     }
@@ -991,14 +991,14 @@ pub mod osm {
 
     impl HilbertWayPair {
         #[inline]
-        pub fn i(&self) -> u64 {
-            let value = flatdata_read_bytes!(u64, self.data.as_ptr(), 0, 40);
-            unsafe { std::mem::transmute::<u64, u64>(value) }
+        pub fn i(&self) -> u32 {
+            let value = flatdata_read_bytes!(u32, self.data.as_ptr(), 0, 32);
+            unsafe { std::mem::transmute::<u32, u32>(value) }
         }
 
         #[inline]
         pub fn h(&self) -> u64 {
-            let value = flatdata_read_bytes!(u64, self.data.as_ptr(), 40, 64);
+            let value = flatdata_read_bytes!(u64, self.data.as_ptr(), 32, 64);
             unsafe { std::mem::transmute::<u64, u64>(value) }
         }
     }
@@ -1022,14 +1022,14 @@ pub mod osm {
     impl HilbertWayPair {
         #[inline]
         #[allow(missing_docs)]
-        pub fn set_i(&mut self, value: u64) {
-            flatdata_write_bytes!(u64; value, self.data, 0, 40)
+        pub fn set_i(&mut self, value: u32) {
+            flatdata_write_bytes!(u32; value, self.data, 0, 32)
         }
 
         #[inline]
         #[allow(missing_docs)]
         pub fn set_h(&mut self, value: u64) {
-            flatdata_write_bytes!(u64; value, self.data, 40, 64)
+            flatdata_write_bytes!(u64; value, self.data, 32, 64)
         }
 
         /// Copies the data from `other` into this struct.
@@ -1670,38 +1670,38 @@ pub mod osm {
     #[repr(transparent)]
     #[derive(Clone)]
     pub struct HilbertRelationPair {
-        data: [u8; 13],
+        data: [u8; 12],
     }
 
     impl HilbertRelationPair {
         /// Unsafe since the struct might not be self-contained
         pub unsafe fn new_unchecked() -> Self {
-            Self { data: [0; 13] }
+            Self { data: [0; 12] }
         }
     }
 
     impl flatdata::Struct for HilbertRelationPair {
         unsafe fn create_unchecked() -> Self {
-            Self { data: [0; 13] }
+            Self { data: [0; 12] }
         }
 
-        const SIZE_IN_BYTES: usize = 13;
+        const SIZE_IN_BYTES: usize = 12;
         const IS_OVERLAPPING_WITH_NEXT: bool = false;
     }
 
     impl HilbertRelationPair {
         pub fn new() -> Self {
-            Self { data: [0; 13] }
+            Self { data: [0; 12] }
         }
 
         /// Create reference from byte array of matching size
-        pub fn from_bytes(data: &[u8; 13]) -> &Self {
+        pub fn from_bytes(data: &[u8; 12]) -> &Self {
             // Safety: This is safe since HilbertRelationPair is repr(transparent)
             unsafe { std::mem::transmute(data) }
         }
 
         /// Create reference from byte array of matching size
-        pub fn from_bytes_mut(data: &mut [u8; 13]) -> &mut Self {
+        pub fn from_bytes_mut(data: &mut [u8; 12]) -> &mut Self {
             // Safety: This is safe since HilbertRelationPair is repr(transparent)
             unsafe { std::mem::transmute(data) }
         }
@@ -1709,11 +1709,11 @@ pub mod osm {
         /// Create reference from byte array
         pub fn from_bytes_slice(data: &[u8]) -> Result<&Self, flatdata::ResourceStorageError> {
             // We cannot rely on TryFrom here, since it does not yet support > 33 bytes
-            if data.len() < 13 {
-                assert_eq!(data.len(), 13);
+            if data.len() < 12 {
+                assert_eq!(data.len(), 12);
                 return Err(flatdata::ResourceStorageError::UnexpectedDataSize);
             }
-            let ptr = data.as_ptr() as *const [u8; 13];
+            let ptr = data.as_ptr() as *const [u8; 12];
             // Safety: We checked length before
             Ok(Self::from_bytes(unsafe { &*ptr }))
         }
@@ -1723,16 +1723,16 @@ pub mod osm {
             data: &mut [u8],
         ) -> Result<&mut Self, flatdata::ResourceStorageError> {
             // We cannot rely on TryFrom here, since it does not yet support > 33 bytes
-            if data.len() < 13 {
-                assert_eq!(data.len(), 13);
+            if data.len() < 12 {
+                assert_eq!(data.len(), 12);
                 return Err(flatdata::ResourceStorageError::UnexpectedDataSize);
             }
-            let ptr = data.as_ptr() as *mut [u8; 13];
+            let ptr = data.as_ptr() as *mut [u8; 12];
             // Safety: We checked length before
             Ok(Self::from_bytes_mut(unsafe { &mut *ptr }))
         }
 
-        pub fn as_bytes(&self) -> &[u8; 13] {
+        pub fn as_bytes(&self) -> &[u8; 12] {
             &self.data
         }
     }
@@ -1747,14 +1747,14 @@ pub mod osm {
 
     impl HilbertRelationPair {
         #[inline]
-        pub fn i(&self) -> u64 {
-            let value = flatdata_read_bytes!(u64, self.data.as_ptr(), 0, 40);
-            unsafe { std::mem::transmute::<u64, u64>(value) }
+        pub fn i(&self) -> u32 {
+            let value = flatdata_read_bytes!(u32, self.data.as_ptr(), 0, 32);
+            unsafe { std::mem::transmute::<u32, u32>(value) }
         }
 
         #[inline]
         pub fn h(&self) -> u64 {
-            let value = flatdata_read_bytes!(u64, self.data.as_ptr(), 40, 64);
+            let value = flatdata_read_bytes!(u64, self.data.as_ptr(), 32, 64);
             unsafe { std::mem::transmute::<u64, u64>(value) }
         }
     }
@@ -1778,14 +1778,14 @@ pub mod osm {
     impl HilbertRelationPair {
         #[inline]
         #[allow(missing_docs)]
-        pub fn set_i(&mut self, value: u64) {
-            flatdata_write_bytes!(u64; value, self.data, 0, 40)
+        pub fn set_i(&mut self, value: u32) {
+            flatdata_write_bytes!(u32; value, self.data, 0, 32)
         }
 
         #[inline]
         #[allow(missing_docs)]
         pub fn set_h(&mut self, value: u64) {
-            flatdata_write_bytes!(u64; value, self.data, 40, 64)
+            flatdata_write_bytes!(u64; value, self.data, 32, 64)
         }
 
         /// Copies the data from `other` into this struct.
@@ -2288,9 +2288,9 @@ pub mod osm {
         nodes: &'static [super::osm::Node],
         hilbert_node_pairs: Option<&'static [super::osm::HilbertNodePair]>,
         ways: &'static [super::osm::Way],
-        hilbert_way_pairs: Option<&'static [super::osm::HilbertWayPair]>,
+        hilbert_way_pairs_not_used: Option<&'static [super::osm::HilbertWayPair]>,
         relations: &'static [super::osm::Relation],
-        hilbert_relation_pairs: Option<&'static [super::osm::HilbertRelationPair]>,
+        hilbert_relation_pairs_not_used: Option<&'static [super::osm::HilbertRelationPair]>,
         relation_members: flatdata::MultiArrayView<'static, RelationMembers>,
         tags: &'static [super::osm::Tag],
         tags_index: &'static [super::osm::TagIndex],
@@ -2335,8 +2335,8 @@ pub mod osm {
         }
 
         #[inline]
-        pub fn hilbert_way_pairs(&self) -> Option<&[super::osm::HilbertWayPair]> {
-            self.hilbert_way_pairs
+        pub fn hilbert_way_pairs_not_used(&self) -> Option<&[super::osm::HilbertWayPair]> {
+            self.hilbert_way_pairs_not_used
         }
 
         /// List of relations.
@@ -2350,8 +2350,10 @@ pub mod osm {
         }
 
         #[inline]
-        pub fn hilbert_relation_pairs(&self) -> Option<&[super::osm::HilbertRelationPair]> {
-            self.hilbert_relation_pairs
+        pub fn hilbert_relation_pairs_not_used(
+            &self,
+        ) -> Option<&[super::osm::HilbertRelationPair]> {
+            self.hilbert_relation_pairs_not_used
         }
 
         /// Members attached to relations.
@@ -2409,9 +2411,15 @@ pub mod osm {
                 .field("nodes", &self.nodes())
                 .field("hilbert_node_pairs", &self.hilbert_node_pairs())
                 .field("ways", &self.ways())
-                .field("hilbert_way_pairs", &self.hilbert_way_pairs())
+                .field(
+                    "hilbert_way_pairs_not_used",
+                    &self.hilbert_way_pairs_not_used(),
+                )
                 .field("relations", &self.relations())
-                .field("hilbert_relation_pairs", &self.hilbert_relation_pairs())
+                .field(
+                    "hilbert_relation_pairs_not_used",
+                    &self.hilbert_relation_pairs_not_used(),
+                )
                 .field("relation_members", &self.relation_members())
                 .field("tags", &self.tags())
                 .field("tags_index", &self.tags_index())
@@ -2485,15 +2493,15 @@ pub mod osm {
                     resource.and_then(|x| <&[super::osm::Way]>::from_bytes(x)),
                 )?
             };
-            let hilbert_way_pairs = {
+            let hilbert_way_pairs_not_used = {
                 use flatdata::check_optional_resource as check;
                 let max_size = None;
                 let resource = extend(storage.read(
-                    "hilbert_way_pairs",
-                    schema::osm::resources::HILBERT_WAY_PAIRS,
+                    "hilbert_way_pairs_not_used",
+                    schema::osm::resources::HILBERT_WAY_PAIRS_NOT_USED,
                 ));
                 check(
-                    "hilbert_way_pairs",
+                    "hilbert_way_pairs_not_used",
                     |r| r.len(),
                     max_size,
                     resource.and_then(|x| <&[super::osm::HilbertWayPair]>::from_bytes(x)),
@@ -2510,15 +2518,15 @@ pub mod osm {
                     resource.and_then(|x| <&[super::osm::Relation]>::from_bytes(x)),
                 )?
             };
-            let hilbert_relation_pairs = {
+            let hilbert_relation_pairs_not_used = {
                 use flatdata::check_optional_resource as check;
                 let max_size = None;
                 let resource = extend(storage.read(
-                    "hilbert_relation_pairs",
-                    schema::osm::resources::HILBERT_RELATION_PAIRS,
+                    "hilbert_relation_pairs_not_used",
+                    schema::osm::resources::HILBERT_RELATION_PAIRS_NOT_USED,
                 ));
                 check(
-                    "hilbert_relation_pairs",
+                    "hilbert_relation_pairs_not_used",
                     |r| r.len(),
                     max_size,
                     resource.and_then(|x| <&[super::osm::HilbertRelationPair]>::from_bytes(x)),
@@ -2616,9 +2624,9 @@ pub mod osm {
                 nodes,
                 hilbert_node_pairs,
                 ways,
-                hilbert_way_pairs,
+                hilbert_way_pairs_not_used,
                 relations,
-                hilbert_relation_pairs,
+                hilbert_relation_pairs_not_used,
                 relation_members,
                 tags,
                 tags_index,
@@ -2731,37 +2739,37 @@ pub mod osm {
         }
 
         #[inline]
-        /// Stores [`hilbert_way_pairs`] in the archive.
+        /// Stores [`hilbert_way_pairs_not_used`] in the archive.
         ///
-        /// [`hilbert_way_pairs`]: struct.Osm.html#method.hilbert_way_pairs
-        pub fn set_hilbert_way_pairs(
+        /// [`hilbert_way_pairs_not_used`]: struct.Osm.html#method.hilbert_way_pairs_not_used
+        pub fn set_hilbert_way_pairs_not_used(
             &self,
             vector: &[super::osm::HilbertWayPair],
         ) -> ::std::io::Result<()> {
             use flatdata::SliceExt;
             self.storage.write(
-                "hilbert_way_pairs",
-                schema::osm::resources::HILBERT_WAY_PAIRS,
+                "hilbert_way_pairs_not_used",
+                schema::osm::resources::HILBERT_WAY_PAIRS_NOT_USED,
                 vector.as_bytes(),
             )
         }
 
-        /// Opens [`hilbert_way_pairs`] in the archive for buffered writing.
+        /// Opens [`hilbert_way_pairs_not_used`] in the archive for buffered writing.
         ///
         /// Elements can be added to the vector until the [`ExternalVector::close`] method
         /// is called. To flush the data fully into the archive, this method must be called
         /// in the end.
         ///
-        /// [`hilbert_way_pairs`]: struct.Osm.html#method.hilbert_way_pairs
+        /// [`hilbert_way_pairs_not_used`]: struct.Osm.html#method.hilbert_way_pairs_not_used
         /// [`ExternalVector::close`]: flatdata/struct.ExternalVector.html#method.close
         #[inline]
-        pub fn start_hilbert_way_pairs(
+        pub fn start_hilbert_way_pairs_not_used(
             &self,
         ) -> ::std::io::Result<flatdata::ExternalVector<super::osm::HilbertWayPair>> {
             flatdata::create_external_vector(
                 &*self.storage,
-                "hilbert_way_pairs",
-                schema::osm::resources::HILBERT_WAY_PAIRS,
+                "hilbert_way_pairs_not_used",
+                schema::osm::resources::HILBERT_WAY_PAIRS_NOT_USED,
             )
         }
 
@@ -2798,37 +2806,37 @@ pub mod osm {
         }
 
         #[inline]
-        /// Stores [`hilbert_relation_pairs`] in the archive.
+        /// Stores [`hilbert_relation_pairs_not_used`] in the archive.
         ///
-        /// [`hilbert_relation_pairs`]: struct.Osm.html#method.hilbert_relation_pairs
-        pub fn set_hilbert_relation_pairs(
+        /// [`hilbert_relation_pairs_not_used`]: struct.Osm.html#method.hilbert_relation_pairs_not_used
+        pub fn set_hilbert_relation_pairs_not_used(
             &self,
             vector: &[super::osm::HilbertRelationPair],
         ) -> ::std::io::Result<()> {
             use flatdata::SliceExt;
             self.storage.write(
-                "hilbert_relation_pairs",
-                schema::osm::resources::HILBERT_RELATION_PAIRS,
+                "hilbert_relation_pairs_not_used",
+                schema::osm::resources::HILBERT_RELATION_PAIRS_NOT_USED,
                 vector.as_bytes(),
             )
         }
 
-        /// Opens [`hilbert_relation_pairs`] in the archive for buffered writing.
+        /// Opens [`hilbert_relation_pairs_not_used`] in the archive for buffered writing.
         ///
         /// Elements can be added to the vector until the [`ExternalVector::close`] method
         /// is called. To flush the data fully into the archive, this method must be called
         /// in the end.
         ///
-        /// [`hilbert_relation_pairs`]: struct.Osm.html#method.hilbert_relation_pairs
+        /// [`hilbert_relation_pairs_not_used`]: struct.Osm.html#method.hilbert_relation_pairs_not_used
         /// [`ExternalVector::close`]: flatdata/struct.ExternalVector.html#method.close
         #[inline]
-        pub fn start_hilbert_relation_pairs(
+        pub fn start_hilbert_relation_pairs_not_used(
             &self,
         ) -> ::std::io::Result<flatdata::ExternalVector<super::osm::HilbertRelationPair>> {
             flatdata::create_external_vector(
                 &*self.storage,
-                "hilbert_relation_pairs",
-                schema::osm::resources::HILBERT_RELATION_PAIRS,
+                "hilbert_relation_pairs_not_used",
+                schema::osm::resources::HILBERT_RELATION_PAIRS_NOT_USED,
             )
         }
 
@@ -3086,7 +3094,7 @@ struct Way
 namespace osm {
 struct HilbertWayPair
 {
-    i : u64 : 40;
+    i : u32 : 32;
     h : u64 : 64;
 }
 }
@@ -3103,7 +3111,7 @@ struct Relation
 namespace osm {
 struct HilbertRelationPair
 {
-    i : u64 : 40;
+    i : u32 : 32;
     h : u64 : 64;
 }
 }
@@ -3194,11 +3202,11 @@ archive Osm
     @explicit_reference( .osm.Way.ref_first_idx, .osm.Osm.nodes_index )
     ways : vector< .osm.Way >;
     @optional
-    hilbert_way_pairs : vector< .osm.HilbertWayPair >;
+    hilbert_way_pairs_not_used : vector< .osm.HilbertWayPair >;
     @explicit_reference( .osm.Relation.tag_first_idx, .osm.Osm.tags_index )
     relations : vector< .osm.Relation >;
     @optional
-    hilbert_relation_pairs : vector< .osm.HilbertRelationPair >;
+    hilbert_relation_pairs_not_used : vector< .osm.HilbertRelationPair >;
     @explicit_reference( .osm.NodeMember.node_idx, .osm.Osm.nodes )
     @explicit_reference( .osm.NodeMember.role_idx, .osm.Osm.stringtable )
     @explicit_reference( .osm.WayMember.way_idx, .osm.Osm.ways )
@@ -3306,10 +3314,10 @@ archive Osm
 }
 
 "#;
-                pub const HILBERT_WAY_PAIRS: &str = r#"namespace osm {
+                pub const HILBERT_WAY_PAIRS_NOT_USED: &str = r#"namespace osm {
 struct HilbertWayPair
 {
-    i : u64 : 40;
+    i : u32 : 32;
     h : u64 : 64;
 }
 }
@@ -3318,7 +3326,7 @@ namespace osm {
 archive Osm
 {
     @optional
-    hilbert_way_pairs : vector< .osm.HilbertWayPair >;
+    hilbert_way_pairs_not_used : vector< .osm.HilbertWayPair >;
 }
 }
 
@@ -3341,10 +3349,10 @@ archive Osm
 }
 
 "#;
-                pub const HILBERT_RELATION_PAIRS: &str = r#"namespace osm {
+                pub const HILBERT_RELATION_PAIRS_NOT_USED: &str = r#"namespace osm {
 struct HilbertRelationPair
 {
-    i : u64 : 40;
+    i : u32 : 32;
     h : u64 : 64;
 }
 }
@@ -3353,7 +3361,7 @@ namespace osm {
 archive Osm
 {
     @optional
-    hilbert_relation_pairs : vector< .osm.HilbertRelationPair >;
+    hilbert_relation_pairs_not_used : vector< .osm.HilbertRelationPair >;
 }
 }
 
