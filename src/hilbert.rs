@@ -148,10 +148,6 @@ impl HilbertTree {
             archive,
         })
     }
-
-    pub fn hello(&self) -> i32 {
-        234
-    }
 }
 
 fn build_leaves(

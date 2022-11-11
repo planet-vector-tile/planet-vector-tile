@@ -35,7 +35,7 @@ pub fn load_planet(tiles: Vec<String>) -> Planet {
 #[napi]
 pub struct Planet {
     tiles: Vec<String>,
-    sources: Vec<Box<dyn Source>>,
+    sources: Arc<RwLock<Vec<Box<dyn Source>>>>,
     hilbert: Arc<RwLock<HilbertTree>>,
 }
 
@@ -44,9 +44,14 @@ impl Planet {
     #[napi(constructor)]
     pub fn new(tiles: Vec<String>) -> Self {
         let p = PathBuf::from("/Users/n/geodata/flatdata/santacruz");
+        let h = Box::new(HilbertTree::open(&p, 12).unwrap()) as Box<dyn Source>;
+
+        let info = Box::new(Info::new()) as Box<dyn Source>;
+        let sources = Arc::new(RwLock::new(vec![info, h]));
+
         Self {
             tiles,
-            sources: vec![Box::new(Info::new())],
+            sources,
             hilbert: Arc::new(RwLock::new(HilbertTree::open(&p, 12).unwrap())),
         }
     }
@@ -60,9 +65,17 @@ impl Planet {
             let tile = Tile::from_zxy(z, x, y);
 
             println!("tiles {:?}", tiles);
-            for s in sources {
-                println!("source {:?}", s);
+            let ss = sources.read().await;
+            for i in 0..ss.len() {
+                let source = ss.get(i).unwrap();
+                let buf = source.tile(&tile);
+                println!("{:?}", buf);
+
             }
+            // println!("{}", ss.len());
+            // for s in ss {
+            //     println!("source {:?}", s);
+            // }
             let h = hilbert.read().await;
             println!("hello {}", h.hello());
 

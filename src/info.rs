@@ -6,7 +6,6 @@ use crate::tile::planet_vector_tile_generated::*;
 use crate::tile::{HilbertBearing, Tile};
 use crate::tile_attributes::TileAttributes;
 
-#[derive(Clone, Debug)]
 pub struct Info {
     child_levels: u8,
 }
@@ -24,8 +23,6 @@ impl Source for Info {
         info(tile, self.child_levels)
     }
 }
-
-unsafe impl Send for Info {}
 
 fn info(render_tile: &Tile, child_levels: u8) -> Vec<u8> {
     let pyramid = render_tile.pyramid(child_levels);

@@ -1,4 +1,4 @@
-use crate::{hilbert::{HilbertTree, HilbertTile, Leaf}, tile::Tile};
+use crate::{hilbert::{HilbertTree, HilbertTile, Leaf}, tile::Tile, source::Source};
 
 struct Result<'a> {
     h_tile: &'a HilbertTile,
@@ -64,6 +64,10 @@ impl HilbertTree {
         })
     }
 
+    pub fn hello(&self) -> i32 {
+        234
+    }
+
     pub fn compose_tile(&self, tile: Tile) -> Vec<u8> {
         match self.find(tile) {
             Some(res) => {
@@ -91,5 +95,11 @@ impl HilbertTree {
             }
             None => Vec::new(),
         }
+    }
+}
+
+impl Source for HilbertTree {
+    fn tile(&self, tile: &Tile) -> Vec<u8> {
+        vec![1,2,3,4,222,55]
     }
 }
