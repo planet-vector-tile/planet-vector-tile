@@ -2,7 +2,10 @@ use crate::{
     hilbert::{HilbertTile, HilbertTree, Leaf},
     pvt_builder::PVTBuilder,
     source::Source,
-    tile::{Tile, planet_vector_tile_generated::{PVTGeometry, PVTGeometryArgs, PVTFeature, PVTFeatureArgs}},
+    tile::{
+        planet_vector_tile_generated::{PVTFeature, PVTFeatureArgs, PVTGeometry, PVTGeometryArgs, PVTLayer, PVTLayerArgs},
+        Tile,
+    },
     tile_attributes::TileAttributes,
 };
 
@@ -103,8 +106,9 @@ impl Source for HilbertTree {
         let fbb = &mut builder.fbb;
         let attributes = &mut builder.attributes;
 
-        let hello_key = attributes.upsert_string("Hello");
+        let hello_key = attributes.upsert_string("hello");
         let world_val = attributes.upsert_string("world");
+        let hilbert = attributes.upsert_string("hilbert");
 
         // Create center geometry
         let center = tile.project(tile.center());
@@ -132,6 +136,16 @@ impl Source for HilbertTree {
             },
         );
 
+        let center_features = fbb.create_vector(&[center_feature]);
+        let center_layer = PVTLayer::create(
+            fbb,
+            &PVTLayerArgs {
+                name: hilbert,
+                features: Some(center_features),
+            },
+        );
+
+        builder.add_layer(center_layer);
         
     }
 }
