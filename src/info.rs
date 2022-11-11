@@ -6,6 +6,7 @@ use crate::tile::planet_vector_tile_generated::*;
 use crate::tile::{HilbertBearing, Tile};
 use crate::tile_attributes::TileAttributes;
 
+#[derive(Clone, Debug)]
 pub struct Info {
     child_levels: u8,
 }
