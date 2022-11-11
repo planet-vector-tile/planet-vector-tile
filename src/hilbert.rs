@@ -59,11 +59,11 @@ pub struct Chunk {
 
 pub struct HilbertTree {
     pub leaf_zoom: u8,
-    pub tiles: Arc<Mutant<HilbertTile>>,
-    pub leaves: Arc<Mutant<Leaf>>,
-    pub n_chunks: Arc<Mutant<Chunk>>,
-    pub w_chunks: Arc<Mutant<Chunk>>,
-    pub r_chunks: Arc<Mutant<Chunk>>,
+    pub tiles: Mutant<HilbertTile>,
+    pub leaves: Mutant<Leaf>,
+    pub n_chunks: Mutant<Chunk>,
+    pub w_chunks: Mutant<Chunk>,
+    pub r_chunks: Mutant<Chunk>,
     pub archive: Osm,
 }
 
@@ -101,11 +101,11 @@ impl HilbertTree {
 
         Ok(Self {
             leaf_zoom,
-            tiles: Arc::new(m_tiles),
-            leaves: Arc::new(m_leaves),
-            n_chunks: Arc::new(n_chunks),
-            w_chunks: Arc::new(w_chunks),
-            r_chunks: Arc::new(r_chunks),
+            tiles: m_tiles,
+            leaves: m_leaves,
+            n_chunks,
+            w_chunks,
+            r_chunks,
             archive,
         })
     }
@@ -140,11 +140,11 @@ impl HilbertTree {
 
         Ok(Self {
             leaf_zoom,
-            tiles: Arc::new(m_tiles),
-            leaves: Arc::new(m_leaves),
-            n_chunks: Arc::new(n_chunks),
-            w_chunks: Arc::new(w_chunks),
-            r_chunks: Arc::new(r_chunks),
+            tiles: m_tiles,
+            leaves: m_leaves,
+            n_chunks,
+            w_chunks,
+            r_chunks,
             archive,
         })
     }
