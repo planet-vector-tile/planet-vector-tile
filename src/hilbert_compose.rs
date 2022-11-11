@@ -73,7 +73,7 @@ impl HilbertTree {
         })
     }
 
-    pub fn compose_tile(&self, tile: Tile) -> Vec<u8> {
+    pub fn b(&self, tile: Tile) -> Vec<u8> {
         match self.find(tile) {
             Some(res) => {
                 if let Some(leaf) = res.leaf {
@@ -102,7 +102,7 @@ impl HilbertTree {
 }
 
 impl Source for HilbertTree {
-    fn build_tile(&self, tile: &Tile, builder: &mut PVTBuilder) {
+    fn compose_tile(&self, tile: &Tile, builder: &mut PVTBuilder) {
         let fbb = &mut builder.fbb;
         let attributes = &mut builder.attributes;
 
@@ -146,6 +146,6 @@ impl Source for HilbertTree {
         );
 
         builder.add_layer(center_layer);
-        
+
     }
 }

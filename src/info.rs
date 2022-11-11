@@ -17,7 +17,7 @@ impl Info {
 }
 
 impl Source for Info {
-    fn build_tile(&self, tile: &Tile, builder: &mut PVTBuilder) {
+    fn compose_tile(&self, tile: &Tile, builder: &mut PVTBuilder) {
         info(tile, builder, self.child_levels)
     }
 }
