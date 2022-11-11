@@ -15,14 +15,17 @@ pub mod tile_attributes;
 extern crate napi_derive;
 
 use args::Args;
+use hilbert::HilbertTree;
 use info::*;
 use source::Source;
 use std::error::Error;
 use std::path::PathBuf;
+use std::sync::Arc;
 use tile::Tile;
 
 use napi::bindgen_prelude::*;
 use napi::tokio::{self};
+use napi::tokio::sync::RwLock;
 
 #[napi]
 pub fn load_planet(tiles: Vec<String>) -> Planet {
@@ -33,15 +36,18 @@ pub fn load_planet(tiles: Vec<String>) -> Planet {
 pub struct Planet {
     tiles: Vec<String>,
     sources: Vec<Box<dyn Source>>,
+    hilbert: Arc<RwLock<HilbertTree>>,
 }
 
 #[napi]
 impl Planet {
     #[napi(constructor)]
     pub fn new(tiles: Vec<String>) -> Self {
+        let p = PathBuf::from("/Users/n/geodata/flatdata/santacruz");
         Self {
             tiles,
             sources: vec![Box::new(Info::new())],
+            hilbert: Arc::new(RwLock::new(HilbertTree::open(&p, 12).unwrap())),
         }
     }
 
@@ -49,6 +55,7 @@ impl Planet {
     pub async fn tile(&self, z: u8, x: u32, y: u32) -> Result<Uint8Array> {
         let tiles = self.tiles.clone();
         let sources = self.sources.clone();
+        let hilbert = self.hilbert.clone();
         tokio::task::spawn(async move {
             let tile = Tile::from_zxy(z, x, y);
 
@@ -56,6 +63,8 @@ impl Planet {
             for s in sources {
                 println!("source {:?}", s);
             }
+            let h = hilbert.read().await;
+            println!("hello {}", h.hello());
 
             let info = Info::new();
             let vec_u8 = info.tile(&tile);
