@@ -380,7 +380,8 @@ mod tests {
         let tile = Tile::from_zxy(9, 82, 199);
         let mut builder = PVTBuilder::new();
         info(&tile, &mut builder, 4);
-        
+        let vec_u8 = builder.build();
+
         assert_eq!(vec_u8.len(), 139304);
     }
 
@@ -389,6 +390,7 @@ mod tests {
         let tile = Tile::from_zxy(0, 0, 0);
         let mut builder = PVTBuilder::new();
         info(&tile, &mut builder, 4);
+        let vec_u8 = builder.build();
 
         assert_eq!(vec_u8.len(), 125168);
     }

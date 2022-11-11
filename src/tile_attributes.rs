@@ -1,6 +1,8 @@
-use flatbuffers::{FlatBufferBuilder, WIPOffset, Vector, ForwardsUOffset};
+use flatbuffers::{FlatBufferBuilder, ForwardsUOffset, Vector, WIPOffset};
 use indexmap::IndexMap;
-use std::{hash::{Hash, Hasher}, marker::PhantomData};
+use std::{
+    hash::{Hash, Hasher},
+};
 
 use crate::tile::planet_vector_tile_generated::*;
 
@@ -13,8 +15,8 @@ impl Hash for PVTValue {
 impl Eq for PVTValue {}
 
 pub struct TileAttributes {
-    strings: IndexMap<String, u32>,
-    values: IndexMap<PVTValue, u32>,
+    pub strings: IndexMap<String, u32>,
+    pub values: IndexMap<PVTValue, u32>,
 }
 
 impl TileAttributes {
@@ -79,24 +81,4 @@ impl TileAttributes {
             }
         }
     }
-
-    pub fn build_strings<'a>(&self, builder: &mut FlatBufferBuilder<'a>) -> WIPOffset<Vector<'a, ForwardsUOffset<&str>>> {
-        let len = self.strings.len();
-        builder.start_vector::<ForwardsUOffset<&str>>(len);
-        for (key, _) in &self.strings {
-            let s = builder.create_string(&key);
-            builder.push(s);
-        }
-        builder.end_vector::<ForwardsUOffset<&str>>(len)
-    }
-
-    pub fn build_values<'a>(&self, builder: &mut FlatBufferBuilder<'a>) -> WIPOffset<Vector<'a, PVTValue>> {
-        let len = self.values.len();
-        builder.start_vector::<PVTValue>(len);
-        for (value, _) in self.values.iter() {
-            builder.push(value);
-        }
-        builder.end_vector::<PVTValue>(len)
-    }
-
 }

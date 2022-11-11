@@ -1,7 +1,8 @@
 use flatbuffers::{FlatBufferBuilder, WIPOffset};
+use itertools::Itertools;
 
 use crate::{
-    tile::planet_vector_tile_generated::{PVTLayer, PVTTile, PVTTileArgs},
+    tile::planet_vector_tile_generated::{PVTLayer, PVTTile, PVTTileArgs, PVTValue},
     tile_attributes::TileAttributes,
 };
 
@@ -27,8 +28,17 @@ impl<'a> PVTBuilder<'a> {
     }
 
     pub fn build(&'a mut self) -> Vec<u8> {
-        let strings = self.attributes.build_strings(&mut self.fbb);
-        let values = self.attributes.build_values(&mut self.fbb);
+        let str_offsets = self
+            .attributes
+            .strings
+            .iter()
+            .map(|(k, _)| self.fbb.create_string(k.as_str()))
+            .collect_vec();
+        let strings = self.fbb.create_vector(&str_offsets);
+
+        let vals = self.attributes.values.iter().map(|(v, _)| v).collect_vec();
+        let values = self.fbb.create_vector(&vals);
+
         let layers = self.fbb.create_vector(&mut self.layers);
         let tile = PVTTile::create(
             &mut self.fbb,

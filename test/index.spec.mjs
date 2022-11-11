@@ -4,16 +4,16 @@ import { loadPlanet, Planet } from '../index.js';
 import { PlanetVectorTile } from '../dist/bundle.js';
 
 test('load planet and fetch tile', async t => {
-    const planet = loadPlanet('info', 0, 14);
+    const planet = loadPlanet(['info']);
     const tile = await planet.tile(9, 82, 199);
     t.truthy(tile);
 
     const pvt = new PlanetVectorTile(tile);
-    t.is(Object.keys(pvt.layers).length, 2);
+    t.is(Object.keys(pvt.layers).length, 3);
 });
 
 test('check info tile boundary feature', async t => {
-    const planet = loadPlanet('info', 0, 14);
+    const planet = loadPlanet(['info']);
     const tile = await planet.tile(9, 82, 199);
     const pvt = new PlanetVectorTile(tile);
     const firstFeature = pvt.layers.tile_boundary.feature(0);
@@ -41,7 +41,7 @@ test('check info tile boundary feature', async t => {
 });
 
 test('check info tile 0/0/0', async t => {
-    const planet = loadPlanet('info', 0, 14);
+    const planet = loadPlanet(['info']);
     const tile = await planet.tile(0, 0, 0);
     const pvt = new PlanetVectorTile(tile);
     const firstFeature = pvt.layers.tile_boundary.feature(0);

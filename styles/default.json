@@ -16,7 +16,7 @@
         },
         "planet": {
             "type": "planet",
-            "tiles": ["info", "/Users/n/geodata/flatdata/santacruz"],
+            "tiles": ["info"],
             "sprite": "https://storage.googleapis.com/hellopvt3/sprites"
         }
     },
