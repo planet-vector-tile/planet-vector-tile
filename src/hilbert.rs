@@ -2,28 +2,31 @@
 
 use crate::location;
 use crate::mutant::Mutant;
-use crate::osmflat::osmflat_generated::osm::{HilbertNodePair, HilbertWayPair};
-use crate::tile;
+use crate::osmflat::osmflat_generated::osm::{
+    HilbertNodePair, HilbertWayPair, Node, NodeIndex, Osm, TagIndex, Way,
+};
+use crate::tile::{self, Tile};
+use flatdata::FileResourceStorage;
 use log::info;
-use std::cell::Cell;
 use std::io::{Error, ErrorKind};
 use std::path::Path;
+use std::sync::Arc;
 
 // Leaves correspond to additional info we need to know about the tiles at the leaf level.
 // We need to know:
 //  - The indices into the nodes, ways, relations vectors.
-//  - The hilbert index that the given tile starts at. 
+//  - The hilbert index that the given tile starts at.
 // Though the hilbert index can be derived from the n,w,r by looking at the hilbert pairs,
-// This is referenced often, so this is simpler and saves us from paging into the entity 
+// This is referenced often, so this is simpler and saves us from paging into the entity
 // (nodes, ways, relations) vectors unnecessarily.
 #[derive(Debug)]
-struct Leaf {
+pub struct Leaf {
     // Indices to the first node of the given leaf tile.
-    n: u64,
-    w: u32,
-    r: u32,
+    pub n: u64,
+    pub w: u32,
+    pub r: u32,
     // Hilbert index for the leaf tile, at the leaf zoom
-    h: u32,
+    pub h: u32,
 }
 
 // Each vector tile corresponds to one of these tiles.
@@ -35,32 +38,33 @@ struct Leaf {
 // The levels are descending, with the first level corresponding to the highest zoom,
 // in parity with the leaf vector. Each level is z - 2, allowing 16 children per tile.
 #[derive(Debug)]
-struct HilbertTile {
+pub struct HilbertTile {
     // Indices to the first chunk of nodes, ways, relations, for the tile.
-    n: u32,
-    w: u32,
-    r: u32,
-    // Index of the first child of the tile.
-    child: u32,
+    pub n: u32,
+    pub w: u32,
+    pub r: u32,
+    // Index of the first child.
+    pub child: i32,
     // Bit mask denoting which of the 16 children for the given tile exist.
     // MSB is index 15, MSB is index 0.
-    mask: u16,
+    pub mask: u16,
 }
 
-// Chunks are offsets and run lengths of entities used for a given tile in the entity. 
+// Chunks are offsets and run lengths of entities used for a given tile in the entity.
 #[derive(Debug)]
-struct Chunk {
-    offset: u32, // offset from the w or r of the leaf tile
-    len: u32,
+pub struct Chunk {
+    pub offset: u32, // offset from the w or r of the leaf tile
+    pub len: u32,
 }
 
 pub struct HilbertTree {
-    leaf_zoom: u8,
-    tiles: Cell<Mutant<HilbertTile>>,
-    leaves: Cell<Mutant<Leaf>>,
-    n_chunks: Cell<Mutant<Chunk>>,
-    w_chunks: Cell<Mutant<Chunk>>,
-    r_chunks: Cell<Mutant<Chunk>>,
+    pub leaf_zoom: u8,
+    pub tiles: Mutant<HilbertTile>,
+    pub leaves: Mutant<Leaf>,
+    pub n_chunks: Mutant<Chunk>,
+    pub w_chunks: Mutant<Chunk>,
+    pub r_chunks: Mutant<Chunk>,
+    pub archive: Osm,
 }
 
 impl HilbertTree {
@@ -74,13 +78,12 @@ impl HilbertTree {
             )));
         }
 
-        // To save space, we store the hilbert values in a u32,
-        // so the highest zoom guaranteeing no overflow is 16.
-        if leaf_zoom > 16 {
-            eprintln!("Leaf zoom too high! Must be <= 16 z: {}", leaf_zoom);
+        // Maximum supported zoom is 14.
+        if leaf_zoom > 14 {
+            eprintln!("Leaf zoom too high! Must be <= 14 z: {}", leaf_zoom);
             return Err(Box::new(Error::new(
                 ErrorKind::Other,
-                "Leaf zoom too high! Must be <= 16",
+                "Leaf zoom too high! Must be <= 14",
             )));
         }
 
@@ -88,92 +91,61 @@ impl HilbertTree {
         let m_way_pairs = Mutant::<HilbertWayPair>::open(dir, "hilbert_way_pairs", true)?;
 
         let m_leaves = build_leaves(&m_node_pairs, &m_way_pairs, &dir, leaf_zoom)?;
-
-        let max_tiles_len = max_tiles_len(&m_leaves, leaf_zoom);
-        let mut m_tiles = Mutant::<HilbertTile>::new(dir, "hilbert_tree", max_tiles_len)?;
-        let tiles = m_tiles.mutable_slice();
-
-
-        let mut z = leaf_zoom;
-        let mut tiles_i = 0;
-
-        let leaves = m_leaves.slice();
-        for _ in leaves {
-            // The default leaf has a 0 tile mask, 
-            // which is needed to know we are at a leaf tile.
-            let t = HilbertTile::default();
-            tiles[tiles_i] = t;
-            tiles_i += 1;
-        }
-
-        let mut level_range = 0..tiles_i;
-        z -= 2;
-
-        loop {
-            println!("zoom {}", z);
-            let level_start = tiles_i;
-
-            // The first child for the tile we are building.
-            let mut child_i = level_range.start;
-
-            while child_i < level_range.end {
-
-                // The tile we are building.
-                let leaf_h = get_leaf_h(child_i, tiles, leaves);
-                let tile_h = leaf_to_tile_h(leaf_h, leaf_zoom, z);
-                let h_range_end = child_h_range_end(tile_h);
-
-                let first_child_i = child_i;
-                let mut child_h: u32 = 0;
-                let mut mask: u16 = 0;
-
-                while child_h < h_range_end  && child_i < level_range.end {
-                    child_h =  get_child_h(child_i, leaf_zoom, z + 2, tiles, leaves);
-
-                    // Position of the possible children of the tile. 0 -> 16
-                    let child_pos = (child_h & 0xf) as u16;
-                    let child_bit = 1 << child_pos;
-                    mask |= child_bit;
-
-                    child_i += 1;
-                }
-
-                let mut t = HilbertTile::default();
-
-                // NHTODO Here is where we figure out chunk offsets.
-
-                t.child = first_child_i as u32;
-                t.mask = mask;
-                println!("h {} mask {:#018b} {:?}", tile_h, t.mask, t);
-                tiles[tiles_i] = t;
-
-                tiles_i += 1;
-            }
-            
-            level_range = level_start..tiles_i;
-
-            if z == 0 {
-                break;
-            }
-            z -= 2;
-        }
-
-        m_tiles.set_len(tiles_i);
-        m_tiles.trim();
-
-
+        let m_tiles = build_tiles(&m_leaves, dir, leaf_zoom)?;
 
         let n_chunks = Mutant::<Chunk>::new(dir, "hilbert_n_chunks", 1000)?;
         let w_chunks = Mutant::<Chunk>::new(dir, "hilbert_w_chunks", 1000)?;
         let r_chunks = Mutant::<Chunk>::new(dir, "hilbert_r_chunks", 1000)?;
 
+        let archive = Osm::open(FileResourceStorage::new(dir))?;
+
         Ok(Self {
             leaf_zoom,
-            tiles: Cell::new(m_tiles),
-            leaves: Cell::new(m_leaves),
-            n_chunks: Cell::new(n_chunks),
-            w_chunks: Cell::new(w_chunks),
-            r_chunks: Cell::new(r_chunks),
+            tiles: m_tiles,
+            leaves: m_leaves,
+            n_chunks,
+            w_chunks,
+            r_chunks,
+            archive,
+        })
+    }
+
+    pub fn open(dir: &Path, leaf_zoom: u8) -> Result<Self, Box<dyn std::error::Error>> {
+        // Leaf zoom must be even
+        if leaf_zoom & 1 != 0 {
+            eprintln!("leaf zoom not even: {}", leaf_zoom);
+            return Err(Box::new(Error::new(
+                ErrorKind::Other,
+                "leaf_zoom must be even!",
+            )));
+        }
+
+        // Maximum supported zoom is 14.
+        if leaf_zoom > 14 {
+            eprintln!("Leaf zoom too high! Must be <= 14 z: {}", leaf_zoom);
+            return Err(Box::new(Error::new(
+                ErrorKind::Other,
+                "Leaf zoom too high! Must be <= 14",
+            )));
+        }
+
+        let m_leaves = Mutant::<Leaf>::open(dir, "hilbert_leaves", false)?;
+        let m_tiles = Mutant::<HilbertTile>::open(dir, "hilbert_tiles", false)?;
+
+        let n_chunks = Mutant::<Chunk>::new(dir, "hilbert_n_chunks", 1000)?;
+        let w_chunks = Mutant::<Chunk>::new(dir, "hilbert_w_chunks", 1000)?;
+        let r_chunks = Mutant::<Chunk>::new(dir, "hilbert_r_chunks", 1000)?;
+
+        let archive = Osm::open(FileResourceStorage::new(dir))?;
+
+        Ok(Self {
+            leaf_zoom,
+            tiles: m_tiles,
+            leaves: m_leaves,
+            n_chunks,
+            w_chunks,
+            r_chunks,
+            archive,
         })
     }
 }
@@ -292,6 +264,101 @@ fn build_leaves(
     Ok(m_leaves)
 }
 
+fn build_tiles(
+    m_leaves: &Mutant<Leaf>,
+    dir: &Path,
+    leaf_zoom: u8,
+) -> Result<Mutant<HilbertTile>, Box<dyn std::error::Error>> {
+    let max_tiles_len = max_tiles_len(&m_leaves, leaf_zoom);
+    let mut m_tiles = Mutant::<HilbertTile>::new(dir, "hilbert_tiles", max_tiles_len)?;
+    let tiles = m_tiles.mutable_slice();
+
+    let mut z = leaf_zoom;
+    let mut tiles_i = 0;
+
+    println!("zoom {} level_start {}", leaf_zoom, 0);
+
+    let leaves = m_leaves.slice();
+    for _ in leaves {
+        // The default leaf has a 0 tile mask,
+        // which is needed to know we are at a leaf tile.
+        let t = HilbertTile::default();
+        println!(
+            "tiles_i {} h {} mask {:#018b} {:?}",
+            tiles_i, leaves[tiles_i].h, t.mask, t
+        );
+        tiles[tiles_i] = t;
+        tiles_i += 1;
+    }
+
+    let mut level_range = 0..tiles_i;
+    z -= 2;
+
+    loop {
+        let level_start = tiles_i;
+        println!("zoom {} level_start {}", z, level_start);
+
+        // The first child for the tile we are building.
+        let mut child_i = level_range.start;
+
+        while child_i < level_range.end {
+            // The tile we are building.
+            let leaf_h = get_leaf_h(child_i, tiles, leaves);
+            let tile_h = leaf_to_tile_h(leaf_h, leaf_zoom, z);
+            let h_range_end = child_h_range_end(tile_h);
+
+            let mut mask: u16 = 0;
+
+            // First child for level
+            let mut child_h = get_child_h(child_i, leaf_zoom, z + 2, tiles, leaves);
+
+            // Position of the possible children of the tile. 0 -> 16
+            let child_pos = (child_h & 0xf) as u16;
+            let child_bit = 1 << child_pos;
+            mask |= child_bit;
+
+            // first child_i with offset
+            let child = child_i as i32 - child_pos as i32;
+
+            child_h = get_child_h(child_i, leaf_zoom, z + 2, tiles, leaves);
+            child_i += 1;
+
+            while child_h < h_range_end && child_i < level_range.end {
+                // Position of the possible children of the tile. 0 -> 16
+                let child_pos = (child_h & 0xf) as u16;
+                let child_bit = 1 << child_pos;
+                mask |= child_bit;
+
+                child_h = get_child_h(child_i, leaf_zoom, z + 2, tiles, leaves);
+                child_i += 1;
+            }
+
+            let mut t = HilbertTile::default();
+            t.child = child;
+            t.mask = mask;
+            println!(
+                "tiles_i {} h {} mask {:#018b} {:?}",
+                tiles_i, tile_h, t.mask, t
+            );
+            tiles[tiles_i] = t;
+
+            tiles_i += 1;
+        }
+
+        level_range = level_start..tiles_i;
+
+        if z == 0 {
+            break;
+        }
+        z -= 2;
+    }
+
+    m_tiles.set_len(tiles_i);
+    m_tiles.trim();
+
+    Ok(m_tiles)
+}
+
 fn max_tiles_len(m_leaves: &Mutant<Leaf>, leaf_zoom: u8) -> usize {
     let leaves = m_leaves.slice();
     if leaves.len() == 0 {
@@ -303,7 +370,7 @@ fn max_tiles_len(m_leaves: &Mutant<Leaf>, leaf_zoom: u8) -> usize {
         let first = leaves[0].h;
         let last = leaves[len - 1].h;
         let mut potential_leaves = last - first + 1;
-        
+
         let mut count = potential_leaves;
         let mut zoom = leaf_zoom - 2;
         while zoom > 0 {
@@ -334,15 +401,13 @@ const CHILD_POSITIONS: [u16; 16] = [
     0b1000000000000000,
 ];
 
-fn get_leaf_h(tiles_idx: usize, tiles: &[HilbertTile], leaves: &[Leaf]) -> u32 {
-    let mut i = tiles_idx;
-    let mut tile = &tiles[tiles_idx];
+fn get_leaf_h(tiles_i: usize, tiles: &[HilbertTile], leaves: &[Leaf]) -> u32 {
+    let mut i = tiles_i;
+    let mut tile = &tiles[tiles_i];
     while tile.mask != 0 {
-        i = tile.child as usize;
+        let pos = first_child_pos(tile.mask) as i32;
+        i = (tile.child + pos) as usize;
         tile = &tiles[i];
-    }
-    if i > leaves.len() {
-        println!("ohno");
     }
     leaves[i].h
 }
@@ -351,7 +416,13 @@ fn leaf_to_tile_h(h: u32, leaf_zoom: u8, zoom: u8) -> u32 {
     h >> (2 * (leaf_zoom - zoom))
 }
 
-fn get_child_h(tiles_idx: usize, leaf_zoom: u8, zoom: u8, tiles: &[HilbertTile], leaves: &[Leaf]) -> u32 {
+fn get_child_h(
+    tiles_idx: usize,
+    leaf_zoom: u8,
+    zoom: u8,
+    tiles: &[HilbertTile],
+    leaves: &[Leaf],
+) -> u32 {
     let leaf_h = get_leaf_h(tiles_idx, tiles, leaves);
     leaf_to_tile_h(leaf_h, leaf_zoom, zoom)
 }
@@ -368,9 +439,18 @@ impl HilbertTile {
             w: 0,
             r: 0,
             child: 0,
-            mask: 0
+            mask: 0,
         }
     }
+}
+
+fn first_child_pos(mask: u16) -> u8 {
+    for i in 0..16 {
+        if (mask >> i) & 1 == 1 {
+            return i;
+        }
+    }
+    0
 }
 
 fn mask_has_children(mask: u16) -> bool {
@@ -381,8 +461,22 @@ fn mask_include(mask: u16, child_idx: u8) -> u16 {
     mask | 1 << child_idx
 }
 
-fn mask_has(mask: u16, child_idx: u8) -> bool {
-    (mask >> child_idx & 1) == 1
+fn mask_has(mask: u16, child_pos: u8) -> bool {
+    (mask >> child_pos & 1) == 1
+}
+
+fn level_path(tile: Tile) -> Vec<u8> {
+    let mut h = tile.h;
+    let mut z = tile.z;
+    let mut path: Vec<u8> = Vec::new();
+
+    while z > 0 {
+        let child_pos = (h & 0xf) as u8;
+        path.push(child_pos);
+        h = h >> 4;
+        z -= 2;
+    }
+    path
 }
 
 // https://doc.rust-lang.org/nomicon/other-reprs.html
@@ -487,47 +581,40 @@ mod tests {
 
         assert_eq!(m_leaves.len, 189);
 
-        // let leaves = m_leaves.slice();
-        // for l in leaves {
-        //     let h = l.h;
-        //     println!("leaf tile h {:?}", h);
-        //     let leaf_zoom = 12;
-        //     let z = 10;
-        //     let parent_h = h >> (2 * (leaf_zoom - z));
-        //     println!("leaf parent h {:?}", parent_h);
-        // }
+        let leaves = m_leaves.slice();
+        for l in leaves {
+            let h = l.h;
+            println!("leaf tile h {:?}", h);
+            let leaf_zoom = 12;
+            let z = 10;
+            let parent_h = h >> (2 * (leaf_zoom - z));
+            println!("leaf parent h {:?}", parent_h);
+        }
 
-        let mut tree = HilbertTree::build(&dir, 12).unwrap();
-        let m_tiles = tree.tiles.get_mut();
-        let tiles = m_tiles.slice();
+        let tree = HilbertTree::build(&dir, 12).unwrap();
+        // let m_tiles = tree.tiles;
+        // let tiles = m_tiles.slice();
         // for t in tiles {
         //     println!("{:?}", t);
         // }
 
+        // let vec_u8 = tree.compose_tile(Tile::from_zh(12, 3329090));
+        let vec_u8 = tree.compose_tile(Tile::from_zh(12, 3329140));
     }
 
-    #[test]
-    #[ignore]
-    fn test_asdf() {
-        let h =3329120;
-        let p = h >> 4;
-        println!("{:x?}", h);
-        println!("{:x?}", p);
-        println!("{}", p);
+    // #[test]
+    // fn test_level_path() {
+    //     let tile = Tile::from_zh(12, 3329121);
+    //     let path = level_path(tile);
+    //     println!("path {:?}", path);
+    //     // [1, 6, 12, 12, 2, 3]
 
-
-        let mut hs = Vec::<u32>::new();
-        let mut ms = Vec::<u32>::new();
-        for h in 3329120..3329136 {
-        // for h in 3329124..3329136 {
-            hs.push(h);
-            let m = h & 0xf;
-            let leaf_m = m | 0x10;
-            ms.push(leaf_m);
-        }
-        println!("{:?}", hs);
-        println!("{:x?}", hs);
-        println!("{:x?}", ms);
-    }
-
+    //     let mut t = Tile::default();
+    //     for p in path.iter().rev() {
+    //         let mut grand_children = t.grand_children();
+    //         grand_children.sort_by_key(|c| c.h);
+    //         t = grand_children[*p as usize];
+    //     }
+    //     assert_eq!(t, tile);
+    // }
 }

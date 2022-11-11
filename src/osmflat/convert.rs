@@ -27,7 +27,6 @@ pub fn convert(args: &Args) -> Result<osmflat::Osm, Error> {
     let time = Instant::now();
     println!("Converting osm.pbf to osm.flatdata...");
 
-
     let input_file = File::open(&args.input)?;
     let input_data = unsafe { Mmap::map(&input_file)? };
 
@@ -338,13 +337,15 @@ fn serialize_dense_nodes(
 
             lat += dense_nodes.lat[i];
             lon += dense_nodes.lon[i];
-            let lat_dm7 = ((lat_offset + (i64::from(pbf_granularity) * lat)) / granularity as i64) as i32;
-            let lon_dm7 = ((lon_offset + (i64::from(pbf_granularity) * lon)) / granularity as i64) as i32;
+            let lat_dm7 =
+                ((lat_offset + (i64::from(pbf_granularity) * lat)) / granularity as i64) as i32;
+            let lon_dm7 =
+                ((lon_offset + (i64::from(pbf_granularity) * lon)) / granularity as i64) as i32;
             node.set_lat(lat_dm7);
             node.set_lon(lon_dm7);
 
             let h = location::lonlat_to_h((lon_dm7, lat_dm7));
-            
+
             let pair = hilbert_node_pairs.grow()?;
             pair.set_i(index);
             pair.set_h(h);

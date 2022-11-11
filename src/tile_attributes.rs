@@ -1,7 +1,8 @@
-// use std::collections::HashMap;
+use flatbuffers::{FlatBufferBuilder, ForwardsUOffset, Vector, WIPOffset};
 use indexmap::IndexMap;
-use std::cell::RefCell;
-use std::hash::{Hash, Hasher};
+use std::{
+    hash::{Hash, Hasher},
+};
 
 use crate::tile::planet_vector_tile_generated::*;
 
@@ -14,87 +15,70 @@ impl Hash for PVTValue {
 impl Eq for PVTValue {}
 
 pub struct TileAttributes {
-    // NHTODO: Is RefCell necessary?
-    strings: RefCell<IndexMap<String, u32>>,
-    values: RefCell<IndexMap<PVTValue, u32>>,
+    pub strings: IndexMap<String, u32>,
+    pub values: IndexMap<PVTValue, u32>,
 }
 
 impl TileAttributes {
     pub fn new() -> Self {
         TileAttributes {
-            strings: RefCell::new(IndexMap::new()),
-            values: RefCell::new(IndexMap::new()),
+            strings: IndexMap::new(),
+            values: IndexMap::new(),
         }
     }
 
-    pub fn upsert_string(&self, str: &str) -> u32 {
-        let mut strings = self.strings.borrow_mut();
-        match strings.get(str) {
+    pub fn upsert_string(&mut self, str: &str) -> u32 {
+        match self.strings.get(str) {
             Some(str_idx) => *str_idx,
             None => {
-                let idx = strings.len() as u32;
-                strings.insert(String::from(str), idx);
+                let idx = self.strings.len() as u32;
+                self.strings.insert(String::from(str), idx);
                 idx
             }
         }
     }
 
-    pub fn upsert_value(&self, value: PVTValue) -> u32 {
-        let mut values = self.values.borrow_mut();
-        match values.get(&value) {
+    pub fn upsert_value(&mut self, value: PVTValue) -> u32 {
+        match self.values.get(&value) {
             Some(val_idx) => *val_idx,
             None => {
-                let idx = values.len() as u32;
-                values.insert(value, idx);
+                let idx = self.values.len() as u32;
+                self.values.insert(value, idx);
                 idx
             }
         }
     }
 
-    pub fn upsert_number_value(&self, value: f64) -> u32 {
+    pub fn upsert_number_value(&mut self, value: f64) -> u32 {
         self.upsert_value(PVTValue::new(PVTValueType::Number, value))
     }
 
-    pub fn upsert_bool_value(&self, value: bool) -> u32 {
+    pub fn upsert_bool_value(&mut self, value: bool) -> u32 {
         let v = if value { 1_f64 } else { 0_f64 };
         self.upsert_value(PVTValue::new(PVTValueType::Boolean, v))
     }
 
-    pub fn upsert_string_value(&self, str_val: &str) -> u32 {
-        let mut strings = self.strings.borrow_mut();
-        let mut values = self.values.borrow_mut();
-        match strings.get(str_val) {
+    pub fn upsert_string_value(&mut self, str_val: &str) -> u32 {
+        match self.strings.get(str_val) {
             Some(str_idx) => {
                 let value = PVTValue::new(PVTValueType::String, *str_idx as f64);
-                match values.get(&value) {
+                match self.values.get(&value) {
                     Some(val_idx) => *val_idx,
                     None => {
-                        let idx = values.len() as u32;
-                        values.insert(value, idx);
+                        let idx = self.values.len() as u32;
+                        self.values.insert(value, idx);
                         idx
                     }
                 }
             }
             None => {
-                let str_idx = strings.len() as u32;
-                strings.insert(String::from(str_val), str_idx);
+                let str_idx = self.strings.len() as u32;
+                self.strings.insert(String::from(str_val), str_idx);
                 let value = PVTValue::new(PVTValueType::String, str_idx as f64);
-                let val_idx = values.len() as u32;
-                values.insert(value, val_idx);
+                let val_idx = self.values.len() as u32;
+                self.values.insert(value, val_idx);
                 val_idx
             }
         }
-    }
-
-    // Is there a way we can have a Vec<&str> ?
-    pub fn strings(&self) -> Vec<String> {
-        let strings = self.strings.borrow();
-        strings.keys().map(|s| String::from(s)).collect()
-    }
-
-    // Is there a way we can have a Vec<&PVTValue> ?
-    pub fn values(&self) -> Vec<PVTValue> {
-        let values = self.values.borrow();
-        values.keys().map(|v| v.clone()).collect()
     }
 }

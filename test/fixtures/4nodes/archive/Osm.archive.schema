@@ -46,7 +46,7 @@ struct Way
 namespace osm {
 struct HilbertWayPair
 {
-    i : u64 : 40;
+    i : u32 : 32;
     h : u64 : 64;
 }
 }
@@ -63,7 +63,7 @@ struct Relation
 namespace osm {
 struct HilbertRelationPair
 {
-    i : u64 : 40;
+    i : u32 : 32;
     h : u64 : 64;
 }
 }
@@ -154,11 +154,11 @@ archive Osm
     @explicit_reference( .osm.Way.ref_first_idx, .osm.Osm.nodes_index )
     ways : vector< .osm.Way >;
     @optional
-    hilbert_way_pairs : vector< .osm.HilbertWayPair >;
+    hilbert_way_pairs_not_used : vector< .osm.HilbertWayPair >;
     @explicit_reference( .osm.Relation.tag_first_idx, .osm.Osm.tags_index )
     relations : vector< .osm.Relation >;
     @optional
-    hilbert_relation_pairs : vector< .osm.HilbertRelationPair >;
+    hilbert_relation_pairs_not_used : vector< .osm.HilbertRelationPair >;
     @explicit_reference( .osm.NodeMember.node_idx, .osm.Osm.nodes )
     @explicit_reference( .osm.NodeMember.role_idx, .osm.Osm.stringtable )
     @explicit_reference( .osm.WayMember.way_idx, .osm.Osm.ways )
