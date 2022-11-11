@@ -5,9 +5,11 @@ mod location;
 mod mutant;
 mod osmflat;
 mod parallel;
+pub mod pvt_builder;
 mod sort_archive;
 mod source;
 mod tile;
+mod tile_attributes;
 
 use args::*;
 use clap::Parser;

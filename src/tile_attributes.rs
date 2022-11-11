@@ -1,7 +1,6 @@
-// use std::collections::HashMap;
+use flatbuffers::{FlatBufferBuilder, WIPOffset, Vector, ForwardsUOffset};
 use indexmap::IndexMap;
-use std::cell::Cell;
-use std::hash::{Hash, Hasher};
+use std::{hash::{Hash, Hasher}, marker::PhantomData};
 
 use crate::tile::planet_vector_tile_generated::*;
 
@@ -14,37 +13,35 @@ impl Hash for PVTValue {
 impl Eq for PVTValue {}
 
 pub struct TileAttributes {
-    strings: Cell<IndexMap<String, u32>>,
-    values: Cell<IndexMap<PVTValue, u32>>,
+    strings: IndexMap<String, u32>,
+    values: IndexMap<PVTValue, u32>,
 }
 
 impl TileAttributes {
     pub fn new() -> Self {
         TileAttributes {
-            strings: Cell::new(IndexMap::new()),
-            values: Cell::new(IndexMap::new()),
+            strings: IndexMap::new(),
+            values: IndexMap::new(),
         }
     }
 
     pub fn upsert_string(&mut self, str: &str) -> u32 {
-        let strings = self.strings.get_mut();
-        match strings.get(str) {
+        match self.strings.get(str) {
             Some(str_idx) => *str_idx,
             None => {
-                let idx = strings.len() as u32;
-                strings.insert(String::from(str), idx);
+                let idx = self.strings.len() as u32;
+                self.strings.insert(String::from(str), idx);
                 idx
             }
         }
     }
 
     pub fn upsert_value(&mut self, value: PVTValue) -> u32 {
-        let values = self.values.get_mut();
-        match values.get(&value) {
+        match self.values.get(&value) {
             Some(val_idx) => *val_idx,
             None => {
-                let idx = values.len() as u32;
-                values.insert(value, idx);
+                let idx = self.values.len() as u32;
+                self.values.insert(value, idx);
                 idx
             }
         }
@@ -60,40 +57,46 @@ impl TileAttributes {
     }
 
     pub fn upsert_string_value(&mut self, str_val: &str) -> u32 {
-        let strings = self.strings.get_mut();
-        let values = self.values.get_mut();
-        match strings.get(str_val) {
+        match self.strings.get(str_val) {
             Some(str_idx) => {
                 let value = PVTValue::new(PVTValueType::String, *str_idx as f64);
-                match values.get(&value) {
+                match self.values.get(&value) {
                     Some(val_idx) => *val_idx,
                     None => {
-                        let idx = values.len() as u32;
-                        values.insert(value, idx);
+                        let idx = self.values.len() as u32;
+                        self.values.insert(value, idx);
                         idx
                     }
                 }
             }
             None => {
-                let str_idx = strings.len() as u32;
-                strings.insert(String::from(str_val), str_idx);
+                let str_idx = self.strings.len() as u32;
+                self.strings.insert(String::from(str_val), str_idx);
                 let value = PVTValue::new(PVTValueType::String, str_idx as f64);
-                let val_idx = values.len() as u32;
-                values.insert(value, val_idx);
+                let val_idx = self.values.len() as u32;
+                self.values.insert(value, val_idx);
                 val_idx
             }
         }
     }
 
-    // Is there a way we can have a Vec<&str> ?
-    pub fn strings(&mut self) -> Vec<String> {
-        let strings = self.strings.get_mut();
-        strings.keys().map(|s| String::from(s)).collect()
+    pub fn build_strings<'a>(&self, builder: &mut FlatBufferBuilder<'a>) -> WIPOffset<Vector<'a, ForwardsUOffset<&str>>> {
+        let len = self.strings.len();
+        builder.start_vector::<ForwardsUOffset<&str>>(len);
+        for (key, _) in &self.strings {
+            let s = builder.create_string(&key);
+            builder.push(s);
+        }
+        builder.end_vector::<ForwardsUOffset<&str>>(len)
     }
 
-    // Is there a way we can have a Vec<&PVTValue> ?
-    pub fn values(&mut self) -> Vec<PVTValue> {
-        let values = self.values.get_mut();
-        values.keys().map(|v| v.clone()).collect()
+    pub fn build_values<'a>(&self, builder: &mut FlatBufferBuilder<'a>) -> WIPOffset<Vector<'a, PVTValue>> {
+        let len = self.values.len();
+        builder.start_vector::<PVTValue>(len);
+        for (value, _) in self.values.iter() {
+            builder.push(value);
+        }
+        builder.end_vector::<PVTValue>(len)
     }
+
 }

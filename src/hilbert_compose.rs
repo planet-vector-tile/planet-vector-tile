@@ -1,4 +1,10 @@
-use crate::{hilbert::{HilbertTree, HilbertTile, Leaf}, tile::Tile, source::Source};
+use crate::{
+    hilbert::{HilbertTile, HilbertTree, Leaf},
+    pvt_builder::PVTBuilder,
+    source::Source,
+    tile::{Tile, planet_vector_tile_generated::{PVTGeometry, PVTGeometryArgs, PVTFeature, PVTFeatureArgs}},
+    tile_attributes::TileAttributes,
+};
 
 struct Result<'a> {
     h_tile: &'a HilbertTile,
@@ -56,7 +62,7 @@ impl HilbertTree {
             }
         }
 
-        Some( Result {
+        Some(Result {
             h_tile,
             next_h_tile: None,
             leaf,
@@ -64,15 +70,10 @@ impl HilbertTree {
         })
     }
 
-    pub fn hello(&self) -> i32 {
-        234
-    }
-
     pub fn compose_tile(&self, tile: Tile) -> Vec<u8> {
         match self.find(tile) {
             Some(res) => {
                 if let Some(leaf) = res.leaf {
-
                     print!("leaf found {:?}", leaf);
 
                     let nodes = self.archive.nodes();
@@ -82,13 +83,12 @@ impl HilbertTree {
                     let (n_end, w_end, r_end) = if let Some(next_leaf) = res.next_leaf {
                         (next_leaf.n, next_leaf.w, next_leaf.r)
                     } else {
-                        (nodes.len() as u64, ways.len() as u32, relations.len() as u32)
+                        (
+                            nodes.len() as u64,
+                            ways.len() as u32,
+                            relations.len() as u32,
+                        )
                     };
-
-                    
-
-
-
                 }
 
                 Vec::new()
@@ -99,7 +99,39 @@ impl HilbertTree {
 }
 
 impl Source for HilbertTree {
-    fn tile(&self, tile: &Tile) -> Vec<u8> {
-        vec![1,2,3,4,222,55]
+    fn build_tile(&self, tile: &Tile, builder: &mut PVTBuilder) {
+        let fbb = &mut builder.fbb;
+        let attributes = &mut builder.attributes;
+
+        let hello_key = attributes.upsert_string("Hello");
+        let world_val = attributes.upsert_string("world");
+
+        // Create center geometry
+        let center = tile.project(tile.center());
+        let center_path = fbb.create_vector(&[center]);
+        let center_geom = PVTGeometry::create(
+            fbb,
+            &PVTGeometryArgs {
+                points: Some(center_path),
+            },
+        );
+
+        let keys = fbb.create_vector(&[hello_key]);
+        let vals = fbb.create_vector(&[world_val]);
+        let center_geoms = fbb.create_vector(&[center_geom]);
+
+        // Create center feature.
+        let center_feature = PVTFeature::create(
+            fbb,
+            &PVTFeatureArgs {
+                id: tile.h,
+                h: tile.h,
+                keys: Some(keys),
+                values: Some(vals),
+                geometries: Some(center_geoms),
+            },
+        );
+
+        
     }
 }

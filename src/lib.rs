@@ -10,6 +10,7 @@ mod sort_archive;
 mod source;
 pub mod tile;
 pub mod tile_attributes;
+mod pvt_builder;
 
 #[macro_use]
 extern crate napi_derive;
@@ -17,6 +18,7 @@ extern crate napi_derive;
 use args::Args;
 use hilbert::HilbertTree;
 use info::*;
+use pvt_builder::PVTBuilder;
 use source::Source;
 use std::error::Error;
 use std::path::PathBuf;
@@ -24,8 +26,8 @@ use std::sync::Arc;
 use tile::Tile;
 
 use napi::bindgen_prelude::*;
-use napi::tokio::{self};
 use napi::tokio::sync::RwLock;
+use napi::tokio::{self};
 
 #[napi]
 pub fn load_planet(tiles: Vec<String>) -> Planet {
@@ -36,51 +38,55 @@ pub fn load_planet(tiles: Vec<String>) -> Planet {
 pub struct Planet {
     tiles: Vec<String>,
     sources: Arc<RwLock<Vec<Box<dyn Source>>>>,
-    hilbert: Arc<RwLock<HilbertTree>>,
 }
 
 #[napi]
 impl Planet {
     #[napi(constructor)]
     pub fn new(tiles: Vec<String>) -> Self {
-        let p = PathBuf::from("/Users/n/geodata/flatdata/santacruz");
-        let h = Box::new(HilbertTree::open(&p, 12).unwrap()) as Box<dyn Source>;
-
-        let info = Box::new(Info::new()) as Box<dyn Source>;
-        let sources = Arc::new(RwLock::new(vec![info, h]));
-
-        Self {
-            tiles,
-            sources,
-            hilbert: Arc::new(RwLock::new(HilbertTree::open(&p, 12).unwrap())),
+        let mut sources = Vec::new();
+        for tile in &tiles {
+            if tile == "info" {
+                let info = Box::new(Info::new()) as Box<dyn Source>;
+                sources.push(info);
+            } else {
+                let path = PathBuf::from(tile);
+                // NHTODO Build a way for HilbertTree and Info to read a TOML file to determine options.
+                match HilbertTree::open(&path, 12) {
+                    Ok(tree) => {
+                        let box_tree = Box::new(tree) as Box<dyn Source>;
+                        sources.push(box_tree);
+                    },
+                    Err(err) => {
+                        eprintln!("Unable to open {:?} Skipping...", path);
+                        eprintln!("{:?} Skipping...", err);
+                    }
+                }
+                let tree = HilbertTree::open(&path, 12).unwrap();
+                let box_tree = Box::new(tree) as Box<dyn Source>;
+                sources.push(box_tree);
+                
+            }
         }
+
+        Self { 
+            tiles, 
+            sources: Arc::new(RwLock::new(sources))
+         }
     }
 
     #[napi]
     pub async fn tile(&self, z: u8, x: u32, y: u32) -> Result<Uint8Array> {
-        let tiles = self.tiles.clone();
-        let sources = self.sources.clone();
-        let hilbert = self.hilbert.clone();
+        let sources_rw = self.sources.clone();
         tokio::task::spawn(async move {
             let tile = Tile::from_zxy(z, x, y);
-
-            println!("tiles {:?}", tiles);
-            let ss = sources.read().await;
-            for i in 0..ss.len() {
-                let source = ss.get(i).unwrap();
-                let buf = source.tile(&tile);
-                println!("{:?}", buf);
-
+            let mut builder = PVTBuilder::new();
+            let sources = sources_rw.read().await;
+            for i in 0..sources.len() {
+                let source = sources.get(i).unwrap();
+                source.build_tile(&tile, &mut builder);
             }
-            // println!("{}", ss.len());
-            // for s in ss {
-            //     println!("source {:?}", s);
-            // }
-            let h = hilbert.read().await;
-            println!("hello {}", h.hello());
-
-            let info = Info::new();
-            let vec_u8 = info.tile(&tile);
+            let vec_u8 = builder.build();
             Ok(vec_u8.into())
         })
         .await
