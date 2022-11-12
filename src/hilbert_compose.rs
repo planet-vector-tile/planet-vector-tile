@@ -1,9 +1,14 @@
+use std::ops::Range;
+
 use crate::{
     hilbert::{HilbertTile, HilbertTree, Leaf},
+    location::lonlat_to_xy,
     pvt_builder::PVTBuilder,
     source::Source,
     tile::{
-        planet_vector_tile_generated::{PVTFeature, PVTFeatureArgs, PVTGeometry, PVTGeometryArgs, PVTLayer, PVTLayerArgs},
+        planet_vector_tile_generated::{
+            PVTFeature, PVTFeatureArgs, PVTGeometry, PVTGeometryArgs, PVTLayer, PVTLayerArgs,
+        },
         Tile,
     },
     tile_attributes::TileAttributes,
@@ -17,7 +22,7 @@ struct Result<'a> {
 }
 
 impl HilbertTree {
-    fn find(&self, tile: Tile) -> Option<Result> {
+    fn find(&self, tile: &Tile) -> Option<Result> {
         if tile.z > self.leaf_zoom {
             return None;
         }
@@ -72,33 +77,6 @@ impl HilbertTree {
             next_leaf: None,
         })
     }
-
-    pub fn b(&self, tile: Tile) -> Vec<u8> {
-        match self.find(tile) {
-            Some(res) => {
-                if let Some(leaf) = res.leaf {
-                    print!("leaf found {:?}", leaf);
-
-                    let nodes = self.archive.nodes();
-                    let ways = self.archive.ways();
-                    let relations = self.archive.relations();
-
-                    let (n_end, w_end, r_end) = if let Some(next_leaf) = res.next_leaf {
-                        (next_leaf.n, next_leaf.w, next_leaf.r)
-                    } else {
-                        (
-                            nodes.len() as u64,
-                            ways.len() as u32,
-                            relations.len() as u32,
-                        )
-                    };
-                }
-
-                Vec::new()
-            }
-            None => Vec::new(),
-        }
-    }
 }
 
 impl Source for HilbertTree {
@@ -106,46 +84,112 @@ impl Source for HilbertTree {
         let fbb = &mut builder.fbb;
         let attributes = &mut builder.attributes;
 
-        let hello_key = attributes.upsert_string("hello");
-        let world_val = attributes.upsert_string("world");
-        let hilbert = attributes.upsert_string("hilbert");
+        // The tile exists in the index
+        if let Some(res) = self.find(tile) {
+            // It is a leaf tile
+            if let Some(leaf) = res.leaf {
+                print!("leaf found {:?}", leaf);
 
-        // Create center geometry
-        let center = tile.project(tile.center());
-        let center_path = fbb.create_vector(&[center]);
-        let center_geom = PVTGeometry::create(
-            fbb,
-            &PVTGeometryArgs {
-                points: Some(center_path),
-            },
-        );
+                let nodes = self.archive.nodes();
+                let node_pairs = self.archive.hilbert_node_pairs().unwrap();
+                let ways = self.archive.ways();
+                // let way_pairs = self.archive.hilbert_way_pairs_not_used()
+                let relations = self.archive.relations();
+                let tags = self.archive.tags();
+                let strings = self.archive.stringtable();
 
-        let keys = fbb.create_vector(&[hello_key]);
-        let vals = fbb.create_vector(&[world_val]);
-        let center_geoms = fbb.create_vector(&[center_geom]);
+                let n_start = leaf.n as usize;
+                let w_start = leaf.w as usize;
+                let r_start = leaf.r as usize;
 
-        // Create center feature.
-        let center_feature = PVTFeature::create(
-            fbb,
-            &PVTFeatureArgs {
-                id: tile.h,
-                h: tile.h,
-                keys: Some(keys),
-                values: Some(vals),
-                geometries: Some(center_geoms),
-            },
-        );
+                let (n_end, w_end, r_end) = if let Some(next_leaf) = res.next_leaf {
+                    (
+                        next_leaf.n as usize,
+                        next_leaf.w as usize,
+                        next_leaf.r as usize,
+                    )
+                } else {
+                    (nodes.len(), ways.len(), relations.len())
+                };
 
-        let center_features = fbb.create_vector(&[center_feature]);
-        let center_layer = PVTLayer::create(
-            fbb,
-            &PVTLayerArgs {
-                name: hilbert,
-                features: Some(center_features),
-            },
-        );
+                let n_slice = &nodes[n_start..n_end];
+                let w_slice = &ways[w_start..w_end];
 
-        builder.add_layer(center_layer);
+                let filtered_nodes = n_slice.iter().filter(|&node| {
+                    let tag_range = node.tags();
+                    tag_range.start != tag_range.end
+                });
+
+                let mut features = vec![];
+
+                for (i, n) in filtered_nodes.enumerate() {
+                    let t_range = n.tags();
+                    let start = t_range.start as usize;
+                    let end = t_range.end as usize;
+                    let n_tag_idxs = &tags[start..end];
+
+                    let mut keys: Vec<u32> = vec![];
+                    let mut vals: Vec<u32> = vec![];
+
+                    for t in n_tag_idxs {
+                        let k = t.key_idx();
+                        let v = t.value_idx();
+                        let key = strings.substring(k as usize);
+                        let val = strings.substring(v as usize);
+
+                        if key.is_ok() && val.is_ok() {
+                            let key = key.unwrap();
+                            let val = val.unwrap();
+
+                            keys.push(attributes.upsert_string(key));
+                            vals.push(attributes.upsert_string(val));
+                        }
+                    }
+
+                    let lon = n.lon();
+                    let lat = n.lat();
+                    let xy = lonlat_to_xy((lon, lat));
+                    let tile_point = tile.project(xy);
+
+                    let h = node_pairs[i].h();
+
+                    let keys_vec = fbb.create_vector(&keys);
+                    let vals_vec = fbb.create_vector(&vals);
+
+                    let path = fbb.create_vector(&[tile_point]);
+                    let geom = PVTGeometry::create(fbb, &PVTGeometryArgs { points: Some(path) });
+                    let geoms = fbb.create_vector(&[geom]);
+
+                    // NHTODO Get rid of the h field in PVTFeature. It's "pointless".
+                    let feature = PVTFeature::create(
+                        fbb,
+                        &PVTFeatureArgs {
+                            id: h,
+                            h,
+                            keys: Some(keys_vec),
+                            values: Some(vals_vec),
+                            geometries: Some(geoms),
+                        },
+                    );
+                    features.push(feature);
+                }
+
+                let features = fbb.create_vector(&features);
+
+                let name = attributes.upsert_string("nodes");
+                let layer = PVTLayer::create(
+                    fbb,
+                    &PVTLayerArgs {
+                        name,
+                        features: Some(features),
+                    },
+                );
+
+                builder.add_layer(layer);
+
+                for w in w_slice {}
+            }
+        }
 
     }
 }

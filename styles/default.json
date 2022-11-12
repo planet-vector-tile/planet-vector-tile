@@ -142,14 +142,14 @@
             }
         },
         {
-            "id": "tile_center",
+            "id": "nodes",
             "type": "circle",
             "minzoom": 0,
             "maxzoom": 23,
             "source": "planet",
-            "source-layer": "hilbert",
+            "source-layer": "nodes",
             "paint": {
-                "circle-radius": 4,
+                "circle-radius": 2,
                 "circle-color": "#ff69b4"
             }
         },
