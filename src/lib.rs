@@ -62,9 +62,6 @@ impl Planet {
                         eprintln!("{:?} Skipping...", err);
                     }
                 }
-                let tree = HilbertTree::open(&path, 12).unwrap();
-                let box_tree = Box::new(tree) as Box<dyn Source>;
-                sources.push(box_tree);
                 
             }
         }
