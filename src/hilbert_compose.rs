@@ -14,7 +14,7 @@ use crate::{
     tile_attributes::TileAttributes,
 };
 
-struct Result<'a> {
+struct FindResult<'a> {
     h_tile: &'a HilbertTile,
     next_h_tile: Option<&'a HilbertTile>,
     leaf: Option<&'a Leaf>,
@@ -22,7 +22,7 @@ struct Result<'a> {
 }
 
 impl HilbertTree {
-    fn find(&self, tile: &Tile) -> Option<Result> {
+    fn find(&self, tile: &Tile) -> Option<FindResult> {
         if tile.z > self.leaf_zoom {
             return None;
         }
@@ -70,7 +70,7 @@ impl HilbertTree {
             }
         }
 
-        Some(Result {
+        Some(FindResult {
             h_tile,
             next_h_tile: None,
             leaf,
@@ -88,7 +88,7 @@ impl Source for HilbertTree {
         if let Some(res) = self.find(tile) {
             // It is a leaf tile
             if let Some(leaf) = res.leaf {
-                print!("leaf found {:?}", leaf);
+                println!("LEAF FOUND {:?}", leaf);
 
                 let nodes = self.archive.nodes();
                 let node_pairs = self.archive.hilbert_node_pairs().unwrap();
@@ -191,5 +191,50 @@ impl Source for HilbertTree {
             }
         }
 
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::path::PathBuf;
+
+    use super::*;
+
+    #[test]
+    fn test_basic_find() {
+        // Scotts Valley
+        let t = Tile::from_zh(12, 3329134);
+
+        let dir = PathBuf::from("/Users/n/geodata/flatdata/santacruz");
+        let tree = HilbertTree::open(&dir, 12).unwrap();
+
+        let res = tree.find(&t);
+
+        assert!(res.is_some());
+
+        let res = res.unwrap();
+
+        assert!(res.leaf.is_some());
+
+        let leaf = res.leaf.unwrap();
+
+        assert_eq!(leaf.n, 944454);
+        assert_eq!(leaf.w, 106806);
+        assert_eq!(leaf.r, 0);
+        assert_eq!(leaf.h, 3329135);
+    }
+
+    #[test]
+    fn test_basic_compose_tile() {
+        // Scotts Valley
+        let t = Tile::from_zh(12, 3329134);
+
+        let dir = PathBuf::from("/Users/n/geodata/flatdata/santacruz");
+        let tree = HilbertTree::open(&dir, 12).unwrap();
+
+        let mut builder = PVTBuilder::new();
+        tree.compose_tile(&t, &mut builder);
+
+        assert_eq!(builder.layers.len(), 1);
     }
 }
