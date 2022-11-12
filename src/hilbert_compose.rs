@@ -125,7 +125,15 @@ impl Source for HilbertTree {
                 for (i, n) in filtered_nodes.enumerate() {
                     let t_range = n.tags();
                     let start = t_range.start as usize;
-                    let end = t_range.end as usize;
+                    let mut end = t_range.end as usize;
+                    if end > tags.len() {
+                        // println!("oh no");
+                        end = tags.len();
+                    }
+                    if start > tags.len() {
+                        // println!("extra weird");
+                        continue;
+                    }
                     let n_tag_idxs = &tags[start..end];
 
                     let mut keys: Vec<u32> = vec![];
@@ -148,8 +156,10 @@ impl Source for HilbertTree {
 
                     let lon = n.lon();
                     let lat = n.lat();
+                    // println!("lon lat {} {}", lon, lat);
                     let xy = lonlat_to_xy((lon, lat));
                     let tile_point = tile.project(xy);
+                    // println!("tile_point {:?}", tile_point);
 
                     let h = node_pairs[i].h();
 
