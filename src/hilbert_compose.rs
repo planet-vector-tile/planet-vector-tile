@@ -95,6 +95,7 @@ impl Source for HilbertTree {
                 let ways = self.archive.ways();
                 // let way_pairs = self.archive.hilbert_way_pairs_not_used()
                 let relations = self.archive.relations();
+                let tags_index = self.archive.tags_index();
                 let tags = self.archive.tags();
                 let strings = self.archive.stringtable();
 
@@ -115,33 +116,55 @@ impl Source for HilbertTree {
                 let n_slice = &nodes[n_start..n_end];
                 let w_slice = &ways[w_start..w_end];
 
-                let filtered_nodes = n_slice.iter().filter(|&node| {
-                    let tag_range = node.tags();
-                    tag_range.start != tag_range.end
-                });
-
                 let mut features = vec![];
 
-                for (i, n) in filtered_nodes.enumerate() {
+                for (i, n) in n_slice.iter().enumerate() {
                     let t_range = n.tags();
                     let start = t_range.start as usize;
                     let mut end = t_range.end as usize;
-                    if end > tags.len() {
-                        // println!("oh no");
-                        end = tags.len();
-                    }
-                    if start > tags.len() {
-                        // println!("extra weird");
+                    let tags_index_len = tags_index.len();
+
+                    if start == end {
                         continue;
                     }
-                    let n_tag_idxs = &tags[start..end];
+
+                    if start == 0 {
+                        println!("start 0");
+                    }
+                    if start > end {
+                        println!("start < end");
+                    }
+                    if end == 0 {
+                        println!("end 0");
+                        continue;
+                    }
+                    if end > tags_index_len {
+                        println!("end > tags_index.len()");
+                        end = tags.len();
+                    }
+                    if start > tags_index_len {
+                        println!("start > tags_index.len()");
+                        continue;
+                    }
+
+                    debug_assert!(start <= end);
+                    debug_assert!(end != 0);
+                    debug_assert!(end <= tags_index_len);
+                    debug_assert!(start <= tags_index_len);
+                 
+                    let n_tag_idxs = &tags_index[start..end];
 
                     let mut keys: Vec<u32> = vec![];
                     let mut vals: Vec<u32> = vec![];
 
-                    for t in n_tag_idxs {
-                        let k = t.key_idx();
-                        let v = t.value_idx();
+                    for tag_idx in n_tag_idxs {
+                        let tag_i = tag_idx.value() as usize;
+                        debug_assert!(tag_i < tags.len());
+                        let tag = &tags[tag_i];
+                        let k = tag.key_idx();
+                        let v = tag.value_idx();
+
+                        // NHTODO Consider switching to substring_unchecked after confident.
                         let key = strings.substring(k as usize);
                         let val = strings.substring(v as usize);
 
@@ -151,6 +174,8 @@ impl Source for HilbertTree {
 
                             keys.push(attributes.upsert_string(key));
                             vals.push(attributes.upsert_string(val));
+                        } else {
+                            eprintln!("Invalid tag key val {:?} {:?}", key.unwrap_err(), val.unwrap_err());
                         }
                     }
 
