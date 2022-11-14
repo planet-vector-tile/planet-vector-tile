@@ -152,7 +152,7 @@ impl Source for HilbertTree {
                             let val = val.unwrap();
 
                             keys.push(attributes.upsert_string(key));
-                            vals.push(attributes.upsert_string(val));
+                            vals.push(attributes.upsert_string_value(val));
                         } else {
                             eprintln!("Invalid tag key val {:?} {:?}", key.unwrap_err(), val.unwrap_err());
                         }
@@ -253,7 +253,6 @@ mod tests {
         assert_eq!(builder.layers.len(), 1);
 
         let vec_u8 = builder.build();
-        assert_eq!(vec_u8.len(), 1574272);
 
         let pvt = root_as_pvttile(&vec_u8).unwrap();
         let layers = pvt.layers().unwrap();
@@ -272,10 +271,13 @@ mod tests {
         assert_eq!(keys.len(), 2);
         let vals = feature.values().unwrap();
 
+        let pvt_values = pvt.values().unwrap();
+
         let k1 = strings.get(keys.get(0) as usize);
-        let v1 = strings.get(vals.get(0) as usize);
+        let v1 = strings.get(pvt_values.get(vals.get(0) as usize).v() as usize);
+
         let k2 = strings.get(keys.get(1) as usize);
-        let v2 = strings.get(vals.get(1) as usize);
+        let v2 = strings.get(pvt_values.get(vals.get(1) as usize).v() as usize);
         assert_eq!(k1, "content");
         assert_eq!(v1, "water");
         assert_eq!(k2, "man_made");

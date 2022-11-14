@@ -82,14 +82,17 @@ test('check scotts valley tile with nodes', async t => {
     let firstFeature = nodes.feature(0);
     console.log('id', firstFeature.id);
     let props = firstFeature.properties;
-    t.is(props.content, "water");
-    t.is(props.man_made, "storage_tank");
+    t.is(props.content, 'water');
+    t.is(props.man_made, 'storage_tank');
 
     let geom = firstFeature.loadGeometry();
-    console.log('geom', geom);
+    let point = geom[0][0];
+    t.is(point.x, 7779);
+    t.is(point.y, -163); // is this suposed to be negative?
 
-    let geojson = firstFeature.toGeoJSON();
-    console.log('geojson', JSON.stringify(geojson, null, 2));
+    // NHTODO Fixme: geojson result is not correct.
+    // let geojson = firstFeature.toGeoJSON(12, 659, 1593);
+    // console.log('geojson', JSON.stringify(geojson, null, 2));
 
-    t.is(id, 1);
+    
 });
