@@ -80,7 +80,16 @@ test('check scotts valley tile with nodes', async t => {
 
     let nodes = pvt.layers.nodes;
     let firstFeature = nodes.feature(0);
+    console.log('id', firstFeature.id);
     let props = firstFeature.properties;
-    let { id, lat, lon } = props;
+    t.is(props.content, "water");
+    t.is(props.man_made, "storage_tank");
+
+    let geom = firstFeature.loadGeometry();
+    console.log('geom', geom);
+
+    let geojson = firstFeature.toGeoJSON();
+    console.log('geojson', JSON.stringify(geojson, null, 2));
+
     t.is(id, 1);
 });

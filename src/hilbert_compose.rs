@@ -270,6 +270,27 @@ mod tests {
         let feature = features.get(0);
         let keys = feature.keys().unwrap();
         assert_eq!(keys.len(), 2);
+        let vals = feature.values().unwrap();
+
+        let k1 = strings.get(keys.get(0) as usize);
+        let v1 = strings.get(vals.get(0) as usize);
+        let k2 = strings.get(keys.get(1) as usize);
+        let v2 = strings.get(vals.get(1) as usize);
+        assert_eq!(k1, "content");
+        assert_eq!(v1, "water");
+        assert_eq!(k2, "man_made");
+        assert_eq!(v2, "storage_tank");
+
+        let geometries = feature.geometries().unwrap();
+        let len = geometries.len();
+        assert_eq!(len, 1);
+        let points = geometries.get(0).points().unwrap();
+        let len = points.len();
+        assert_eq!(len, 1);
+        let point = points.get(0);
+        assert_eq!(point.x(), 7779);
+        assert_eq!(point.y(), -163);
+
 
     }
 
