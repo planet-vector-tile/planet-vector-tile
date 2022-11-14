@@ -219,7 +219,7 @@ impl Prog {
 
 #[cfg(test)]
 mod tests {
-    use crate::location;
+    use crate::{location, osmflat::osmflat_generated::osm::Tag};
 
     use super::*;
 
@@ -262,5 +262,20 @@ mod tests {
         // assert_eq!(n_lat, 36.9479216);
         // assert_eq!(w_lon, -122.1471753);
         // assert_eq!(w_lat, 37.2459612);
+    }
+
+    #[test]
+    fn test_tags_index() {
+        let dir = PathBuf::from("/Users/n/geodata/flatdata/santacruz");
+        let m_nodes = Mutant::<Node>::open(&dir, "nodes", true).unwrap();
+        let nodes = m_nodes.slice();
+        let m_tags_idx =  Mutant::<TagIndex>::open(&dir, "tags_index", true).unwrap();
+        let tags_idx = m_tags_idx.slice();
+        for n in nodes {
+            let range = n.tags();
+            
+            // println!("start {} end {}", range.start, range.end);
+            assert!(range.start <= range.end || range.end == 0);
+        }
     }
 }

@@ -62,9 +62,6 @@ impl Planet {
                         eprintln!("{:?} Skipping...", err);
                     }
                 }
-                let tree = HilbertTree::open(&path, 12).unwrap();
-                let box_tree = Box::new(tree) as Box<dyn Source>;
-                sources.push(box_tree);
                 
             }
         }
@@ -84,7 +81,7 @@ impl Planet {
             let sources = sources_rw.read().await;
             for i in 0..sources.len() {
                 let source = sources.get(i).unwrap();
-                source.build_tile(&tile, &mut builder);
+                source.compose_tile(&tile, &mut builder);
             }
             let vec_u8 = builder.build();
             Ok(vec_u8.into())

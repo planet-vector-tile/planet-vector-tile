@@ -11,7 +11,7 @@ use crate::{
 pub struct PVTBuilder<'a> {
     pub fbb: FlatBufferBuilder<'a>,
     pub attributes: TileAttributes,
-    layers: Vec<WIPOffset<PVTLayer<'a>>>,
+    pub layers: Vec<WIPOffset<PVTLayer<'a>>>,
 }
 
 impl<'a> PVTBuilder<'a> {

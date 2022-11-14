@@ -17,7 +17,9 @@
         "planet": {
             "type": "planet",
             "tiles": ["info", "/Users/n/geodata/flatdata/santacruz"],
-            "sprite": "https://storage.googleapis.com/hellopvt3/sprites"
+            "sprite": "https://storage.googleapis.com/hellopvt3/sprites",
+            "minzoom": 0,
+            "maxzoom": 12
         }
     },
     "layers": [
@@ -142,12 +144,12 @@
             }
         },
         {
-            "id": "tile_center",
+            "id": "nodes",
             "type": "circle",
             "minzoom": 0,
             "maxzoom": 23,
             "source": "planet",
-            "source-layer": "hilbert",
+            "source-layer": "nodes",
             "paint": {
                 "circle-radius": 4,
                 "circle-color": "#ff69b4"

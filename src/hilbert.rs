@@ -493,6 +493,8 @@ unsafe fn to_bytes<T: Sized>(p: &T) -> &[u8] {
 mod tests {
     use std::{collections::HashSet, path::PathBuf};
 
+    use crate::source::Source;
+
     use super::*;
 
     #[test]
@@ -599,7 +601,7 @@ mod tests {
         // }
 
         // let vec_u8 = tree.compose_tile(Tile::from_zh(12, 3329090));
-        let vec_u8 = tree.compose_tile(Tile::from_zh(12, 3329140));
+        // let vec_u8 = tree.compose_tile(Tile::from_zh(12, 3329140));
     }
 
     // #[test]

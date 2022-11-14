@@ -67,3 +67,31 @@ test('check info tile 0/0/0', async t => {
     t.is(p2x, 8191);
     t.is(p2y, 8191);
 });
+
+test('check scotts valley tile with nodes', async t => {
+    const planet = loadPlanet(['info', '/Users/n/geodata/flatdata/santacruz']);
+    const tile = await planet.tile(12, 659, 1593);
+    const pvt = new PlanetVectorTile(tile);
+
+    const len = Object.keys(pvt.layers).length;
+    t.is(len, 4);
+
+    t.is(pvt.layers.nodes.length, 16450);
+
+    let nodes = pvt.layers.nodes;
+    let firstFeature = nodes.feature(0);
+    let props = firstFeature.properties;
+    t.is(props.content, 'water');
+    t.is(props.man_made, 'storage_tank');
+
+    let geom = firstFeature.loadGeometry();
+    let point = geom[0][0];
+    t.is(point.x, 7779);
+    t.is(point.y, -163); // is this suposed to be negative?
+
+    // NHTODO Fixme: geojson result is not correct.
+    // let geojson = firstFeature.toGeoJSON(12, 659, 1593);
+    // console.log('geojson', JSON.stringify(geojson, null, 2));
+
+    
+});
