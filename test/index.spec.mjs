@@ -80,7 +80,6 @@ test('check scotts valley tile with nodes', async t => {
 
     let nodes = pvt.layers.nodes;
     let firstFeature = nodes.feature(0);
-    console.log('id', firstFeature.id);
     let props = firstFeature.properties;
     t.is(props.content, 'water');
     t.is(props.man_made, 'storage_tank');
