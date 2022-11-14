@@ -78,8 +78,8 @@ impl HilbertTree {
 
 impl Source for HilbertTree {
     fn compose_tile(&self, tile: &Tile, builder: &mut PVTBuilder) {
-        let fbb = &mut builder.fbb;
-        let attributes = &mut builder.attributes;
+        // let fbb = &mut builder.fbb;
+        // let attributes = &mut builder.attributes;
 
         // The tile exists in the index
         if let Some(res) = self.find(tile) {
@@ -88,12 +88,14 @@ impl Source for HilbertTree {
                 println!("LEAF FOUND {:?}", leaf);
 
                 let nodes = self.archive.nodes();
-                let node_pairs = self.archive.hilbert_node_pairs().unwrap();
                 let ways = self.archive.ways();
-                // let way_pairs = self.archive.hilbert_way_pairs_not_used()
                 let relations = self.archive.relations();
+
                 let tags_index = self.archive.tags_index();
                 let tags = self.archive.tags();
+
+                let nodes_index = self.archive.nodes_index();
+
                 let strings = self.archive.stringtable();
 
                 let n_start = leaf.n as usize;
@@ -124,6 +126,7 @@ impl Source for HilbertTree {
                     }
 
                     if end == 0 {
+                        // NHTODO Handle when there are no ways and relations...
                         end = ways[0].tags().start as usize;
                     }
 
@@ -151,8 +154,8 @@ impl Source for HilbertTree {
                             let key = key.unwrap();
                             let val = val.unwrap();
 
-                            keys.push(attributes.upsert_string(key));
-                            vals.push(attributes.upsert_string_value(val));
+                            keys.push(builder.attributes.upsert_string(key));
+                            vals.push(builder.attributes.upsert_string_value(val));
                         } else {
                             eprintln!("Invalid tag key val {:?} {:?}", key.unwrap_err(), val.unwrap_err());
                         }
@@ -165,18 +168,16 @@ impl Source for HilbertTree {
                     let tile_point = tile.project(xy);
                     // println!("tile_point {:?}", tile_point);
 
-                    let h = node_pairs[i].h();
+                    let keys_vec = builder.fbb.create_vector(&keys);
+                    let vals_vec = builder.fbb.create_vector(&vals);
 
-                    let keys_vec = fbb.create_vector(&keys);
-                    let vals_vec = fbb.create_vector(&vals);
-
-                    let path = fbb.create_vector(&[tile_point]);
-                    let geom = PVTGeometry::create(fbb, &PVTGeometryArgs { points: Some(path) });
-                    let geoms = fbb.create_vector(&[geom]);
+                    let path = builder.fbb.create_vector(&[tile_point]);
+                    let geom = PVTGeometry::create(&mut builder.fbb, &PVTGeometryArgs { points: Some(path) });
+                    let geoms = builder.fbb.create_vector(&[geom]);
 
                     // NHTODO Get rid of the h field in PVTFeature. It's "pointless".
                     let feature = PVTFeature::create(
-                        fbb,
+                        &mut builder.fbb,
                         &PVTFeatureArgs {
                             id: i as u64,
                             h: i as u64,
@@ -188,17 +189,111 @@ impl Source for HilbertTree {
                     features.push(feature);
                 }
 
-                let features = fbb.create_vector(&features);
+                let features = builder.fbb.create_vector(&features);
 
-                let name = attributes.upsert_string("nodes");
+                let name = builder.attributes.upsert_string("nodes");
                 let layer = PVTLayer::create(
-                    fbb,
+                    &mut builder.fbb,
                     &PVTLayerArgs {
                         name,
                         features: Some(features),
                     },
                 );
 
+                builder.add_layer(layer);
+
+                let mut way_features = vec![];
+                for i in w_start..w_end {
+                    let w = &ways[i];
+                    let t_range = w.tags();
+                    let start = t_range.start as usize;
+                    let mut end = t_range.end as usize;
+                    let tags_index_len = tags_index.len();
+
+                    if start == end {
+                        continue;
+                    }
+
+                    if end == 0 {
+                        // NHTODO Handle when there are no relations...
+                        end = relations[0].tags().start as usize;
+                    }
+
+                    assert!(start <= end);
+                    assert!(end <= tags_index_len);
+                    assert!(start <= tags_index_len);
+                 
+                    let w_tag_idxs = &tags_index[start..end];
+
+                    let mut keys: Vec<u32> = vec![];
+                    let mut vals: Vec<u32> = vec![];
+
+                    for tag_idx in w_tag_idxs {
+                        let tag_i = tag_idx.value() as usize;
+                        debug_assert!(tag_i < tags.len());
+                        let tag = &tags[tag_i];
+                        let k = tag.key_idx();
+                        let v = tag.value_idx();
+
+                        // NHTODO Consider switching to substring_unchecked after confident.
+                        let key = strings.substring(k as usize);
+                        let val = strings.substring(v as usize);
+
+                        if key.is_ok() && val.is_ok() {
+                            let key = key.unwrap();
+                            let val = val.unwrap();
+
+                            keys.push(builder.attributes.upsert_string(key));
+                            vals.push(builder.attributes.upsert_string_value(val));
+                        } else {
+                            eprintln!("Invalid tag key val {:?} {:?}", key.unwrap_err(), val.unwrap_err());
+                        }
+                    }
+
+                    let refs = w.refs();
+                    let mut way_path = vec![];
+                    for r in refs {
+                        let node_idx = &nodes_index[r as usize];
+                        if let Some(node_idx) = node_idx.value() {
+                            let n = &nodes[node_idx as usize];
+                            let lon = n.lon();
+                            let lat = n.lat();
+                            let xy = lonlat_to_xy((lon, lat));
+                            let tile_point = tile.project(xy);
+                            way_path.push(tile_point);
+                        }
+                    }
+
+                    let way_path = builder.fbb.create_vector(&way_path);
+                    let way_geom = PVTGeometry::create(&mut builder.fbb, &PVTGeometryArgs { points: Some(way_path) });
+                    let way_geoms = builder.fbb.create_vector(&[way_geom]);
+                    
+                    let keys_vec = builder.fbb.create_vector(&keys);
+                    let vals_vec = builder.fbb.create_vector(&vals);
+
+                    let feature = PVTFeature::create(
+                        &mut builder.fbb,
+                        &PVTFeatureArgs {
+                            id: i as u64,
+                            h: i as u64,
+                            keys: Some(keys_vec),
+                            values: Some(vals_vec),
+                            geometries: Some(way_geoms),
+                        },
+                    );
+                    way_features.push(feature);
+                }
+
+                let way_features = builder.fbb.create_vector(&way_features);
+
+                let name = builder.attributes.upsert_string("ways");
+                let layer = PVTLayer::create(
+                    &mut builder.fbb,
+                    &PVTLayerArgs {
+                        name,
+                        features: Some(way_features),
+                    },
+                );
                 builder.add_layer(layer);
 
             }

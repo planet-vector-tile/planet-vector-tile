@@ -156,6 +156,18 @@
             }
         },
         {
+            "id": "ways",
+            "type": "line",
+            "minzoom": 0,
+            "maxzoom": 23,
+            "source": "planet",
+            "source-layer": "ways",
+            "paint": {
+                "line-color": "rgba(192, 255, 239, 0.8)",
+                "line-width": 2
+            }
+        },
+        {
             "id": "tile_center_label",
             "type": "symbol",
             "minzoom": 0,

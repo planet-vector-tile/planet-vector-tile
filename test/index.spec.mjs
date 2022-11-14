@@ -92,6 +92,4 @@ test('check scotts valley tile with nodes', async t => {
     // NHTODO Fixme: geojson result is not correct.
     // let geojson = firstFeature.toGeoJSON(12, 659, 1593);
     // console.log('geojson', JSON.stringify(geojson, null, 2));
-
-    
 });
