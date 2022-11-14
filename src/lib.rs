@@ -81,11 +81,9 @@ impl Planet {
             let sources = sources_rw.read().await;
             for i in 0..sources.len() {
                 let source = sources.get(i).unwrap();
-                println!("source {}", i);
                 source.compose_tile(&tile, &mut builder);
             }
             let vec_u8 = builder.build();
-            println!("vec_u8 {}", vec_u8.len());
             Ok(vec_u8.into())
         })
         .await

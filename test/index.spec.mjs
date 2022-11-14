@@ -70,9 +70,17 @@ test('check info tile 0/0/0', async t => {
 
 test('check scotts valley tile with nodes', async t => {
     const planet = loadPlanet(['info', '/Users/n/geodata/flatdata/santacruz']);
-    const tile = await planet.tile(9, 659, 1593);
+    const tile = await planet.tile(12, 659, 1593);
     const pvt = new PlanetVectorTile(tile);
 
     const len = Object.keys(pvt.layers).length;
-    t.is(len, 4)
+    t.is(len, 4);
+
+    t.is(pvt.layers.nodes.length, 16450);
+
+    let nodes = pvt.layers.nodes;
+    let firstFeature = nodes.feature(0);
+    let props = firstFeature.properties;
+    let { id, lat, lon } = props;
+    t.is(id, 1);
 });
