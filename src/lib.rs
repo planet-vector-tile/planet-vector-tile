@@ -115,16 +115,3 @@ fn quit<T>(e: Box<dyn Error>) -> T {
     eprintln!("Error: {}", e);
     std::process::exit(1);
 }
-
-
-// #[cfg(test)]
-// mod tests {
-//     use super::*;
-
-//     #[tokio::test]
-//     async fn test_a_few_hilbert_pairs() {
-//         let d = PathBuf::from("/Users/n/geodata/flatdata/santacruz");
-//         let planet = load_planet(vec!["info".to_string(), d.to_str().unwrap().to_string()]);
-//         let buf = planet.tile(12, 659, 1593).await.unwrap();
-//     }
-// }
