@@ -382,7 +382,7 @@ mod tests {
         info(&tile, &mut builder, 4);
         let vec_u8 = builder.build();
 
-        assert_eq!(vec_u8.len(), 139304);
+        assert_eq!(vec_u8.len(), 139600);
     }
 
     #[test]

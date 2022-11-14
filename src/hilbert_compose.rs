@@ -1,5 +1,3 @@
-use std::ops::Range;
-
 use crate::{
     hilbert::{HilbertTile, HilbertTree, Leaf},
     location::lonlat_to_xy,
@@ -7,11 +5,10 @@ use crate::{
     source::Source,
     tile::{
         planet_vector_tile_generated::{
-            PVTFeature, PVTFeatureArgs, PVTGeometry, PVTGeometryArgs, PVTLayer, PVTLayerArgs,
+            PVTFeature, PVTFeatureArgs, PVTGeometry, PVTGeometryArgs, PVTLayer, PVTLayerArgs, root_as_pvttile,
         },
         Tile,
     },
-    tile_attributes::TileAttributes,
 };
 
 struct FindResult<'a> {
@@ -113,12 +110,10 @@ impl Source for HilbertTree {
                     (nodes.len(), ways.len(), relations.len())
                 };
 
-                let n_slice = &nodes[n_start..n_end];
-                let w_slice = &ways[w_start..w_end];
-
                 let mut features = vec![];
 
-                for (i, n) in n_slice.iter().enumerate() {
+                for i in n_start..n_end {
+                    let n = &nodes[i];
                     let t_range = n.tags();
                     let start = t_range.start as usize;
                     let mut end = t_range.end as usize;
@@ -128,29 +123,13 @@ impl Source for HilbertTree {
                         continue;
                     }
 
-                    if start == 0 {
-                        println!("start 0");
-                    }
-                    if start > end {
-                        println!("start < end");
-                    }
                     if end == 0 {
-                        println!("end 0");
-                        continue;
-                    }
-                    if end > tags_index_len {
-                        println!("end > tags_index.len()");
-                        end = tags.len();
-                    }
-                    if start > tags_index_len {
-                        println!("start > tags_index.len()");
-                        continue;
+                        end = ways[0].tags().start as usize;
                     }
 
-                    debug_assert!(start <= end);
-                    debug_assert!(end != 0);
-                    debug_assert!(end <= tags_index_len);
-                    debug_assert!(start <= tags_index_len);
+                    assert!(start <= end);
+                    assert!(end <= tags_index_len);
+                    assert!(start <= tags_index_len);
                  
                     let n_tag_idxs = &tags_index[start..end];
 
@@ -199,8 +178,8 @@ impl Source for HilbertTree {
                     let feature = PVTFeature::create(
                         fbb,
                         &PVTFeatureArgs {
-                            id: h,
-                            h,
+                            id: i as u64,
+                            h: i as u64,
                             keys: Some(keys_vec),
                             values: Some(vals_vec),
                             geometries: Some(geoms),
@@ -222,7 +201,6 @@ impl Source for HilbertTree {
 
                 builder.add_layer(layer);
 
-                for w in w_slice {}
             }
         }
 
@@ -238,6 +216,7 @@ mod tests {
     #[test]
     fn test_basic_find() {
         // Scotts Valley
+        // z 12 x 659 y 1593
         let t = Tile::from_zh(12, 3329134);
 
         let dir = PathBuf::from("/Users/n/geodata/flatdata/santacruz");
@@ -262,6 +241,7 @@ mod tests {
     #[test]
     fn test_basic_compose_tile() {
         // Scotts Valley
+        // 9, 659, 1593
         let t = Tile::from_zh(12, 3329134);
 
         let dir = PathBuf::from("/Users/n/geodata/flatdata/santacruz");
@@ -271,5 +251,37 @@ mod tests {
         tree.compose_tile(&t, &mut builder);
 
         assert_eq!(builder.layers.len(), 1);
+
+        let vec_u8 = builder.build();
+        assert_eq!(vec_u8.len(), 1574272);
+
+        let pvt = root_as_pvttile(&vec_u8).unwrap();
+        let layers = pvt.layers().unwrap();
+        assert_eq!(layers.len(), 1);
+
+        let layer_str_idx = layers.get(0).name();
+        let strings = pvt.strings().unwrap();
+        let layer_name = strings.get(layer_str_idx as usize);
+        assert_eq!(layer_name, "nodes");
+
+        let features = layers.get(0).features().unwrap();
+        assert_eq!(features.len(), 16450);
+
+        let feature = features.get(0);
+        let keys = feature.keys().unwrap();
+        assert_eq!(keys.len(), 2);
+
+    }
+
+    #[test]
+    fn test_tags_index() {
+        let dir = PathBuf::from("/Users/n/geodata/flatdata/santacruz");
+        let tree = HilbertTree::open(&dir, 12).unwrap();
+        let nodes = tree.archive.nodes();
+        for n in nodes {
+            let t_range = n.tags();
+            // println!("{:?}", t_range);
+            assert!(t_range.start <= t_range.end || t_range.end == 0);
+        }
     }
 }

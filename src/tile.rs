@@ -201,7 +201,15 @@ impl Tile {
     }
 
     fn ancestor(&self, z: u8) -> Self {
-        assert!(z > 0 && z < self.z);
+        assert!(z < self.z);
+        if z == 0 {
+            return Self {
+                z: 0,
+                x: 0,
+                y: 0,
+                h: 0,
+            };
+        }
         Self {
             z,
             x: self.x >> self.z - z,
@@ -265,7 +273,7 @@ impl Tile {
 
         let mut pyramid = Vec::<Tile>::with_capacity(size);
 
-        for z in 1..self.z {
+        for z in 0..self.z {
             pyramid.push(self.ancestor(z));
         }
         pyramid.push(self.clone());
