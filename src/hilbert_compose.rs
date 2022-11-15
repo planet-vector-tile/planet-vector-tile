@@ -216,13 +216,13 @@ impl Source for HilbertTree {
 
                 builder.add_layer(layer);
 
-                let e = w_start + 1000;
+                // let e = w_start + 1000;
 
-                println!("num ways {}", e - w_start);
+                println!("num ways {}", w_end - w_start);
 
                 let mut way_features = vec![];
-                for i in w_start..e {
-                    let mut render = false;
+                for i in w_start..w_end {
+                    // let mut render = false;
                     let w = &ways[i];
                     let t_range = w.tags();
                     let start = t_range.start as usize;
@@ -267,10 +267,10 @@ impl Source for HilbertTree {
                             let key = key.unwrap();
                             let val = val.unwrap();
 
-                            if i == 113898 {
-                                println!("Found service road");
-                                render = true;
-                            }
+                            // if i == 113898 {
+                            //     println!("Found service road");
+                            //     render = true;
+                            // }
 
                             keys.push(builder.attributes.upsert_string(key));
                             vals.push(builder.attributes.upsert_string_value(val));
@@ -283,9 +283,9 @@ impl Source for HilbertTree {
                         }
                     }
 
-                    if !render {
-                        continue;
-                    }
+                    // if !render {
+                    //     continue;
+                    // }
 
                     let refs = w.refs();
                     let mut way_path = vec![];
@@ -295,13 +295,13 @@ impl Source for HilbertTree {
                             let n = &nodes[node_idx as usize];
                             let lon = n.lon();
                             let lat = n.lat();
-                            println!(
-                                "{} {} lat lon {}, {}",
-                                i,
-                                n.osm_id(),
-                                (lat as f64) / 10_000_000.0,
-                                (lon as f64) / 10_000_000.0
-                            );
+                            // println!(
+                            //     "{} {} lat lon {}, {}",
+                            //     i,
+                            //     n.osm_id(),
+                            //     (lat as f64) / 10_000_000.0,
+                            //     (lon as f64) / 10_000_000.0
+                            // );
                             let xy = lonlat_to_xy((lon, lat));
                             // println!("xy {:?}", xy);
                             let tile_point = tile.project(xy);
@@ -412,16 +412,16 @@ mod tests {
 
         let feature = features.get(0);
         let keys = feature.keys().unwrap();
-        assert_eq!(keys.len(), 2);
+        assert_eq!(keys.len(), 3);
         let vals = feature.values().unwrap();
 
         let pvt_values = pvt.values().unwrap();
 
-        let k1 = strings.get(keys.get(0) as usize);
-        let v1 = strings.get(pvt_values.get(vals.get(0) as usize).v() as usize);
+        let k1 = strings.get(keys.get(1) as usize);
+        let v1 = strings.get(pvt_values.get(vals.get(1) as usize).v() as usize);
 
-        let k2 = strings.get(keys.get(1) as usize);
-        let v2 = strings.get(pvt_values.get(vals.get(1) as usize).v() as usize);
+        let k2 = strings.get(keys.get(2) as usize);
+        let v2 = strings.get(pvt_values.get(vals.get(2) as usize).v() as usize);
         assert_eq!(k1, "content");
         assert_eq!(v1, "water");
         assert_eq!(k2, "man_made");
