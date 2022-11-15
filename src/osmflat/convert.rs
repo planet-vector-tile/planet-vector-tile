@@ -335,6 +335,8 @@ fn serialize_dense_nodes(
                 ids.grow()?.set_value(id as u64);
             }
 
+            node.set_osm_id(id);
+
             lat += dense_nodes.lat[i];
             lon += dense_nodes.lon[i];
             let lat_dm7 =
@@ -414,9 +416,15 @@ fn serialize_ways(
             assert_eq!(index as usize, ways.len());
 
             let way = ways.grow()?;
+
+            // NHTODO Remove the id archive. Too cumbersome.
             if let Some(ids) = way_ids {
                 ids.grow()?.set_value(pbf_way.id as u64);
             }
+
+            // NHTODO Redo the tagging mechanism to include types other than string,
+            // then include OSM entity attributes, such as OSM ID.
+            way.set_osm_id(pbf_way.id);
 
             debug_assert_eq!(pbf_way.keys.len(), pbf_way.vals.len(), "invalid input data");
             way.set_tag_first_idx(tags.next_index());
@@ -482,6 +490,8 @@ fn serialize_relations(
             if let Some(ids) = relation_ids {
                 ids.grow()?.set_value(pbf_relation.id as u64);
             }
+
+            relation.set_osm_id(pbf_relation.id);
 
             debug_assert_eq!(
                 pbf_relation.keys.len(),

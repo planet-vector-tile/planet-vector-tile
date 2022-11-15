@@ -69,6 +69,9 @@ struct Tag {
  * See <https://wiki.openstreetmap.org/wiki/Node>.
  */
 struct Node {
+
+    osm_id: i64: 40;
+
     /// Latitude (scaled with `header.coord_scale`).
     lat: i32 : 32;
     /// Longitude (scaled with `header.coord_scale`).
@@ -102,6 +105,9 @@ struct HilbertNodePair {
  * See <https://wiki.openstreetmap.org/wiki/Way>.
  */
 struct Way {
+
+    osm_id: i64: 40;
+
     /// PointOnSurface Hilbert location of way.
     h: u64: 64;
 
@@ -179,6 +185,9 @@ struct RelationMember {
  * See <https://wiki.openstreetmap.org/wiki/Relation>.
  */
 struct Relation {
+
+    osm_id: i64: 40;
+
     // PointOnSurface Hilbert location of relation.
     h: u64: 64;
 

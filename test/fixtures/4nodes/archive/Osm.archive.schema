@@ -17,6 +17,7 @@ struct Header
 namespace osm {
 struct Node
 {
+    osm_id : i64 : 40;
     lat : i32 : 32;
     lon : i32 : 32;
     @range( tags )
@@ -35,6 +36,7 @@ struct HilbertNodePair
 namespace osm {
 struct Way
 {
+    osm_id : i64 : 40;
     h : u64 : 64;
     @range( tags )
     tag_first_idx : u64 : 40;
@@ -54,6 +56,7 @@ struct HilbertWayPair
 namespace osm {
 struct Relation
 {
+    osm_id : i64 : 40;
     h : u64 : 64;
     @range( tags )
     tag_first_idx : u64 : 40;

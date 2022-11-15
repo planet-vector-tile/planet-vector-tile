@@ -9,6 +9,10 @@ body,
     height: 100%;
 }
 
+.mapboxgl-canvas-container {
+    cursor: crosshair !important;
+}
+
 #sat-slider {
     position: absolute;
     top: 4px;

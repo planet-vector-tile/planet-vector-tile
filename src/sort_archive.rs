@@ -247,19 +247,6 @@ mod tests {
         let m2 = Mutant::<HilbertWayPair>::open(&d, "hilbert_way_pairs", true).unwrap();
         let ws = m2.slice();
 
-        // Print a sanity check
-        let mut it = ws.iter();
-        for n in &ns[0..5] {
-            let w = it.next().unwrap();
-            let nh = n.h();
-            let wh = w.h();
-            let n_lonlat = location::h_to_decimal_lonlat(nh);
-            let w_lonlat = location::h_to_decimal_lonlat(wh);
-
-            println!("n {} w {}", n.h(), w.h());
-            println!("n {:?} w {:?}", n_lonlat, w_lonlat);
-        }
-
         let n = ns.first().unwrap();
         let w = ws.first().unwrap();
         let n_h = n.h();
@@ -269,15 +256,12 @@ mod tests {
         let (n_lon, n_lat) = crate::location::xy_to_decimal_lonlat(n_coord);
         let (w_lon, w_lat) = crate::location::xy_to_decimal_lonlat(w_coord);
 
-        // println!("n {} w {}", n_h, w_h);
-        // println!("n {:?} {:?} w {:?} {:?}", n_lon, n_lat, w_lon, w_lat);
-
-        // assert_eq!(n_h, 5055384463774690405);
-        // assert_eq!(w_h, 5056311634151337179);
-        // assert_eq!(n_lon, -122.4891643);
-        // assert_eq!(n_lat, 36.9479216);
-        // assert_eq!(w_lon, -122.1471753);
-        // assert_eq!(w_lat, 37.2459612);
+        assert_eq!(n_h, 3660331851833214363);
+        assert_eq!(w_h, 3660337306988711752);
+        assert_eq!(n_lon, -121.2510385);
+        assert_eq!(n_lat, 36.9596099);
+        assert_eq!(w_lon, -121.4516216);
+        assert_eq!(w_lat, 36.9000422);
     }
 
     #[test]
@@ -285,12 +269,8 @@ mod tests {
         let dir = PathBuf::from("/Users/n/geodata/flatdata/santacruz");
         let m_nodes = Mutant::<Node>::open(&dir, "nodes", true).unwrap();
         let nodes = m_nodes.slice();
-        let m_tags_idx = Mutant::<TagIndex>::open(&dir, "tags_index", true).unwrap();
-        let tags_idx = m_tags_idx.slice();
         for n in nodes {
             let range = n.tags();
-
-            // println!("start {} end {}", range.start, range.end);
             assert!(range.start <= range.end || range.end == 0);
         }
     }

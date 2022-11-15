@@ -5,7 +5,8 @@ use crate::{
     source::Source,
     tile::{
         planet_vector_tile_generated::{
-            PVTFeature, PVTFeatureArgs, PVTGeometry, PVTGeometryArgs, PVTLayer, PVTLayerArgs, root_as_pvttile,
+            root_as_pvttile, PVTFeature, PVTFeatureArgs, PVTGeometry, PVTGeometryArgs, PVTLayer,
+            PVTLayerArgs,
         },
         Tile,
     },
@@ -28,7 +29,7 @@ impl HilbertTree {
 
         let h_tiles = self.tiles.slice();
         let mut h_tile = h_tiles.last().unwrap();
-        println!("root {:?}", h_tile);
+        // println!("root {:?}", h_tile);
 
         let mut z = 2;
         let mut i = 0;
@@ -46,7 +47,7 @@ impl HilbertTree {
 
             h_tile = &h_tiles[i];
 
-            println!("i {} {:?}", i, h_tile);
+            // println!("i {} {:?}", i, h_tile);
 
             z += 2;
         }
@@ -78,8 +79,9 @@ impl HilbertTree {
 
 impl Source for HilbertTree {
     fn compose_tile(&self, tile: &Tile, builder: &mut PVTBuilder) {
-        // let fbb = &mut builder.fbb;
-        // let attributes = &mut builder.attributes;
+        // if tile.h != 3329139 {
+        //     return;
+        // }
 
         // The tile exists in the index
         if let Some(res) = self.find(tile) {
@@ -133,11 +135,16 @@ impl Source for HilbertTree {
                     assert!(start <= end);
                     assert!(end <= tags_index_len);
                     assert!(start <= tags_index_len);
-                 
+
                     let n_tag_idxs = &tags_index[start..end];
 
                     let mut keys: Vec<u32> = vec![];
                     let mut vals: Vec<u32> = vec![];
+
+                    let osm_id_key = builder.attributes.upsert_string("osm_id");
+                    let osm_id_val = builder.attributes.upsert_number_value(n.osm_id() as f64);
+                    keys.push(osm_id_key);
+                    vals.push(osm_id_val);
 
                     for tag_idx in n_tag_idxs {
                         let tag_i = tag_idx.value() as usize;
@@ -157,7 +164,11 @@ impl Source for HilbertTree {
                             keys.push(builder.attributes.upsert_string(key));
                             vals.push(builder.attributes.upsert_string_value(val));
                         } else {
-                            eprintln!("Invalid tag key val {:?} {:?}", key.unwrap_err(), val.unwrap_err());
+                            eprintln!(
+                                "Invalid tag key val {:?} {:?}",
+                                key.unwrap_err(),
+                                val.unwrap_err()
+                            );
                         }
                     }
 
@@ -172,7 +183,10 @@ impl Source for HilbertTree {
                     let vals_vec = builder.fbb.create_vector(&vals);
 
                     let path = builder.fbb.create_vector(&[tile_point]);
-                    let geom = PVTGeometry::create(&mut builder.fbb, &PVTGeometryArgs { points: Some(path) });
+                    let geom = PVTGeometry::create(
+                        &mut builder.fbb,
+                        &PVTGeometryArgs { points: Some(path) },
+                    );
                     let geoms = builder.fbb.create_vector(&[geom]);
 
                     // NHTODO Get rid of the h field in PVTFeature. It's "pointless".
@@ -202,8 +216,13 @@ impl Source for HilbertTree {
 
                 builder.add_layer(layer);
 
+                let e = w_start + 1000;
+
+                println!("num ways {}", e - w_start);
+
                 let mut way_features = vec![];
-                for i in w_start..w_end {
+                for i in w_start..e {
+                    let mut render = false;
                     let w = &ways[i];
                     let t_range = w.tags();
                     let start = t_range.start as usize;
@@ -222,11 +241,16 @@ impl Source for HilbertTree {
                     assert!(start <= end);
                     assert!(end <= tags_index_len);
                     assert!(start <= tags_index_len);
-                 
+
                     let w_tag_idxs = &tags_index[start..end];
 
                     let mut keys: Vec<u32> = vec![];
                     let mut vals: Vec<u32> = vec![];
+
+                    let osm_id_key = builder.attributes.upsert_string("osm_id");
+                    let osm_id_val = builder.attributes.upsert_number_value(w.osm_id() as f64);
+                    keys.push(osm_id_key);
+                    vals.push(osm_id_val);
 
                     for tag_idx in w_tag_idxs {
                         let tag_i = tag_idx.value() as usize;
@@ -243,31 +267,58 @@ impl Source for HilbertTree {
                             let key = key.unwrap();
                             let val = val.unwrap();
 
+                            if i == 113898 {
+                                println!("Found service road");
+                                render = true;
+                            }
+
                             keys.push(builder.attributes.upsert_string(key));
                             vals.push(builder.attributes.upsert_string_value(val));
                         } else {
-                            eprintln!("Invalid tag key val {:?} {:?}", key.unwrap_err(), val.unwrap_err());
+                            eprintln!(
+                                "Invalid tag key val {:?} {:?}",
+                                key.unwrap_err(),
+                                val.unwrap_err()
+                            );
                         }
+                    }
+
+                    if !render {
+                        continue;
                     }
 
                     let refs = w.refs();
                     let mut way_path = vec![];
-                    for r in refs {
+                    for (i, r) in refs.enumerate() {
                         let node_idx = &nodes_index[r as usize];
                         if let Some(node_idx) = node_idx.value() {
                             let n = &nodes[node_idx as usize];
                             let lon = n.lon();
                             let lat = n.lat();
+                            println!(
+                                "{} {} lat lon {}, {}",
+                                i,
+                                n.osm_id(),
+                                (lat as f64) / 10_000_000.0,
+                                (lon as f64) / 10_000_000.0
+                            );
                             let xy = lonlat_to_xy((lon, lat));
+                            // println!("xy {:?}", xy);
                             let tile_point = tile.project(xy);
+                            // println!("tile_point {:?}", tile_point);
                             way_path.push(tile_point);
                         }
                     }
 
                     let way_path = builder.fbb.create_vector(&way_path);
-                    let way_geom = PVTGeometry::create(&mut builder.fbb, &PVTGeometryArgs { points: Some(way_path) });
+                    let way_geom = PVTGeometry::create(
+                        &mut builder.fbb,
+                        &PVTGeometryArgs {
+                            points: Some(way_path),
+                        },
+                    );
                     let way_geoms = builder.fbb.create_vector(&[way_geom]);
-                    
+
                     let keys_vec = builder.fbb.create_vector(&keys);
                     let vals_vec = builder.fbb.create_vector(&vals);
 
@@ -295,10 +346,8 @@ impl Source for HilbertTree {
                     },
                 );
                 builder.add_layer(layer);
-
             }
         }
-
     }
 }
 
@@ -345,7 +394,7 @@ mod tests {
         let mut builder = PVTBuilder::new();
         tree.compose_tile(&t, &mut builder);
 
-        assert_eq!(builder.layers.len(), 1);
+        assert_eq!(builder.layers.len(), 2);
 
         let vec_u8 = builder.build();
 
@@ -387,8 +436,6 @@ mod tests {
         let point = points.get(0);
         assert_eq!(point.x(), 7779);
         assert_eq!(point.y(), -163);
-
-
     }
 
     #[test]

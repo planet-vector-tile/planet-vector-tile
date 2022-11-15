@@ -1,6 +1,7 @@
 namespace osm {
 struct Relation
 {
+    osm_id : i64 : 40;
     h : u64 : 64;
     @range( tags )
     tag_first_idx : u64 : 40;

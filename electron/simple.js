@@ -11,6 +11,8 @@ const map = (window.map = new window.maplibregl.Map({
     style: style,
 }));
 
+map.getCanvas().style.cursor = 'crosshair';
+
 let pvt = (window.pvt = {
     clickedFeatures: null,
     selectedFeature: null,

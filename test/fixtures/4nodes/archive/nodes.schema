@@ -1,6 +1,7 @@
 namespace osm {
 struct Node
 {
+    osm_id : i64 : 40;
     lat : i32 : 32;
     lon : i32 : 32;
     @range( tags )

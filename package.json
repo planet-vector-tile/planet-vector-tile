@@ -40,7 +40,7 @@
     },
     "ava": {
         "files": [
-            "test/**/*",
+            "tests/**/*",
             "!maplibre-gl-js"
         ]
     },
