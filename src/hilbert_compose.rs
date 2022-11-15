@@ -400,7 +400,7 @@ mod tests {
 
         let pvt = root_as_pvttile(&vec_u8).unwrap();
         let layers = pvt.layers().unwrap();
-        assert_eq!(layers.len(), 1);
+        assert_eq!(layers.len(), 2);
 
         let layer_str_idx = layers.get(0).name();
         let strings = pvt.strings().unwrap();
