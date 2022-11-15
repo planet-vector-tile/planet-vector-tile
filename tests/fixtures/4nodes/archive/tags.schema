@@ -1,0 +1,17 @@
+namespace osm {
+struct Tag
+{
+    key_idx : u64 : 40;
+    value_idx : u64 : 40;
+}
+}
+
+namespace osm {
+archive Osm
+{
+    @explicit_reference( .osm.Tag.key_idx, .osm.Osm.stringtable )
+    @explicit_reference( .osm.Tag.value_idx, .osm.Osm.stringtable )
+    tags : vector< .osm.Tag >;
+}
+}
+

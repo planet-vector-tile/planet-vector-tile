@@ -1,0 +1,15 @@
+namespace osm {
+struct TagIndex
+{
+    value : u64 : 40;
+}
+}
+
+namespace osm {
+archive Osm
+{
+    @explicit_reference( .osm.TagIndex.value, .osm.Osm.tags )
+    tags_index : vector< .osm.TagIndex >;
+}
+}
+

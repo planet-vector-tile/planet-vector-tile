@@ -1,0 +1,26 @@
+namespace osm {
+struct Header
+{
+    coord_scale : i32 : 32;
+    bbox_left : i32 : 32;
+    bbox_right : i32 : 32;
+    bbox_top : i32 : 32;
+    bbox_bottom : i32 : 32;
+    writingprogram_idx : u64 : 40;
+    source_idx : u64 : 40;
+    replication_timestamp : i64 : 64;
+    replication_sequence_number : i64 : 64;
+    replication_base_url_idx : u64 : 40;
+}
+}
+
+namespace osm {
+archive Osm
+{
+    @explicit_reference( .osm.Header.writingprogram_idx, .osm.Osm.stringtable )
+    @explicit_reference( .osm.Header.source_idx, .osm.Osm.stringtable )
+    @explicit_reference( .osm.Header.replication_base_url_idx, .osm.Osm.stringtable )
+    header : .osm.Header;
+}
+}
+

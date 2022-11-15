@@ -1,0 +1,44 @@
+namespace osm {
+const u64 INVALID_IDX = 1099511627775;
+}
+
+namespace osm {
+struct NodeMember
+{
+    @optional( .osm.INVALID_IDX )
+    node_idx : u64 : 40;
+    role_idx : u64 : 40;
+}
+}
+
+namespace osm {
+struct WayMember
+{
+    @optional( .osm.INVALID_IDX )
+    way_idx : u64 : 40;
+    role_idx : u64 : 40;
+}
+}
+
+namespace osm {
+struct RelationMember
+{
+    @optional( .osm.INVALID_IDX )
+    relation_idx : u64 : 40;
+    role_idx : u64 : 40;
+}
+}
+
+namespace osm {
+archive Osm
+{
+    @explicit_reference( .osm.NodeMember.node_idx, .osm.Osm.nodes )
+    @explicit_reference( .osm.NodeMember.role_idx, .osm.Osm.stringtable )
+    @explicit_reference( .osm.WayMember.way_idx, .osm.Osm.ways )
+    @explicit_reference( .osm.WayMember.role_idx, .osm.Osm.stringtable )
+    @explicit_reference( .osm.RelationMember.relation_idx, .osm.Osm.relations )
+    @explicit_reference( .osm.RelationMember.role_idx, .osm.Osm.stringtable )
+    relation_members : multivector< 40, .osm.NodeMember, .osm.WayMember, .osm.RelationMember >;
+}
+}
+

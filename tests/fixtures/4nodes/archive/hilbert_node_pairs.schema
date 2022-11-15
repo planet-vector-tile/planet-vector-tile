@@ -1,0 +1,16 @@
+namespace osm {
+struct HilbertNodePair
+{
+    i : u64 : 40;
+    h : u64 : 64;
+}
+}
+
+namespace osm {
+archive Osm
+{
+    @optional
+    hilbert_node_pairs : vector< .osm.HilbertNodePair >;
+}
+}
+
