@@ -53,39 +53,55 @@ pub fn sort(archive: Osm, dir: &PathBuf) -> Result<(), Box<dyn std::error::Error
     // Reorder nodes to sorted hilbert node pairs.
     let mut pb = Prog::new("Reordering nodes. ", nodes_len);
     let nodes = archive.nodes();
-    let mut sorted_nodes_mut = Mutant::<Node>::new_from_flatdata(&dir, "sorted_nodes", "nodes")?;
-    let sorted_nodes = sorted_nodes_mut.mutable_slice();
+    let mut m_sorted_nodes = Mutant::<Node>::new_from_flatdata(&dir, "sorted_nodes", "nodes")?;
+    let sorted_nodes = m_sorted_nodes.mutable_slice();
+    let m_old_node_idx = Mutant::<usize>::new(dir, "old_node_idx", nodes_len)?;
+    let old_node_idx = m_old_node_idx.mutable_slice();
     let mut tag_counter: usize = 0;
     let tags_index = archive.tags_index();
     let mut sorted_tags_index_mut =
         Mutant::<TagIndex>::new_from_flatdata(dir, "sorted_tags_index", "tags_index")?;
     let sorted_tags_index = sorted_tags_index_mut.mutable_slice();
-    sorted_nodes.iter_mut().zip(node_pairs.iter_mut()).for_each(
-        |(sorted_node, hilbert_node_pair)| {
-            let i = hilbert_node_pair.i() as usize;
-            let node = &nodes[i];
-            let start = node.tag_first_idx() as usize;
-            let end = node.tags().end as usize;
+    for i in 0..nodes_len {
+        let node_pair = &node_pairs[i];
+        let old_i = node_pair.i() as usize;
+        old_node_idx[old_i] = i;
+        let node = &nodes[old_i];
+        let sorted_node = &mut sorted_nodes[i];
 
-            let tag_first_idx = tag_counter;
-            for t in &tags_index[start..end] {
-                sorted_tags_index[tag_counter].fill_from(t);
-                tag_counter += 1;
-            }
+        let tags_range = node.tags();
+        let start = tags_range.start as usize;
+        let end = tags_range.end as usize;
 
-            sorted_node.fill_from(node);
-            sorted_node.set_tag_first_idx(tag_first_idx as u64);
-            pb.tick(i);
-        },
-    );
+        let tag_first_idx = tag_counter;
+        for t in &tags_index[start..end] {
+            sorted_tags_index[tag_counter].fill_from(t);
+            tag_counter += 1;
+        }
+
+        sorted_node.fill_from(&node);
+        sorted_node.set_tag_first_idx(tag_first_idx as u64);
+        pb.tick(i);
+    }
     pb.finish();
+
+    // Update references in nodes_index.
+    let mut pb = Prog::new("Updating node references in nodes_index. ", nodes_len);
+    let m_nodes_index = Mutant::<NodeIndex>::open(dir, "nodes_index", true)?;
+    let nodes_index = m_nodes_index.mutable_slice();
+    for i in 0..nodes_len {
+        let node_index = &mut nodes_index[i];
+        let old_i = node_index.value().unwrap() as usize;
+        let new_i = old_node_idx[old_i];
+        node_index.set_value(Some(new_i as u64));
+        pb.tick(i);
+    }
 
     // Reorder ways to sorted hilbert way pairs.
     let mut pb = Prog::new("Reordering ways. ", ways_len);
     let mut sorted_ways_mut = Mutant::<Way>::new_from_flatdata(dir, "sorted_ways", "ways")?;
     let sorted_ways = sorted_ways_mut.mutable_slice();
     let mut nodes_index_counter: usize = 0;
-    let nodes_index = archive.nodes_index();
     let mut sorted_nodes_index_mut =
         Mutant::<NodeIndex>::new_from_flatdata(dir, "sorted_nodes_index", "nodes_index")?;
     let sorted_nodes_index = sorted_nodes_index_mut.mutable_slice();
@@ -121,7 +137,7 @@ pub fn sort(archive: Osm, dir: &PathBuf) -> Result<(), Box<dyn std::error::Error
     pb.finish();
 
     std::mem::drop(archive);
-    sorted_nodes_mut.mv("nodes")?;
+    m_sorted_nodes.mv("nodes")?;
     info!("Moved sorted_nodes to nodes");
     sorted_ways_mut.mv("ways")?;
     info!("Moved sorted_ways to ways");
@@ -269,11 +285,11 @@ mod tests {
         let dir = PathBuf::from("/Users/n/geodata/flatdata/santacruz");
         let m_nodes = Mutant::<Node>::open(&dir, "nodes", true).unwrap();
         let nodes = m_nodes.slice();
-        let m_tags_idx =  Mutant::<TagIndex>::open(&dir, "tags_index", true).unwrap();
+        let m_tags_idx = Mutant::<TagIndex>::open(&dir, "tags_index", true).unwrap();
         let tags_idx = m_tags_idx.slice();
         for n in nodes {
             let range = n.tags();
-            
+
             // println!("start {} end {}", range.start, range.end);
             assert!(range.start <= range.end || range.end == 0);
         }
