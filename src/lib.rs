@@ -96,8 +96,8 @@ impl Planet {
 #[napi]
 pub async fn pvt() -> Result<()> {
     let args = Args {
-        input: PathBuf::from("./test/fixtures/4nodes/4nodes.osm.pbf"),
-        output: PathBuf::from("./test/fixtures/4nodes"),
+        input: PathBuf::from("./tests/fixtures/nodes4.osm.pbf"),
+        output: PathBuf::from("./tests/fixtures/nodes4/debug"),
         ids: false,
         overwrite: false,
         leafzoom: 12,

@@ -69,7 +69,7 @@ test('check info tile 0/0/0', async t => {
 });
 
 test('check scotts valley tile with nodes', async t => {
-    const planet = loadPlanet(['info', '/Users/n/geodata/flatdata/santacruz']);
+    const planet = loadPlanet(['info', 'tests/fixtures/santacruz/sort']);
     const tile = await planet.tile(12, 659, 1593);
     const pvt = new PlanetVectorTile(tile);
 

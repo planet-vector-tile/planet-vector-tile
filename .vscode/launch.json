@@ -28,7 +28,7 @@
                     "kind": "bin"
                 }
             },
-            "args": ["--overwrite", "./test/fixtures/4nodes/4nodes.osm.pbf", "./test/fixtures/4nodes/archive"],
+            "args": ["--overwrite", "./tests/fixtures/nodes4.osm.pbf", "./tests/fixtures/nodes4/debug"],
             "cwd": "${workspaceFolder}"
         },
         {

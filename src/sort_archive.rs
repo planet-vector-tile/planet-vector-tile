@@ -242,7 +242,7 @@ mod tests {
 
     #[test]
     fn test_a_few_hilbert_pairs() {
-        let d = PathBuf::from("/Users/n/geodata/flatdata/santacruz");
+        let d = PathBuf::from("tests/fixtures/santacruz/sort");
         let m = Mutant::<HilbertNodePair>::open(&d, "hilbert_node_pairs", true).unwrap();
         let ns = m.slice();
         let m2 = Mutant::<HilbertWayPair>::open(&d, "hilbert_way_pairs", true).unwrap();
@@ -267,7 +267,7 @@ mod tests {
 
     #[test]
     fn test_tags_index() {
-        let dir = PathBuf::from("/Users/n/geodata/flatdata/santacruz");
+        let dir = PathBuf::from("tests/fixtures/santacruz/sort");
         let m_nodes = Mutant::<Node>::open(&dir, "nodes", true).unwrap();
         let nodes = m_nodes.slice();
         for n in nodes {

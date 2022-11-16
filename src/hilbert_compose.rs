@@ -363,7 +363,7 @@ mod tests {
         // z 12 x 659 y 1593
         let t = Tile::from_zh(12, 3329134);
 
-        let dir = PathBuf::from("/Users/n/geodata/flatdata/santacruz");
+        let dir = PathBuf::from("tests/fixtures/santacruz/sort");
         let tree = HilbertTree::open(&dir, 12).unwrap();
 
         let res = tree.find(&t);
@@ -388,7 +388,7 @@ mod tests {
         // 9, 659, 1593
         let t = Tile::from_zh(12, 3329134);
 
-        let dir = PathBuf::from("/Users/n/geodata/flatdata/santacruz");
+        let dir = PathBuf::from("tests/fixtures/santacruz/sort");
         let tree = HilbertTree::open(&dir, 12).unwrap();
 
         let mut builder = PVTBuilder::new();
@@ -440,7 +440,7 @@ mod tests {
 
     #[test]
     fn test_tags_index() {
-        let dir = PathBuf::from("/Users/n/geodata/flatdata/santacruz");
+        let dir = PathBuf::from("tests/fixtures/santacruz/sort");
         let tree = HilbertTree::open(&dir, 12).unwrap();
         let nodes = tree.archive.nodes();
         for n in nodes {
