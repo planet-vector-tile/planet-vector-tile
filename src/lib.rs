@@ -23,6 +23,7 @@ use source::Source;
 use std::error::Error;
 use std::path::PathBuf;
 use std::sync::Arc;
+use std::time::Instant;
 use tile::Tile;
 
 use napi::bindgen_prelude::*;
@@ -73,8 +74,10 @@ impl Planet {
 
     #[napi]
     pub async fn tile(&self, z: u8, x: u32, y: u32) -> Result<Uint8Array> {
+        let time = Instant::now();
+        println!("z:{} x:{} y:{}", z, x, y);
         let sources_rw = self.sources.clone();
-        tokio::task::spawn(async move {
+        let task_result = tokio::task::spawn(async move {
             let tile = Tile::from_zxy(z, x, y);
             let mut builder = PVTBuilder::new();
             let sources = sources_rw.read().await;
@@ -86,7 +89,9 @@ impl Planet {
             Ok(vec_u8.into())
         })
         .await
-        .unwrap()
+        .unwrap();
+        println!("{}/{}/{} {}ms.", z, x, y, time.elapsed().as_millis());
+        task_result
     }
 }
 
