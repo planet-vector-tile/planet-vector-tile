@@ -2,7 +2,6 @@
 
 use core::mem::size_of;
 use core::slice::{from_raw_parts, from_raw_parts_mut};
-use log::info;
 use memmap2::MmapMut;
 use std::fs::File;
 use std::io::Result;

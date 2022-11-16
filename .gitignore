@@ -1,6 +1,9 @@
 # Created by https://www.toptal.com/developers/gitignore/api/node
 # Edit at https://www.toptal.com/developers/gitignore?templates=node
 
+tests/fixtures/nodes4/
+tests/fixtures/santacruz/
+
 ### Node ###
 # Logs
 logs
