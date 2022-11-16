@@ -89,7 +89,8 @@ pub fn sort(archive: Osm, dir: &PathBuf) -> Result<(), Box<dyn std::error::Error
     let mut pb = Prog::new("Updating node references in nodes_index. ", nodes_len);
     let m_nodes_index = Mutant::<NodeIndex>::open(dir, "nodes_index", true)?;
     let nodes_index = m_nodes_index.mutable_slice();
-    for i in 0..nodes_len {
+    let nodes_index_len = nodes_index.len();
+    for i in 0..nodes_index_len {
         let node_index = &mut nodes_index[i];
         let old_i = node_index.value().unwrap() as usize;
         let new_i = old_node_idx[old_i];
