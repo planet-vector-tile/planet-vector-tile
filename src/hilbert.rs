@@ -545,7 +545,7 @@ mod tests {
 
     #[test]
     fn test_4nodes_leaf_tiles() {
-        let dir = PathBuf::from("./test/fixtures/4nodes/archive");
+        let dir = PathBuf::from("./tests/fixtures/nodes4/sort");
         let m_node_pairs =
             Mutant::<HilbertNodePair>::open(&dir, "hilbert_node_pairs", true).unwrap();
         let node_pairs = m_node_pairs.slice();
@@ -561,7 +561,7 @@ mod tests {
 
     #[test]
     fn test_build_leaves() {
-        let dir = PathBuf::from("./test/fixtures/4nodes/archive");
+        let dir = PathBuf::from("./tests/fixtures/nodes4/sort");
         let m_node_pairs =
             Mutant::<HilbertNodePair>::open(&dir, "hilbert_node_pairs", true).unwrap();
         let m_way_pairs = Mutant::<HilbertWayPair>::open(&dir, "hilbert_way_pairs", true).unwrap();
@@ -574,7 +574,7 @@ mod tests {
 
     #[test]
     fn test_santacruz() {
-        let dir = PathBuf::from("/Users/n/geodata/flatdata/santacruz");
+        let dir = PathBuf::from("tests/fixtures/santacruz/sort");
         let m_node_pairs =
             Mutant::<HilbertNodePair>::open(&dir, "hilbert_node_pairs", true).unwrap();
         let m_way_pairs = Mutant::<HilbertWayPair>::open(&dir, "hilbert_way_pairs", true).unwrap();

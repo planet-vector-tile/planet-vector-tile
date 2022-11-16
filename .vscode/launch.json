@@ -7,6 +7,19 @@
         {
             "type": "lldb",
             "request": "launch",
+            "name": "Debug executable 'fixtures'",
+            "cargo": {
+                "args": ["build", "--bin=fixtures", "--package=planet-vector-tile"],
+                "filter": {
+                    "name": "fixtures",
+                    "kind": "bin"
+                }
+            },
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
             "name": "Debug executable 'pvt'",
             "cargo": {
                 "args": ["build", "--bin=pvt", "--package=planet-vector-tile"],
@@ -15,7 +28,7 @@
                     "kind": "bin"
                 }
             },
-            "args": ["--overwrite", "./test/fixtures/4nodes/4nodes.osm.pbf", "./test/fixtures/4nodes/archive"],
+            "args": ["--overwrite", "./tests/fixtures/nodes4.osm.pbf", "./tests/fixtures/nodes4/debug"],
             "cwd": "${workspaceFolder}"
         },
         {

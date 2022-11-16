@@ -6,11 +6,11 @@ pub mod location;
 mod mutant;
 mod osmflat;
 mod parallel;
+mod pvt_builder;
 mod sort_archive;
 mod source;
 pub mod tile;
 pub mod tile_attributes;
-mod pvt_builder;
 
 #[macro_use]
 extern crate napi_derive;
@@ -56,20 +56,19 @@ impl Planet {
                     Ok(tree) => {
                         let box_tree = Box::new(tree) as Box<dyn Source>;
                         sources.push(box_tree);
-                    },
+                    }
                     Err(err) => {
                         eprintln!("Unable to open {:?} Skipping...", path);
                         eprintln!("{:?} Skipping...", err);
                     }
                 }
-                
             }
         }
 
-        Self { 
-            tiles, 
-            sources: Arc::new(RwLock::new(sources))
-         }
+        Self {
+            tiles,
+            sources: Arc::new(RwLock::new(sources)),
+        }
     }
 
     #[napi]
@@ -97,8 +96,8 @@ impl Planet {
 #[napi]
 pub async fn pvt() -> Result<()> {
     let args = Args {
-        input: PathBuf::from("./test/fixtures/4nodes/4nodes.osm.pbf"),
-        output: PathBuf::from("./test/fixtures/4nodes"),
+        input: PathBuf::from("./tests/fixtures/nodes4.osm.pbf"),
+        output: PathBuf::from("./tests/fixtures/nodes4/debug"),
         ids: false,
         overwrite: false,
         leafzoom: 12,

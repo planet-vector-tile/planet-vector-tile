@@ -146,7 +146,8 @@ export class PlanetVectorTileFeature implements VectorTileFeature {
         if (this._geom) {
             return this._geom;
         }
-        // TODO Implement point where we just use the FB rather than do this extra loop / copy.
+        // NHTODO Implement point where we just use the FB rather than do this extra loop / copy.
+        // https://github.com/mapbox/point-geometry/blob/master/index.js
         const feat = this._feat;
         const len = feat.geometriesLength();
         const outer = new Array<Point[]>(len);
@@ -165,6 +166,7 @@ export class PlanetVectorTileFeature implements VectorTileFeature {
         return outer;
     }
 
+    // NHTODO There is a bug with this method, as shown in unit tests.
     toGeoJSON(x: number, y: number, z: number): Feature {
         const feat = this._feat;
         const granularity = EXTENT * Math.pow(2, z);

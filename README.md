@@ -40,6 +40,21 @@ Note that if you are not using the release flag (-r) for your the tool will run 
 npm start
 ```
 
+## Run tests.
+
+First you need to generate the test fixtures.
+
+```
+cargo run -r --bin fixtures
+```
+
+Then,
+
+```
+cargo test
+npm test
+```
+
 ## Modify the schema.
 
 If you want to modify the flatdata or flatbuffer schema, you will need to install the corresponding schema compilers.

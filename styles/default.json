@@ -10,13 +10,13 @@
     "sources": {
         "sat": {
             "type": "raster",
-            "tiles": ["https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"],
+            "tiles": ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
             "minzoom": 0,
             "maxzoom": 23
         },
         "planet": {
             "type": "planet",
-            "tiles": ["info", "/Users/n/geodata/flatdata/santacruz"],
+            "tiles": ["info", "../tests/fixtures/santacruz/sort"],
             "sprite": "https://storage.googleapis.com/hellopvt3/sprites",
             "minzoom": 0,
             "maxzoom": 12
@@ -153,6 +153,18 @@
             "paint": {
                 "circle-radius": 4,
                 "circle-color": "#ff69b4"
+            }
+        },
+        {
+            "id": "ways",
+            "type": "line",
+            "minzoom": 0,
+            "maxzoom": 23,
+            "source": "planet",
+            "source-layer": "ways",
+            "paint": {
+                "line-color": "rgba(192, 255, 239, 0.8)",
+                "line-width": 2
             }
         },
         {

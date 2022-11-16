@@ -431,39 +431,45 @@ pub mod osm {
     /// See <https://wiki.openstreetmap.org/wiki/Node>.
     #[repr(transparent)]
     pub struct Node {
-        data: [u8; 13],
+        data: [u8; 18],
     }
 
     impl Node {
         /// Unsafe since the struct might not be self-contained
         pub unsafe fn new_unchecked() -> Self {
-            Self { data: [0; 13] }
+            Self { data: [0; 18] }
         }
     }
 
     impl flatdata::Struct for Node {
         unsafe fn create_unchecked() -> Self {
-            Self { data: [0; 13] }
+            Self { data: [0; 18] }
         }
 
-        const SIZE_IN_BYTES: usize = 13;
+        const SIZE_IN_BYTES: usize = 18;
         const IS_OVERLAPPING_WITH_NEXT: bool = true;
     }
 
     impl flatdata::Overlap for Node {}
 
     impl Node {
+        #[inline]
+        pub fn osm_id(&self) -> i64 {
+            let value = flatdata_read_bytes!(i64, self.data.as_ptr(), 0, 40);
+            unsafe { std::mem::transmute::<i64, i64>(value) }
+        }
+
         /// Latitude (scaled with `header.coord_scale`).
         #[inline]
         pub fn lat(&self) -> i32 {
-            let value = flatdata_read_bytes!(i32, self.data.as_ptr(), 0, 32);
+            let value = flatdata_read_bytes!(i32, self.data.as_ptr(), 40, 32);
             unsafe { std::mem::transmute::<i32, i32>(value) }
         }
 
         /// Longitude (scaled with `header.coord_scale`).
         #[inline]
         pub fn lon(&self) -> i32 {
-            let value = flatdata_read_bytes!(i32, self.data.as_ptr(), 32, 32);
+            let value = flatdata_read_bytes!(i32, self.data.as_ptr(), 72, 32);
             unsafe { std::mem::transmute::<i32, i32>(value) }
         }
 
@@ -472,7 +478,7 @@ pub mod osm {
         /// [`tags`]: #method.tags
         #[inline]
         pub fn tag_first_idx(&self) -> u64 {
-            let value = flatdata_read_bytes!(u64, self.data.as_ptr(), 64, 40);
+            let value = flatdata_read_bytes!(u64, self.data.as_ptr(), 104, 40);
             unsafe { std::mem::transmute::<u64, u64>(value) }
         }
 
@@ -481,8 +487,8 @@ pub mod osm {
         /// The values of the range are indexes in the `tags_index` vector.
         #[inline]
         pub fn tags(&self) -> std::ops::Range<u64> {
-            let start = flatdata_read_bytes!(u64, self.data.as_ptr(), 64, 40);
-            let end = flatdata_read_bytes!(u64, self.data.as_ptr(), 64 + 13 * 8, 40);
+            let start = flatdata_read_bytes!(u64, self.data.as_ptr(), 104, 40);
+            let end = flatdata_read_bytes!(u64, self.data.as_ptr(), 104 + 18 * 8, 40);
             start..end
         }
     }
@@ -490,6 +496,7 @@ pub mod osm {
     impl std::fmt::Debug for Node {
         fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
             f.debug_struct("Node")
+                .field("osm_id", &self.osm_id())
                 .field("lat", &self.lat())
                 .field("lon", &self.lon())
                 .field("tag_first_idx", &self.tag_first_idx())
@@ -500,25 +507,32 @@ pub mod osm {
     impl std::cmp::PartialEq for Node {
         #[inline]
         fn eq(&self, other: &Self) -> bool {
-            self.lat() == other.lat()
+            self.osm_id() == other.osm_id()
+                && self.lat() == other.lat()
                 && self.lon() == other.lon()
                 && self.tag_first_idx() == other.tag_first_idx()
         }
     }
 
     impl Node {
+        #[inline]
+        #[allow(missing_docs)]
+        pub fn set_osm_id(&mut self, value: i64) {
+            flatdata_write_bytes!(i64; value, self.data, 0, 40)
+        }
+
         /// Latitude (scaled with `header.coord_scale`).
         #[inline]
         #[allow(missing_docs)]
         pub fn set_lat(&mut self, value: i32) {
-            flatdata_write_bytes!(i32; value, self.data, 0, 32)
+            flatdata_write_bytes!(i32; value, self.data, 40, 32)
         }
 
         /// Longitude (scaled with `header.coord_scale`).
         #[inline]
         #[allow(missing_docs)]
         pub fn set_lon(&mut self, value: i32) {
-            flatdata_write_bytes!(i32; value, self.data, 32, 32)
+            flatdata_write_bytes!(i32; value, self.data, 72, 32)
         }
 
         /// First element of the range [`tags`].
@@ -527,12 +541,13 @@ pub mod osm {
         #[inline]
         #[allow(missing_docs)]
         pub fn set_tag_first_idx(&mut self, value: u64) {
-            flatdata_write_bytes!(u64; value, self.data, 64, 40)
+            flatdata_write_bytes!(u64; value, self.data, 104, 40)
         }
 
         /// Copies the data from `other` into this struct.
         #[inline]
         pub fn fill_from(&mut self, other: &Node) {
+            self.set_osm_id(other.osm_id());
             self.set_lat(other.lat());
             self.set_lon(other.lon());
             self.set_tag_first_idx(other.tag_first_idx());
@@ -790,32 +805,38 @@ pub mod osm {
     /// See <https://wiki.openstreetmap.org/wiki/Way>.
     #[repr(transparent)]
     pub struct Way {
-        data: [u8; 18],
+        data: [u8; 23],
     }
 
     impl Way {
         /// Unsafe since the struct might not be self-contained
         pub unsafe fn new_unchecked() -> Self {
-            Self { data: [0; 18] }
+            Self { data: [0; 23] }
         }
     }
 
     impl flatdata::Struct for Way {
         unsafe fn create_unchecked() -> Self {
-            Self { data: [0; 18] }
+            Self { data: [0; 23] }
         }
 
-        const SIZE_IN_BYTES: usize = 18;
+        const SIZE_IN_BYTES: usize = 23;
         const IS_OVERLAPPING_WITH_NEXT: bool = true;
     }
 
     impl flatdata::Overlap for Way {}
 
     impl Way {
+        #[inline]
+        pub fn osm_id(&self) -> i64 {
+            let value = flatdata_read_bytes!(i64, self.data.as_ptr(), 0, 40);
+            unsafe { std::mem::transmute::<i64, i64>(value) }
+        }
+
         /// PointOnSurface Hilbert location of way.
         #[inline]
         pub fn h(&self) -> u64 {
-            let value = flatdata_read_bytes!(u64, self.data.as_ptr(), 0, 64);
+            let value = flatdata_read_bytes!(u64, self.data.as_ptr(), 40, 64);
             unsafe { std::mem::transmute::<u64, u64>(value) }
         }
 
@@ -824,7 +845,7 @@ pub mod osm {
         /// [`tags`]: #method.tags
         #[inline]
         pub fn tag_first_idx(&self) -> u64 {
-            let value = flatdata_read_bytes!(u64, self.data.as_ptr(), 64, 40);
+            let value = flatdata_read_bytes!(u64, self.data.as_ptr(), 104, 40);
             unsafe { std::mem::transmute::<u64, u64>(value) }
         }
 
@@ -833,8 +854,8 @@ pub mod osm {
         /// The values of the range are indexes in the `tags_index` vector.
         #[inline]
         pub fn tags(&self) -> std::ops::Range<u64> {
-            let start = flatdata_read_bytes!(u64, self.data.as_ptr(), 64, 40);
-            let end = flatdata_read_bytes!(u64, self.data.as_ptr(), 64 + 18 * 8, 40);
+            let start = flatdata_read_bytes!(u64, self.data.as_ptr(), 104, 40);
+            let end = flatdata_read_bytes!(u64, self.data.as_ptr(), 104 + 23 * 8, 40);
             start..end
         }
 
@@ -843,7 +864,7 @@ pub mod osm {
         /// [`refs`]: #method.refs
         #[inline]
         pub fn ref_first_idx(&self) -> u64 {
-            let value = flatdata_read_bytes!(u64, self.data.as_ptr(), 104, 40);
+            let value = flatdata_read_bytes!(u64, self.data.as_ptr(), 144, 40);
             unsafe { std::mem::transmute::<u64, u64>(value) }
         }
 
@@ -852,8 +873,8 @@ pub mod osm {
         /// The values of the range are indexes in the `nodes_index` vector.
         #[inline]
         pub fn refs(&self) -> std::ops::Range<u64> {
-            let start = flatdata_read_bytes!(u64, self.data.as_ptr(), 104, 40);
-            let end = flatdata_read_bytes!(u64, self.data.as_ptr(), 104 + 18 * 8, 40);
+            let start = flatdata_read_bytes!(u64, self.data.as_ptr(), 144, 40);
+            let end = flatdata_read_bytes!(u64, self.data.as_ptr(), 144 + 23 * 8, 40);
             start..end
         }
     }
@@ -861,6 +882,7 @@ pub mod osm {
     impl std::fmt::Debug for Way {
         fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
             f.debug_struct("Way")
+                .field("osm_id", &self.osm_id())
                 .field("h", &self.h())
                 .field("tag_first_idx", &self.tag_first_idx())
                 .field("ref_first_idx", &self.ref_first_idx())
@@ -871,18 +893,25 @@ pub mod osm {
     impl std::cmp::PartialEq for Way {
         #[inline]
         fn eq(&self, other: &Self) -> bool {
-            self.h() == other.h()
+            self.osm_id() == other.osm_id()
+                && self.h() == other.h()
                 && self.tag_first_idx() == other.tag_first_idx()
                 && self.ref_first_idx() == other.ref_first_idx()
         }
     }
 
     impl Way {
+        #[inline]
+        #[allow(missing_docs)]
+        pub fn set_osm_id(&mut self, value: i64) {
+            flatdata_write_bytes!(i64; value, self.data, 0, 40)
+        }
+
         /// PointOnSurface Hilbert location of way.
         #[inline]
         #[allow(missing_docs)]
         pub fn set_h(&mut self, value: u64) {
-            flatdata_write_bytes!(u64; value, self.data, 0, 64)
+            flatdata_write_bytes!(u64; value, self.data, 40, 64)
         }
 
         /// First element of the range [`tags`].
@@ -891,7 +920,7 @@ pub mod osm {
         #[inline]
         #[allow(missing_docs)]
         pub fn set_tag_first_idx(&mut self, value: u64) {
-            flatdata_write_bytes!(u64; value, self.data, 64, 40)
+            flatdata_write_bytes!(u64; value, self.data, 104, 40)
         }
 
         /// First element of the range [`refs`].
@@ -900,12 +929,13 @@ pub mod osm {
         #[inline]
         #[allow(missing_docs)]
         pub fn set_ref_first_idx(&mut self, value: u64) {
-            flatdata_write_bytes!(u64; value, self.data, 104, 40)
+            flatdata_write_bytes!(u64; value, self.data, 144, 40)
         }
 
         /// Copies the data from `other` into this struct.
         #[inline]
         pub fn fill_from(&mut self, other: &Way) {
+            self.set_osm_id(other.osm_id());
             self.set_h(other.h());
             self.set_tag_first_idx(other.tag_first_idx());
             self.set_ref_first_idx(other.ref_first_idx());
@@ -1578,32 +1608,38 @@ pub mod osm {
     /// See <https://wiki.openstreetmap.org/wiki/Relation>.
     #[repr(transparent)]
     pub struct Relation {
-        data: [u8; 13],
+        data: [u8; 18],
     }
 
     impl Relation {
         /// Unsafe since the struct might not be self-contained
         pub unsafe fn new_unchecked() -> Self {
-            Self { data: [0; 13] }
+            Self { data: [0; 18] }
         }
     }
 
     impl flatdata::Struct for Relation {
         unsafe fn create_unchecked() -> Self {
-            Self { data: [0; 13] }
+            Self { data: [0; 18] }
         }
 
-        const SIZE_IN_BYTES: usize = 13;
+        const SIZE_IN_BYTES: usize = 18;
         const IS_OVERLAPPING_WITH_NEXT: bool = true;
     }
 
     impl flatdata::Overlap for Relation {}
 
     impl Relation {
+        #[inline]
+        pub fn osm_id(&self) -> i64 {
+            let value = flatdata_read_bytes!(i64, self.data.as_ptr(), 0, 40);
+            unsafe { std::mem::transmute::<i64, i64>(value) }
+        }
+
         // PointOnSurface Hilbert location of relation.
         #[inline]
         pub fn h(&self) -> u64 {
-            let value = flatdata_read_bytes!(u64, self.data.as_ptr(), 0, 64);
+            let value = flatdata_read_bytes!(u64, self.data.as_ptr(), 40, 64);
             unsafe { std::mem::transmute::<u64, u64>(value) }
         }
 
@@ -1612,7 +1648,7 @@ pub mod osm {
         /// [`tags`]: #method.tags
         #[inline]
         pub fn tag_first_idx(&self) -> u64 {
-            let value = flatdata_read_bytes!(u64, self.data.as_ptr(), 64, 40);
+            let value = flatdata_read_bytes!(u64, self.data.as_ptr(), 104, 40);
             unsafe { std::mem::transmute::<u64, u64>(value) }
         }
 
@@ -1621,8 +1657,8 @@ pub mod osm {
         /// The values of the range are indexes in the `tags` vector.
         #[inline]
         pub fn tags(&self) -> std::ops::Range<u64> {
-            let start = flatdata_read_bytes!(u64, self.data.as_ptr(), 64, 40);
-            let end = flatdata_read_bytes!(u64, self.data.as_ptr(), 64 + 13 * 8, 40);
+            let start = flatdata_read_bytes!(u64, self.data.as_ptr(), 104, 40);
+            let end = flatdata_read_bytes!(u64, self.data.as_ptr(), 104 + 18 * 8, 40);
             start..end
         }
     }
@@ -1630,6 +1666,7 @@ pub mod osm {
     impl std::fmt::Debug for Relation {
         fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
             f.debug_struct("Relation")
+                .field("osm_id", &self.osm_id())
                 .field("h", &self.h())
                 .field("tag_first_idx", &self.tag_first_idx())
                 .finish()
@@ -1639,16 +1676,24 @@ pub mod osm {
     impl std::cmp::PartialEq for Relation {
         #[inline]
         fn eq(&self, other: &Self) -> bool {
-            self.h() == other.h() && self.tag_first_idx() == other.tag_first_idx()
+            self.osm_id() == other.osm_id()
+                && self.h() == other.h()
+                && self.tag_first_idx() == other.tag_first_idx()
         }
     }
 
     impl Relation {
+        #[inline]
+        #[allow(missing_docs)]
+        pub fn set_osm_id(&mut self, value: i64) {
+            flatdata_write_bytes!(i64; value, self.data, 0, 40)
+        }
+
         // PointOnSurface Hilbert location of relation.
         #[inline]
         #[allow(missing_docs)]
         pub fn set_h(&mut self, value: u64) {
-            flatdata_write_bytes!(u64; value, self.data, 0, 64)
+            flatdata_write_bytes!(u64; value, self.data, 40, 64)
         }
 
         /// First element of the range [`tags`].
@@ -1657,12 +1702,13 @@ pub mod osm {
         #[inline]
         #[allow(missing_docs)]
         pub fn set_tag_first_idx(&mut self, value: u64) {
-            flatdata_write_bytes!(u64; value, self.data, 64, 40)
+            flatdata_write_bytes!(u64; value, self.data, 104, 40)
         }
 
         /// Copies the data from `other` into this struct.
         #[inline]
         pub fn fill_from(&mut self, other: &Relation) {
+            self.set_osm_id(other.osm_id());
             self.set_h(other.h());
             self.set_tag_first_idx(other.tag_first_idx());
         }
@@ -3065,6 +3111,7 @@ struct Header
 namespace osm {
 struct Node
 {
+    osm_id : i64 : 40;
     lat : i32 : 32;
     lon : i32 : 32;
     @range( tags )
@@ -3083,6 +3130,7 @@ struct HilbertNodePair
 namespace osm {
 struct Way
 {
+    osm_id : i64 : 40;
     h : u64 : 64;
     @range( tags )
     tag_first_idx : u64 : 40;
@@ -3102,6 +3150,7 @@ struct HilbertWayPair
 namespace osm {
 struct Relation
 {
+    osm_id : i64 : 40;
     h : u64 : 64;
     @range( tags )
     tag_first_idx : u64 : 40;
@@ -3260,6 +3309,7 @@ archive Osm
                 pub const NODES: &str = r#"namespace osm {
 struct Node
 {
+    osm_id : i64 : 40;
     lat : i32 : 32;
     lon : i32 : 32;
     @range( tags )
@@ -3296,6 +3346,7 @@ archive Osm
                 pub const WAYS: &str = r#"namespace osm {
 struct Way
 {
+    osm_id : i64 : 40;
     h : u64 : 64;
     @range( tags )
     tag_first_idx : u64 : 40;
@@ -3334,6 +3385,7 @@ archive Osm
                 pub const RELATIONS: &str = r#"namespace osm {
 struct Relation
 {
+    osm_id : i64 : 40;
     h : u64 : 64;
     @range( tags )
     tag_first_idx : u64 : 40;

@@ -10,6 +10,10 @@ crate-type = ["cdylib"]
 name = "pvt"
 path = "src/main.rs"
 
+[[bin]]
+name = "fixtures"
+path = "src/fixtures.rs"
+
 [dependencies]
 ahash = "0.8.0"
 byteorder = "1.4.3"
@@ -20,6 +24,7 @@ fast_hilbert = "2.0.0"
 flatbuffers = "22.9.29"
 flatdata = "0.5.3"
 flate2 = "1.0.24"
+fs_extra = "1.2.0"
 futures = "0.3.24"
 geo = "0.23.0"
 humantime = "2.1.0"
