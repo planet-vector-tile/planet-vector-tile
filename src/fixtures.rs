@@ -12,9 +12,14 @@ mod tile;
 mod tile_attributes;
 
 use args::*;
-use humantime::format_duration;
-use std::{error::Error, fs, time::Instant, path::{Path, PathBuf}};
 use fs_extra::dir::{copy, CopyOptions};
+use humantime::format_duration;
+use std::{
+    error::Error,
+    fs,
+    path::{Path, PathBuf},
+    time::Instant,
+};
 
 fn main() {
     let time = Instant::now();
@@ -55,7 +60,6 @@ fn main() {
     opts.content_only = true;
     copy("./tests/fixtures/nodes4/convert", &dir1, &opts).unwrap();
     copy("./tests/fixtures/santacruz/convert", &dir2, &opts).unwrap();
-
 
     sort_archive::sort(a1, &dir1).unwrap_or_else(quit);
     hilbert::HilbertTree::build(&dir1, args1.leafzoom).unwrap_or_else(quit);
