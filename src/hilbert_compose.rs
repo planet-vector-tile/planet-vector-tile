@@ -79,10 +79,6 @@ impl HilbertTree {
 
 impl Source for HilbertTree {
     fn compose_tile(&self, tile: &Tile, builder: &mut PVTBuilder) {
-        // if tile.h != 3329139 {
-        //     return;
-        // }
-
         // The tile exists in the index
         if let Some(res) = self.find(tile) {
             // It is a leaf tile
@@ -216,8 +212,6 @@ impl Source for HilbertTree {
 
                 builder.add_layer(layer);
 
-                // let e = w_start + 1000;
-
                 println!("num ways {}", w_end - w_start);
 
                 let mut way_features = vec![];
@@ -266,12 +260,6 @@ impl Source for HilbertTree {
                         if key.is_ok() && val.is_ok() {
                             let key = key.unwrap();
                             let val = val.unwrap();
-
-                            // if i == 113898 {
-                            //     println!("Found service road");
-                            //     render = true;
-                            // }
-
                             keys.push(builder.attributes.upsert_string(key));
                             vals.push(builder.attributes.upsert_string_value(val));
                         } else {
@@ -283,10 +271,6 @@ impl Source for HilbertTree {
                         }
                     }
 
-                    // if !render {
-                    //     continue;
-                    // }
-
                     let refs = w.refs();
                     let mut way_path = vec![];
                     for (i, r) in refs.enumerate() {
@@ -295,17 +279,8 @@ impl Source for HilbertTree {
                             let n = &nodes[node_idx as usize];
                             let lon = n.lon();
                             let lat = n.lat();
-                            // println!(
-                            //     "{} {} lat lon {}, {}",
-                            //     i,
-                            //     n.osm_id(),
-                            //     (lat as f64) / 10_000_000.0,
-                            //     (lon as f64) / 10_000_000.0
-                            // );
                             let xy = lonlat_to_xy((lon, lat));
-                            // println!("xy {:?}", xy);
                             let tile_point = tile.project(xy);
-                            // println!("tile_point {:?}", tile_point);
                             way_path.push(tile_point);
                         }
                     }

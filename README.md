@@ -41,6 +41,7 @@ npm start
 ```
 
 ## Run tests.
+
 First you need to generate the test fixtures.
 
 ```
