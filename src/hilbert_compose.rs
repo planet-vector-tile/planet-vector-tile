@@ -25,11 +25,8 @@ impl HilbertTree {
             return None;
         }
 
-        println!("Finding {:?}", tile);
-
         let h_tiles = self.tiles.slice();
         let mut h_tile = h_tiles.last().unwrap();
-        // println!("root {:?}", h_tile);
 
         let mut z = 2;
         let mut i = 0;
@@ -42,13 +39,8 @@ impl HilbertTree {
             if h_tile.mask >> child_pos & 1 != 1 {
                 return None;
             }
-
             i = (h_tile.child + child_pos) as usize;
-
             h_tile = &h_tiles[i];
-
-            // println!("i {} {:?}", i, h_tile);
-
             z += 2;
         }
 
@@ -83,8 +75,6 @@ impl Source for HilbertTree {
         if let Some(res) = self.find(tile) {
             // It is a leaf tile
             if let Some(leaf) = res.leaf {
-                println!("LEAF FOUND {:?}", leaf);
-
                 let nodes = self.archive.nodes();
                 let ways = self.archive.ways();
                 let relations = self.archive.relations();
@@ -170,10 +160,8 @@ impl Source for HilbertTree {
 
                     let lon = n.lon();
                     let lat = n.lat();
-                    // println!("lon lat {} {}", lon, lat);
                     let xy = lonlat_to_xy((lon, lat));
                     let tile_point = tile.project(xy);
-                    // println!("tile_point {:?}", tile_point);
 
                     let keys_vec = builder.fbb.create_vector(&keys);
                     let vals_vec = builder.fbb.create_vector(&vals);
@@ -211,8 +199,6 @@ impl Source for HilbertTree {
                 );
 
                 builder.add_layer(layer);
-
-                println!("num ways {}", w_end - w_start);
 
                 let mut way_features = vec![];
                 for i in w_start..w_end {
@@ -420,7 +406,6 @@ mod tests {
         let nodes = tree.archive.nodes();
         for n in nodes {
             let t_range = n.tags();
-            // println!("{:?}", t_range);
             assert!(t_range.start <= t_range.end || t_range.end == 0);
         }
     }
