@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use crate::{
     hilbert::{HilbertTile, HilbertTree, Leaf},
     location::lonlat_to_xy,
@@ -9,7 +11,7 @@ use crate::{
             PVTLayerArgs,
         },
         Tile,
-    },
+    }, pvt::PVT2,
 };
 
 struct FindResult<'a> {
@@ -70,7 +72,11 @@ impl HilbertTree {
 }
 
 impl Source for HilbertTree {
-    fn compose_tile(&self, tile: &Tile, builder: &mut PVTBuilder) {
+    fn compose_tile(&self, tile: &Tile, builder: &mut PVTBuilder, b2: &mut PVT2) {
+
+        // let mut nodes_features = Vec::<PVT2Feature>::new();
+        // let mut ways_features = Vec::<PVT2Feature>::new();
+
         // The tile exists in the index
         if let Some(res) = self.find(tile) {
             // It is a leaf tile
@@ -127,6 +133,13 @@ impl Source for HilbertTree {
                     let mut keys: Vec<u32> = vec![];
                     let mut vals: Vec<u32> = vec![];
 
+                    // let mut node_feature = PVT2Feature {
+                    //     type_: 1,
+                    //     id: Some(n.osm_id() as f64),
+                    //     properties: HashMap::<String, String>::new(),
+                    //     geometries: Vec::new(),
+                    // };
+
                     let osm_id_key = builder.attributes.upsert_string("osm_id");
                     let osm_id_val = builder.attributes.upsert_number_value(n.osm_id() as f64);
                     keys.push(osm_id_key);
@@ -146,6 +159,8 @@ impl Source for HilbertTree {
                         if key.is_ok() && val.is_ok() {
                             let key = key.unwrap();
                             let val = val.unwrap();
+
+                            // node_feature.properties.insert(key.to_string(), val.to_string());
 
                             keys.push(builder.attributes.upsert_string(key));
                             vals.push(builder.attributes.upsert_string_value(val));
@@ -172,6 +187,10 @@ impl Source for HilbertTree {
                         &PVTGeometryArgs { points: Some(path) },
                     );
                     let geoms = builder.fbb.create_vector(&[geom]);
+
+                    // let p = vec![tile_point.x(), tile_point.y()];
+                    // node_feature.geometries.push(p);
+                    // nodes_features.push(node_feature);
 
                     // NHTODO Get rid of the h field in PVTFeature. It's "pointless".
                     let feature = PVTFeature::create(

@@ -6,6 +6,7 @@ pub mod location;
 mod mutant;
 mod osmflat;
 mod parallel;
+pub mod pvt;
 mod pvt_builder;
 mod sort_archive;
 mod source;
@@ -25,6 +26,7 @@ use std::path::PathBuf;
 use std::sync::Arc;
 use std::time::Instant;
 use tile::Tile;
+use pvt::PVT2;
 
 use napi::bindgen_prelude::*;
 use napi::tokio::sync::RwLock;
@@ -73,17 +75,19 @@ impl Planet {
     }
 
     #[napi]
-    pub async fn tile(&self, z: u8, x: u32, y: u32) -> Result<Uint8Array> {
+    pub async fn tile(&self, env: Env, z: u8, x: u32, y: u32) -> Result<Uint8Array> {
         let time = Instant::now();
+        let p = pvt::to_js_obj(env);
         println!("z:{} x:{} y:{}", z, x, y);
         let sources_rw = self.sources.clone();
         let task_result = tokio::task::spawn(async move {
             let tile = Tile::from_zxy(z, x, y);
             let mut builder = PVTBuilder::new();
+            let mut pvt = PVT2::new();
             let sources = sources_rw.read().await;
             for i in 0..sources.len() {
                 let source = sources.get(i).unwrap();
-                source.compose_tile(&tile, &mut builder);
+                source.compose_tile(&tile, &mut builder, &mut pvt);
             }
             let vec_u8 = builder.build();
             Ok(vec_u8.into())

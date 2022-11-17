@@ -5,6 +5,7 @@ mod location;
 mod mutant;
 mod osmflat;
 mod parallel;
+mod pvt;
 pub mod pvt_builder;
 mod sort_archive;
 mod source;

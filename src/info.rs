@@ -2,6 +2,7 @@ use flatbuffers::FlatBufferBuilder;
 use flatbuffers::WIPOffset;
 
 use crate::pvt_builder::PVTBuilder;
+use crate::pvt::PVT2;
 use crate::source::Source;
 use crate::tile::planet_vector_tile_generated::*;
 use crate::tile::{HilbertBearing, Tile};
@@ -17,7 +18,7 @@ impl Info {
 }
 
 impl Source for Info {
-    fn compose_tile(&self, tile: &Tile, builder: &mut PVTBuilder) {
+    fn compose_tile(&self, tile: &Tile, builder: &mut PVTBuilder, p2: &mut PVT2) {
         info(tile, builder, self.child_levels)
     }
 }
