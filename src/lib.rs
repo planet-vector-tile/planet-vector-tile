@@ -75,7 +75,6 @@ impl Planet {
     #[napi]
     pub async fn tile(&self, z: u8, x: u32, y: u32) -> Result<Uint8Array> {
         let time = Instant::now();
-        println!("z:{} x:{} y:{}", z, x, y);
         let sources_rw = self.sources.clone();
         let task_result = tokio::task::spawn(async move {
             let tile = Tile::from_zxy(z, x, y);

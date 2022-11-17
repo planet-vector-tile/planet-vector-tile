@@ -4,7 +4,8 @@
     "description": "Electron app for PlanetVectorTile",
     "main": "main.js",
     "scripts": {
-        "start": "electron ."
+        "start": "electron .",
+        "bench": "electron . --bench --dbg"
     },
     "repository": {
         "type": "git",

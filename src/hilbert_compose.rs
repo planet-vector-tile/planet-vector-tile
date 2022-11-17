@@ -186,6 +186,9 @@ impl Source for HilbertTree {
                     );
                     features.push(feature);
                 }
+                if tile.h == 3329134 {
+                    println!("node features count: {}", features.len());
+                }
 
                 let features = builder.fbb.create_vector(&features);
 
@@ -294,6 +297,10 @@ impl Source for HilbertTree {
                         },
                     );
                     way_features.push(feature);
+                }
+
+                if tile.h == 3329134 {
+                    println!("way features count: {}", way_features.len());
                 }
 
                 let way_features = builder.fbb.create_vector(&way_features);

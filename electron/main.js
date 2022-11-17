@@ -20,7 +20,11 @@ function createWindow() {
         },
     });
 
-    win.loadFile('simple.html');
+    if (app.commandLine.hasSwitch('bench')) {
+        win.loadFile('bench.html');
+    } else {
+        win.loadFile('simple.html');
+    }
 
     // https://www.electronjs.org/docs/latest/api/command-line#commandlinegetswitchvalueswitch
     if (app.commandLine.hasSwitch('dbg')) {

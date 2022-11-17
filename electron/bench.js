@@ -1,9 +1,25 @@
-const api = require('../index');
+const plugin = require('../index');
 const style = require('../styles/default.json');
 
 const maplibre = window.maplibregl;
 
-maplibre.setPlanetVectorTilePlugin(api);
+let PlanetVectorTile = require('../dist/bundle.js').PlanetVectorTile;
+plugin.onTileLoad = (tile, buf) => {
+
+    const { x, y, z } = tile;
+    if (x !== 659 || y !== 1593) {
+        return;
+    }
+    let pvt = new PlanetVectorTile(buf);
+    let nodes = pvt.layers.nodes;
+    let ways = pvt.layers.ways;
+    console.log('nodes count', nodes.length);
+    console.log('ways count', ways.length);
+
+    
+};
+
+maplibre.setPlanetVectorTilePlugin(plugin);
 
 const map = (window.map = new window.maplibregl.Map({
     container: 'map',
@@ -15,6 +31,10 @@ map.getCanvas().style.cursor = 'crosshair';
 let pvt = (window.pvt = {
     clickedFeatures: null,
     selectedFeature: null,
+});
+
+map.on('load', () => {
+    map.fitBounds([-122.035639, 37.045724, -122.005556, 37.059253]);
 });
 
 map.on('mouseup', e => {
