@@ -8,8 +8,9 @@ import { PVTFeature } from './fbs/pvtfeature';
 import { PVTValueType } from './fbs/pvtvalue-type';
 import { PVTGeometry } from './fbs/pvtgeometry';
 
-export class PlanetVectorTile implements VectorTile {
+export class PVT implements VectorTile {
     _tile: PVTTile;
+    _strings: string[];
     _layers: { [_: string]: VectorTileLayer } | undefined;
 
     constructor(arr: Uint8Array) {

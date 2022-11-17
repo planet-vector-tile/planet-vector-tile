@@ -1,5 +1,5 @@
 export default {
-    input: 'dist/planet-vector-tile.js',
+    input: 'dist/pvt.js',
     output: {
         file: 'dist/bundle.js',
         format: 'umd',

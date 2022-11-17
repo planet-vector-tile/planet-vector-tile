@@ -230,8 +230,12 @@ impl Source for HilbertTree {
                     let mut keys: Vec<u32> = vec![];
                     let mut vals: Vec<u32> = vec![];
 
+                    let osm_id = w.osm_id();
+                    if osm_id == 42630986 {
+                        println!("found way 42630986");
+                    }
                     let osm_id_key = builder.attributes.upsert_string("osm_id");
-                    let osm_id_val = builder.attributes.upsert_number_value(w.osm_id() as f64);
+                    let osm_id_val = builder.attributes.upsert_number_value(osm_id as f64);
                     keys.push(osm_id_key);
                     vals.push(osm_id_val);
 

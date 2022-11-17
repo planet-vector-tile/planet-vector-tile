@@ -112,6 +112,15 @@ pub fn sort(archive: Osm, dir: &PathBuf) -> Result<(), Box<dyn std::error::Error
         .for_each(|(sorted_way, hilbert_way_pair)| {
             let i = hilbert_way_pair.i() as usize;
             let way = &ways[i];
+
+            let id = way.osm_id();
+            if id == 42630986 {
+                println!("sort way 42630986");
+                let h = hilbert_way_pair.h();
+                let lonlat = location::h_to_decimal_lonlat(h);
+                println!("lonlat: {:?}", lonlat);
+            }
+
             let start = way.tag_first_idx() as usize;
             let end = way.tags().end as usize;
 

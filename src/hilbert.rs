@@ -336,10 +336,7 @@ fn build_tiles(
             let mut t = HilbertTile::default();
             t.child = child;
             t.mask = mask;
-            println!(
-                "tiles_i {} h {} mask {:#018b} {:?}",
-                tiles_i, tile_h, t.mask, t
-            );
+            println!("{} h {} mask {:#018b} {:?}", tiles_i, tile_h, t.mask, t);
             tiles[tiles_i] = t;
 
             tiles_i += 1;

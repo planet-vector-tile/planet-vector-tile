@@ -3,14 +3,13 @@ const style = require('../styles/default.json');
 
 const maplibre = window.maplibregl;
 
-let PlanetVectorTile = require('../dist/bundle.js').PlanetVectorTile;
+let PVT = require('../dist/bundle.js').PVT;
 plugin.onTileLoad = (tile, buf) => {
-
     const { x, y, z } = tile;
     if (x !== 659 || y !== 1593) {
         return;
     }
-    const pvt = new PlanetVectorTile(buf);
+    const pvt = new PVT(buf);
     const nodes = pvt.layers.nodes;
     const ways = pvt.layers.ways;
     console.log('nodes count', nodes.length);
@@ -19,7 +18,7 @@ plugin.onTileLoad = (tile, buf) => {
     // find kings village road
     const waysLen = ways.length;
     for (let i = 0; i < waysLen; i++) {
-        const way = ways.feature(i)
+        const way = ways.feature(i);
         if (way.properties.osm_id === 42630986) {
             console.log('found kings village road', way);
             break;
