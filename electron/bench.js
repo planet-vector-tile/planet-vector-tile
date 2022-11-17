@@ -10,13 +10,22 @@ plugin.onTileLoad = (tile, buf) => {
     if (x !== 659 || y !== 1593) {
         return;
     }
-    let pvt = new PlanetVectorTile(buf);
-    let nodes = pvt.layers.nodes;
-    let ways = pvt.layers.ways;
+    const pvt = new PlanetVectorTile(buf);
+    const nodes = pvt.layers.nodes;
+    const ways = pvt.layers.ways;
     console.log('nodes count', nodes.length);
     console.log('ways count', ways.length);
 
-    
+    // find kings village road
+    const waysLen = ways.length;
+    for (let i = 0; i < waysLen; i++) {
+        const way = ways.feature(i)
+        if (way.properties.osm_id === 42630986) {
+            console.log('found kings village road', way);
+            break;
+        }
+    }
+    console.log('did not find kings village road');
 };
 
 maplibre.setPlanetVectorTilePlugin(plugin);
