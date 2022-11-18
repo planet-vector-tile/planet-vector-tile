@@ -64,7 +64,7 @@ impl HilbertTree {
             h_tile,
             next_h_tile: None,
             leaf,
-            next_leaf: None,
+            next_leaf,
         })
     }
 }
@@ -205,7 +205,6 @@ impl Source for HilbertTree {
 
                 let mut way_features = vec![];
                 for i in w_start..w_end {
-                    // let mut render = false;
                     let w = &ways[i];
                     let t_range = w.tags();
                     let start = t_range.start as usize;
@@ -351,7 +350,7 @@ mod tests {
         assert_eq!(leaf.n, 944454);
         assert_eq!(leaf.w, 106806);
         assert_eq!(leaf.r, 0);
-        assert_eq!(leaf.h, 3329135);
+        assert_eq!(leaf.h, 3329134);
     }
 
     #[test]
@@ -419,5 +418,30 @@ mod tests {
             let t_range = n.tags();
             assert!(t_range.start <= t_range.end || t_range.end == 0);
         }
+    }
+
+    #[test]
+    fn test_find_kings_village_road() {
+        // Scotts Valley
+        // z 12 x 659 y 1593
+        let t = Tile::from_zh(12, 3329134);
+
+        let dir = PathBuf::from("tests/fixtures/santacruz/sort");
+        let tree = HilbertTree::open(&dir, 12).unwrap();
+
+        let res = tree.find(&t);
+
+        assert!(res.is_some());
+
+        let res = res.unwrap();
+
+        assert!(res.leaf.is_some());
+
+        let leaf = res.leaf.unwrap();
+
+        assert_eq!(leaf.n, 944454);
+        assert_eq!(leaf.w, 106806);
+        assert_eq!(leaf.r, 0);
+        assert_eq!(leaf.h, 3329135);
     }
 }

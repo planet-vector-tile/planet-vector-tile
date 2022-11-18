@@ -1,0 +1,9 @@
+sort way 42630986 kings village road
+i 17884 h 3660422102460495744 lonlat: (-122.0281431, 37.0490179)
+way_tile_h 3329134
+
+way_id: 42630986, way_tile_h: 3329134 tile_h 3329134
+
+i 57 in find
+
+{n:944454, w:106806, r:0, h:3329135}

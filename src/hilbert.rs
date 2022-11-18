@@ -185,8 +185,6 @@ fn build_leaves(
         }
     }
 
-    info!("lowest_h for leaves in hilbert tree: {}", lowest_h);
-
     // First leaf Hilbert tile has the lowest hilbert location.
     let mut tile_h = location::h_to_zoom_h(lowest_h, leaf_zoom) as u32;
     info!(
@@ -217,6 +215,9 @@ fn build_leaves(
     let mut node_tile_h = tile_h;
     let mut way_tile_h = tile_h;
 
+    let archive = Osm::open(FileResourceStorage::new(dir))?;
+    let ways = archive.ways();
+
     loop {
         let mut next_tile_h = None;
 
@@ -235,6 +236,10 @@ fn build_leaves(
             let p = &way_pairs[w_i];
             let way_h = p.h();
             way_tile_h = location::h_to_zoom_h(way_h, leaf_zoom) as u32;
+            let way_id = ways[w_i].osm_id();
+            if way_id == 42630986 {
+                println!("way_id: {}, way_tile_h: {} tile_h {}", way_id, way_tile_h, tile_h);
+            }
             if way_tile_h > tile_h {
                 if way_tile_h < node_tile_h {
                     next_tile_h = Some(way_tile_h);

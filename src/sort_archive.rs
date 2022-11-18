@@ -115,10 +115,12 @@ pub fn sort(archive: Osm, dir: &PathBuf) -> Result<(), Box<dyn std::error::Error
 
             let id = way.osm_id();
             if id == 42630986 {
-                println!("sort way 42630986");
+                println!("sort way 42630986 kings village road");
                 let h = hilbert_way_pair.h();
                 let lonlat = location::h_to_decimal_lonlat(h);
-                println!("lonlat: {:?}", lonlat);
+                println!("i {} h {} lonlat: {:?}", i, h, lonlat);
+                let way_tile_h = location::h_to_zoom_h(h, 12) as u32;
+                println!("way_tile_h {}", way_tile_h);
             }
 
             let start = way.tag_first_idx() as usize;
@@ -197,9 +199,7 @@ fn build_hilbert_way_pairs(
 
         if let Some(pos) = point_on_surface {
             let lonlat = (pos.x() as i32, pos.y() as i32);
-            // info!("way point on surface {:#?}", lonlat);
             let h = location::lonlat_to_h(lonlat);
-
             pair.set_i(i as u32);
             pair.set_h(h);
         } else {
