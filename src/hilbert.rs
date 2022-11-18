@@ -202,13 +202,17 @@ fn build_leaves(
     let way_pairs = m_way_pairs.slice();
     let way_pairs_len = way_pairs.len();
 
+    println!("LEAVES zoom {}", leaf_zoom);
+
     // First leaf tile
-    leaves[0] = Leaf {
+    let first_leaf = Leaf {
         n: 0,
         w: 0,
         r: 0,
         h: tile_h,
     };
+    println!("i 0 {:?}", first_leaf);
+    leaves[0] = first_leaf;
 
     let mut leaf_i = 1;
 
@@ -250,12 +254,14 @@ fn build_leaves(
         }
 
         if let Some(next_tile_h) = next_tile_h {
-            leaves[leaf_i] = Leaf {
+            let leaf = Leaf {
                 n: n_i as u64,
                 w: w_i as u32,
                 r: 0,
                 h: next_tile_h,
             };
+            println!("i {} {:?}", leaf_i, leaf);
+            leaves[leaf_i] = leaf;
             tile_h = next_tile_h;
             leaf_i += 1;
         } else {
@@ -281,6 +287,7 @@ fn build_tiles(
     let mut z = leaf_zoom;
     let mut tiles_i = 0;
 
+    println!("TILES");
     println!("zoom {} level_start {}", leaf_zoom, 0);
 
     let leaves = m_leaves.slice();
@@ -289,7 +296,7 @@ fn build_tiles(
         // which is needed to know we are at a leaf tile.
         let t = HilbertTile::default();
         println!(
-            "tiles_i {} h {} mask {:#018b} {:?}",
+            "i {} h {} mask {:#018b} {:?}",
             tiles_i, leaves[tiles_i].h, t.mask, t
         );
         tiles[tiles_i] = t;
@@ -341,7 +348,7 @@ fn build_tiles(
             let mut t = HilbertTile::default();
             t.child = child;
             t.mask = mask;
-            println!("{} h {} mask {:#018b} {:?}", tiles_i, tile_h, t.mask, t);
+            println!("i {} h {} mask {:#018b} {:?}", tiles_i, tile_h, t.mask, t);
             tiles[tiles_i] = t;
 
             tiles_i += 1;
