@@ -5,24 +5,27 @@ use crate::{
     source::Source,
     tile::{
         planet_vector_tile_generated::{
-            root_as_pvttile, PVTFeature, PVTFeatureArgs, PVTGeometry, PVTGeometryArgs, PVTLayer,
-            PVTLayerArgs,
+            PVTFeature, PVTFeatureArgs, PVTGeometry, PVTGeometryArgs, PVTLayer, PVTLayerArgs,
         },
         Tile,
     },
 };
 
-struct FindResult<'a> {
-    h_tile: &'a HilbertTile,
-    next_h_tile: Option<&'a HilbertTile>,
-    leaf: Option<&'a Leaf>,
-    next_leaf: Option<&'a Leaf>,
+struct ResultPair<T> {
+    tile: T,
+    next: Option<T>,
+}
+
+enum FindResult<'a> {
+    HilbertTile(ResultPair<&'a HilbertTile>),
+    Leaf(ResultPair<&'a Leaf>),
+    None,
 }
 
 impl HilbertTree {
-    fn find(&self, tile: &Tile) -> Option<FindResult> {
+    fn find(&self, tile: &Tile) -> FindResult {
         if tile.z > self.leaf_zoom {
-            return None;
+            return FindResult::None;
         }
 
         let h_tiles = self.tiles.slice();
@@ -30,18 +33,42 @@ impl HilbertTree {
 
         let mut z = 2;
         let mut i = 0;
+
         while z <= tile.z {
+            let h = tile.h >> (2 * (tile.z - z));
+            let i = match child_index(h_tile, h) {
+                Some(i) => i,
+                None => return FindResult::None,
+            };
+            h_tile = &h_tiles[i];
+            z += 2;
+        }
+
+
+
+        while z <= tile.z && z < self.leaf_zoom {
             let h = tile.h >> (2 * (tile.z - z));
             let child_pos = (h & 0xf) as i32;
 
             // If the tile does not have the child position in the mask,
             // then we don't have the tile.
             if h_tile.mask >> child_pos & 1 != 1 {
-                return None;
+                return FindResult::None;
             }
             i = (h_tile.child + child_pos) as usize;
             h_tile = &h_tiles[i];
             z += 2;
+        }
+
+        // Now we find the leaf, if we are looking for a tile at the leaf zoom.
+        if z == self.leaf_zoom {
+            let h = tile.h >> (2 * (tile.z - z));
+            let child_pos = (h & 0xf) as i32;
+            if h_tile.mask >> child_pos & 1 != 1 {
+                return FindResult::None;
+            }
+            // This is wrong, because there could be empty children interspersed in the mask...
+            i = (h_tile.child + child_pos) as usize;
         }
 
         let next_h_tile = if i + 1 < h_tiles.len() {
@@ -62,11 +89,24 @@ impl HilbertTree {
 
         Some(FindResult {
             h_tile,
-            next_h_tile: None,
+            next_h_tile,
             leaf,
             next_leaf,
         })
     }
+}
+
+fn child_index(h_tile: &HilbertTile, child_h: u64) -> Option<usize> {
+    let child_pos = child_h & 0xf;
+    let mask = h_tile.mask;
+    if mask >> child_pos & 1 != 1 {
+        return None;
+    }
+    let mut offset = 0;
+    for i in 0..child_pos {
+        offset += mask >> i & 1;
+    }
+    Some(h_tile.child as usize + offset as usize)
 }
 
 impl Source for HilbertTree {
