@@ -1,159 +1,114 @@
 import { ByteBuffer } from 'flatbuffers';
-import { Feature, Position } from 'geojson';
-import type { VectorTile, VectorTileLayer, VectorTileFeature } from '@mapbox/vector-tile';
+import { Feature as GeoJSONFeature, Position } from 'geojson';
+import { VectorTileLayer, VectorTileFeature } from '@mapbox/vector-tile';
 import Point from '@mapbox/point-geometry';
 import { PVTTile } from './fbs/pvttile';
 import { PVTLayer } from './fbs/pvtlayer';
 import { PVTFeature } from './fbs/pvtfeature';
 import { PVTValueType } from './fbs/pvtvalue-type';
-import { PVTGeometry } from './fbs/pvtgeometry';
-
-export class PVT implements VectorTile {
-    _tile: PVTTile;
-    _strings: string[];
-    _layers: { [_: string]: VectorTileLayer } | undefined;
-
-    constructor(arr: Uint8Array) {
-        const buffer = new ByteBuffer(arr);
-        this._tile = PVTTile.getRootAsPVTTile(buffer);
-    }
-
-    get layers(): { [_: string]: VectorTileLayer } {
-        if (this._layers) {
-            return this._layers;
-        } else {
-            this._layers = {};
-        }
-
-        const fbTile = this._tile;
-        for (let i = 0, len = fbTile.layersLength(); i < len; i++) {
-            const fbLayer = fbTile.layers(i)!;
-            const nameIdx = fbLayer.name();
-            const name = fbTile.strings(nameIdx);
-            const layer = new PlanetVectorTileLayer(fbTile, fbLayer, name);
-            this._layers[name] = layer;
-        }
-        return this._layers;
-    }
-}
 
 // https://github.com/maplibre/maplibre-gl-js/blob/028344137fe1676b50b8da2729f1dcb5c8b65eac/src/data/extent.ts
 type Extent = 8196;
 const EXTENT: Extent = 8196;
 
-export class PlanetVectorTileLayer implements VectorTileLayer {
-    _tile: PVTTile;
-    _layer: PVTLayer;
-    _features: VectorTileFeature[];
+export default function pvt(arr: Uint8Array): PVT {
+    return new PVT(arr);
+}
 
-    version?: number | undefined;
+class PVT {
+    layers: { [_: string]: VectorTileLayer };
+
+    constructor(arr: Uint8Array) {
+        const buffer = new ByteBuffer(arr);
+        const pvtTile = PVTTile.getRootAsPVTTile(buffer);
+        const layers = {};
+
+        for (let i = 0, len = pvtTile.layersLength(); i < len; i++) {
+            const pvtLayer = pvtTile.layers(i)!;
+            const nameIdx = pvtLayer.name();
+            const name = pvtTile.strings(nameIdx);
+
+            layers[name] = new Layer(pvtLayer, name, pvtTile);
+        }
+        this.layers = layers;
+    }
+}
+
+class Layer implements VectorTileLayer {
+    features: VectorTileFeature[];
     name: string;
     extent: Extent;
     length: number;
 
-    constructor(tile: PVTTile, layer: PVTLayer, name: string) {
-        this._tile = tile;
-        this._layer = layer;
-        this.length = layer.featuresLength();
-        this._features = new Array(this.length);
+    constructor(pvtLayer: PVTLayer, name: string, pvtTile: PVTTile) {
+        const length = pvtLayer.featuresLength();
+        const features = new Array(length);
+
+        this.features = features;
         this.name = name;
         this.extent = EXTENT;
+        this.length = length;
+
+        for (let i = 0; i < length; i++) {
+            const pvtFeature = pvtLayer.features(i);
+            features[i] = new Feature(pvtFeature, pvtTile);
+        }
     }
 
     feature(featureIndex: number): VectorTileFeature {
-        let feat = this._features[featureIndex];
-        if (feat) {
-            return feat;
-        }
-        const fbFeat = this._layer.features(featureIndex)!;
-        feat = this._features[featureIndex] = new PlanetVectorTileFeature(this._tile, fbFeat);
-        return feat;
+        return this.features[featureIndex];
     }
 }
 
-export class PlanetVectorTileFeature implements VectorTileFeature {
-    extent: Extent;
+class Feature implements VectorTileFeature {
+    // ID is treated as optional, contrary to MapLibre's TypeScript definition.
+    // The TypeScript definition is not correct, as Mapbox does handle IDs as optional.
+    // It is a 64 bit integer in the flatbuffer, so we cast it down to Number (64 bit float),
+    // as this is the type within Mapbox.
+    id: number; // can be null
+    extent: number;
+    type: 1 | 2 | 3;
+    geometries: Point[][];
+    properties: { [_: string]: string | number | boolean };
 
-    _tile: PVTTile;
-    _feat: PVTFeature;
-    _geom: Point[][];
-    _properties: { [_: string]: string | number | boolean } | undefined;
-
-    constructor(tile: PVTTile, feat: PVTFeature) {
+    constructor(pvtFeature: PVTFeature, pvtTile: PVTTile) {
+        this.id = Number(pvtFeature.id()) || null;
         this.extent = EXTENT;
-        this._tile = tile;
-        this._feat = feat;
-    }
 
-    // We don't encode the type in the flatbuffer, because it can be derived.
-    // 1 is MultiPoint
-    // 2 is MultiLineString
-    // 3 is MultiPolygon
-    get type(): 1 | 2 | 3 {
-        const firstGeom = this._feat.geometries(0)!;
-        const len = firstGeom.pointsLength();
+        // ==> Determine type
+        const firstGeom = pvtFeature.geometries(0)!;
+        const pointsLen = firstGeom.pointsLength();
         // point
-        if (len < 2) {
-            return 1;
+        if (pointsLen < 2) {
+            this.type = 1;
         }
         const { x, y } = firstGeom.points(0)!;
-        const ptEnd = firstGeom.points(len - 1)!;
+        const ptEnd = firstGeom.points(pointsLen - 1)!;
         // polygon - closed ring
         if (x === ptEnd.x && y === ptEnd.y) {
-            return 3;
+            this.type = 3;
         }
         // line
-        return 2;
-    }
+        this.type = 2;
 
-    // This really should be optional, contrary to the TypeScript definition...
-    get id(): number {
-        return Number(this._feat.id()) || Number(this._feat.h());
-    }
-
-    get properties(): { [_: string]: string | number | boolean } {
-        if (this._properties) {
-            return this._properties;
-        }
-        const props = (this._properties = {});
-
-        for (let i = 0, len = this._feat.keysLength(); i < len; i++) {
-            const keyIdx = this._feat.keys(i)!;
-            const valIdx = this._feat.values(i)!;
-            const key = this._tile.strings(keyIdx)!;
-            let val = getVal(this._tile, valIdx);
+        // ==> Build properties.
+        // Doing this upfront rather than lazily, as it is needed immediately.
+        const props = {};
+        for (let i = 0, len = pvtFeature.keysLength(); i < len; i++) {
+            const keyIdx = pvtFeature.keys(i)!;
+            const valIdx = pvtFeature.values(i)!;
+            const key = pvtTile.strings(keyIdx)!;
+            let val = getVal(pvtTile, valIdx);
             props[key] = val;
         }
+        this.properties = props;
 
-        return props;
-    }
-
-    // Point - single item MultiPoint
-    // [ [[x,y]] ]
-
-    // MultiPoint
-    // [ [[x,y]] , [[x,y]] , [[x,y]] ]
-
-    // Line - single itme Line
-    // [ [[x,y], [x,y], [x,y]] ]
-
-    // MultiLine
-    // [ [[x,y], [x,y], [x,y]] , [[x,y], [x,y], [x,y]] ]
-
-    // MultiPolygon
-    // Same thing, but lines are closed.
-    // Holes are deterined by winding order. (Shoelace Formula)
-    loadGeometry(): Point[][] {
-        if (this._geom) {
-            return this._geom;
-        }
-        // NHTODO Implement point where we just use the FB rather than do this extra loop / copy.
-        // https://github.com/mapbox/point-geometry/blob/master/index.js
-        const feat = this._feat;
-        const len = feat.geometriesLength();
-        const outer = new Array<Point[]>(len);
-        for (let i = 0; i < len; i++) {
-            const geom = feat.geometries(i)!;
+        // ==> Build geometries.
+        // Also doing this upfront. No added value of being lazy.
+        const geometriesLen = pvtFeature.geometriesLength();
+        const outer = new Array<Point[]>(geometriesLen);
+        for (let i = 0; i < geometriesLen; i++) {
+            const geom = pvtFeature.geometries(i)!;
             const innerLen = geom.pointsLength();
             const inner = new Array<Point>(innerLen);
             outer[i] = inner;
@@ -163,40 +118,44 @@ export class PlanetVectorTileFeature implements VectorTileFeature {
                 inner[j] = new Point(pt.x(), pt.y());
             }
         }
-        this._geom = outer;
-        return outer;
+        this.geometries = outer;
+    }
+
+    loadGeometry(): Point[][] {
+        return this.geometries;
     }
 
     // NHTODO There is a bug with this method, as shown in unit tests.
-    toGeoJSON(x: number, y: number, z: number): Feature {
-        const feat = this._feat;
+    // It isn't being used, but it will be needed when the vtpbf conversion is removed.
+    toGeoJSON(x: number, y: number, z: number): GeoJSONFeature {
         const granularity = EXTENT * Math.pow(2, z);
         const tileWest = EXTENT * x;
         const tileNorth = EXTENT * y;
 
         // Spherical Mercator tile coordinates to WGS84
-        function project(line: PVTGeometry): Position[] {
-            const len = line.pointsLength();
+        function project(line: Point[]): Position[] {
+            const len = line.length;
             const coords = new Array<number[]>(len);
             // we want to loop a full line in the function, since JS can't inline functions
             for (let j = 0; j < len; j++) {
-                const p = line.points(j)!;
-                const mercY = 180 - ((tileNorth + p.y()) * 360) / granularity;
-                const lon = ((tileWest + p.x()) * 360) / granularity - 180;
+                const p = line[j];
+                const mercY = 180 - ((tileNorth + p.y) * 360) / granularity;
+                const lon = ((tileWest + p.x) * 360) / granularity - 180;
                 const lat = (360 / Math.PI) * Math.atan(Math.exp((mercY * Math.PI) / 180)) - 90;
                 coords[j] = [lon, lat];
             }
             return coords;
         }
 
-        const len = feat.geometriesLength();
+        const geometries = this.geometries;
+        const len = geometries.length;
         const type = this.type;
 
         // MultiPoint has one less nesting
         if (type === 1) {
             const outerCoordinates = new Array<Position>(len);
             for (let i = 0; i < len; i++) {
-                const point = project(feat.geometries(i)!)[0];
+                const point = project(geometries[i])[0];
                 outerCoordinates[i] = point;
             }
             return {
@@ -211,7 +170,7 @@ export class PlanetVectorTileFeature implements VectorTileFeature {
 
         const outerCoordinates = new Array<Position[]>(len);
         for (let i = 0; i < len; i++) {
-            const innerCoordinates = project(feat.geometries(i)!);
+            const innerCoordinates = project(geometries[i]);
             outerCoordinates[i] = innerCoordinates;
         }
 
@@ -254,9 +213,6 @@ export class PlanetVectorTileFeature implements VectorTileFeature {
             properties: this.properties,
         };
     }
-
-    // bbox is not required or used
-    // bbox?(): [number, number, number, number];
 }
 
 function getVal(tile: PVTTile, idx: number): string | number | boolean {
