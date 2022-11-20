@@ -318,12 +318,11 @@ fn build_tiles(
     let mut first_child_i = level_range.start;
     let mut child_i = first_child_i;
 
+    println!(
+        "<== ZOOM {} ==> start {} end {}",
+        z, level_range.start, level_range.end
+    );
     loop {
-        println!(
-            "zoom {} start {} end {}",
-            z, level_range.start, level_range.end
-        );
-
         // The tile we are building.
         let leaf_h = get_leaf_h(tiles, leaves, leaf_parent_end, child_i);
         let tile_h = leaf_to_tile_h(leaf_h, leaf_zoom, z);
@@ -360,7 +359,7 @@ fn build_tiles(
             w_chunk: 0,
             r_chunk: 0,
         };
-        println!("{} {:?}", tiles_i, tile);
+        println!("{} z{} {:?}", tiles_i, z, tile);
         tiles[tiles_i] = tile;
 
         first_child_i = child_i;
@@ -375,6 +374,7 @@ fn build_tiles(
                 // starts at the beginning of the h_tiles array.
                 level_range.start = 0;
                 child_i = 0;
+                first_child_i = 0;
             } else {
                 // The level range for the next run
                 // starts at end of the level range for the run we just finished.
@@ -391,6 +391,11 @@ fn build_tiles(
 
             // The next tree level is two zoom levels down.
             z -= 2;
+
+            println!(
+                "<== ZOOM {} ==> start {} end {}",
+                z, level_range.start, level_range.end
+            );
         }
     }
 
@@ -422,7 +427,12 @@ fn max_tiles_len(leaves: &[Leaf], leaf_zoom: u8) -> usize {
     }
 }
 
-fn get_leaf_h(tiles: &[HilbertTile], leaves: &[Leaf], leaf_parent_end: usize, tiles_i: usize) -> u32 {
+fn get_leaf_h(
+    tiles: &[HilbertTile],
+    leaves: &[Leaf],
+    leaf_parent_end: usize,
+    tiles_i: usize,
+) -> u32 {
     // When still working on parent level of the leaves, the end is set to 0.
     if leaf_parent_end == 0 {
         return leaves[tiles_i].h;
