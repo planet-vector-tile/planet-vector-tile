@@ -1,21 +1,21 @@
 import test from 'ava';
 
-import { loadPlanet, Planet } from '../index.js';
-import { PlanetVectorTile } from '../dist/bundle.js';
+import { loadPlanet } from '../index.js';
+import PVT from '../dist/bundle.js';
 
 test('load planet and fetch tile', async t => {
     const planet = loadPlanet(['info']);
     const tile = await planet.tile(9, 82, 199);
     t.truthy(tile);
 
-    const pvt = new PlanetVectorTile(tile);
+    const pvt = new PVT(tile);
     t.is(Object.keys(pvt.layers).length, 3);
 });
 
 test('check info tile boundary feature', async t => {
     const planet = loadPlanet(['info']);
     const tile = await planet.tile(9, 82, 199);
-    const pvt = new PlanetVectorTile(tile);
+    const pvt = new PVT(tile);
     const firstFeature = pvt.layers.tile_boundary.feature(0);
 
     let props = firstFeature.properties;
@@ -43,7 +43,7 @@ test('check info tile boundary feature', async t => {
 test('check info tile 0/0/0', async t => {
     const planet = loadPlanet(['info']);
     const tile = await planet.tile(0, 0, 0);
-    const pvt = new PlanetVectorTile(tile);
+    const pvt = new PVT(tile);
     const firstFeature = pvt.layers.tile_boundary.feature(0);
 
     let props = firstFeature.properties;
@@ -71,7 +71,7 @@ test('check info tile 0/0/0', async t => {
 test('check scotts valley tile with nodes', async t => {
     const planet = loadPlanet(['info', 'tests/fixtures/santacruz/sort']);
     const tile = await planet.tile(12, 659, 1593);
-    const pvt = new PlanetVectorTile(tile);
+    const pvt = new PVT(tile);
 
     const len = Object.keys(pvt.layers).length;
     t.is(len, 4);

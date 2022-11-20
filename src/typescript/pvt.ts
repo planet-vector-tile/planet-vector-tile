@@ -11,11 +11,7 @@ import { PVTValueType } from './fbs/pvtvalue-type';
 type Extent = 8196;
 const EXTENT: Extent = 8196;
 
-export default function pvt(arr: Uint8Array): PVT {
-    return new PVT(arr);
-}
-
-class PVT {
+export default class PVT {
     layers: { [_: string]: VectorTileLayer };
 
     constructor(arr: Uint8Array) {
