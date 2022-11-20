@@ -41,52 +41,46 @@ impl Source for HilbertTree {
 
 impl HilbertTree {
     fn find(&self, tile: &Tile) -> FindResult {
-        if tile.z > self.leaf_zoom {
+        // Tiles do not exist beyond the leaf zoom, and we only use even zoom levels.
+        if tile.z & 1 == 1 || tile.z > self.leaf_zoom {
             return FindResult::None;
         }
 
         let h_tiles = self.tiles.slice();
         let leaves = self.leaves.slice();
         let mut h_tile = h_tiles.last().unwrap();
-        let mut leaf = None;
-
         let mut z = 2;
         let mut i = 0;
-        while z < tile.z {
+        while z <= tile.z {
             let h = tile.h >> (2 * (tile.z - z));
             i = match child_index(h_tile, h) {
                 Some(i) => i,
                 None => return FindResult::None,
             };
+            // If we are all the way down to the leaves,
+            // return a leaf result pair.
             if z == self.leaf_zoom {
-                leaf = Some(&leaves[i]);
-                break;
+                return FindResult::Leaf(ResultPair {
+                    item: &leaves[i],
+                    next: if i + 1 < leaves.len() {
+                        Some(&leaves[i + 1])
+                    } else {
+                        None
+                    },
+                });
             }
             h_tile = &h_tiles[i];
             z += 2;
         }
 
-        if let Some(leaf) = leaf {
-            let next_leaf = if i + 1 < leaves.len() {
-                Some(&leaves[i + 1])
-            } else {
-                None
-            };
-            FindResult::Leaf(ResultPair {
-                item: leaf,
-                next: next_leaf,
-            })
-        } else {
-            let next_h_tile = if i + 1 < h_tiles.len() {
+        FindResult::HilbertTile(ResultPair {
+            item: h_tile,
+            next: if i + 1 < h_tiles.len() {
                 Some(&h_tiles[i + 1])
             } else {
                 None
-            };
-            FindResult::HilbertTile(ResultPair {
-                item: h_tile,
-                next: next_h_tile,
-            })
-        }
+            },
+        })
     }
 
     fn compose_leaf(&self, tile: &Tile, pair: ResultPair<&Leaf>, builder: &mut PVTBuilder) {
@@ -343,20 +337,17 @@ mod tests {
         let dir = PathBuf::from("tests/fixtures/santacruz/sort");
         let tree = HilbertTree::open(&dir, 12).unwrap();
 
-        let res = tree.find(&t);
-
-        assert!(res.is_some());
-
-        let res = res.unwrap();
-
-        assert!(res.leaf.is_some());
-
-        let leaf = res.leaf.unwrap();
-
-        assert_eq!(leaf.n, 944454);
-        assert_eq!(leaf.w, 106806);
-        assert_eq!(leaf.r, 0);
-        assert_eq!(leaf.h, 3329134);
+        match tree.find(&t) {
+            FindResult::HilbertTile(_) => panic!("Should not be a HilbertTile. Should be a leaf"),
+            FindResult::Leaf(pair) => {
+                let leaf = pair.item;
+                assert_eq!(leaf.n, 865693);
+                assert_eq!(leaf.w, 98588);
+                assert_eq!(leaf.r, 0);
+                assert_eq!(leaf.h, 3329134);
+            }
+            FindResult::None => panic!("Should be a leaf."),
+        }
     }
 
     #[test]
@@ -424,30 +415,5 @@ mod tests {
             let t_range = n.tags();
             assert!(t_range.start <= t_range.end || t_range.end == 0);
         }
-    }
-
-    #[test]
-    fn test_find_kings_village_road() {
-        // Scotts Valley
-        // z 12 x 659 y 1593
-        let t = Tile::from_zh(12, 3329134);
-
-        let dir = PathBuf::from("tests/fixtures/santacruz/sort");
-        let tree = HilbertTree::open(&dir, 12).unwrap();
-
-        let res = tree.find(&t);
-
-        assert!(res.is_some());
-
-        let res = res.unwrap();
-
-        assert!(res.leaf.is_some());
-
-        let leaf = res.leaf.unwrap();
-
-        assert_eq!(leaf.n, 944454);
-        assert_eq!(leaf.w, 106806);
-        assert_eq!(leaf.r, 0);
-        assert_eq!(leaf.h, 3329135);
     }
 }
