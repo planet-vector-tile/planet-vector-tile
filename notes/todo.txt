@@ -1,0 +1,4 @@
+Fix odd tile boundary projection artifact.
+
+Order layers by: relations -> ways -> nodes.
+
