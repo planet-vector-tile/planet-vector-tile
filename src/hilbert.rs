@@ -318,7 +318,7 @@ fn build_tiles(
     let mut first_child_i = child_range.start;
     let mut child_i = first_child_i;
 
-    while z >= 0 {
+    loop {
         println!(
             "zoom {} child_range.start {} child_range.end {}",
             z, child_range.start, child_range.end
@@ -371,6 +371,10 @@ fn build_tiles(
 
             if level0_end == 0 {
                 level0_end = tiles_i;
+            }
+
+            if z == 0 {
+                break;
             }
 
             // The next tree level is two zoom levels down.

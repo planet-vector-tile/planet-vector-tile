@@ -29,7 +29,7 @@ or
 
 ```
 cargo run -r -- --overwrite ~/geodata/extracts/california.osm.pbf ~/geodata/flatdata/california
-cargo run -r -- --overwrite ~/geodata/extracts/santacruz.pbf ~/geodata/flatdata/santacruz
+cargo run -r -- --overwrite ~/geodata/extracts/santacruz.osm.pbf ~/geodata/flatdata/santacruz
 ```
 
 Note that if you are not using the release flag (-r) for your the tool will run much more slowly.
