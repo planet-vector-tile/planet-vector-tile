@@ -438,6 +438,9 @@ fn get_leaf_h(
         tile = &tiles[child];
         i = child;
     }
+    // Now we are at the parent of leaf level
+    tile = &tiles[i];
+    i = tile.child as usize;
     leaves[i].h
 }
 
