@@ -337,7 +337,7 @@ fn build_tiles(
             // The first child for the tile
             let first_child_i = child_i as u32;
             let leaf_h = get_leaf_h(tiles, leaves, leaf_parent_level_end, child_i);
-            let child_h = leaf_to_tile_h(leaf_h, leaf_zoom, zoom + 2);
+            let mut child_h = leaf_to_tile_h(leaf_h, leaf_zoom, zoom + 2);
 
             // The mask we are building.
             let mut mask: u16 = 0;
@@ -356,7 +356,7 @@ fn build_tiles(
                 // Finished with children if the next child is not in the h range
                 // of the tile we are building.
                 let leaf_h = get_leaf_h(tiles, leaves, leaf_parent_level_end, child_i);
-                let child_h = leaf_to_tile_h(leaf_h, leaf_zoom, zoom + 2);
+                child_h = leaf_to_tile_h(leaf_h, leaf_zoom, zoom + 2);
                 if child_h >= h_range_end {
                     break;
                 }
