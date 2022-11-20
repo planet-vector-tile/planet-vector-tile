@@ -368,15 +368,23 @@ fn build_tiles(
 
         // Go to the next level if no more children.
         if child_i == level_range.end {
-            // The next level will have as children the tiles we just finished.
-            level_range.start = level_range.end;
-            level_range.end = tiles_i;
-
             // First runthough, set the sentinal for the end of the level before the leaves.
             if leaf_parent_end == 0 {
                 leaf_parent_end = tiles_i;
+                // The level range for the next run
+                // starts at the beginning of the h_tiles array.
+                level_range.start = 0;
+                child_i = 0;
+            } else {
+                // The level range for the next run
+                // starts at end of the level range for the run we just finished.
+                level_range.start = level_range.end;
             }
 
+            // The next run will end at the last tile we just made
+            level_range.end = tiles_i;
+
+            // We are done if we just completed z0
             if z == 0 {
                 break;
             }
