@@ -306,39 +306,42 @@ fn build_tiles(
     // We only use even zooms.
     let mut z = leaf_zoom - 2;
     let mut tiles_i = 0;
-    let mut child_range = 0..leaves.len();
+    let mut level_range = 0..leaves.len();
 
     println!("TILES");
 
-    // The first level (level0) has leaves for children, so we need to track this
+    // The last level (leaf_zoom - 2) has leaves for children, so we need to track this
     // to know when to look in the leaves array for chilrden. See fn get_leaf_h.
-    // 0 means we are still working on level 0, which is leaf_zoom - 2.
-    let mut level0_end = 0;
+    // 0 means we are still working on the leaves' parent level.
+    let mut leaf_parent_end = 0;
 
-    let mut first_child_i = child_range.start;
+    let mut first_child_i = level_range.start;
     let mut child_i = first_child_i;
 
     loop {
         println!(
-            "zoom {} child_range.start {} child_range.end {}",
-            z, child_range.start, child_range.end
+            "zoom {} start {} end {}",
+            z, level_range.start, level_range.end
         );
 
         // The tile we are building.
-        let leaf_h = get_leaf_h(tiles, leaves, level0_end, tiles_i);
+        let leaf_h = get_leaf_h(tiles, leaves, leaf_parent_end, child_i);
         let tile_h = leaf_to_tile_h(leaf_h, leaf_zoom, z);
         let h_range_end = child_h_range_end(tile_h);
 
         // Loop through the children of the tile and
         // set the bits for children that are present.
         let mut mask: u16 = 0;
-        let mut child_leaf_h;
-        let mut child_h;
-        loop {
-            child_leaf_h = get_leaf_h(tiles, leaves, level0_end, child_i);
-            child_h = leaf_to_tile_h(leaf_h, leaf_zoom, z);
+        // We have to check that we are in the level's child tile range,
+        // otherwise, get_leaf_h will look for an out of bounds child tile.
+        while child_i < level_range.end {
+            let child_leaf_h = get_leaf_h(tiles, leaves, leaf_parent_end, child_i);
+            // the child tile h (2 zooms higher than the level we are building)
+            let child_h = leaf_to_tile_h(child_leaf_h, leaf_zoom, z + 2);
 
             if child_h >= h_range_end {
+                // Now child_i is at a child of the next tile.
+                // That will be the first child of the next tile.
                 break;
             }
 
@@ -364,13 +367,14 @@ fn build_tiles(
         tiles_i += 1;
 
         // Go to the next level if no more children.
-        if child_i == child_range.end {
+        if child_i == level_range.end {
             // The next level will have as children the tiles we just finished.
-            child_range.start = child_range.end;
-            child_range.end = tiles_i;
+            level_range.start = level_range.end;
+            level_range.end = tiles_i;
 
-            if level0_end == 0 {
-                level0_end = tiles_i;
+            // First runthough, set the sentinal for the end of the level before the leaves.
+            if leaf_parent_end == 0 {
+                leaf_parent_end = tiles_i;
             }
 
             if z == 0 {
@@ -410,15 +414,15 @@ fn max_tiles_len(leaves: &[Leaf], leaf_zoom: u8) -> usize {
     }
 }
 
-fn get_leaf_h(tiles: &[HilbertTile], leaves: &[Leaf], level0_end: usize, tiles_i: usize) -> u32 {
-    // When still working on level0, the end is set to 0.
-    if level0_end == 0 {
+fn get_leaf_h(tiles: &[HilbertTile], leaves: &[Leaf], leaf_parent_end: usize, tiles_i: usize) -> u32 {
+    // When still working on parent level of the leaves, the end is set to 0.
+    if leaf_parent_end == 0 {
         return leaves[tiles_i].h;
     }
 
     let mut i = tiles_i;
     let mut tile = &tiles[tiles_i];
-    while i > level0_end && tile.mask != 0 {
+    while i > leaf_parent_end && tile.mask != 0 {
         let child = tile.child as usize;
         tile = &tiles[child];
         i = child;
