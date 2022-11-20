@@ -25,10 +25,11 @@
     },
     "scripts": {
         "start": "cd electron && npm i && npm start",
+        "bench": "cd electron && npm i && npm run bench",
         "build": "npm i && napi build --platform --release && npm run build:ts",
         "build:debug": "npm i && napi build --platform --js && npm run build:ts",
         "build:ts": "tsc -p tsconfig.json && prettier --write . && npm run rollup",
-        "generate:schema": "flatdata-generator -s schema/osm.flatdata -g rust -O src/generated/osmflat_generated.rs && flatc --rust -o src/generated/ schema/*.fbs & flatc --ts -o ts/fbs/ schema/*.fbs && npm run format && cargo fmt",
+        "generate:schema": "flatdata-generator -s schema/osm.flatdata -g rust -O src/generated/osmflat_generated.rs && flatc --rust -o src/generated/ schema/*.fbs & flatc --ts -o src/typescript/fbs/ schema/*.fbs && npm run format && cargo fmt",
         "clean": "rm -rf index* node_modules package-lock.json dist/* && cargo clean",
         "artifacts": "napi artifacts",
         "prepublishOnly": "napi prepublish -t npm",

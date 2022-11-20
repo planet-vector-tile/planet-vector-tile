@@ -686,10 +686,9 @@ impl<'a> flatbuffers::Follow<'a> for PVTFeature<'a> {
 
 impl<'a> PVTFeature<'a> {
     pub const VT_ID: flatbuffers::VOffsetT = 4;
-    pub const VT_H: flatbuffers::VOffsetT = 6;
-    pub const VT_KEYS: flatbuffers::VOffsetT = 8;
-    pub const VT_VALUES: flatbuffers::VOffsetT = 10;
-    pub const VT_GEOMETRIES: flatbuffers::VOffsetT = 12;
+    pub const VT_KEYS: flatbuffers::VOffsetT = 6;
+    pub const VT_VALUES: flatbuffers::VOffsetT = 8;
+    pub const VT_GEOMETRIES: flatbuffers::VOffsetT = 10;
 
     #[inline]
     pub unsafe fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
@@ -701,7 +700,6 @@ impl<'a> PVTFeature<'a> {
         args: &'args PVTFeatureArgs<'args>,
     ) -> flatbuffers::WIPOffset<PVTFeature<'bldr>> {
         let mut builder = PVTFeatureBuilder::new(_fbb);
-        builder.add_h(args.h);
         builder.add_id(args.id);
         if let Some(x) = args.geometries {
             builder.add_geometries(x);
@@ -721,13 +719,6 @@ impl<'a> PVTFeature<'a> {
         // Created from valid Table for this object
         // which contains a valid value in this slot
         unsafe { self._tab.get::<u64>(PVTFeature::VT_ID, Some(0)).unwrap() }
-    }
-    #[inline]
-    pub fn h(&self) -> u64 {
-        // Safety:
-        // Created from valid Table for this object
-        // which contains a valid value in this slot
-        unsafe { self._tab.get::<u64>(PVTFeature::VT_H, Some(0)).unwrap() }
     }
     #[inline]
     pub fn keys(&self) -> Option<flatbuffers::Vector<'a, u32>> {
@@ -779,7 +770,6 @@ impl flatbuffers::Verifiable for PVTFeature<'_> {
         use self::flatbuffers::Verifiable;
         v.visit_table(pos)?
             .visit_field::<u64>("id", Self::VT_ID, false)?
-            .visit_field::<u64>("h", Self::VT_H, false)?
             .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, u32>>>(
                 "keys",
                 Self::VT_KEYS,
@@ -799,7 +789,6 @@ impl flatbuffers::Verifiable for PVTFeature<'_> {
 }
 pub struct PVTFeatureArgs<'a> {
     pub id: u64,
-    pub h: u64,
     pub keys: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, u32>>>,
     pub values: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, u32>>>,
     pub geometries: Option<
@@ -813,7 +802,6 @@ impl<'a> Default for PVTFeatureArgs<'a> {
     fn default() -> Self {
         PVTFeatureArgs {
             id: 0,
-            h: 0,
             keys: None,
             values: None,
             geometries: None,
@@ -829,10 +817,6 @@ impl<'a: 'b, 'b> PVTFeatureBuilder<'a, 'b> {
     #[inline]
     pub fn add_id(&mut self, id: u64) {
         self.fbb_.push_slot::<u64>(PVTFeature::VT_ID, id, 0);
-    }
-    #[inline]
-    pub fn add_h(&mut self, h: u64) {
-        self.fbb_.push_slot::<u64>(PVTFeature::VT_H, h, 0);
     }
     #[inline]
     pub fn add_keys(&mut self, keys: flatbuffers::WIPOffset<flatbuffers::Vector<'b, u32>>) {
@@ -873,7 +857,6 @@ impl core::fmt::Debug for PVTFeature<'_> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         let mut ds = f.debug_struct("PVTFeature");
         ds.field("id", &self.id());
-        ds.field("h", &self.h());
         ds.field("keys", &self.keys());
         ds.field("values", &self.values());
         ds.field("geometries", &self.geometries());

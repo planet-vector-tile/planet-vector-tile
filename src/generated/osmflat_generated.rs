@@ -805,22 +805,22 @@ pub mod osm {
     /// See <https://wiki.openstreetmap.org/wiki/Way>.
     #[repr(transparent)]
     pub struct Way {
-        data: [u8; 23],
+        data: [u8; 15],
     }
 
     impl Way {
         /// Unsafe since the struct might not be self-contained
         pub unsafe fn new_unchecked() -> Self {
-            Self { data: [0; 23] }
+            Self { data: [0; 15] }
         }
     }
 
     impl flatdata::Struct for Way {
         unsafe fn create_unchecked() -> Self {
-            Self { data: [0; 23] }
+            Self { data: [0; 15] }
         }
 
-        const SIZE_IN_BYTES: usize = 23;
+        const SIZE_IN_BYTES: usize = 15;
         const IS_OVERLAPPING_WITH_NEXT: bool = true;
     }
 
@@ -833,19 +833,12 @@ pub mod osm {
             unsafe { std::mem::transmute::<i64, i64>(value) }
         }
 
-        /// PointOnSurface Hilbert location of way.
-        #[inline]
-        pub fn h(&self) -> u64 {
-            let value = flatdata_read_bytes!(u64, self.data.as_ptr(), 40, 64);
-            unsafe { std::mem::transmute::<u64, u64>(value) }
-        }
-
         /// First element of the range [`tags`].
         ///
         /// [`tags`]: #method.tags
         #[inline]
         pub fn tag_first_idx(&self) -> u64 {
-            let value = flatdata_read_bytes!(u64, self.data.as_ptr(), 104, 40);
+            let value = flatdata_read_bytes!(u64, self.data.as_ptr(), 40, 40);
             unsafe { std::mem::transmute::<u64, u64>(value) }
         }
 
@@ -854,8 +847,8 @@ pub mod osm {
         /// The values of the range are indexes in the `tags_index` vector.
         #[inline]
         pub fn tags(&self) -> std::ops::Range<u64> {
-            let start = flatdata_read_bytes!(u64, self.data.as_ptr(), 104, 40);
-            let end = flatdata_read_bytes!(u64, self.data.as_ptr(), 104 + 23 * 8, 40);
+            let start = flatdata_read_bytes!(u64, self.data.as_ptr(), 40, 40);
+            let end = flatdata_read_bytes!(u64, self.data.as_ptr(), 40 + 15 * 8, 40);
             start..end
         }
 
@@ -864,7 +857,7 @@ pub mod osm {
         /// [`refs`]: #method.refs
         #[inline]
         pub fn ref_first_idx(&self) -> u64 {
-            let value = flatdata_read_bytes!(u64, self.data.as_ptr(), 144, 40);
+            let value = flatdata_read_bytes!(u64, self.data.as_ptr(), 80, 40);
             unsafe { std::mem::transmute::<u64, u64>(value) }
         }
 
@@ -873,8 +866,8 @@ pub mod osm {
         /// The values of the range are indexes in the `nodes_index` vector.
         #[inline]
         pub fn refs(&self) -> std::ops::Range<u64> {
-            let start = flatdata_read_bytes!(u64, self.data.as_ptr(), 144, 40);
-            let end = flatdata_read_bytes!(u64, self.data.as_ptr(), 144 + 23 * 8, 40);
+            let start = flatdata_read_bytes!(u64, self.data.as_ptr(), 80, 40);
+            let end = flatdata_read_bytes!(u64, self.data.as_ptr(), 80 + 15 * 8, 40);
             start..end
         }
     }
@@ -883,7 +876,6 @@ pub mod osm {
         fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
             f.debug_struct("Way")
                 .field("osm_id", &self.osm_id())
-                .field("h", &self.h())
                 .field("tag_first_idx", &self.tag_first_idx())
                 .field("ref_first_idx", &self.ref_first_idx())
                 .finish()
@@ -894,7 +886,6 @@ pub mod osm {
         #[inline]
         fn eq(&self, other: &Self) -> bool {
             self.osm_id() == other.osm_id()
-                && self.h() == other.h()
                 && self.tag_first_idx() == other.tag_first_idx()
                 && self.ref_first_idx() == other.ref_first_idx()
         }
@@ -907,20 +898,13 @@ pub mod osm {
             flatdata_write_bytes!(i64; value, self.data, 0, 40)
         }
 
-        /// PointOnSurface Hilbert location of way.
-        #[inline]
-        #[allow(missing_docs)]
-        pub fn set_h(&mut self, value: u64) {
-            flatdata_write_bytes!(u64; value, self.data, 40, 64)
-        }
-
         /// First element of the range [`tags`].
         ///
         /// [`tags`]: struct.WayRef.html#method.tags
         #[inline]
         #[allow(missing_docs)]
         pub fn set_tag_first_idx(&mut self, value: u64) {
-            flatdata_write_bytes!(u64; value, self.data, 104, 40)
+            flatdata_write_bytes!(u64; value, self.data, 40, 40)
         }
 
         /// First element of the range [`refs`].
@@ -929,14 +913,13 @@ pub mod osm {
         #[inline]
         #[allow(missing_docs)]
         pub fn set_ref_first_idx(&mut self, value: u64) {
-            flatdata_write_bytes!(u64; value, self.data, 144, 40)
+            flatdata_write_bytes!(u64; value, self.data, 80, 40)
         }
 
         /// Copies the data from `other` into this struct.
         #[inline]
         pub fn fill_from(&mut self, other: &Way) {
             self.set_osm_id(other.osm_id());
-            self.set_h(other.h());
             self.set_tag_first_idx(other.tag_first_idx());
             self.set_ref_first_idx(other.ref_first_idx());
         }
@@ -1026,6 +1009,7 @@ pub mod osm {
             unsafe { std::mem::transmute::<u32, u32>(value) }
         }
 
+        /// PointOnSurface Hilbert location of way.
         #[inline]
         pub fn h(&self) -> u64 {
             let value = flatdata_read_bytes!(u64, self.data.as_ptr(), 32, 64);
@@ -1056,6 +1040,7 @@ pub mod osm {
             flatdata_write_bytes!(u32; value, self.data, 0, 32)
         }
 
+        /// PointOnSurface Hilbert location of way.
         #[inline]
         #[allow(missing_docs)]
         pub fn set_h(&mut self, value: u64) {
@@ -3131,7 +3116,6 @@ namespace osm {
 struct Way
 {
     osm_id : i64 : 40;
-    h : u64 : 64;
     @range( tags )
     tag_first_idx : u64 : 40;
     @range( refs )
@@ -3347,7 +3331,6 @@ archive Osm
 struct Way
 {
     osm_id : i64 : 40;
-    h : u64 : 64;
     @range( tags )
     tag_first_idx : u64 : 40;
     @range( refs )

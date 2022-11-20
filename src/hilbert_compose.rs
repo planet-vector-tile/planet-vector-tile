@@ -1,329 +1,324 @@
+use std::ops::Range;
+
+use crate::tile::planet_vector_tile_generated::*;
+use flatdata::RawData;
+
 use crate::{
     hilbert::{HilbertTile, HilbertTree, Leaf},
     location::lonlat_to_xy,
+    osmflat::osmflat_generated::osm::{Tag, TagIndex},
     pvt_builder::PVTBuilder,
     source::Source,
     tile::{
         planet_vector_tile_generated::{
-            root_as_pvttile, PVTFeature, PVTFeatureArgs, PVTGeometry, PVTGeometryArgs, PVTLayer,
-            PVTLayerArgs,
+            PVTFeature, PVTFeatureArgs, PVTGeometry, PVTGeometryArgs, PVTLayer, PVTLayerArgs,
         },
         Tile,
     },
 };
 
-struct FindResult<'a> {
-    h_tile: &'a HilbertTile,
-    next_h_tile: Option<&'a HilbertTile>,
-    leaf: Option<&'a Leaf>,
-    next_leaf: Option<&'a Leaf>,
+struct ResultPair<T> {
+    item: T,
+    next: Option<T>,
 }
 
-impl HilbertTree {
-    fn find(&self, tile: &Tile) -> Option<FindResult> {
-        if tile.z > self.leaf_zoom {
-            return None;
-        }
-
-        println!("Finding {:?}", tile);
-
-        let h_tiles = self.tiles.slice();
-        let mut h_tile = h_tiles.last().unwrap();
-        // println!("root {:?}", h_tile);
-
-        let mut z = 2;
-        let mut i = 0;
-        while z <= tile.z {
-            let h = tile.h >> (2 * (tile.z - z));
-            let child_pos = (h & 0xf) as i32;
-
-            // If the tile does not have the child position in the mask,
-            // then we don't have the tile.
-            if h_tile.mask >> child_pos & 1 != 1 {
-                return None;
-            }
-
-            i = (h_tile.child + child_pos) as usize;
-
-            h_tile = &h_tiles[i];
-
-            // println!("i {} {:?}", i, h_tile);
-
-            z += 2;
-        }
-
-        let next_h_tile = if i + 1 < h_tiles.len() {
-            Some(&h_tiles[i + 1])
-        } else {
-            None
-        };
-
-        let mut leaf = None;
-        let mut next_leaf = None;
-        if h_tile.mask == 0 {
-            let leaves = self.leaves.slice();
-            leaf = Some(&leaves[i]);
-            if i + 1 < leaves.len() {
-                next_leaf = Some(&leaves[i + 1]);
-            }
-        }
-
-        Some(FindResult {
-            h_tile,
-            next_h_tile: None,
-            leaf,
-            next_leaf: None,
-        })
-    }
+enum FindResult<'a> {
+    HilbertTile(ResultPair<&'a HilbertTile>),
+    Leaf(ResultPair<&'a Leaf>),
+    None,
 }
 
 impl Source for HilbertTree {
     fn compose_tile(&self, tile: &Tile, builder: &mut PVTBuilder) {
-        // The tile exists in the index
-        if let Some(res) = self.find(tile) {
-            // It is a leaf tile
-            if let Some(leaf) = res.leaf {
-                println!("LEAF FOUND {:?}", leaf);
-
-                let nodes = self.archive.nodes();
-                let ways = self.archive.ways();
-                let relations = self.archive.relations();
-
-                let tags_index = self.archive.tags_index();
-                let tags = self.archive.tags();
-
-                let nodes_index = self.archive.nodes_index();
-
-                let strings = self.archive.stringtable();
-
-                let n_start = leaf.n as usize;
-                let w_start = leaf.w as usize;
-                let r_start = leaf.r as usize;
-
-                let (n_end, w_end, r_end) = if let Some(next_leaf) = res.next_leaf {
-                    (
-                        next_leaf.n as usize,
-                        next_leaf.w as usize,
-                        next_leaf.r as usize,
-                    )
-                } else {
-                    (nodes.len(), ways.len(), relations.len())
-                };
-
-                let mut features = vec![];
-
-                for i in n_start..n_end {
-                    let n = &nodes[i];
-                    let t_range = n.tags();
-                    let start = t_range.start as usize;
-                    let mut end = t_range.end as usize;
-                    let tags_index_len = tags_index.len();
-
-                    if start == end {
-                        continue;
-                    }
-
-                    if end == 0 {
-                        // NHTODO Handle when there are no ways and relations...
-                        end = ways[0].tags().start as usize;
-                    }
-
-                    assert!(start <= end);
-                    assert!(end <= tags_index_len);
-                    assert!(start <= tags_index_len);
-
-                    let n_tag_idxs = &tags_index[start..end];
-
-                    let mut keys: Vec<u32> = vec![];
-                    let mut vals: Vec<u32> = vec![];
-
-                    let osm_id_key = builder.attributes.upsert_string("osm_id");
-                    let osm_id_val = builder.attributes.upsert_number_value(n.osm_id() as f64);
-                    keys.push(osm_id_key);
-                    vals.push(osm_id_val);
-
-                    for tag_idx in n_tag_idxs {
-                        let tag_i = tag_idx.value() as usize;
-                        debug_assert!(tag_i < tags.len());
-                        let tag = &tags[tag_i];
-                        let k = tag.key_idx();
-                        let v = tag.value_idx();
-
-                        // NHTODO Consider switching to substring_unchecked after confident.
-                        let key = strings.substring(k as usize);
-                        let val = strings.substring(v as usize);
-
-                        if key.is_ok() && val.is_ok() {
-                            let key = key.unwrap();
-                            let val = val.unwrap();
-
-                            keys.push(builder.attributes.upsert_string(key));
-                            vals.push(builder.attributes.upsert_string_value(val));
-                        } else {
-                            eprintln!(
-                                "Invalid tag key val {:?} {:?}",
-                                key.unwrap_err(),
-                                val.unwrap_err()
-                            );
-                        }
-                    }
-
-                    let lon = n.lon();
-                    let lat = n.lat();
-                    // println!("lon lat {} {}", lon, lat);
-                    let xy = lonlat_to_xy((lon, lat));
-                    let tile_point = tile.project(xy);
-                    // println!("tile_point {:?}", tile_point);
-
-                    let keys_vec = builder.fbb.create_vector(&keys);
-                    let vals_vec = builder.fbb.create_vector(&vals);
-
-                    let path = builder.fbb.create_vector(&[tile_point]);
-                    let geom = PVTGeometry::create(
-                        &mut builder.fbb,
-                        &PVTGeometryArgs { points: Some(path) },
-                    );
-                    let geoms = builder.fbb.create_vector(&[geom]);
-
-                    // NHTODO Get rid of the h field in PVTFeature. It's "pointless".
-                    let feature = PVTFeature::create(
-                        &mut builder.fbb,
-                        &PVTFeatureArgs {
-                            id: i as u64,
-                            h: i as u64,
-                            keys: Some(keys_vec),
-                            values: Some(vals_vec),
-                            geometries: Some(geoms),
-                        },
-                    );
-                    features.push(feature);
-                }
-
-                let features = builder.fbb.create_vector(&features);
-
-                let name = builder.attributes.upsert_string("nodes");
-                let layer = PVTLayer::create(
-                    &mut builder.fbb,
-                    &PVTLayerArgs {
-                        name,
-                        features: Some(features),
-                    },
-                );
-
-                builder.add_layer(layer);
-
-                println!("num ways {}", w_end - w_start);
-
-                let mut way_features = vec![];
-                for i in w_start..w_end {
-                    // let mut render = false;
-                    let w = &ways[i];
-                    let t_range = w.tags();
-                    let start = t_range.start as usize;
-                    let mut end = t_range.end as usize;
-                    let tags_index_len = tags_index.len();
-
-                    if start == end {
-                        continue;
-                    }
-
-                    if end == 0 {
-                        // NHTODO Handle when there are no relations...
-                        end = relations[0].tags().start as usize;
-                    }
-
-                    assert!(start <= end);
-                    assert!(end <= tags_index_len);
-                    assert!(start <= tags_index_len);
-
-                    let w_tag_idxs = &tags_index[start..end];
-
-                    let mut keys: Vec<u32> = vec![];
-                    let mut vals: Vec<u32> = vec![];
-
-                    let osm_id_key = builder.attributes.upsert_string("osm_id");
-                    let osm_id_val = builder.attributes.upsert_number_value(w.osm_id() as f64);
-                    keys.push(osm_id_key);
-                    vals.push(osm_id_val);
-
-                    for tag_idx in w_tag_idxs {
-                        let tag_i = tag_idx.value() as usize;
-                        debug_assert!(tag_i < tags.len());
-                        let tag = &tags[tag_i];
-                        let k = tag.key_idx();
-                        let v = tag.value_idx();
-
-                        // NHTODO Consider switching to substring_unchecked after confident.
-                        let key = strings.substring(k as usize);
-                        let val = strings.substring(v as usize);
-
-                        if key.is_ok() && val.is_ok() {
-                            let key = key.unwrap();
-                            let val = val.unwrap();
-                            keys.push(builder.attributes.upsert_string(key));
-                            vals.push(builder.attributes.upsert_string_value(val));
-                        } else {
-                            eprintln!(
-                                "Invalid tag key val {:?} {:?}",
-                                key.unwrap_err(),
-                                val.unwrap_err()
-                            );
-                        }
-                    }
-
-                    let refs = w.refs();
-                    let mut way_path = vec![];
-                    for (i, r) in refs.enumerate() {
-                        let node_idx = &nodes_index[r as usize];
-                        if let Some(node_idx) = node_idx.value() {
-                            let n = &nodes[node_idx as usize];
-                            let lon = n.lon();
-                            let lat = n.lat();
-                            let xy = lonlat_to_xy((lon, lat));
-                            let tile_point = tile.project(xy);
-                            way_path.push(tile_point);
-                        }
-                    }
-
-                    let way_path = builder.fbb.create_vector(&way_path);
-                    let way_geom = PVTGeometry::create(
-                        &mut builder.fbb,
-                        &PVTGeometryArgs {
-                            points: Some(way_path),
-                        },
-                    );
-                    let way_geoms = builder.fbb.create_vector(&[way_geom]);
-
-                    let keys_vec = builder.fbb.create_vector(&keys);
-                    let vals_vec = builder.fbb.create_vector(&vals);
-
-                    let feature = PVTFeature::create(
-                        &mut builder.fbb,
-                        &PVTFeatureArgs {
-                            id: i as u64,
-                            h: i as u64,
-                            keys: Some(keys_vec),
-                            values: Some(vals_vec),
-                            geometries: Some(way_geoms),
-                        },
-                    );
-                    way_features.push(feature);
-                }
-
-                let way_features = builder.fbb.create_vector(&way_features);
-
-                let name = builder.attributes.upsert_string("ways");
-                let layer = PVTLayer::create(
-                    &mut builder.fbb,
-                    &PVTLayerArgs {
-                        name,
-                        features: Some(way_features),
-                    },
-                );
-                builder.add_layer(layer);
-            }
+        match self.find(tile) {
+            FindResult::HilbertTile(pair) => self.compose_h_tile(tile, pair, builder),
+            FindResult::Leaf(pair) => self.compose_leaf(tile, pair, builder),
+            FindResult::None => (),
         }
     }
+}
+
+impl HilbertTree {
+    fn find(&self, tile: &Tile) -> FindResult {
+        // Tiles do not exist beyond the leaf zoom, and we only use even zoom levels.
+        if tile.z & 1 == 1 || tile.z > self.leaf_zoom {
+            return FindResult::None;
+        }
+
+        let h_tiles = self.tiles.slice();
+        let leaves = self.leaves.slice();
+        let mut h_tile = h_tiles.last().unwrap();
+        let mut z = 2;
+        let mut i = 0;
+        while z <= tile.z {
+            let h = tile.h >> (2 * (tile.z - z));
+            i = match child_index(h_tile, h) {
+                Some(i) => i,
+                None => return FindResult::None,
+            };
+            // If we are all the way down to the leaves,
+            // return a leaf result pair.
+            if z == self.leaf_zoom {
+                return FindResult::Leaf(ResultPair {
+                    item: &leaves[i],
+                    next: if i + 1 < leaves.len() {
+                        Some(&leaves[i + 1])
+                    } else {
+                        None
+                    },
+                });
+            }
+            h_tile = &h_tiles[i];
+            z += 2;
+        }
+
+        FindResult::HilbertTile(ResultPair {
+            item: h_tile,
+            next: if i + 1 < h_tiles.len() {
+                Some(&h_tiles[i + 1])
+            } else {
+                None
+            },
+        })
+    }
+
+    fn compose_leaf(&self, tile: &Tile, pair: ResultPair<&Leaf>, builder: &mut PVTBuilder) {
+        let nodes = self.archive.nodes();
+        let ways = self.archive.ways();
+        let relations = self.archive.relations();
+        let nodes_len = nodes.len();
+        let ways_len = ways.len();
+        let relations_len = relations.len();
+        let node_pairs = self.archive.hilbert_node_pairs().unwrap();
+        let way_pairs = self.way_pairs.slice();
+        let tags = self.archive.tags();
+        let nodes_index = self.archive.nodes_index();
+        let tags_index = self.archive.tags_index();
+        let tags_index_len = tags_index.len();
+        let strings = self.archive.stringtable();
+
+        // The range of indices in the entities vectors.
+        let (n_range, w_range, r_range) = if let Some(next) = pair.next {
+            (
+                (pair.item.n as usize)..(next.n as usize),
+                (pair.item.w as usize)..(next.w as usize),
+                (pair.item.r as usize)..(next.r as usize),
+            )
+        } else {
+            (
+                (pair.item.n as usize)..nodes_len,
+                (pair.item.w as usize)..ways_len,
+                (pair.item.r as usize)..relations_len,
+            )
+        };
+
+        // We reuse this for nodes, ways, relations.
+        let mut features = Vec::with_capacity(w_range.end - w_range.start);
+
+        for i in n_range {
+            let node = &nodes[i];
+
+            let tags_index_start = node.tag_first_idx() as usize;
+            let tags_index_end = if i + 1 < nodes_len {
+                nodes[i + 1].tag_first_idx() as usize
+            } else if ways_len > 0 {
+                ways[0].tag_first_idx() as usize
+            } else if relations_len > 0 {
+                relations[0].tag_first_idx() as usize
+            } else {
+                tags_index_len
+            };
+            let tags_index_range = tags_index_start..tags_index_end;
+
+            // We don't include untagged nodes.
+            if tags_index_start == tags_index_end {
+                continue;
+            }
+
+            // Tags
+            let (keys, vals) = build_tags(
+                tags_index_range,
+                node.osm_id(),
+                tags_index,
+                tags,
+                strings,
+                builder,
+            );
+            let keys_vec = builder.fbb.create_vector(&keys);
+            let vals_vec = builder.fbb.create_vector(&vals);
+
+            // Geometries
+            let lon = node.lon();
+            let lat = node.lat();
+            let xy = lonlat_to_xy((lon, lat));
+            let tile_point = tile.project(xy);
+            let points = builder.fbb.create_vector(&[tile_point]);
+            let mut geom_builder = PVTGeometryBuilder::new(&mut builder.fbb);
+            geom_builder.add_points(points);
+            let geom = geom_builder.finish();
+            let geoms = builder.fbb.create_vector(&[geom]);
+
+            let feature = PVTFeature::create(
+                &mut builder.fbb,
+                &PVTFeatureArgs {
+                    id: node_pairs[i].h(),
+                    keys: Some(keys_vec),
+                    values: Some(vals_vec),
+                    geometries: Some(geoms),
+                },
+            );
+            features.push(feature);
+        }
+
+        let features_vec = builder.fbb.create_vector(&features);
+        let name = builder.attributes.upsert_string("nodes");
+        let layer = PVTLayer::create(
+            &mut builder.fbb,
+            &PVTLayerArgs {
+                name,
+                features: Some(features_vec),
+            },
+        );
+        builder.add_layer(layer);
+        features.clear();
+
+        for i in w_range {
+            let way = &ways[i];
+
+            let tags_index_start = way.tag_first_idx() as usize;
+            let tags_index_end = if i < ways_len {
+                ways[i + 1].tag_first_idx() as usize
+            } else if relations_len > 0 {
+                relations[0].tag_first_idx() as usize
+            } else {
+                tags_index_len
+            };
+            let tags_index_range = tags_index_start..tags_index_end;
+
+            // Tags
+            let (keys, vals) = build_tags(
+                tags_index_range,
+                way.osm_id(),
+                tags_index,
+                tags,
+                strings,
+                builder,
+            );
+            let keys_vec = builder.fbb.create_vector(&keys);
+            let vals_vec = builder.fbb.create_vector(&vals);
+
+            // Geometries
+            let refs_index_start = way.ref_first_idx() as usize;
+            let refs_index_end = if i < ways_len {
+                ways[i + 1].ref_first_idx() as usize
+            } else {
+                tags_index_len
+            };
+            let mut path = Vec::with_capacity(refs_index_end - refs_index_start);
+            for i in refs_index_start..refs_index_end {
+                if let Some(r) = nodes_index[i].value() {
+                    let n = &nodes[r as usize];
+                    let lon = n.lon();
+                    let lat = n.lat();
+                    let xy = lonlat_to_xy((lon, lat));
+                    let tile_point = tile.project(xy);
+                    path.push(tile_point);
+                }
+            }
+            let points = builder.fbb.create_vector(&path);
+            let geom = PVTGeometry::create(
+                &mut builder.fbb,
+                &PVTGeometryArgs {
+                    points: Some(points),
+                },
+            );
+            let geoms = builder.fbb.create_vector(&[geom]);
+
+            let feature = PVTFeature::create(
+                &mut builder.fbb,
+                &PVTFeatureArgs {
+                    id: way_pairs[i].h(),
+                    keys: Some(keys_vec),
+                    values: Some(vals_vec),
+                    geometries: Some(geoms),
+                },
+            );
+            features.push(feature);
+        }
+
+        let features_vec = builder.fbb.create_vector(&features);
+
+        let name = builder.attributes.upsert_string("ways");
+        let layer = PVTLayer::create(
+            &mut builder.fbb,
+            &PVTLayerArgs {
+                name,
+                features: Some(features_vec),
+            },
+        );
+        builder.add_layer(layer);
+
+        // NHTODO Relations
+    }
+
+    fn compose_h_tile(
+        &self,
+        tile: &Tile,
+        pair: ResultPair<&HilbertTile>,
+        builder: &mut PVTBuilder,
+    ) {
+        //NHTODO - First, we need to populate chunks...
+    }
+}
+
+fn child_index(h_tile: &HilbertTile, child_h: u64) -> Option<usize> {
+    let child_pos = child_h & 0xf;
+    let mask = h_tile.mask;
+    if mask >> child_pos & 1 != 1 {
+        return None;
+    }
+    let mut offset = 0;
+    for i in 0..child_pos {
+        offset += mask >> i & 1;
+    }
+    Some(h_tile.child as usize + offset as usize)
+}
+
+// NHTODO Not using this. Having issues with mutable lifetime references. This tag logic is hard coded right now.
+fn build_tags(
+    tags_index_range: Range<usize>,
+    osm_id: i64,
+    tags_index: &[TagIndex],
+    tags: &[Tag],
+    strings: RawData,
+    builder: &mut PVTBuilder,
+) -> (Vec<u32>, Vec<u32>) {
+    let len = tags_index_range.end - tags_index_range.start + 1;
+    let mut keys: Vec<u32> = Vec::with_capacity(len);
+    let mut vals: Vec<u32> = Vec::with_capacity(len);
+
+    let osm_id_key = builder.attributes.upsert_string("osm_id");
+    let osm_id_val = builder.attributes.upsert_number_value(osm_id as f64);
+    keys.push(osm_id_key);
+    vals.push(osm_id_val);
+
+    for tag_idx in &tags_index[tags_index_range] {
+        let tag_i = tag_idx.value() as usize;
+        debug_assert!(tag_i < tags.len());
+        let tag = &tags[tag_i];
+        let k = tag.key_idx() as usize;
+        let v = tag.value_idx() as usize;
+        match strings.substring(k) {
+            Ok(key) => keys.push(builder.attributes.upsert_string(key)),
+            Err(e) => eprintln!("Invalid tag key {:?}", e),
+        }
+        match strings.substring(v) {
+            Ok(val) => vals.push(builder.attributes.upsert_string_value(val)),
+            Err(e) => eprintln!("Invalid tag val {:?}", e),
+        }
+    }
+
+    (keys, vals)
 }
 
 #[cfg(test)]
@@ -341,20 +336,17 @@ mod tests {
         let dir = PathBuf::from("tests/fixtures/santacruz/sort");
         let tree = HilbertTree::open(&dir, 12).unwrap();
 
-        let res = tree.find(&t);
-
-        assert!(res.is_some());
-
-        let res = res.unwrap();
-
-        assert!(res.leaf.is_some());
-
-        let leaf = res.leaf.unwrap();
-
-        assert_eq!(leaf.n, 944454);
-        assert_eq!(leaf.w, 106806);
-        assert_eq!(leaf.r, 0);
-        assert_eq!(leaf.h, 3329135);
+        match tree.find(&t) {
+            FindResult::HilbertTile(_) => panic!("Should not be a HilbertTile. Should be a leaf"),
+            FindResult::Leaf(pair) => {
+                let leaf = pair.item;
+                assert_eq!(leaf.n, 865693);
+                assert_eq!(leaf.w, 98588);
+                assert_eq!(leaf.r, 0);
+                assert_eq!(leaf.h, 3329134);
+            }
+            FindResult::None => panic!("Should be a leaf."),
+        }
     }
 
     #[test]
@@ -383,24 +375,28 @@ mod tests {
         assert_eq!(layer_name, "nodes");
 
         let features = layers.get(0).features().unwrap();
-        assert_eq!(features.len(), 16450);
+        assert_eq!(features.len(), 2748);
 
         let feature = features.get(0);
+
+        let id = feature.id();
+        assert_eq!(id, 3660421543731798272); // hilbert location of node
+
         let keys = feature.keys().unwrap();
-        assert_eq!(keys.len(), 3);
+        assert_eq!(keys.len(), 2);
         let vals = feature.values().unwrap();
 
         let pvt_values = pvt.values().unwrap();
 
+        let k0 = strings.get(keys.get(0) as usize);
+        let v0 = pvt_values.get(vals.get(0) as usize).v();
+        assert_eq!(k0, "osm_id");
+        assert_eq!(v0, 5680698655.0);
+
         let k1 = strings.get(keys.get(1) as usize);
         let v1 = strings.get(pvt_values.get(vals.get(1) as usize).v() as usize);
-
-        let k2 = strings.get(keys.get(2) as usize);
-        let v2 = strings.get(pvt_values.get(vals.get(2) as usize).v() as usize);
-        assert_eq!(k1, "content");
-        assert_eq!(v1, "water");
-        assert_eq!(k2, "man_made");
-        assert_eq!(v2, "storage_tank");
+        assert_eq!(k1, "power");
+        assert_eq!(v1, "pole");
 
         let geometries = feature.geometries().unwrap();
         let len = geometries.len();
@@ -409,8 +405,10 @@ mod tests {
         let len = points.len();
         assert_eq!(len, 1);
         let point = points.get(0);
-        assert_eq!(point.x(), 7779);
-        assert_eq!(point.y(), -163);
+        let x = point.x();
+        let y = point.y();
+        assert_eq!(x, 162);
+        assert_eq!(y, 58);
     }
 
     #[test]
@@ -420,7 +418,6 @@ mod tests {
         let nodes = tree.archive.nodes();
         for n in nodes {
             let t_range = n.tags();
-            // println!("{:?}", t_range);
             assert!(t_range.start <= t_range.end || t_range.end == 0);
         }
     }

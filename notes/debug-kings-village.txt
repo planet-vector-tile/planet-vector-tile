@@ -1,0 +1,19 @@
+sort way 42630986 kings village road
+i 17884 h 3660422102460495744 lonlat: (-122.0281431, 37.0490179)
+way_tile_h 3329134
+
+way_id: 42630986, way_tile_h: 3329134 tile_h 3329134
+
+i 57 in find
+
+{n:944454, w:106806, r:0, h:3329135}
+
+z10 i194 , h_tile {n:0, w:0, r:0, child:43, mask:65502} , child_pos 14
+
+I think the child value for z10 is the problem...
+
+Why is z12 x660 y1593 h3329139 the first correct tile?
+
+That parent is z10 208071
+
+NHTODO Removing the refreshTile code breaks rendering after pressing select button.

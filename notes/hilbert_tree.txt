@@ -39,3 +39,281 @@ s 1111
 z 8
 h 65535
 s 15
+
+
+fn main() {
+    let z = 8_u32;
+    let h = 0xFFFF_u32;   // z8
+    // let h = 0xFFF_u32;   // z6
+    // let h = 0xFF_u32;   // z4
+    // let h = 0xF_u32;    // z2
+    let s = h >> 4 * (z / 2 - 1);
+
+    println!("z {:x?}", z);
+    println!("h {:x?}", h);
+    println!("s {:x?}", s);
+    println!();
+    println!("z {:o}", z);
+    println!("h {:o}", h);
+    println!("s {:o}", s);
+    println!();
+    println!("z {:b}", z);
+    println!("h {:b}", h);
+    println!("s {:b}", s);
+    println!();
+    println!("z {}", z);
+    println!("h {}", h);
+    println!("s {}", s);
+
+}
+
+z 8
+h ffff
+s f
+
+z 10
+h 177777
+s 17
+
+z 1000
+h 1111111111111111
+s 1111
+
+z 8
+h 65535
+s 15
+
+
+
+TILES
+zoom 12 level_start 0
+i 0 h 3329052 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 1 h 3329057 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 2 h 3329058 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 3 h 3329059 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 4 h 3329060 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 5 h 3329061 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 6 h 3329062 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 7 h 3329063 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 8 h 3329064 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 9 h 3329065 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 10 h 3329066 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 11 h 3329067 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 12 h 3329068 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 13 h 3329069 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 14 h 3329070 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 15 h 3329071 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 16 h 3329072 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 17 h 3329073 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 18 h 3329074 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 19 h 3329075 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 20 h 3329076 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 21 h 3329078 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 22 h 3329079 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 23 h 3329080 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 24 h 3329082 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 25 h 3329083 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 26 h 3329085 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 27 h 3329086 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 28 h 3329091 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 29 h 3329092 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 30 h 3329093 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 31 h 3329094 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 32 h 3329095 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 33 h 3329097 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 34 h 3329098 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 35 h 3329099 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 36 h 3329108 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 37 h 3329111 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 38 h 3329112 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 39 h 3329113 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 40 h 3329114 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 41 h 3329118 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 42 h 3329119 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 43 h 3329120 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 44 h 3329121 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 45 h 3329122 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 46 h 3329123 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 47 h 3329124 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 48 h 3329126 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 49 h 3329127 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 50 h 3329128 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 51 h 3329129 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 52 h 3329130 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 53 h 3329131 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 54 h 3329132 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 55 h 3329133 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 56 h 3329134 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 57 h 3329135 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 58 h 3329136 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 59 h 3329137 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 60 h 3329138 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 61 h 3329139 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 62 h 3329140 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 63 h 3329141 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 64 h 3329142 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 65 h 3329143 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 66 h 3329144 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 67 h 3329145 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 68 h 3329146 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 69 h 3329147 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 70 h 3329148 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 71 h 3329149 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 72 h 3329150 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 73 h 3329151 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 74 h 3329152 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 75 h 3329153 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 76 h 3329154 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 77 h 3329155 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 78 h 3329156 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 79 h 3329165 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 80 h 3329166 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 81 h 3329167 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 82 h 3329168 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 83 h 3329169 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 84 h 3329170 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 85 h 3329171 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 86 h 3329172 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 87 h 3329173 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 88 h 3329174 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 89 h 3329175 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 90 h 3329176 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 91 h 3329178 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 92 h 3329181 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 93 h 3329182 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 94 h 3329189 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 95 h 3329234 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 96 h 3329236 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 97 h 3329237 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 98 h 3329238 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 99 h 3329239 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 100 h 3329240 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 101 h 3329241 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 102 h 3329242 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 103 h 3329243 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 104 h 3329244 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 105 h 3329245 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 106 h 3329537 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 107 h 3329866 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 108 h 3329867 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 109 h 3329868 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 110 h 3329876 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 111 h 3329879 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 112 h 3329880 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 113 h 3329881 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 114 h 3329882 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 115 h 3329889 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 116 h 3329892 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 117 h 3329895 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 118 h 3329896 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 119 h 3329897 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 120 h 3329898 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 121 h 3329899 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 122 h 3329902 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 123 h 3329903 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 124 h 3329908 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 125 h 3329909 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 126 h 3329936 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 127 h 3329937 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 128 h 3329938 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 129 h 3329940 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 130 h 3329941 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 131 h 3329942 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 132 h 3329944 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 133 h 3329946 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 134 h 3329947 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 135 h 3329949 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 136 h 3329957 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 137 h 3330306 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 138 h 3330307 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 139 h 3330315 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 140 h 3330316 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 141 h 3330317 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 142 h 3330328 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 143 h 3330330 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 144 h 3330331 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 145 h 3330333 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 146 h 3330334 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 147 h 3330341 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 148 h 3330342 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 149 h 3330383 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 150 h 3330480 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 151 h 3330481 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 152 h 3330488 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 153 h 3330490 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 154 h 3330491 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 155 h 3330493 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 156 h 3330494 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 157 h 3330511 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 158 h 3330512 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 159 h 3330514 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 160 h 3330515 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 161 h 3330518 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 162 h 3330519 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 163 h 3330521 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 164 h 3330639 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 165 h 3330640 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 166 h 3330641 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 167 h 3330642 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 168 h 3330652 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 169 h 3330653 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 170 h 3330659 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 171 h 3330660 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 172 h 3330662 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 173 h 3330663 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 174 h 3330665 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 175 h 3332101 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 176 h 3333456 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 177 h 3333458 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 178 h 3333459 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 179 h 3333463 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 180 h 3333464 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 181 h 3333465 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 182 h 3333466 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 183 h 3333477 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 184 h 3333478 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 185 h 3333481 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 186 h 3333482 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 187 h 3333525 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+i 188 h 3333526 mask 0b0000000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 0 }
+zoom 10 level_start 189
+i 189 h 208065 mask 0b0001000000000000 HilbertTile { n: 0, w: 0, r: 0, child: -12, mask: 4096 }
+i 190 h 208066 mask 0b1111111111111100 HilbertTile { n: 0, w: 0, r: 0, child: 0, mask: 65532 }
+i 191 h 208067 mask 0b0110110111011110 HilbertTile { n: 0, w: 0, r: 0, child: 16, mask: 28126 }
+i 192 h 208068 mask 0b0000111011110000 HilbertTile { n: 0, w: 0, r: 0, child: 25, mask: 3824 }
+i 193 h 208069 mask 0b1100011110000000 HilbertTile { n: 0, w: 0, r: 0, child: 30, mask: 51072 }
+i 194 h 208070 mask 0b1111111111011110 HilbertTile { n: 0, w: 0, r: 0, child: 43, mask: 65502 }
+i 195 h 208071 mask 0b1111111111111110 HilbertTile { n: 0, w: 0, r: 0, child: 58, mask: 65534 }
+i 196 h 208072 mask 0b1110000000011110 HilbertTile { n: 0, w: 0, r: 0, child: 74, mask: 57374 }
+i 197 h 208073 mask 0b0110010111111110 HilbertTile { n: 0, w: 0, r: 0, child: 82, mask: 26110 }
+i 198 h 208077 mask 0b0011111111110100 HilbertTile { n: 0, w: 0, r: 0, child: 93, mask: 16372 }
+i 199 h 208116 mask 0b0001110000000000 HilbertTile { n: 0, w: 0, r: 0, child: 97, mask: 7168 }
+i 200 h 208117 mask 0b0000011110000000 HilbertTile { n: 0, w: 0, r: 0, child: 104, mask: 1920 }
+i 201 h 208118 mask 0b1100111110010000 HilbertTile { n: 0, w: 0, r: 0, child: 112, mask: 53136 }
+i 202 h 208119 mask 0b0000000000100000 HilbertTile { n: 0, w: 0, r: 0, child: 120, mask: 32 }
+i 203 h 208121 mask 0b0010110101110110 HilbertTile { n: 0, w: 0, r: 0, child: 126, mask: 11638 }
+i 204 h 208144 mask 0b0011100000001100 HilbertTile { n: 0, w: 0, r: 0, child: 135, mask: 14348 }
+i 205 h 208145 mask 0b0110110000000000 HilbertTile { n: 0, w: 0, r: 0, child: 133, mask: 27648 }
+i 206 h 208146 mask 0b0000000001000000 HilbertTile { n: 0, w: 0, r: 0, child: 142, mask: 64 }
+i 207 h 208155 mask 0b0110110100000011 HilbertTile { n: 0, w: 0, r: 0, child: 150, mask: 27907 }
+i 208 h 208157 mask 0b0000001011001101 HilbertTile { n: 0, w: 0, r: 0, child: 158, mask: 717 }
+i 209 h 208165 mask 0b0011000000000111 HilbertTile { n: 0, w: 0, r: 0, child: 165, mask: 12295 }
+i 210 h 208166 mask 0b0000001011010000 HilbertTile { n: 0, w: 0, r: 0, child: 167, mask: 720 }
+i 211 h 208341 mask 0b0000011110001101 HilbertTile { n: 0, w: 0, r: 0, child: 176, mask: 1933 }
+i 212 h 208342 mask 0b0000011001000000 HilbertTile { n: 0, w: 0, r: 0, child: 178, mask: 1600 }
+i 213 h 208345 mask 0b0000000001000000 HilbertTile { n: 0, w: 0, r: 0, child: 182, mask: 64 }
+zoom 8 level_start 214
+i 214 h 13004 mask 0b0010001111111110 HilbertTile { n: 0, w: 0, r: 0, child: 188, mask: 9214 }
+i 215 h 13007 mask 0b0000001011100000 HilbertTile { n: 0, w: 0, r: 0, child: 195, mask: 736 }
+i 216 h 13009 mask 0b0010100000000110 HilbertTile { n: 0, w: 0, r: 0, child: 204, mask: 10246 }
+i 217 h 13010 mask 0b0000000001000000 HilbertTile { n: 0, w: 0, r: 0, child: 204, mask: 64 }
+i 218 h 13021 mask 0b0000000001000000 HilbertTile { n: 0, w: 0, r: 0, child: 206, mask: 64 }
+zoom 6 level_start 219
+i 219 h 812 mask 0b1001000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 202, mask: 36864 }
+i 220 h 813 mask 0b0000000000000100 HilbertTile { n: 0, w: 0, r: 0, child: 215, mask: 4 }
+zoom 4 level_start 221
+i 221 h 50 mask 0b0001000000000000 HilbertTile { n: 0, w: 0, r: 0, child: 207, mask: 4096 }
+zoom 2 level_start 222
+i 222 h 3 mask 0b0000000000000100 HilbertTile { n: 0, w: 0, r: 0, child: 219, mask: 4 }
+zoom 0 level_start 223
+i 223 h 0 mask 0b0000000000001000 HilbertTile { n: 0, w: 0, r: 0, child: 219, mask: 8 }

@@ -27,23 +27,18 @@ export class PVTFeature {
         return offset ? this.bb!.readUint64(this.bb_pos + offset) : BigInt('0');
     }
 
-    h(): bigint {
-        const offset = this.bb!.__offset(this.bb_pos, 6);
-        return offset ? this.bb!.readUint64(this.bb_pos + offset) : BigInt('0');
-    }
-
     keys(index: number): number | null {
-        const offset = this.bb!.__offset(this.bb_pos, 8);
+        const offset = this.bb!.__offset(this.bb_pos, 6);
         return offset ? this.bb!.readUint32(this.bb!.__vector(this.bb_pos + offset) + index * 4) : 0;
     }
 
     keysLength(): number {
-        const offset = this.bb!.__offset(this.bb_pos, 8);
+        const offset = this.bb!.__offset(this.bb_pos, 6);
         return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
     }
 
     keysArray(): Uint32Array | null {
-        const offset = this.bb!.__offset(this.bb_pos, 8);
+        const offset = this.bb!.__offset(this.bb_pos, 6);
         return offset
             ? new Uint32Array(
                   this.bb!.bytes().buffer,
@@ -54,17 +49,17 @@ export class PVTFeature {
     }
 
     values(index: number): number | null {
-        const offset = this.bb!.__offset(this.bb_pos, 10);
+        const offset = this.bb!.__offset(this.bb_pos, 8);
         return offset ? this.bb!.readUint32(this.bb!.__vector(this.bb_pos + offset) + index * 4) : 0;
     }
 
     valuesLength(): number {
-        const offset = this.bb!.__offset(this.bb_pos, 10);
+        const offset = this.bb!.__offset(this.bb_pos, 8);
         return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
     }
 
     valuesArray(): Uint32Array | null {
-        const offset = this.bb!.__offset(this.bb_pos, 10);
+        const offset = this.bb!.__offset(this.bb_pos, 8);
         return offset
             ? new Uint32Array(
                   this.bb!.bytes().buffer,
@@ -75,7 +70,7 @@ export class PVTFeature {
     }
 
     geometries(index: number, obj?: PVTGeometry): PVTGeometry | null {
-        const offset = this.bb!.__offset(this.bb_pos, 12);
+        const offset = this.bb!.__offset(this.bb_pos, 10);
         return offset
             ? (obj || new PVTGeometry()).__init(
                   this.bb!.__indirect(this.bb!.__vector(this.bb_pos + offset) + index * 4),
@@ -85,24 +80,20 @@ export class PVTFeature {
     }
 
     geometriesLength(): number {
-        const offset = this.bb!.__offset(this.bb_pos, 12);
+        const offset = this.bb!.__offset(this.bb_pos, 10);
         return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
     }
 
     static startPVTFeature(builder: flatbuffers.Builder) {
-        builder.startObject(5);
+        builder.startObject(4);
     }
 
     static addId(builder: flatbuffers.Builder, id: bigint) {
         builder.addFieldInt64(0, id, BigInt('0'));
     }
 
-    static addH(builder: flatbuffers.Builder, h: bigint) {
-        builder.addFieldInt64(1, h, BigInt('0'));
-    }
-
     static addKeys(builder: flatbuffers.Builder, keysOffset: flatbuffers.Offset) {
-        builder.addFieldOffset(2, keysOffset, 0);
+        builder.addFieldOffset(1, keysOffset, 0);
     }
 
     static createKeysVector(builder: flatbuffers.Builder, data: number[] | Uint32Array): flatbuffers.Offset;
@@ -126,7 +117,7 @@ export class PVTFeature {
     }
 
     static addValues(builder: flatbuffers.Builder, valuesOffset: flatbuffers.Offset) {
-        builder.addFieldOffset(3, valuesOffset, 0);
+        builder.addFieldOffset(2, valuesOffset, 0);
     }
 
     static createValuesVector(builder: flatbuffers.Builder, data: number[] | Uint32Array): flatbuffers.Offset;
@@ -150,7 +141,7 @@ export class PVTFeature {
     }
 
     static addGeometries(builder: flatbuffers.Builder, geometriesOffset: flatbuffers.Offset) {
-        builder.addFieldOffset(4, geometriesOffset, 0);
+        builder.addFieldOffset(3, geometriesOffset, 0);
     }
 
     static createGeometriesVector(builder: flatbuffers.Builder, data: flatbuffers.Offset[]): flatbuffers.Offset {
@@ -173,14 +164,12 @@ export class PVTFeature {
     static createPVTFeature(
         builder: flatbuffers.Builder,
         id: bigint,
-        h: bigint,
         keysOffset: flatbuffers.Offset,
         valuesOffset: flatbuffers.Offset,
         geometriesOffset: flatbuffers.Offset
     ): flatbuffers.Offset {
         PVTFeature.startPVTFeature(builder);
         PVTFeature.addId(builder, id);
-        PVTFeature.addH(builder, h);
         PVTFeature.addKeys(builder, keysOffset);
         PVTFeature.addValues(builder, valuesOffset);
         PVTFeature.addGeometries(builder, geometriesOffset);

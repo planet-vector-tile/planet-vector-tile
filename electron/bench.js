@@ -1,9 +1,33 @@
-const api = require('../index');
+const plugin = require('../index');
 const style = require('../styles/default.json');
 
 const maplibre = window.maplibregl;
 
-maplibre.setPlanetVectorTilePlugin(api);
+let PVT = require('../dist/bundle.js').PVT;
+plugin.onTileLoad = (tile, buf) => {
+    const { x, y, z } = tile;
+    if (x !== 659 || y !== 1593) {
+        return;
+    }
+    const pvt = new PVT(buf);
+    const nodes = pvt.layers.nodes;
+    const ways = pvt.layers.ways;
+    console.log('nodes count', nodes.length);
+    console.log('ways count', ways.length);
+
+    // find kings village road
+    const waysLen = ways.length;
+    for (let i = 0; i < waysLen; i++) {
+        const way = ways.feature(i);
+        if (way.properties.osm_id === 42630986) {
+            console.log('found kings village road', way);
+            break;
+        }
+    }
+    console.log('did not find kings village road');
+};
+
+maplibre.setPlanetVectorTilePlugin(plugin);
 
 const map = (window.map = new window.maplibregl.Map({
     container: 'map',
@@ -15,6 +39,10 @@ map.getCanvas().style.cursor = 'crosshair';
 let pvt = (window.pvt = {
     clickedFeatures: null,
     selectedFeature: null,
+});
+
+map.on('load', () => {
+    map.fitBounds([-122.035639, 37.045724, -122.005556, 37.059253]);
 });
 
 map.on('mouseup', e => {
