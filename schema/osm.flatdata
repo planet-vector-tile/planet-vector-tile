@@ -108,9 +108,6 @@ struct Way {
 
     osm_id: i64: 40;
 
-    /// PointOnSurface Hilbert location of way.
-    h: u64: 64;
-
     /**
      * Range of tags attached to this node.
      *
@@ -129,6 +126,7 @@ struct Way {
 
 struct HilbertWayPair {
     i: u32 : 32;
+    /// PointOnSurface Hilbert location of way.
     h: u64 : 64;
 }
 

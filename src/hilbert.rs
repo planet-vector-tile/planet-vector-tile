@@ -70,6 +70,7 @@ pub struct HilbertTree {
     pub w_chunks: Mutant<Chunk>,
     pub r_chunks: Mutant<Chunk>,
     pub archive: Osm,
+    pub way_pairs: Mutant<HilbertWayPair>,
 }
 
 impl HilbertTree {
@@ -112,6 +113,7 @@ impl HilbertTree {
             w_chunks,
             r_chunks,
             archive,
+            way_pairs: m_way_pairs,
         })
     }
 
@@ -134,6 +136,7 @@ impl HilbertTree {
             )));
         }
 
+        let m_way_pairs = Mutant::<HilbertWayPair>::open(dir, "hilbert_way_pairs", true)?;
         let m_leaves = Mutant::<Leaf>::open(dir, "hilbert_leaves", false)?;
         let m_tiles = Mutant::<HilbertTile>::open(dir, "hilbert_tiles", false)?;
 
@@ -151,6 +154,7 @@ impl HilbertTree {
             w_chunks,
             r_chunks,
             archive,
+            way_pairs: m_way_pairs,
         })
     }
 }

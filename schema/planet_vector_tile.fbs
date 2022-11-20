@@ -10,8 +10,7 @@ table PVTLayer {
 }
 
 table PVTFeature {
-    id: uint64; // OPTIONAL
-    h: uint64;  // REQUIRED hilbert index representing feature
+    id: uint64;
     // index of string in Tile
     keys: [uint32];
     // index of the value in Tile

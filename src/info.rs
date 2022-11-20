@@ -160,7 +160,6 @@ pub fn generate_features<'a>(
         fbb,
         &PVTFeatureArgs {
             id,
-            h: tile.h,
             keys: Some(keys),
             values: Some(vals),
             geometries: Some(geometries),
@@ -183,7 +182,6 @@ pub fn generate_features<'a>(
         fbb,
         &PVTFeatureArgs {
             id,
-            h: tile.h,
             keys: Some(keys),
             values: Some(vals),
             geometries: Some(center_geoms),
@@ -204,7 +202,6 @@ pub fn generate_features<'a>(
         fbb,
         &PVTFeatureArgs {
             id,
-            h: tile.h,
             keys: Some(keys),
             values: Some(vals),
             geometries: Some(bearing_geoms),
@@ -293,7 +290,6 @@ pub fn basic(tile: Tile) -> Vec<u8> {
         &mut builder,
         &PVTFeatureArgs {
             id: tile.h,
-            h: tile.h,
             keys: Some(keys),
             values: Some(values),
             geometries: Some(geometries),
@@ -321,7 +317,6 @@ pub fn basic(tile: Tile) -> Vec<u8> {
         &mut builder,
         &PVTFeatureArgs {
             id: tile.h,
-            h: tile.h,
             keys: Some(keys),
             values: Some(values),
             geometries: Some(center_geoms),
