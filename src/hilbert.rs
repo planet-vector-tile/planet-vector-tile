@@ -228,47 +228,37 @@ fn build_leaves(
 
     let mut leaf_i = 1;
 
-    let mut node_tile_h = tile_h;
-    let mut way_tile_h = tile_h;
-
-    let archive = Osm::open(FileResourceStorage::new(dir))?;
-    let ways = archive.ways();
+    let mut next_node_tile_h = tile_h;
+    let mut next_way_tile_h = tile_h;
 
     loop {
-        let mut next_tile_h = None;
-
-        while n_i < node_pairs_len && node_tile_h == tile_h {
-            let p = &node_pairs[n_i];
-            let node_h = p.h();
-            node_tile_h = location::h_to_zoom_h(node_h, leaf_zoom) as u32;
+        while n_i < node_pairs_len && next_node_tile_h <= tile_h {
+            let node_h = node_pairs[n_i].h();
+            let node_tile_h = location::h_to_zoom_h(node_h, leaf_zoom) as u32;
             if node_tile_h > tile_h {
-                next_tile_h = Some(node_tile_h);
+                next_node_tile_h = node_tile_h;
                 break;
             }
             n_i += 1;
         }
 
-        while w_i < way_pairs_len && way_tile_h == tile_h {
-            let p = &way_pairs[w_i];
-            let way_h = p.h();
-            way_tile_h = location::h_to_zoom_h(way_h, leaf_zoom) as u32;
-            let way_id = ways[w_i].osm_id();
-            if way_id == 42630986 {
-                println!(
-                    "way_id {} way_tile_h {} tile_h {}",
-                    way_id, way_tile_h, tile_h
-                );
-            }
+        while w_i < way_pairs_len && next_way_tile_h <= tile_h {
+            let way_h = way_pairs[w_i].h();
+            let way_tile_h = location::h_to_zoom_h(way_h, leaf_zoom) as u32;
             if way_tile_h > tile_h {
-                if way_tile_h < node_tile_h {
-                    next_tile_h = Some(way_tile_h);
-                }
+                next_way_tile_h = way_tile_h;
                 break;
             }
             w_i += 1;
         }
 
-        if let Some(next_tile_h) = next_tile_h {
+        let next_tile_h = if next_node_tile_h < next_way_tile_h && next_node_tile_h > tile_h {
+            next_node_tile_h
+        } else {
+            next_way_tile_h
+        };
+
+        if next_tile_h > tile_h {
             let leaf = Leaf {
                 n: n_i as u64,
                 w: w_i as u32,
@@ -581,51 +571,4 @@ mod tests {
         assert_eq!(m_leaves.len, 3);
     }
 
-    #[test]
-    fn test_santacruz() {
-        let dir = PathBuf::from("tests/fixtures/santacruz/sort");
-        let m_node_pairs =
-            Mutant::<HilbertNodePair>::open(&dir, "hilbert_node_pairs", true).unwrap();
-        let m_way_pairs = Mutant::<HilbertWayPair>::open(&dir, "hilbert_way_pairs", true).unwrap();
-
-        let m_leaves = build_leaves(&m_node_pairs, &m_way_pairs, &dir, 12).unwrap();
-
-        assert_eq!(m_leaves.len, 189);
-
-        let leaves = m_leaves.slice();
-        for l in leaves {
-            let h = l.h;
-            println!("leaf tile h {:?}", h);
-            let leaf_zoom = 12;
-            let z = 10;
-            let parent_h = h >> (2 * (leaf_zoom - z));
-            println!("leaf parent h {:?}", parent_h);
-        }
-
-        let tree = HilbertTree::build(&dir, 12).unwrap();
-        // let m_tiles = tree.tiles;
-        // let tiles = m_tiles.slice();
-        // for t in tiles {
-        //     println!("{:?}", t);
-        // }
-
-        // let vec_u8 = tree.compose_tile(Tile::from_zh(12, 3329090));
-        // let vec_u8 = tree.compose_tile(Tile::from_zh(12, 3329140));
-    }
-
-    // #[test]
-    // fn test_level_path() {
-    //     let tile = Tile::from_zh(12, 3329121);
-    //     let path = level_path(tile);
-    //     println!("path {:?}", path);
-    //     // [1, 6, 12, 12, 2, 3]
-
-    //     let mut t = Tile::default();
-    //     for p in path.iter().rev() {
-    //         let mut grand_children = t.grand_children();
-    //         grand_children.sort_by_key(|c| c.h);
-    //         t = grand_children[*p as usize];
-    //     }
-    //     assert_eq!(t, tile);
-    // }
 }
