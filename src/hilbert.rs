@@ -27,10 +27,11 @@ pub struct Leaf {
     pub r: u32,
     // Hilbert index for the leaf tile, at the leaf zoom
     pub h: u32,
-    // Indices to the first chunk of nodes, ways, relations, for the tile.
-    n_chunk: u32,
-    w_chunk: u32,
-    r_chunk: u32,
+    // Indices to the first of ways in relations in w_ext and r_ext
+    // denoting ways and relations that enter the given leaf tile
+    // that exist outside of the leaf's n,w,r ranges.
+    w_ext: u32,
+    r_ext: u32,
 }
 
 // Each vector tile corresponds to one of these tiles.
@@ -219,9 +220,8 @@ fn build_leaves(
         w: 0,
         r: 0,
         h: tile_h,
-        n_chunk: 0,
-        w_chunk: 0,
-        r_chunk: 0,
+        w_ext: 0,
+        r_ext: 0,
     };
     println!("0 {:?}", first_leaf);
     leaves[0] = first_leaf;
@@ -268,9 +268,8 @@ fn build_leaves(
                 w: w_i as u32,
                 r: 0,
                 h: next_tile_h,
-                n_chunk: 0,
-                w_chunk: 0,
-                r_chunk: 0,
+                w_ext: 0,
+                r_ext: 0,
             };
             println!("{} {:?}", leaf_i, leaf);
             leaves[leaf_i] = leaf;
@@ -495,8 +494,6 @@ unsafe fn to_bytes<T: Sized>(p: &T) -> &[u8] {
 #[cfg(test)]
 mod tests {
     use std::{collections::HashSet, path::PathBuf};
-
-    use crate::source::Source;
 
     use super::*;
 
