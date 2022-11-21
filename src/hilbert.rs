@@ -232,27 +232,31 @@ fn build_leaves(
     let mut next_way_tile_h = tile_h;
 
     loop {
+        let mut node_changed = false;
         while n_i < node_pairs_len && next_node_tile_h <= tile_h {
             let node_h = node_pairs[n_i].h();
             let node_tile_h = location::h_to_zoom_h(node_h, leaf_zoom) as u32;
             if node_tile_h > tile_h {
                 next_node_tile_h = node_tile_h;
+                node_changed = true;
                 break;
             }
             n_i += 1;
         }
 
+        let mut way_changed = false;
         while w_i < way_pairs_len && next_way_tile_h <= tile_h {
             let way_h = way_pairs[w_i].h();
             let way_tile_h = location::h_to_zoom_h(way_h, leaf_zoom) as u32;
             if way_tile_h > tile_h {
                 next_way_tile_h = way_tile_h;
+                way_changed = true;
                 break;
             }
             w_i += 1;
         }
 
-        let next_tile_h = if next_node_tile_h < next_way_tile_h && next_node_tile_h > tile_h {
+        let next_tile_h = if !way_changed || ( node_changed && next_node_tile_h < next_way_tile_h ) {
             next_node_tile_h
         } else {
             next_way_tile_h
