@@ -1,7 +1,7 @@
 mod args;
 mod hilbert;
-mod hilbert_compose;
 mod hilbert_leaves;
+mod hilbert_compose;
 mod location;
 mod mutant;
 mod osmflat;
