@@ -191,18 +191,21 @@ impl HilbertTree {
         builder.add_layer(layer);
         features.clear();
 
-        let mut i = w_range.start;
-        let mut ext_i = w_ext_range.start;
-        loop {
-            let way = &ways[i];
+        let tile_ways = ways[w_range].iter();
+        let ext_ways = external_entities[w_ext_range].iter().map(|i| &ways[*i as usize]);
+        let all_ways = tile_ways.chain(ext_ways);
 
-            let tags_index_start = way.tag_first_idx() as usize;
-            let tags_index_end = if i + 1 < ways_len {
-                ways[i + 1].tag_first_idx() as usize
-            } else if relations_len > 0 {
-                relations[0].tag_first_idx() as usize
+        for way in all_ways {
+            let range = way.tags();
+            let tags_index_start = range.start as usize;
+            let tags_index_end = if range.end != 0 {
+                range.end as usize
             } else {
-                tags_index_len
+                if relations_len > 0 {
+                    relations[0].tag_first_idx() as usize
+                } else {
+                    tags_index_len
+                }
             };
             let tags_index_range = tags_index_start..tags_index_end;
 
@@ -219,12 +222,14 @@ impl HilbertTree {
             let vals_vec = builder.fbb.create_vector(&vals);
 
             // Geometries
-            let refs_index_start = way.ref_first_idx() as usize;
-            let refs_index_end = if i + 1 < ways_len {
-                ways[i + 1].ref_first_idx() as usize
+            let range = way.refs();
+            let refs_index_start = range.start as usize;
+            let refs_index_end = if range.end != 0 {
+                range.end as usize
             } else {
-                tags_index_len
+                nodes_len
             };
+
             let mut path = Vec::with_capacity(refs_index_end - refs_index_start);
             for i in refs_index_start..refs_index_end {
                 if let Some(r) = nodes_index[i].value() {
@@ -248,22 +253,13 @@ impl HilbertTree {
             let feature = PVTFeature::create(
                 &mut builder.fbb,
                 &PVTFeatureArgs {
-                    id: way_pairs[i].h(),
+                    id: way.osm_id() as u64, // NHTODO get h instead of osm_id
                     keys: Some(keys_vec),
                     values: Some(vals_vec),
                     geometries: Some(geoms),
                 },
             );
             features.push(feature);
-
-            if i < w_range.end {
-                i += 1;
-            } else if ext_i < w_ext_range.end {
-                i = external_entities[ext_i] as usize;
-                ext_i += 1;
-            } else {
-                break;
-            }
         }
 
         let features_vec = builder.fbb.create_vector(&features);
