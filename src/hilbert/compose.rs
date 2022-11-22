@@ -1,7 +1,11 @@
 use std::ops::Range;
 
 use super::leaf::Leaf;
-use crate::tile::planet_vector_tile_generated::*;
+use crate::{
+    osmflat::osmflat_generated::osm::{Node, Relation, Way},
+    tile::planet_vector_tile_generated::*,
+};
+use flatbuffers::WIPOffset;
 use flatdata::RawData;
 
 use crate::{
@@ -98,19 +102,22 @@ impl HilbertTree {
         let tags_index = self.archive.tags_index();
         let tags_index_len = tags_index.len();
         let strings = self.archive.stringtable();
+        let external_entities = self.leaves_external.slice();
 
         // The range of indices in the entities vectors.
-        let (n_range, w_range, r_range) = if let Some(next) = pair.next {
+        let (n_range, w_range, r_range, w_ext_range) = if let Some(next) = pair.next {
             (
                 (pair.item.n as usize)..(next.n as usize),
                 (pair.item.w as usize)..(next.w as usize),
                 (pair.item.r as usize)..(next.r as usize),
+                (pair.item.w_ext as usize)..(next.w_ext as usize),
             )
         } else {
             (
                 (pair.item.n as usize)..nodes_len,
                 (pair.item.w as usize)..ways_len,
                 (pair.item.r as usize)..relations_len,
+                (pair.item.w_ext as usize)..external_entities.len(),
             )
         };
 
@@ -184,16 +191,21 @@ impl HilbertTree {
         builder.add_layer(layer);
         features.clear();
 
-        for i in w_range {
-            let way = &ways[i];
+        let tile_ways = ways[w_range].iter();
+        let ext_ways = external_entities[w_ext_range].iter().map(|i| &ways[*i as usize]);
+        let all_ways = tile_ways.chain(ext_ways);
 
-            let tags_index_start = way.tag_first_idx() as usize;
-            let tags_index_end = if i < ways_len {
-                ways[i + 1].tag_first_idx() as usize
-            } else if relations_len > 0 {
-                relations[0].tag_first_idx() as usize
+        for way in all_ways {
+            let range = way.tags();
+            let tags_index_start = range.start as usize;
+            let tags_index_end = if range.end != 0 {
+                range.end as usize
             } else {
-                tags_index_len
+                if relations_len > 0 {
+                    relations[0].tag_first_idx() as usize
+                } else {
+                    tags_index_len
+                }
             };
             let tags_index_range = tags_index_start..tags_index_end;
 
@@ -210,12 +222,14 @@ impl HilbertTree {
             let vals_vec = builder.fbb.create_vector(&vals);
 
             // Geometries
-            let refs_index_start = way.ref_first_idx() as usize;
-            let refs_index_end = if i < ways_len {
-                ways[i + 1].ref_first_idx() as usize
+            let range = way.refs();
+            let refs_index_start = range.start as usize;
+            let refs_index_end = if range.end != 0 {
+                range.end as usize
             } else {
-                tags_index_len
+                nodes_len
             };
+
             let mut path = Vec::with_capacity(refs_index_end - refs_index_start);
             for i in refs_index_start..refs_index_end {
                 if let Some(r) = nodes_index[i].value() {
@@ -239,7 +253,7 @@ impl HilbertTree {
             let feature = PVTFeature::create(
                 &mut builder.fbb,
                 &PVTFeatureArgs {
-                    id: way_pairs[i].h(),
+                    id: way.osm_id() as u64, // NHTODO get h instead of osm_id
                     keys: Some(keys_vec),
                     values: Some(vals_vec),
                     geometries: Some(geoms),
@@ -286,7 +300,6 @@ fn child_index(h_tile: &HilbertTile, child_h: u64) -> Option<usize> {
     Some(h_tile.child as usize + offset as usize)
 }
 
-// NHTODO Not using this. Having issues with mutable lifetime references. This tag logic is hard coded right now.
 fn build_tags(
     tags_index_range: Range<usize>,
     osm_id: i64,

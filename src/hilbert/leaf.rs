@@ -219,13 +219,14 @@ pub fn populate_hilbert_leaves_external(
         let leaf = &mut leaves[i];
         if let Some(ways) = leaf_to_ways.get(&leaf.h) {
             leaf.w_ext = leaves_ext_count;
-            leaves_ext_count += 1;
             for &way_i in ways.iter() {
                 leaves_ext_stream.write_all(&way_i.to_le_bytes())?;
+                leaves_ext_count += 1;
             }
         }
     }
 
+    leaves_ext_stream.flush()?;
     let mut m_leaves_external = Mutant::<u32>::open(dir, "hilbert_leaves_external", false)?;
     m_leaves_external.set_len(leaves_ext_count as usize);
     Ok(m_leaves_external)
@@ -257,7 +258,7 @@ mod tests {
         )
         .unwrap();
         let ext = m_ext.slice();
-        assert_eq!(ext.len(), 186);
+        assert_eq!(ext.len(), 4633);
 
         let mut osm_id = 0;
         let mut count = 0;
@@ -268,7 +269,7 @@ mod tests {
             count += 1;
         }
         assert_eq!(count, ext.len());
-        assert_eq!(osm_id, 219347304);
+        assert_eq!(osm_id, 336027088);
     }
 
     #[test]
