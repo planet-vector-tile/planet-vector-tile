@@ -1,6 +1,7 @@
 use super::{
     hilbert_tile::{build_tiles, Chunk, HilbertTile},
     leaf::{build_leaves, populate_hilbert_leaves_external, Leaf},
+    chunk::build_chunks
 };
 use crate::{
     mutant::Mutant,
@@ -48,11 +49,7 @@ impl HilbertTree {
         let m_way_pairs = Mutant::<HilbertWayPair>::open(dir, "hilbert_way_pairs", true)?;
 
         let m_leaves = build_leaves(&m_node_pairs, &m_way_pairs, &dir, leaf_zoom)?;
-        let m_tiles = build_tiles(&m_leaves, dir, leaf_zoom)?;
-
-        let n_chunks = Mutant::<Chunk>::new(dir, "hilbert_n_chunks", 1000)?;
-        let w_chunks = Mutant::<Chunk>::new(dir, "hilbert_w_chunks", 1000)?;
-        let r_chunks = Mutant::<Chunk>::new(dir, "hilbert_r_chunks", 1000)?;
+        let m_tiles = build_tiles(&m_leaves, &dir, leaf_zoom)?;
 
         let archive = Osm::open(FileResourceStorage::new(dir))?;
         let m_leaves_external = populate_hilbert_leaves_external(
@@ -63,6 +60,8 @@ impl HilbertTree {
             &m_leaves,
             leaf_zoom,
         )?;
+
+        let (n_chunks, w_chunks, r_chunks) = build_chunks(&m_leaves, &m_tiles, &dir, leaf_zoom)?;
 
         Ok(Self {
             leaf_zoom,
