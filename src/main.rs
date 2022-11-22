@@ -14,6 +14,7 @@ use args::*;
 use clap::Parser;
 use humantime::format_duration;
 use std::{error::Error, fs, time::Instant};
+use hilbert::tree::HilbertTree;
 
 fn main() {
     let time = Instant::now();
@@ -36,7 +37,7 @@ fn main() {
 
     let archive = osmflat::convert(&args).unwrap_or_else(quit);
     sort_archive::sort(archive, &dir).unwrap_or_else(quit);
-    hilbert::HilbertTree::build(&dir, args.leafzoom).unwrap_or_else(quit);
+    HilbertTree::build(&dir, args.leafzoom).unwrap_or_else(quit);
 
     println!("Total Time: {}", format_duration(time.elapsed()));
 }

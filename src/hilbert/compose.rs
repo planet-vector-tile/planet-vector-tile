@@ -1,11 +1,12 @@
 use std::ops::Range;
 
-use crate::tile::planet_vector_tile_generated::*;
 use super::leaf::Leaf;
+use crate::tile::planet_vector_tile_generated::*;
 use flatdata::RawData;
 
 use crate::{
-    hilbert::{HilbertTile, HilbertTree},
+    hilbert::hilbert_tile::HilbertTile,
+    hilbert::tree::HilbertTree,
     location::lonlat_to_xy,
     osmflat::osmflat_generated::osm::{Tag, TagIndex},
     pvt_builder::PVTBuilder,

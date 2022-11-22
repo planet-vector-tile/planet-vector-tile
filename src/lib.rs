@@ -15,7 +15,7 @@ pub mod tile_attributes;
 extern crate napi_derive;
 
 use args::Args;
-use hilbert::HilbertTree;
+use hilbert::tree::HilbertTree;
 use info::*;
 use pvt_builder::PVTBuilder;
 use source::Source;
@@ -108,7 +108,7 @@ pub async fn pvt() -> Result<()> {
     let dir = args.output.clone();
     let archive = osmflat::convert(&args).unwrap_or_else(quit);
     sort_archive::sort(archive, &dir).unwrap_or_else(quit);
-    hilbert::HilbertTree::build(&dir, args.leafzoom).unwrap_or_else(quit);
+    hilbert::tree::HilbertTree::build(&dir, args.leafzoom).unwrap_or_else(quit);
     Ok(())
 }
 

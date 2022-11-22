@@ -1,7 +1,9 @@
-use std::io::{BufWriter, Write};
+use std::io::{BufWriter, Error, ErrorKind, Write};
 use std::path::Path;
 
+use crate::location;
 use crate::osmflat::osmflat_generated::osm::Osm;
+use crate::tile::tile_count_for_zoom;
 use crate::{
     location::h_to_zoom_h,
     mutant::Mutant,
@@ -9,6 +11,7 @@ use crate::{
 };
 use dashmap::mapref::entry::Entry::{Occupied, Vacant};
 use dashmap::DashMap;
+use log::info;
 use rayon::prelude::*;
 use std::collections::BTreeSet;
 
@@ -32,6 +35,132 @@ pub struct Leaf {
     // that exist outside of the leaf's n,w,r ranges.
     pub w_ext: u32,
     pub r_ext: u32,
+}
+
+pub fn build_leaves(
+    m_node_pairs: &Mutant<HilbertNodePair>,
+    m_way_pairs: &Mutant<HilbertWayPair>,
+    dir: &Path,
+    leaf_zoom: u8,
+) -> Result<Mutant<Leaf>, Box<dyn std::error::Error>> {
+    let node_pairs = m_node_pairs.slice();
+    let way_pairs = m_way_pairs.slice();
+
+    if node_pairs.len() == 0 && way_pairs.len() == 0 {
+        return Err(Box::new(Error::new(
+            ErrorKind::Other,
+            "No hilbert pairs found! Cannot build hilbert tiles.",
+        )));
+    }
+
+    let mut n_i: usize = 0; // node hilbert pair index
+    let mut w_i: usize = 0; // way hilbert pair index
+
+    let mut lowest_h = 0;
+
+    // Find the lowest hilbert tile
+    if let Some(first_node_pair) = node_pairs.first() {
+        lowest_h = first_node_pair.h();
+        n_i = 1;
+    }
+    if let Some(first_way_pair) = way_pairs.first() {
+        let first_way_h = first_way_pair.h();
+        if first_way_h < lowest_h {
+            lowest_h = first_way_h;
+            w_i = 1;
+            n_i = 0;
+        }
+    }
+
+    // First leaf Hilbert tile has the lowest hilbert location.
+    let mut tile_h = location::h_to_zoom_h(lowest_h, leaf_zoom) as u32;
+    info!(
+        "Lowest tile_h for leaves in hilbert tree: {}, leaf_zoom: {}",
+        lowest_h, leaf_zoom
+    );
+
+    // NHTODO Implement the ability to grow the LeafTile mutant so that we don't have to allocate max size upfront?
+    let max_len = tile_count_for_zoom(leaf_zoom) as usize;
+    let mut m_leaves = Mutant::<Leaf>::new(dir, "hilbert_leaves", max_len)?;
+    let leaves = m_leaves.mutable_slice();
+
+    let node_pairs = m_node_pairs.slice();
+    let node_pairs_len = node_pairs.len();
+    let way_pairs = m_way_pairs.slice();
+    let way_pairs_len = way_pairs.len();
+
+    println!("LEAVES zoom {}", leaf_zoom);
+
+    // First leaf tile
+    let first_leaf = Leaf {
+        n: 0,
+        w: 0,
+        r: 0,
+        h: tile_h,
+        w_ext: 0,
+        r_ext: 0,
+    };
+    println!("0 {:?}", first_leaf);
+    leaves[0] = first_leaf;
+
+    let mut leaf_i = 1;
+
+    let mut next_node_tile_h = tile_h;
+    let mut next_way_tile_h = tile_h;
+
+    loop {
+        let mut node_changed = false;
+        while n_i < node_pairs_len && next_node_tile_h <= tile_h {
+            let node_h = node_pairs[n_i].h();
+            let node_tile_h = location::h_to_zoom_h(node_h, leaf_zoom) as u32;
+            if node_tile_h > tile_h {
+                next_node_tile_h = node_tile_h;
+                node_changed = true;
+                break;
+            }
+            n_i += 1;
+        }
+
+        let mut way_changed = false;
+        while w_i < way_pairs_len && next_way_tile_h <= tile_h {
+            let way_h = way_pairs[w_i].h();
+            let way_tile_h = location::h_to_zoom_h(way_h, leaf_zoom) as u32;
+            if way_tile_h > tile_h {
+                next_way_tile_h = way_tile_h;
+                way_changed = true;
+                break;
+            }
+            w_i += 1;
+        }
+
+        let next_tile_h = if !way_changed || (node_changed && next_node_tile_h < next_way_tile_h) {
+            next_node_tile_h
+        } else {
+            next_way_tile_h
+        };
+
+        if next_tile_h > tile_h {
+            let leaf = Leaf {
+                n: n_i as u64,
+                w: w_i as u32,
+                r: 0,
+                h: next_tile_h,
+                w_ext: 0,
+                r_ext: 0,
+            };
+            println!("{} {:?}", leaf_i, leaf);
+            leaves[leaf_i] = leaf;
+            tile_h = next_tile_h;
+            leaf_i += 1;
+        } else {
+            break;
+        }
+    }
+
+    // The last increment of t_i falls through both whiles, so it is equal to the length.
+    m_leaves.set_len(leaf_i);
+    m_leaves.trim();
+    Ok(m_leaves)
 }
 
 pub fn populate_hilbert_leaves_external(
@@ -104,14 +233,13 @@ pub fn populate_hilbert_leaves_external(
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+    use ahash::AHashSet;
+    use flatdata::FileResourceStorage;
     use std::path::PathBuf;
 
-    use flatdata::FileResourceStorage;
-
-    use super::*;
-
     #[test]
-    fn test_basic() {
+    fn test_populate_hilbert_leaves_external() {
         let dir = PathBuf::from("tests/fixtures/santacruz/sort");
         let archive = Osm::open(FileResourceStorage::new(&dir)).unwrap();
         let m_node_pairs =
@@ -141,5 +269,34 @@ mod tests {
         }
         assert_eq!(count, ext.len());
         assert_eq!(osm_id, 219347304);
+    }
+
+    #[test]
+    fn test_4nodes_leaf_tiles() {
+        let dir = PathBuf::from("./tests/fixtures/nodes4/sort");
+        let m_node_pairs =
+            Mutant::<HilbertNodePair>::open(&dir, "hilbert_node_pairs", true).unwrap();
+        let node_pairs = m_node_pairs.slice();
+        let mut leaf_tiles = AHashSet::<u32>::new();
+        for p in node_pairs {
+            let zoom_h = location::h_to_zoom_h(p.h(), 12) as u32;
+            leaf_tiles.insert(zoom_h);
+            // println!("{:?} zoom_h: {}", p, zoom_h);
+        }
+        // Should be a total of 3 unique tiles for the 4 nodes.
+        assert_eq!(leaf_tiles.len(), 3);
+    }
+
+    #[test]
+    fn test_build_leaves() {
+        let dir = PathBuf::from("./tests/fixtures/nodes4/sort");
+        let m_node_pairs =
+            Mutant::<HilbertNodePair>::open(&dir, "hilbert_node_pairs", true).unwrap();
+        let m_way_pairs = Mutant::<HilbertWayPair>::open(&dir, "hilbert_way_pairs", true).unwrap();
+
+        let m_leaves = build_leaves(&m_node_pairs, &m_way_pairs, &dir, 12).unwrap();
+
+        // We know there are 3 unique leaf tiles for the 4 nodes.
+        assert_eq!(m_leaves.len, 3);
     }
 }
