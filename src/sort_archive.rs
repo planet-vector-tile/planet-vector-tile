@@ -113,16 +113,6 @@ pub fn sort(archive: Osm, dir: &PathBuf) -> Result<(), Box<dyn std::error::Error
             let i = hilbert_way_pair.i() as usize;
             let way = &ways[i];
 
-            let id = way.osm_id();
-            if id == 42630986 {
-                println!("sort way 42630986 kings village road");
-                let h = hilbert_way_pair.h();
-                let lonlat = location::h_to_decimal_lonlat(h);
-                println!("i {} h {} lonlat: {:?}", i, h, lonlat);
-                let way_tile_h = location::h_to_zoom_h(h, 12) as u32;
-                println!("way_tile_h {}", way_tile_h);
-            }
-
             let start = way.tag_first_idx() as usize;
             let end = way.tags().end as usize;
 
@@ -190,6 +180,8 @@ fn build_hilbert_way_pairs(
         // http://libgeos.org/doxygen/classgeos_1_1algorithm_1_1InteriorPointArea.html
         // https://docs.rs/geo/latest/geo/algorithm/interior_point/trait.InteriorPoint.html
         // https://github.com/georust/geo/blob/main/geo/src/algorithm/interior_point.rs
+
+        // NHTODO https://crates.io/crates/polylabel
 
         let point_on_surface = if coords.first() == coords.last() {
             Polygon::new(LineString::new(coords), vec![]).interior_point()

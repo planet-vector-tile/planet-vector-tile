@@ -20,6 +20,7 @@ ahash = "0.8.0"
 byteorder = "1.4.3"
 clap = { version = "4.0.18", features = ["derive"] }
 crossbeam = "0.8.2"
+dashmap = "5.4.0"
 env_logger = "0.9.1"
 fast_hilbert = "2.0.0"
 flatbuffers = "22.9.29"

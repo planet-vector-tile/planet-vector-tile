@@ -1,6 +1,5 @@
 mod args;
 mod hilbert;
-mod hilbert_compose;
 mod location;
 mod mutant;
 mod osmflat;
@@ -14,12 +13,8 @@ mod tile_attributes;
 use args::*;
 use fs_extra::dir::{copy, CopyOptions};
 use humantime::format_duration;
-use std::{
-    error::Error,
-    fs,
-    path::{Path, PathBuf},
-    time::Instant,
-};
+use std::{error::Error, fs, path::PathBuf, time::Instant};
+use hilbert::tree::HilbertTree;
 
 fn main() {
     let time = Instant::now();
@@ -62,10 +57,10 @@ fn main() {
     copy("./tests/fixtures/santacruz/convert", &dir2, &opts).unwrap();
 
     sort_archive::sort(a1, &dir1).unwrap_or_else(quit);
-    hilbert::HilbertTree::build(&dir1, args1.leafzoom).unwrap_or_else(quit);
+    HilbertTree::build(&dir1, args1.leafzoom).unwrap_or_else(quit);
 
     sort_archive::sort(a2, &dir2).unwrap_or_else(quit);
-    hilbert::HilbertTree::build(&dir2, args1.leafzoom).unwrap_or_else(quit);
+    HilbertTree::build(&dir2, args1.leafzoom).unwrap_or_else(quit);
 
     println!("Total Time: {}", format_duration(time.elapsed()));
 }
