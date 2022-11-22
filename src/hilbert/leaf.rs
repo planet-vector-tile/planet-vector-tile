@@ -1,18 +1,38 @@
 use std::io::{BufWriter, Write};
 use std::path::Path;
 
-use dashmap::mapref::entry::Entry::{Occupied, Vacant};
-use dashmap::DashMap;
-use rayon::prelude::*;
-use std::collections::BTreeSet;
-
-use crate::hilbert::Leaf;
 use crate::osmflat::osmflat_generated::osm::Osm;
 use crate::{
     location::h_to_zoom_h,
     mutant::Mutant,
     osmflat::osmflat_generated::osm::{HilbertNodePair, HilbertWayPair},
 };
+use dashmap::mapref::entry::Entry::{Occupied, Vacant};
+use dashmap::DashMap;
+use rayon::prelude::*;
+use std::collections::BTreeSet;
+
+// Leaves correspond to additional info we need to know about the tiles at the leaf level.
+// We need to know:
+//  - The indices into the nodes, ways, relations vectors.
+//  - The hilbert index that the given tile starts at.
+// Though the hilbert index can be derived from the n,w,r by looking at the hilbert pairs,
+// This is referenced often, so this is simpler and saves us from paging into the entity
+// (nodes, ways, relations) vectors unnecessarily.
+#[derive(Debug)]
+pub struct Leaf {
+    // Indices to the first node of the given leaf tile.
+    pub n: u64,
+    pub w: u32,
+    pub r: u32,
+    // Hilbert index for the leaf tile, at the leaf zoom
+    pub h: u32,
+    // Indices to the first of ways in relations in w_ext and r_ext
+    // denoting ways and relations that enter the given leaf tile
+    // that exist outside of the leaf's n,w,r ranges.
+    pub w_ext: u32,
+    pub r_ext: u32,
+}
 
 pub fn populate_hilbert_leaves_external(
     dir: &Path,
@@ -86,25 +106,26 @@ pub fn populate_hilbert_leaves_external(
 mod tests {
     use std::path::PathBuf;
 
-    use crate::hilbert::HilbertTree;
+    use flatdata::FileResourceStorage;
 
     use super::*;
 
     #[test]
     fn test_basic() {
         let dir = PathBuf::from("tests/fixtures/santacruz/sort");
-        let tree = HilbertTree::open(&dir, 12).unwrap();
+        let archive = Osm::open(FileResourceStorage::new(&dir)).unwrap();
         let m_node_pairs =
             Mutant::<HilbertNodePair>::open(&dir, "hilbert_node_pairs", true).unwrap();
         let m_way_pairs = Mutant::<HilbertWayPair>::open(&dir, "hilbert_way_pairs", true).unwrap();
+        let m_leaves = Mutant::<Leaf>::open(&dir, "hilbert_leaves", false).unwrap();
 
         let m_ext = populate_hilbert_leaves_external(
             &dir,
-            &tree.archive,
+            &archive,
             &m_node_pairs,
             &m_way_pairs,
-            &tree.leaves,
-            tree.leaf_zoom,
+            &m_leaves,
+            12,
         )
         .unwrap();
         let ext = m_ext.slice();
@@ -112,7 +133,7 @@ mod tests {
 
         let mut osm_id = 0;
         let mut count = 0;
-        let ways = tree.archive.ways();
+        let ways = archive.ways();
         for i in 0..ext.len() {
             let w = &ways[i];
             osm_id = w.osm_id();

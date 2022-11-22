@@ -1,36 +1,20 @@
 #![allow(dead_code)]
 
-use crate::hilbert_leaves::populate_hilbert_leaves_external;
+mod leaf;
+mod hilbert_tile;
+mod compose;
+
+use leaf::{Leaf, populate_hilbert_leaves_external};
 use crate::location;
 use crate::mutant::Mutant;
 use crate::osmflat::osmflat_generated::osm::{HilbertNodePair, HilbertWayPair, Osm};
-use crate::tile::{self, Tile};
+use super::tile::{Tile, tile_count_for_zoom};
 use flatdata::FileResourceStorage;
 use log::info;
 use std::io::{Error, ErrorKind};
 use std::path::Path;
 
-// Leaves correspond to additional info we need to know about the tiles at the leaf level.
-// We need to know:
-//  - The indices into the nodes, ways, relations vectors.
-//  - The hilbert index that the given tile starts at.
-// Though the hilbert index can be derived from the n,w,r by looking at the hilbert pairs,
-// This is referenced often, so this is simpler and saves us from paging into the entity
-// (nodes, ways, relations) vectors unnecessarily.
-#[derive(Debug)]
-pub struct Leaf {
-    // Indices to the first node of the given leaf tile.
-    pub n: u64,
-    pub w: u32,
-    pub r: u32,
-    // Hilbert index for the leaf tile, at the leaf zoom
-    pub h: u32,
-    // Indices to the first of ways in relations in w_ext and r_ext
-    // denoting ways and relations that enter the given leaf tile
-    // that exist outside of the leaf's n,w,r ranges.
-    pub w_ext: u32,
-    pub r_ext: u32,
-}
+
 
 // Each vector tile corresponds to one of these tiles.
 //
@@ -207,7 +191,7 @@ fn build_leaves(
     );
 
     // NHTODO Implement the ability to grow the LeafTile mutant so that we don't have to allocate max size upfront?
-    let max_len = tile::tile_count_for_zoom(leaf_zoom) as usize;
+    let max_len = tile_count_for_zoom(leaf_zoom) as usize;
     let mut m_leaves = Mutant::<Leaf>::new(dir, "hilbert_leaves", max_len)?;
     let leaves = m_leaves.mutable_slice();
 

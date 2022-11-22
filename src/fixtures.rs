@@ -1,6 +1,5 @@
 mod args;
 mod hilbert;
-mod hilbert_compose;
 mod location;
 mod mutant;
 mod osmflat;
@@ -14,12 +13,7 @@ mod tile_attributes;
 use args::*;
 use fs_extra::dir::{copy, CopyOptions};
 use humantime::format_duration;
-use std::{
-    error::Error,
-    fs,
-    path::{Path, PathBuf},
-    time::Instant,
-};
+use std::{error::Error, fs, path::PathBuf, time::Instant};
 
 fn main() {
     let time = Instant::now();

@@ -1,7 +1,5 @@
 mod args;
 mod hilbert;
-mod hilbert_leaves;
-mod hilbert_compose;
 pub mod info;
 pub mod location;
 mod mutant;
