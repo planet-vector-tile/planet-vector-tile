@@ -1,16 +1,14 @@
 #![allow(dead_code)]
 
+use crate::hilbert_leaves::populate_hilbert_leaves_external;
 use crate::location;
 use crate::mutant::Mutant;
-use crate::osmflat::osmflat_generated::osm::{
-    HilbertNodePair, HilbertWayPair, Node, NodeIndex, Osm, TagIndex, Way,
-};
+use crate::osmflat::osmflat_generated::osm::{HilbertNodePair, HilbertWayPair, Osm};
 use crate::tile::{self, Tile};
 use flatdata::FileResourceStorage;
 use log::info;
 use std::io::{Error, ErrorKind};
 use std::path::Path;
-use std::sync::Arc;
 
 // Leaves correspond to additional info we need to know about the tiles at the leaf level.
 // We need to know:
@@ -30,8 +28,8 @@ pub struct Leaf {
     // Indices to the first of ways in relations in w_ext and r_ext
     // denoting ways and relations that enter the given leaf tile
     // that exist outside of the leaf's n,w,r ranges.
-    w_ext: u32,
-    r_ext: u32,
+    pub w_ext: u32,
+    pub r_ext: u32,
 }
 
 // Each vector tile corresponds to one of these tiles.
@@ -67,6 +65,7 @@ pub struct HilbertTree {
     pub leaf_zoom: u8,
     pub tiles: Mutant<HilbertTile>,
     pub leaves: Mutant<Leaf>,
+    pub leaves_external: Mutant<u32>,
     pub n_chunks: Mutant<Chunk>,
     pub w_chunks: Mutant<Chunk>,
     pub r_chunks: Mutant<Chunk>,
@@ -105,11 +104,13 @@ impl HilbertTree {
         let r_chunks = Mutant::<Chunk>::new(dir, "hilbert_r_chunks", 1000)?;
 
         let archive = Osm::open(FileResourceStorage::new(dir))?;
+        let m_leaves_external = populate_hilbert_leaves_external(dir, &archive, &m_node_pairs, &m_way_pairs, &m_leaves, leaf_zoom)?;
 
         Ok(Self {
             leaf_zoom,
             tiles: m_tiles,
             leaves: m_leaves,
+            leaves_external: m_leaves_external,
             n_chunks,
             w_chunks,
             r_chunks,
@@ -137,6 +138,7 @@ impl HilbertTree {
             )));
         }
 
+        let m_node_pairs = Mutant::<HilbertNodePair>::open(dir, "hilbert_node_pairs", true)?;
         let m_way_pairs = Mutant::<HilbertWayPair>::open(dir, "hilbert_way_pairs", true)?;
         let m_leaves = Mutant::<Leaf>::open(dir, "hilbert_leaves", false)?;
         let m_tiles = Mutant::<HilbertTile>::open(dir, "hilbert_tiles", false)?;
@@ -146,11 +148,13 @@ impl HilbertTree {
         let r_chunks = Mutant::<Chunk>::new(dir, "hilbert_r_chunks", 1000)?;
 
         let archive = Osm::open(FileResourceStorage::new(dir))?;
+        let m_leaves_external = populate_hilbert_leaves_external(dir, &archive, &m_node_pairs, &m_way_pairs, &m_leaves, leaf_zoom)?;
 
         Ok(Self {
             leaf_zoom,
             tiles: m_tiles,
             leaves: m_leaves,
+            leaves_external: m_leaves_external,
             n_chunks,
             w_chunks,
             r_chunks,
@@ -256,7 +260,7 @@ fn build_leaves(
             w_i += 1;
         }
 
-        let next_tile_h = if !way_changed || ( node_changed && next_node_tile_h < next_way_tile_h ) {
+        let next_tile_h = if !way_changed || (node_changed && next_node_tile_h < next_way_tile_h) {
             next_node_tile_h
         } else {
             next_way_tile_h
@@ -571,5 +575,4 @@ mod tests {
         // We know there are 3 unique leaf tiles for the 4 nodes.
         assert_eq!(m_leaves.len, 3);
     }
-
 }

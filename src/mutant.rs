@@ -4,7 +4,7 @@ use core::mem::size_of;
 use core::slice::{from_raw_parts, from_raw_parts_mut};
 use memmap2::MmapMut;
 use std::fs::File;
-use std::io::Result;
+use std::io::{BufWriter, Result};
 use std::{
     fs,
     fs::OpenOptions,
@@ -49,6 +49,28 @@ impl<T: Sized> Mutant<T> {
             capacity: len,
             phantom: PhantomData,
         })
+    }
+
+    pub fn empty_file(dir: &Path, file_name: &str) -> Result<File> {
+        let size = 8;
+        let path = dir.join(file_name);
+
+        let file = OpenOptions::new()
+            .read(true)
+            .write(true)
+            .create(true)
+            .open(&path)?;
+
+        file.set_len(size as u64)?;
+
+        let mmap = unsafe { MmapMut::map_mut(&file)? };
+
+        let header_ptr = mmap.as_ptr() as *mut u64;
+        unsafe {
+            *header_ptr = 0;
+        }
+
+        Ok(file)
     }
 
     pub fn new_from_flatdata(
