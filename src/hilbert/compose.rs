@@ -191,8 +191,7 @@ impl HilbertTree {
         builder.add_layer(layer);
         features.clear();
 
-        // let mut i = w_range.start;
-        let mut i = external_entities[w_ext_range.start] as usize;
+        let mut i = w_range.start;
         let mut ext_i = w_ext_range.start;
         loop {
             let way = &ways[i];
