@@ -14,26 +14,26 @@ pub fn build_chunks(
     let leaves = m_leaves.slice();
     let tiles = m_tiles.mutable_slice();
 
+    // for t in tiles {
+    //     println!("t {:?}", t);
+    // }
+
     let mut z = leaf_zoom - 2;
     let mut level_tile_count = 0;
     let mut total_children = leaves.len() as u32;
     let mut children = 0;
-    let mut first = true;
     for tile in tiles {
-
-        // filter children features
-
-
-
         children += count_children(tile.mask);
+
+        println!("z {} children {} total_children {} {:?}", z, children, total_children, tile);
+
+        level_tile_count += 1;
         // If we are done with the level, decrement z to the next zoom.
-        if (tile.child == 0 && !first) || children == total_children {
+        if children >= total_children  && z > 0 {
             total_children = level_tile_count;
             level_tile_count = 0;
+            children = 0;
             z -= 2;
-        } else {
-            level_tile_count += 1;
-            first = false;
         }
     }
 
