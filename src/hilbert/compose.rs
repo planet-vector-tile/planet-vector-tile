@@ -1,7 +1,10 @@
 use std::ops::Range;
 
 use super::leaf::Leaf;
-use crate::{tile::planet_vector_tile_generated::*, osmflat::osmflat_generated::osm::{Node, Relation, Way}};
+use crate::{
+    osmflat::osmflat_generated::osm::{Node, Relation, Way},
+    tile::planet_vector_tile_generated::*,
+};
 use flatbuffers::WIPOffset;
 use flatdata::RawData;
 
@@ -195,7 +198,7 @@ impl HilbertTree {
             let way = &ways[i];
 
             let tags_index_start = way.tag_first_idx() as usize;
-            let tags_index_end = if i < ways_len {
+            let tags_index_end = if i + 1 < ways_len {
                 ways[i + 1].tag_first_idx() as usize
             } else if relations_len > 0 {
                 relations[0].tag_first_idx() as usize
@@ -203,9 +206,6 @@ impl HilbertTree {
                 tags_index_len
             };
             let tags_index_range = tags_index_start..tags_index_end;
-
-            let osm_id = way.osm_id();
-            println!("way {} {} {:?}", i, osm_id, tile);
 
             // Tags
             let (keys, vals) = build_tags(
@@ -221,7 +221,7 @@ impl HilbertTree {
 
             // Geometries
             let refs_index_start = way.ref_first_idx() as usize;
-            let refs_index_end = if i < ways_len {
+            let refs_index_end = if i + 1 < ways_len {
                 ways[i + 1].ref_first_idx() as usize
             } else {
                 tags_index_len
@@ -257,10 +257,9 @@ impl HilbertTree {
             );
             features.push(feature);
 
-            // if i < w_range.end {
-            //     i += 1;
-            // } else 
-            if ext_i < w_ext_range.end {
+            if i < w_range.end {
+                i += 1;
+            } else if ext_i < w_ext_range.end {
                 i = external_entities[ext_i] as usize;
                 ext_i += 1;
             } else {
