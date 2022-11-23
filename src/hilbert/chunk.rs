@@ -4,14 +4,15 @@ use super::{
 };
 use crate::{
     mutant::Mutant,
-    osmflat::osmflat_generated::osm::{Node, Relation, Way, Osm},
+    osmflat::osmflat_generated::osm::{Node, Osm, Relation, Way},
 };
-use std::{ops::Range, path::Path, fs::File};
 use std::io::BufWriter;
+use std::{fs::File, ops::Range, path::Path};
 
 pub fn build_chunks(
     m_leaves: &Mutant<Leaf>,
     m_tiles: &Mutant<HilbertTile>,
+    m_leaves_external: &Mutant<u32>,
     dir: &Path,
     archive: &Osm,
     leaf_zoom: u8,
@@ -21,7 +22,7 @@ pub fn build_chunks(
     let tiles_mut = m_tiles.mutable_slice();
     let nodes = archive.nodes();
     let ways = archive.ways();
-    let relations = archive.relations();
+    let external = m_leaves_external.slice();
 
     let n_chunks_writer = Mutant::<u64>::empty_buffered_writer(dir, "hilbert_n_chunks")?;
     let w_chunks_writer = Mutant::<Chunk>::empty_buffered_writer(dir, "hilbert_w_chunks")?;
@@ -34,7 +35,15 @@ pub fn build_chunks(
     let mut level_tile_count = 0;
     let mut total_children = leaves.len() as u32;
     let mut children = 0;
-    for tile in tiles {
+
+    for i in 0..tiles.len() {
+        let tile = &tiles[i];
+        let next_tile = if i + 1 < tiles.len() {
+            Some(&tiles[i + 1])
+        } else {
+            None
+        };
+
         children += count_children(tile.mask);
 
         println!(
@@ -42,20 +51,53 @@ pub fn build_chunks(
             z, children, total_children, tile
         );
 
-        // Gather all of the children for the tile
-        let children_indices = get_children_indices(tile.child, tile.mask);
-        if z == leaf_zoom - 2 {
-            for i in children_indices {
-                let entity_ranges = get_entity_ranges(i, leaves, nodes, ways, relations);
-                chunk_nodes(entity_ranges.0, nodes, &n_chunks_writer, &mut n_chunk_count, z);
-                // chunk_ways(entity_ranges.1, ways, &w_chunks_file, &mut w_chunk_count);
-                // chunk_relations(entity_ranges.2, relations, &r_chunks_file, &mut r_chunk_count);
-            }
+        // Get a vec of references to all of the entities in the tile.
+        // We will then filter from this to build chunks.
+        let (nodes, ways) = if z == leaf_zoom - 2 {
+            let first_leaf = &leaves[tile.child as usize];
+            // The leaf after the last leaf of this tile's children. (the first leaf of the next tile)
+            let end_leaf = match next_tile {
+                Some(next_tile) => Some(&leaves[next_tile.child as usize]),
+                None => None,
+            };
+
+            let nodes = match end_leaf {
+                Some(end_leaf) => {
+                    if end_leaf.n == 0 {
+                        println!("end leaf n == 0");
+                    }
+                    &nodes[first_leaf.n as usize..end_leaf.n as usize]
+                },
+                None => &nodes[first_leaf.n as usize..],
+            };
+
+            let ways = match end_leaf {
+                Some(end_leaf) => {
+                    let inner_ways = ways[first_leaf.w as usize..end_leaf.w as usize].iter();
+                    let ext_ways = external[first_leaf.w_ext as usize..end_leaf.w_ext as usize]
+                        .iter()
+                        .map(|i| &ways[*i as usize]);
+                    let all_ways = inner_ways.chain(ext_ways);
+                    all_ways.collect::<Vec<&Way>>()
+                }
+                None => {
+                    let inner_ways = ways[first_leaf.w as usize..]
+                        .iter()
+                        .map(|w| w); // this peels out the reference to the way without removing the way
+                    let ext_ways = external[first_leaf.w_ext as usize..]
+                        .iter()
+                        .map(|i| &ways[*i as usize]);
+                    let all_ways = inner_ways.chain(ext_ways);
+                    all_ways.collect::<Vec<&Way>>()
+                }
+            };
+
+            (nodes, ways)
         } else {
-            for i in children_indices {
-                let tile = &tiles[i];
-            }
-        }
+            (&nodes[0..0], vec![])
+        };
+
+        println!("nodes {} ways {}", nodes.len(), ways.len());
 
         level_tile_count += 1;
         // If we are done with the level, decrement z to the next zoom.
@@ -84,48 +126,18 @@ fn count_children(mask: u16) -> u32 {
     count
 }
 
-fn get_children_indices(first_child: u32, mask: u16) -> Vec<usize> {
-    let mut indices = Vec::new();
-    for i in 0..16 {
-        if mask >> i & 1 == 1 {
-            indices.push((first_child + i) as usize);
-        }
-    }
-    indices
-}
-
-fn get_entity_ranges(
-    i: usize,
-    leaves: &[Leaf],
+fn chunk_nodes(
+    range: Range<usize>,
     nodes: &[Node],
-    ways: &[Way],
-    relations: &[Relation],
-) -> (Range<usize>, Range<usize>, Range<usize>) {
-    let leaf = &leaves[i];
-    if i == leaves.len() - 1 {
-        (
-            (leaf.n as usize)..nodes.len(),
-            (leaf.w as usize)..ways.len(),
-            (leaf.r as usize)..relations.len(),
-        )
-    } else {
-        let next_leaf = &leaves[i + 1];
-        (
-            (leaf.n as usize)..(next_leaf.n as usize),
-            (leaf.w as usize)..(next_leaf.w as usize),
-            (leaf.r as usize)..(next_leaf.r as usize),
-        )
-    }
-}
-
-fn chunk_nodes(range: Range<usize>, nodes: &[Node], writer: &BufWriter<File>, count: &mut u32, zoom: u8) {
-
+    writer: &BufWriter<File>,
+    count: &mut u32,
+    zoom: u8,
+) {
     for i in range {
         let node = &nodes[i];
-        
+
         *count += 1;
     }
-    
 }
 
 #[cfg(test)]
@@ -141,6 +153,7 @@ mod tests {
         let archive = Osm::open(FileResourceStorage::new(&dir)).unwrap();
         let m_leaves = Mutant::<Leaf>::open(&dir, "hilbert_leaves", false).unwrap();
         let m_tiles = Mutant::<HilbertTile>::open(&dir, "hilbert_tiles", false).unwrap();
-        let _ = build_chunks(&m_leaves, &m_tiles, &dir, &archive, 12);
+        let m_leaves_external = Mutant::<u32>::open(&dir, "hilbert_leaves_external", false).unwrap();
+        let _ = build_chunks(&m_leaves, &m_tiles, &m_leaves_external, &dir, &archive, 12);
     }
 }

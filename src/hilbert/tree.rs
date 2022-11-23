@@ -61,7 +61,7 @@ impl HilbertTree {
             leaf_zoom,
         )?;
 
-        let (n_chunks, w_chunks, r_chunks) = build_chunks(&m_leaves, &m_tiles, &dir, &archive, leaf_zoom)?;
+        let (n_chunks, w_chunks, r_chunks) = build_chunks(&m_leaves, &m_tiles, &m_leaves_external, &dir, &archive, leaf_zoom)?;
 
         Ok(Self {
             leaf_zoom,
