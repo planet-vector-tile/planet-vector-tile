@@ -38,18 +38,15 @@ pub fn build_chunks(
 
     for i in 0..tiles.len() {
         let tile = &tiles[i];
-        let next_tile = if i + 1 < tiles.len() {
+
+        children += count_children(tile.mask);
+
+        // some if it is not the last tile or the last tile of the level
+        let next_tile = if i + 1 < tiles.len() && children < total_children {
             Some(&tiles[i + 1])
         } else {
             None
         };
-
-        children += count_children(tile.mask);
-
-        println!(
-            "z {} children {} total_children {} {:?}",
-            z, children, total_children, tile
-        );
 
         // Get a vec of references to all of the entities in the tile.
         // We will then filter from this to build chunks.
@@ -62,12 +59,7 @@ pub fn build_chunks(
             };
 
             let nodes = match end_leaf {
-                Some(end_leaf) => {
-                    if end_leaf.n == 0 {
-                        println!("end leaf n == 0");
-                    }
-                    &nodes[first_leaf.n as usize..end_leaf.n as usize]
-                },
+                Some(end_leaf) => &nodes[first_leaf.n as usize..end_leaf.n as usize],
                 None => &nodes[first_leaf.n as usize..],
             };
 
@@ -81,9 +73,7 @@ pub fn build_chunks(
                     all_ways.collect::<Vec<&Way>>()
                 }
                 None => {
-                    let inner_ways = ways[first_leaf.w as usize..]
-                        .iter()
-                        .map(|w| w); // this peels out the reference to the way without removing the way
+                    let inner_ways = ways[first_leaf.w as usize..].iter().map(|w| w); // this peels out the reference to the way without removing the way
                     let ext_ways = external[first_leaf.w_ext as usize..]
                         .iter()
                         .map(|i| &ways[*i as usize]);
@@ -97,7 +87,15 @@ pub fn build_chunks(
             (&nodes[0..0], vec![])
         };
 
-        println!("nodes {} ways {}", nodes.len(), ways.len());
+        println!(
+            "z {} children {} total_children {} nodes {} ways {} {:?}",
+            z,
+            children,
+            total_children,
+            nodes.len(),
+            ways.len(),
+            tile
+        );
 
         level_tile_count += 1;
         // If we are done with the level, decrement z to the next zoom.
@@ -126,20 +124,6 @@ fn count_children(mask: u16) -> u32 {
     count
 }
 
-fn chunk_nodes(
-    range: Range<usize>,
-    nodes: &[Node],
-    writer: &BufWriter<File>,
-    count: &mut u32,
-    zoom: u8,
-) {
-    for i in range {
-        let node = &nodes[i];
-
-        *count += 1;
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use flatdata::FileResourceStorage;
@@ -153,7 +137,8 @@ mod tests {
         let archive = Osm::open(FileResourceStorage::new(&dir)).unwrap();
         let m_leaves = Mutant::<Leaf>::open(&dir, "hilbert_leaves", false).unwrap();
         let m_tiles = Mutant::<HilbertTile>::open(&dir, "hilbert_tiles", false).unwrap();
-        let m_leaves_external = Mutant::<u32>::open(&dir, "hilbert_leaves_external", false).unwrap();
+        let m_leaves_external =
+            Mutant::<u32>::open(&dir, "hilbert_leaves_external", false).unwrap();
         let _ = build_chunks(&m_leaves, &m_tiles, &m_leaves_external, &dir, &archive, 12);
     }
 }
