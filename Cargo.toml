@@ -44,6 +44,9 @@ prost-build = "0.11.1"
 prost-types = "0.11.1"
 queue = "0.3.1"
 rayon = "1.5.3"
+serde = "1.0.147"
+serde_derive = "1.0.147"
+toml = "0.5.9"
 
 [build-dependencies]
 napi-build = "2.0.1"

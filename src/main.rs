@@ -1,4 +1,5 @@
 mod args;
+mod manifest;
 mod hilbert;
 mod location;
 mod mutant;
@@ -26,6 +27,8 @@ fn main() {
         .format_module_path(false)
         .format_timestamp_nanos()
         .init();
+
+    
 
     if args.overwrite {
         if let Err(e) = fs::remove_dir_all(args.output.clone()) {
