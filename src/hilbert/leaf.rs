@@ -209,8 +209,7 @@ pub fn populate_hilbert_leaves_external(
         }
     });
 
-    let leaves_ext_file = Mutant::<u32>::empty_file(dir, "hilbert_leaves_external")?;
-    let mut leaves_ext_stream = BufWriter::new(&leaves_ext_file);
+    let mut leaves_ext_stream = Mutant::<u32>::empty_buffered_writer(dir, "hilbert_leaves_external")?;
     let mut leaves_ext_count = 0;
 
     let leaves = m_leaves.mutable_slice();

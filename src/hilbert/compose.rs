@@ -96,7 +96,6 @@ impl HilbertTree {
         let ways_len = ways.len();
         let relations_len = relations.len();
         let node_pairs = self.archive.hilbert_node_pairs().unwrap();
-        let way_pairs = self.way_pairs.slice();
         let tags = self.archive.tags();
         let nodes_index = self.archive.nodes_index();
         let tags_index = self.archive.tags_index();
