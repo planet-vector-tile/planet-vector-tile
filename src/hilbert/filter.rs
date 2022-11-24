@@ -3,15 +3,15 @@ use ahash::AHashMap;
 use crate::{manifest::Manifest, osmflat::osmflat_generated::osm::{Node, Osm}};
 
 
-pub struct Filter {
-    archive: &'static Osm,
-    str_to_idx: AHashMap<&'static str, usize>,
+pub struct Filter<'a> {
+    archive: &'a Osm,
+    str_to_idx: AHashMap<&'a str, usize>,
 }
 
-impl Filter {
-    pub fn new(manifest: &Manifest, archive: &'static Osm) -> Filter {
+impl<'a> Filter<'a> {
+    pub fn new(manifest: &Manifest, archive: &'a Osm) -> Filter<'a> {
 
-        let str_to_idx: AHashMap<&'static str, usize> = AHashMap::new();
+        let str_to_idx: AHashMap<&'a str, usize> = AHashMap::new();
 
         for (_, rule) in &manifest.rules {
 
