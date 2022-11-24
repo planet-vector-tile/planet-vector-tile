@@ -1,3 +1,7 @@
+[render]
+leaf_zoom = 12
+layer_order = ["Administrative", "Water", "Boundaries", "Buildings", "Landuse", "Major Roads", "Minor Roads"]
+
 [layers]
 Administrative = ["admin"]
 Water = ["water"]
@@ -6,8 +10,6 @@ Buildings = ["buildings"]
 Landuse = ["landuse"]
 "Major Roads" = ["roads_major"]
 "Minor Roads" = ["roads_minor"]
-
-layer_order = ["Administrative", "Water", "Boundaries", "Buildings", "Landuse", "Major Roads", "Minor Roads"]
 
 [rules]
 admin = { minzoom = 0, values = ["administrative"] }
