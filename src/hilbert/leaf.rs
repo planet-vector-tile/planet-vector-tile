@@ -1,4 +1,4 @@
-use std::io::{BufWriter, Error, ErrorKind, Write};
+use std::io::{Error, ErrorKind, Write};
 use std::path::Path;
 
 use crate::location;

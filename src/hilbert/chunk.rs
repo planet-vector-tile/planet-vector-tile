@@ -3,11 +3,11 @@ use super::{
     leaf::Leaf,
 };
 use crate::{
+    manifest::Manifest,
     mutant::Mutant,
-    osmflat::osmflat_generated::osm::{Node, Osm, Relation, Way},
+    osmflat::osmflat_generated::osm::{Osm, Way},
 };
-use std::io::BufWriter;
-use std::{fs::File, ops::Range, path::Path};
+use std::path::Path;
 
 pub fn build_chunks(
     m_leaves: &Mutant<Leaf>,
@@ -15,8 +15,9 @@ pub fn build_chunks(
     m_leaves_external: &Mutant<u32>,
     dir: &Path,
     archive: &Osm,
-    leaf_zoom: u8,
+    manifest: &Manifest,
 ) -> Result<(Mutant<Chunk>, Mutant<Chunk>, Mutant<Chunk>), Box<dyn std::error::Error>> {
+    let leaf_zoom = manifest.render.leaf_zoom;
     let leaves = m_leaves.slice();
     let tiles = m_tiles.slice();
     let tiles_mut = m_tiles.mutable_slice();
@@ -107,9 +108,9 @@ pub fn build_chunks(
         }
     }
 
-    let n_chunks = Mutant::<Chunk>::open(dir, "hilbert_node_chunks", false)?;
-    let w_chunks = Mutant::<Chunk>::open(dir, "hilbert_way_chunks", false)?;
-    let r_chunks = Mutant::<Chunk>::open(dir, "hilbert_relation_chunks", false)?;
+    let n_chunks = Mutant::<Chunk>::open(dir, "hilbert_n_chunks", false)?;
+    let w_chunks = Mutant::<Chunk>::open(dir, "hilbert_w_chunks", false)?;
+    let r_chunks = Mutant::<Chunk>::open(dir, "hilbert_r_chunks", false)?;
 
     Ok((n_chunks, w_chunks, r_chunks))
 }
@@ -128,6 +129,8 @@ fn count_children(mask: u16) -> u32 {
 mod tests {
     use flatdata::FileResourceStorage;
 
+    use crate::manifest;
+
     use super::*;
     use std::path::PathBuf;
 
@@ -139,6 +142,13 @@ mod tests {
         let m_tiles = Mutant::<HilbertTile>::open(&dir, "hilbert_tiles", false).unwrap();
         let m_leaves_external =
             Mutant::<u32>::open(&dir, "hilbert_leaves_external", false).unwrap();
-        let _ = build_chunks(&m_leaves, &m_tiles, &m_leaves_external, &dir, &archive, 12);
+        let _ = build_chunks(
+            &m_leaves,
+            &m_tiles,
+            &m_leaves_external,
+            &dir,
+            &archive,
+            &manifest::parse(None),
+        );
     }
 }

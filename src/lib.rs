@@ -1,4 +1,5 @@
 mod args;
+mod manifest;
 mod hilbert;
 pub mod info;
 pub mod location;
@@ -51,8 +52,7 @@ impl Planet {
                 sources.push(info);
             } else {
                 let path = PathBuf::from(tile);
-                // NHTODO Build a way for HilbertTree and Info to read a TOML file to determine options.
-                match HilbertTree::open(&path, 12) {
+                match HilbertTree::open(&path) {
                     Ok(tree) => {
                         let box_tree = Box::new(tree) as Box<dyn Source>;
                         sources.push(box_tree);
@@ -108,7 +108,7 @@ pub async fn pvt() -> Result<()> {
     let dir = args.output.clone();
     let archive = osmflat::convert(&args).unwrap_or_else(quit);
     sort_archive::sort(archive, &dir).unwrap_or_else(quit);
-    hilbert::tree::HilbertTree::build(&dir, 12).unwrap_or_else(quit);
+    hilbert::tree::HilbertTree::build(&dir, manifest::parse(None)).unwrap_or_else(quit);
     Ok(())
 }
 

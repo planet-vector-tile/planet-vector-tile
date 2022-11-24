@@ -57,13 +57,13 @@ fn main() {
     copy("./tests/fixtures/nodes4/convert", &dir1, &opts).unwrap();
     copy("./tests/fixtures/santacruz/convert", &dir2, &opts).unwrap();
 
-    let manifest = manifest::parse(&None);
+    let manifest = manifest::parse(None);
 
     sort_archive::sort(a1, &dir1).unwrap_or_else(quit);
-    HilbertTree::build(&dir1, manifest.render.leaf_zoom).unwrap_or_else(quit);
+    HilbertTree::build(&dir1, manifest.clone()).unwrap_or_else(quit);
 
     sort_archive::sort(a2, &dir2).unwrap_or_else(quit);
-    HilbertTree::build(&dir2, manifest.render.leaf_zoom).unwrap_or_else(quit);
+    HilbertTree::build(&dir2, manifest).unwrap_or_else(quit);
 
     println!("Total Time: {}", format_duration(time.elapsed()));
 }

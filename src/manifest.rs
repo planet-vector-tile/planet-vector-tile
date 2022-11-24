@@ -1,24 +1,24 @@
-use std::{collections::BTreeMap, path::{Path, PathBuf}};
+use std::{collections::BTreeMap, path::PathBuf};
 
 use serde_derive::{Deserialize, Serialize};
 
 pub type Layers = BTreeMap<String, Vec<String>>;
 pub type Rules = BTreeMap<String, Rule>;
 
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 pub struct Manifest {
     pub render: Render,
     pub layers: Layers,
     pub rules: Rules,
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 pub struct Render {
     pub leaf_zoom: u8,
     pub layer_order: Vec<String>,
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 pub struct Rule {
     pub minzoom: u8,
     pub maxzoom: Option<u8>,
@@ -30,18 +30,20 @@ pub struct Rule {
     pub tags: Vec<(String, String)>,
 }
 
-pub fn parse(path: &Option<PathBuf>) -> Manifest {
-    let default = PathBuf::from("./manifest.json");
+// NHTODO It would be cleaner to return a result when we have an error rather than exiting the process.
+pub fn parse(path: Option<PathBuf>) -> Manifest {
+    let default = PathBuf::from("manifest.toml");
 
     let manifest_path = match path {
         Some(manifest) => manifest,
-        None => &default,
+        None => default,
     };
 
-    let manifest_str = match std::fs::read_to_string(manifest_path) {
+    let manifest_str = match std::fs::read_to_string(&manifest_path) {
         Ok(manifest) => manifest,
         Err(_) => {
-            log::warn!("No manifest file found at {}", manifest_path.display());
+            eprintln!("No manifest file found at {}", manifest_path.display());
+            eprintln!("Process working directory: {}", std::env::current_dir().unwrap().display());
             std::process::exit(1);
         }
     };
@@ -49,10 +51,24 @@ pub fn parse(path: &Option<PathBuf>) -> Manifest {
     let manifest: Manifest = match toml::from_str(&manifest_str) {
         Ok(manifest) => manifest,
         Err(e) => {
-            log::warn!("Failed to parse manifest file: {}", e);
+            eprintln!("Failed to parse manifest file: {}", e);
             std::process::exit(1);
         }
     };
+
+    let leaf_zoom = manifest.render.leaf_zoom;
+
+    // Leaf zoom must be even
+    if leaf_zoom & 1 != 0 {
+        eprintln!("The leaf zoom must be even. leaf_zoom: {}", leaf_zoom);
+        std::process::exit(1);
+    }
+
+    // Maximum supported zoom is 14.
+    if leaf_zoom > 14 {
+        eprintln!("The maximum supported leaf zoom is 14. leaf_zoom: {}", leaf_zoom);
+        std::process::exit(1);
+    }
 
     manifest
 }
