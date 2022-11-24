@@ -1,4 +1,5 @@
 mod args;
+mod manifest;
 mod hilbert;
 mod location;
 mod mutant;
@@ -31,14 +32,14 @@ fn main() {
     let args1 = Args {
         input: "tests/fixtures/nodes4.osm.pbf".into(),
         output: "tests/fixtures/nodes4/convert".into(),
-        leafzoom: 12,
+        manifest: None,
         overwrite: true,
         ids: false,
     };
     let args2 = Args {
         input: "tests/fixtures/santacruz.osm.pbf".into(),
         output: "tests/fixtures/santacruz/convert".into(),
-        leafzoom: 12,
+        manifest: None,
         overwrite: true,
         ids: false,
     };
@@ -56,11 +57,13 @@ fn main() {
     copy("./tests/fixtures/nodes4/convert", &dir1, &opts).unwrap();
     copy("./tests/fixtures/santacruz/convert", &dir2, &opts).unwrap();
 
+    let manifest = manifest::parse(&None);
+
     sort_archive::sort(a1, &dir1).unwrap_or_else(quit);
-    HilbertTree::build(&dir1, args1.leafzoom).unwrap_or_else(quit);
+    HilbertTree::build(&dir1, manifest.render.leaf_zoom).unwrap_or_else(quit);
 
     sort_archive::sort(a2, &dir2).unwrap_or_else(quit);
-    HilbertTree::build(&dir2, args1.leafzoom).unwrap_or_else(quit);
+    HilbertTree::build(&dir2, manifest.render.leaf_zoom).unwrap_or_else(quit);
 
     println!("Total Time: {}", format_duration(time.elapsed()));
 }

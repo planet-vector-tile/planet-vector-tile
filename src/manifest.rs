@@ -1,4 +1,4 @@
-use std::collections::BTreeMap;
+use std::{collections::BTreeMap, path::{Path, PathBuf}};
 
 use serde_derive::{Deserialize, Serialize};
 
@@ -7,27 +7,54 @@ pub type Rules = BTreeMap<String, Rule>;
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct Manifest {
-    render: Render,
-    layers: Layers,
-    rules: Rules,
+    pub render: Render,
+    pub layers: Layers,
+    pub rules: Rules,
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct Render {
-    leaf_zoom: u8,
-    layer_order: Vec<String>,
+    pub leaf_zoom: u8,
+    pub layer_order: Vec<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct Rule {
-    minzoom: u8,
-    maxzoom: Option<u8>,
+    pub minzoom: u8,
+    pub maxzoom: Option<u8>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    keys: Vec<String>,
+    pub keys: Vec<String>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    values: Vec<String>,
+    pub values: Vec<String>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    tags: Vec<(String, String)>,
+    pub tags: Vec<(String, String)>,
+}
+
+pub fn parse(path: &Option<PathBuf>) -> Manifest {
+    let default = PathBuf::from("./manifest.json");
+
+    let manifest_path = match path {
+        Some(manifest) => manifest,
+        None => &default,
+    };
+
+    let manifest_str = match std::fs::read_to_string(manifest_path) {
+        Ok(manifest) => manifest,
+        Err(_) => {
+            log::warn!("No manifest file found at {}", manifest_path.display());
+            std::process::exit(1);
+        }
+    };
+
+    let manifest: Manifest = match toml::from_str(&manifest_str) {
+        Ok(manifest) => manifest,
+        Err(e) => {
+            log::warn!("Failed to parse manifest file: {}", e);
+            std::process::exit(1);
+        }
+    };
+
+    manifest
 }
 
 #[cfg(test)]

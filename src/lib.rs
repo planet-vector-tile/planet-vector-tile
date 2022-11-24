@@ -101,14 +101,14 @@ pub async fn pvt() -> Result<()> {
     let args = Args {
         input: PathBuf::from("./tests/fixtures/nodes4.osm.pbf"),
         output: PathBuf::from("./tests/fixtures/nodes4/debug"),
+        manifest: None,
         ids: false,
         overwrite: false,
-        leafzoom: 12,
     };
     let dir = args.output.clone();
     let archive = osmflat::convert(&args).unwrap_or_else(quit);
     sort_archive::sort(archive, &dir).unwrap_or_else(quit);
-    hilbert::tree::HilbertTree::build(&dir, args.leafzoom).unwrap_or_else(quit);
+    hilbert::tree::HilbertTree::build(&dir, 12).unwrap_or_else(quit);
     Ok(())
 }
 
