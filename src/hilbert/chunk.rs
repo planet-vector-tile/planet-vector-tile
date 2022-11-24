@@ -17,7 +17,7 @@ pub fn build_chunks(
     archive: &Osm,
     manifest: &Manifest,
 ) -> Result<(Mutant<Chunk>, Mutant<Chunk>, Mutant<Chunk>), Box<dyn std::error::Error>> {
-    let filter = Filter::new(manifest);
+    let filter = Filter::new(manifest, archive);
     let leaf_zoom = manifest.render.leaf_zoom;
     let leaves = m_leaves.slice();
     let tiles = m_tiles.slice();
