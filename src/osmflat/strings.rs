@@ -97,7 +97,7 @@ impl StringTable {
         debug_assert_eq!(ptr_before, buffer.as_ptr());
         let key = unsafe {
             // convert back to str (safe since we know that it is valid UTF, it was created from a str)
-            let key: &str = std::str::from_utf8_unchecked(&buffer[ ..]);
+            let key: &str = std::str::from_utf8_unchecked(&buffer[pos..]);
             // safe since we make sure to never reallocate/free any buffer
             let key_ptr = key.as_ptr();
             TerminatedStringPtr::from_ptr(key_ptr)
