@@ -46,14 +46,15 @@ use crate::{manifest::Manifest, osmflat::osmflat_generated::osm::Osm};
 
 fn get_str_null_delimeters(strings: RawData) -> Vec<usize> {
     let bytes = strings.as_bytes();
-    // Serial
+    // Serial - 2s 135ms 674us 708ns for california
     // let mut delimeters: Vec<usize> = Vec::new();
     // for (i, byte) in bytes.iter().enumerate() {
     //     if *byte == 0 {
     //         delimeters.push(i);
     //     }
     // }
-    // Parallel
+
+    // Parallel - 570ms 808us 375ns for california 
     let delimeters: Vec<usize> = bytes
         .par_iter()
         .enumerate()
@@ -67,16 +68,18 @@ fn get_strs(strings: RawData) -> Vec<&str> {
     let bytes = strings.as_bytes();
     let delimeters = get_str_null_delimeters(strings);
 
-    // Serial
+    // Serial - 1s 77ms 806us 708ns for california
     // let mut strs = Vec::with_capacity(delimeters.len());
-    // strs[0] = unsafe { std::str::from_utf8_unchecked(&bytes[0..delimeters[0]]) };
+    // let str0 = unsafe { std::str::from_utf8_unchecked(&bytes[..delimeters[0]]) };
+    // strs.push(str0);
     // for i in 1..delimeters.len() {
     //     let start = delimeters[i - 1] + 1;
     //     let end = delimeters[i];
-    //     strs[i] = unsafe { std::str::from_utf8_unchecked(&bytes[start..end]) };
+    //     let str = unsafe { std::str::from_utf8_unchecked(&bytes[start..end]) };
+    //     strs.push(str);
     // }
 
-    // Parallel
+    // Parallel - 570ms 808us 375ns for california
     let strs: Vec<&str> = delimeters
         .par_iter()
         .enumerate()
@@ -94,7 +97,10 @@ fn get_strs(strings: RawData) -> Vec<&str> {
 
 #[cfg(test)]
 mod tests {
+    use std::time::Instant;
+
     use flatdata::FileResourceStorage;
+    use humantime::format_duration;
 
     use super::*;
 
@@ -150,6 +156,33 @@ mod tests {
             ]
         );
 
-        // println!("end {:?}", &strs[(delimeters.len() - 20)..]);
+        assert_eq!(
+            &strs[(delimeters.len() - 10)..],
+            vec![
+                "Ox Fire Road",
+                "Mill Pond Trail",
+                "Skyline to the Sea - Saratoga Toll Road Connector Tail",
+                "Auchmar Trail",
+                "Ridge Top Trail",
+                "site",
+                "120.86",
+                "124.18",
+                "La Barranca Park",
+                "Approximated, quite synthetic"
+            ]
+        );
+    }
+
+    #[test]
+    #[ignore]
+    fn test_california_time() {
+        let archive = Osm::open(FileResourceStorage::new("/Users/n/geodata/flatdata/california")).unwrap();
+        let strings: RawData = archive.stringtable();
+
+        let time = Instant::now();
+        let strs = get_strs(strings);
+        assert_eq!(strs.len(), 7428597);
+        // Total Time: 569ms 658us 875ns
+        println!("Total Time: {}", format_duration(time.elapsed()));
     }
 }
