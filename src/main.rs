@@ -1,5 +1,7 @@
 mod args;
 mod manifest;
+mod rules;
+mod filter;
 mod hilbert;
 mod location;
 mod mutant;

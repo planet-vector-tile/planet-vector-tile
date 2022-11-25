@@ -1,11 +1,12 @@
 use super::{
     hilbert_tile::{Chunk, HilbertTile},
-    leaf::Leaf, filter::Filter,
+    leaf::Leaf
 };
 use crate::{
     manifest::Manifest,
     mutant::Mutant,
     osmflat::osmflat_generated::osm::{Osm, Way},
+    filter::Filter,
 };
 use std::path::Path;
 

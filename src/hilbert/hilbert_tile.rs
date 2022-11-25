@@ -237,6 +237,7 @@ mod tests {
             assert_eq!(str, "[33, ef, cd, ab, 21, 43, 65, 87]")
         }
 
+        // NHTODO do portable tmp
         let p = PathBuf::from("/Users/n/tmp");
         let chunks = Mutant::<Chunk>::new(&p, "test", 1000).unwrap();
 

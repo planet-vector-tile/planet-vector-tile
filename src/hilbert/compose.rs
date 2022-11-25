@@ -320,16 +320,10 @@ fn build_tags(
         let tag_i = tag_idx.value() as usize;
         debug_assert!(tag_i < tags.len());
         let tag = &tags[tag_i];
-        let k = tag.key_idx() as usize;
-        let v = tag.value_idx() as usize;
-        match strings.substring(k) {
-            Ok(key) => keys.push(builder.attributes.upsert_string(key)),
-            Err(e) => eprintln!("Invalid tag key {:?}", e),
-        }
-        match strings.substring(v) {
-            Ok(val) => vals.push(builder.attributes.upsert_string_value(val)),
-            Err(e) => eprintln!("Invalid tag val {:?}", e),
-        }
+        let k = unsafe { strings.substring_unchecked(tag.key_idx() as usize) };
+        let v = unsafe { strings.substring_unchecked(tag.value_idx() as usize) };
+        keys.push(builder.attributes.upsert_string(k));
+        vals.push(builder.attributes.upsert_string_value(v));
     }
 
     (keys, vals)
