@@ -1,9 +1,8 @@
-use flatdata::RawData;
 use std::ops::Range;
 
 use crate::{
     manifest::Manifest,
-    osmflat::osmflat_generated::osm::{Node, Osm, Tag, TagIndex, Way},
+    osmflat::osmflat_generated::osm::{Node, Osm, Way},
     rules::{Rules, ZoomRangeRuleEval},
 };
 
@@ -123,26 +122,4 @@ impl<'a> Filter<'a> {
             false
         }
     }
-
-    // https://stackoverflow.com/questions/41269043/how-would-one-return-a-function-from-a-function-in-rust
-    pub fn node_filter2(&self, zoom: u8) -> fn(&Node) -> bool {
-        fn evaluate_node(node: &Node) -> bool {
-            let mut result = true;
-
-            result
-        }
-
-        evaluate_node
-    }
-}
-
-fn evaluate_tags(
-    tags_index_range: Range<usize>,
-    tags_index: &[TagIndex],
-    tags: &[Tag],
-    strings: RawData,
-) -> bool {
-    let mut result = true;
-
-    result
 }

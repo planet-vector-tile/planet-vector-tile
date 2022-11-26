@@ -7,7 +7,7 @@ use humantime::format_duration;
 use rayon::prelude::{IndexedParallelIterator, IntoParallelRefIterator, ParallelIterator};
 
 use crate::{
-    manifest::{self, Manifest},
+    manifest::Manifest,
     osmflat::osmflat_generated::osm::{Osm, Tag},
 };
 
