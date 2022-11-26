@@ -1,48 +1,120 @@
-use std::ops::Range;
+use std::{ops::Range, time::Instant};
 
-use ahash::{AHashMap, AHashSet};
+use ahash::AHashMap;
+use dashmap::{DashSet, DashMap};
 use flatdata::RawData;
+use humantime::format_duration;
 use rayon::prelude::{IndexedParallelIterator, IntoParallelRefIterator, ParallelIterator};
-use serde::__private::de;
 
-use crate::{manifest::Manifest, osmflat::osmflat_generated::osm::Osm};
 
-// pub struct Rules {
-//     tag_to_zoom_range: AHashMap<(usize, usize), Range<u8>>,
-//     value_to_zoom_range: AHashMap<usize, Range<u8>>,
-//     key_to_zoom_range: AHashMap<usize, Range<u8>>,
-// }
+use crate::{manifest::{Manifest, self}, osmflat::osmflat_generated::osm::{Osm, Tag}};
 
-// impl Rules {
-//     pub fn new(manifest: &Manifest, archive: &Osm) -> Self {
+pub struct Rules {
+    default_zoom_range: Range<u8>,
+    tag_to_zoom_range: AHashMap<(usize, usize), Range<u8>>,
+    value_to_zoom_range: AHashMap<usize, Range<u8>>,
+    key_to_zoom_range: AHashMap<usize, Range<u8>>,
+}
 
-//         let strings: RawData = archive.stringtable();
+impl Rules {
+    pub fn new(manifest: &Manifest, archive: &Osm) -> Self {
+        let rule_strs: DashSet::<&str> = DashSet::new();
+        for (_, rule) in &manifest.rules {
+            for (k, v) in &rule.tags {
+                rule_strs.insert(k);
+                rule_strs.insert(v);
+            }
+            for v in &rule.values {
+                rule_strs.insert(v);
+            }
+            for k in &rule.keys {
+                rule_strs.insert(k);
+            }
+        }
 
-//         let mut rule_strs: AHashSet::<&str> = AHashSet::new();
+        let str_to_idx: DashMap<&str, usize> = DashMap::new();
+        let strings = archive.stringtable();
+        let t = Instant::now();
+        let strs = get_strs(strings);
 
-//         for (_, rule) in manifest.rules {
-//             for (k, v) in &rule.tags {
-//                 rule_strs.insert(k);
-//                 rule_strs.insert(v);
-//             }
-//             for v in &rule.values {
-//                 rule_strs.insert(v);
-//             }
-//             for k in &rule.keys {
-//                 rule_strs.insert(k);
-//             }
-//         }
+        let _ = strs.par_iter().enumerate().find_any(|(i, &s)| {
+            if rule_strs.contains(s) {
+                str_to_idx.insert(s, *i);
+                rule_strs.remove(s);
+            }
+            // halt iterating when the set is empty
+            if rule_strs.is_empty() {
+                true
+            } else {
+                false
+            }
+        });
 
-//         let mut string_to_index: AHashMap<&str, usize> = AHashMap::new();
+        if rule_strs.len() > 0 {
+            println!("WARNING: Not all rules were matched to a string in the stringtable. Unmatched strings : {:?}", rule_strs);
+        }
+        println!("Rules str_to_index: {:?}", str_to_idx);
+        println!("Rules str_to_index time: {}", format_duration(t.elapsed()));
 
-//         Rules {
-//             tag_to_zoom_range,
-//             value_to_zoom_range,
-//             key_to_zoom_range,
-//         }
-//     }
+        let mut tag_to_zoom_range: AHashMap<(usize, usize), Range<u8>> = AHashMap::new();
+        let mut value_to_zoom_range: AHashMap<usize, Range<u8>> = AHashMap::new();
+        let mut key_to_zoom_range: AHashMap<usize, Range<u8>> = AHashMap::new();
 
-// }
+        for (_, rule) in &manifest.rules {
+            let zoom_range = if let Some(maxzoom) = rule.maxzoom { rule.minzoom..maxzoom } else { rule.minzoom..manifest.render.leaf_zoom };
+
+            for (k, v) in &rule.tags {
+                let k_idx = match str_to_idx.get(k.as_str()) {
+                    Some(idx) => *idx,
+                    None => { break; }
+                };
+                let v_idx = match str_to_idx.get(v.as_str()) {
+                    Some(idx) => *idx,
+                    None => { break; }
+                };
+                tag_to_zoom_range.insert((k_idx, v_idx), zoom_range.clone());
+            }
+            for v in &rule.values {
+                let v_idx = match str_to_idx.get(v.as_str()) {
+                    Some(idx) => *idx,
+                    None => { break; }
+                };
+                value_to_zoom_range.insert(v_idx, zoom_range.clone());
+            }
+            for k in &rule.keys {
+                let k_idx = match str_to_idx.get(k.as_str()) {
+                    Some(idx) => *idx,
+                    None => { break; }
+                };
+                key_to_zoom_range.insert(k_idx, zoom_range.clone());
+            }
+        }
+
+        Rules {
+            default_zoom_range : manifest.render.leaf_zoom..manifest.render.leaf_zoom,
+            tag_to_zoom_range,
+            value_to_zoom_range,
+            key_to_zoom_range,
+        }
+    }
+
+    pub fn get_zoom_range(&self, tag: Tag) -> Range<u8> {
+        let key = tag.key_idx() as usize;
+        let value = tag.value_idx() as usize;
+        if let Some(zoom_range) = self.tag_to_zoom_range.get(&(key, value)) {
+            return zoom_range.clone();
+        }
+        if let Some(zoom_range) = self.value_to_zoom_range.get(&value) {
+            return zoom_range.clone();
+        }
+        if let Some(zoom_range) = self.key_to_zoom_range.get(&key) {
+            return zoom_range.clone();
+        }
+        self.default_zoom_range.clone()
+    }
+
+}
+
 
 fn get_str_null_delimeters(strings: RawData) -> Vec<usize> {
     let bytes = strings.as_bytes();
@@ -101,6 +173,8 @@ mod tests {
 
     use flatdata::FileResourceStorage;
     use humantime::format_duration;
+
+    use crate::manifest;
 
     use super::*;
 
@@ -171,6 +245,29 @@ mod tests {
                 "Approximated, quite synthetic"
             ]
         );
+    }
+
+    #[test]
+    fn test_build_rules_santacruz() {
+        let manifest = manifest::parse(None);
+        let archive = Osm::open(FileResourceStorage::new("tests/fixtures/santacruz/sort")).unwrap();
+        let rules = Rules::new(&manifest, &archive);
+
+        // boundary = administrative
+        let mut tag = Tag::new();
+        tag.set_key_idx(28381);
+        tag.set_value_idx(6223);
+        
+        let zoom_range = rules.get_zoom_range(tag);
+        assert_eq!(zoom_range, 0..12);
+
+        // key of building
+        let mut tag2 = Tag::new();
+        tag2.set_key_idx(2716);
+        tag2.set_value_idx(1);
+
+        let zoom_range2 = rules.get_zoom_range(tag2);
+        assert_eq!(zoom_range2, 10..12);
     }
 
     #[test]
