@@ -11,7 +11,7 @@ import { PVTValueType } from './fbs/pvtvalue-type';
 type Extent = 8196;
 const EXTENT: Extent = 8196;
 
-export default class PVT {
+export class PVT {
     layers: { [_: string]: VectorTileLayer };
 
     constructor(arr: Uint8Array) {
@@ -30,7 +30,7 @@ export default class PVT {
     }
 }
 
-class Layer implements VectorTileLayer {
+export class Layer implements VectorTileLayer {
     features: VectorTileFeature[];
     name: string;
     extent: Extent;
@@ -56,7 +56,7 @@ class Layer implements VectorTileLayer {
     }
 }
 
-class Feature implements VectorTileFeature {
+export class Feature implements VectorTileFeature {
     // ID is treated as optional, contrary to MapLibre's TypeScript definition.
     // The TypeScript definition is not correct, as Mapbox does handle IDs as optional.
     // It is a 64 bit integer in the flatbuffer, so we cast it down to Number (64 bit float),
@@ -122,7 +122,6 @@ class Feature implements VectorTileFeature {
     }
 
     // NHTODO There is a bug with this method, as shown in unit tests.
-    // It isn't being used, but it will be needed when the vtpbf conversion is removed.
     toGeoJSON(x: number, y: number, z: number): GeoJSONFeature {
         const granularity = EXTENT * Math.pow(2, z);
         const tileWest = EXTENT * x;
