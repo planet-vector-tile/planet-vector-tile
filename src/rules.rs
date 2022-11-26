@@ -39,21 +39,9 @@ impl Rules {
         let t = Instant::now();
 
         // Note: This is expensive.
-        // let strs = get_strs(strings);
         let str_ranges = get_str_ranges(strings);
 
-        // let _ = strs.par_iter().enumerate().find_any(|(i, &s)| {
-        //     if rule_strs.contains(s) {
-        //         str_to_idx.insert(s, *i);
-        //         rule_strs.remove(s);
-        //     }
-        //     // halt iterating when the set is empty
-        //     if rule_strs.is_empty() {
-        //         true
-        //     } else {
-        //         false
-        //     }
-        // });
+
         let _ = str_ranges.par_iter().find_any(|r| {
             let bytes = &strings.as_bytes()[r.start..r.end];
             let s = unsafe { std::str::from_utf8_unchecked(bytes) };
@@ -154,15 +142,6 @@ pub enum ZoomRangeRuleEval<'a> {
 
 fn get_str_null_delimeters(strings: RawData) -> Vec<usize> {
     let bytes = strings.as_bytes();
-    // Serial - 2s 135ms 674us 708ns for california
-    // let mut delimeters: Vec<usize> = Vec::new();
-    // for (i, byte) in bytes.iter().enumerate() {
-    //     if *byte == 0 {
-    //         delimeters.push(i);
-    //     }
-    // }
-
-    // Parallel - 570ms 808us 375ns for california
     let delimeters: Vec<usize> = bytes
         .par_iter()
         .enumerate()
@@ -170,37 +149,6 @@ fn get_str_null_delimeters(strings: RawData) -> Vec<usize> {
         .collect();
 
     delimeters
-}
-
-fn get_strs(strings: RawData) -> Vec<&str> {
-    let bytes = strings.as_bytes();
-    let delimeters = get_str_null_delimeters(strings);
-
-    // Serial - 1s 77ms 806us 708ns for california
-    // let mut strs = Vec::with_capacity(delimeters.len());
-    // let str0 = unsafe { std::str::from_utf8_unchecked(&bytes[..delimeters[0]]) };
-    // strs.push(str0);
-    // for i in 1..delimeters.len() {
-    //     let start = delimeters[i - 1] + 1;
-    //     let end = delimeters[i];
-    //     let str = unsafe { std::str::from_utf8_unchecked(&bytes[start..end]) };
-    //     strs.push(str);
-    // }
-
-    // Parallel - 570ms 808us 375ns for california
-    let strs: Vec<&str> = delimeters
-        .par_iter()
-        .enumerate()
-        .map(|(i, delimeter)| {
-            let start = if i == 0 { 0 } else { delimeters[i - 1] + 1 };
-            let end = *delimeter;
-            let slice = &bytes[start..end];
-            let str = unsafe { std::str::from_utf8_unchecked(slice) };
-            str
-        })
-        .collect();
-
-    strs
 }
 
 fn get_str_ranges(strings: RawData) -> Vec<Range<usize>> {
@@ -228,6 +176,21 @@ mod tests {
     use crate::manifest;
 
     use super::*;
+
+    fn get_strs(strings: RawData) -> Vec<&str> {
+        let bytes = strings.as_bytes();
+        let ranges = get_str_ranges(strings);
+        let strs: Vec<&str> = ranges
+            .par_iter()
+            .map(|r| {
+                let slice = &bytes[r.start..r.end];
+                let str = unsafe { std::str::from_utf8_unchecked(slice) };
+                str
+            })
+            .collect();
+    
+        strs
+    }
 
     #[test]
     fn test_get_str_indices() {
@@ -306,8 +269,8 @@ mod tests {
 
         // boundary = administrative
         let mut tag = Tag::new();
-        tag.set_key_idx(28381);
-        tag.set_value_idx(6223);
+        tag.set_key_idx(406551);
+        tag.set_value_idx(90476);
 
         let zr = 0..12;
         let zoom_range = rules.get_zoom_range(&tag);
@@ -315,7 +278,7 @@ mod tests {
 
         // key of building
         let mut tag2 = Tag::new();
-        tag2.set_key_idx(2716);
+        tag2.set_key_idx(32840);
         tag2.set_value_idx(1);
 
         let zr2 = 10..12;
@@ -333,7 +296,7 @@ mod tests {
         let strings: RawData = archive.stringtable();
 
         let time = Instant::now();
-        let strs = get_strs(strings);
+        let strs = get_str_ranges(strings);
         assert_eq!(strs.len(), 7428597);
         // Total Time: 569ms 658us 875ns
         println!("Total Time: {}", format_duration(time.elapsed()));
