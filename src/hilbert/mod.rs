@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 
-mod leaf;
-mod hilbert_tile;
-pub mod tree;
+mod chunk;
 pub mod compose;
+mod hilbert_tile;
+mod leaf;
+pub mod tree;

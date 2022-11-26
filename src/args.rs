@@ -10,6 +10,10 @@ pub struct Args {
     /// Output directory for osmflat
     pub output: PathBuf,
 
+    /// Path to the manifest file (default: ./manifest.json)
+    #[arg(short, long)]
+    pub manifest: Option<PathBuf>,
+
     /// Include OSM entity ids.
     #[structopt(long = "ids")]
     pub ids: bool,
@@ -17,8 +21,4 @@ pub struct Args {
     /// Overwrite existing archive output directory
     #[arg(long, default_value_t = false)]
     pub overwrite: bool,
-
-    /// Highest zoom at which tiles are indexed.
-    #[arg(short, long, default_value_t = 12)]
-    pub leafzoom: u8,
 }

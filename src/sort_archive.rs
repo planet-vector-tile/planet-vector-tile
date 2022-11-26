@@ -237,8 +237,6 @@ impl Prog {
 
 #[cfg(test)]
 mod tests {
-    use crate::{location, osmflat::osmflat_generated::osm::Tag};
-
     use super::*;
 
     #[test]

@@ -4,7 +4,7 @@ use core::mem::size_of;
 use core::slice::{from_raw_parts, from_raw_parts_mut};
 use memmap2::MmapMut;
 use std::fs::File;
-use std::io::Result;
+use std::io::{BufWriter, Result};
 use std::{
     fs,
     fs::OpenOptions,
@@ -51,7 +51,7 @@ impl<T: Sized> Mutant<T> {
         })
     }
 
-    pub fn empty_file(dir: &Path, file_name: &str) -> Result<File> {
+    pub fn empty_buffered_writer(dir: &Path, file_name: &str) -> Result<BufWriter<File>> {
         let size = 8;
         let path = dir.join(file_name);
 
@@ -70,7 +70,8 @@ impl<T: Sized> Mutant<T> {
             *header_ptr = 0;
         }
 
-        Ok(file)
+        let writer = BufWriter::new(file);
+        Ok(writer)
     }
 
     pub fn new_from_flatdata(

@@ -2,7 +2,7 @@ use flatbuffers::{FlatBufferBuilder, WIPOffset};
 use itertools::Itertools;
 
 use crate::{
-    tile::planet_vector_tile_generated::{PVTLayer, PVTTile, PVTTileArgs, PVTValue},
+    tile::planet_vector_tile_generated::{PVTLayer, PVTTile, PVTTileArgs},
     tile_attributes::TileAttributes,
 };
 

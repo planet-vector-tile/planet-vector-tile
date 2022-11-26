@@ -19,9 +19,11 @@ pub struct HilbertTile {
     // Bit mask denoting which of the 16 children for the given tile exist.
     // MSB is index 15, MSB is index 0.
     pub mask: u16,
-    // Indices to the first chunk of nodes, ways, relations from other tiles
-    // that enter into this tile.
+    // Chunks of indices to the entities in the given tile.
+    // The node chunk array is just node indices, since they are sparse.
     n_chunk: u32,
+    // Way and relation chunks are actual chunks that are the index and length,
+    // since they are usually together in chunks.
     w_chunk: u32,
     r_chunk: u32,
 }
@@ -29,10 +31,9 @@ pub struct HilbertTile {
 // Chunks are offsets and run lengths of entities used for a given tile in the entity.
 #[derive(Debug)]
 pub struct Chunk {
-    pub offset: u32, // offset from the w or r of the leaf tile
+    pub idx: u32,
     pub len: u32,
 }
-
 
 pub fn build_tiles(
     m_leaves: &Mutant<Leaf>,
@@ -225,7 +226,7 @@ mod tests {
     #[test]
     fn test_struct_binary() {
         let c = Chunk {
-            offset: 0xABCDEF33,
+            idx: 0xABCDEF33,
             len: 0x87654321,
         };
 
@@ -235,12 +236,13 @@ mod tests {
             assert_eq!(str, "[33, ef, cd, ab, 21, 43, 65, 87]")
         }
 
+        // NHTODO do portable tmp
         let p = PathBuf::from("/Users/n/tmp");
         let chunks = Mutant::<Chunk>::new(&p, "test", 1000).unwrap();
 
         let s = chunks.mutable_slice();
         let s0 = &mut s[0];
-        s0.offset = 0x11111111;
+        s0.idx = 0x11111111;
         s0.len = 0x22222222;
 
         let slc2 = chunks.slice();
@@ -267,5 +269,4 @@ mod tests {
         assert!(mask_has(m3, 5));
         assert!(mask_has(m3, 15));
     }
-
 }

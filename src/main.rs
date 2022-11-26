@@ -1,10 +1,13 @@
 mod args;
+mod filter;
 mod hilbert;
 mod location;
+mod manifest;
 mod mutant;
 mod osmflat;
 mod parallel;
 pub mod pvt_builder;
+mod rules;
 mod sort_archive;
 mod source;
 mod tile;
@@ -12,9 +15,9 @@ mod tile_attributes;
 
 use args::*;
 use clap::Parser;
+use hilbert::tree::HilbertTree;
 use humantime::format_duration;
 use std::{error::Error, fs, time::Instant};
-use hilbert::tree::HilbertTree;
 
 fn main() {
     let time = Instant::now();
@@ -27,17 +30,17 @@ fn main() {
         .format_timestamp_nanos()
         .init();
 
+    let manifest = manifest::parse(args.manifest.clone());
+
     if args.overwrite {
         if let Err(e) = fs::remove_dir_all(args.output.clone()) {
             eprintln!("Unable to remove output dir: {}", e);
         }
     }
 
-    let dir = args.output.clone();
-
     let archive = osmflat::convert(&args).unwrap_or_else(quit);
-    sort_archive::sort(archive, &dir).unwrap_or_else(quit);
-    HilbertTree::build(&dir, args.leafzoom).unwrap_or_else(quit);
+    sort_archive::sort(archive, &args.output).unwrap_or_else(quit);
+    HilbertTree::build(&args.output, manifest).unwrap_or_else(quit);
 
     println!("Total Time: {}", format_duration(time.elapsed()));
 }

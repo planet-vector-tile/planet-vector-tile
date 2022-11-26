@@ -1,11 +1,7 @@
 use std::ops::Range;
 
 use super::leaf::Leaf;
-use crate::{
-    osmflat::osmflat_generated::osm::{Node, Relation, Way},
-    tile::planet_vector_tile_generated::*,
-};
-use flatbuffers::WIPOffset;
+use crate::tile::planet_vector_tile_generated::*;
 use flatdata::RawData;
 
 use crate::{
@@ -46,8 +42,10 @@ impl Source for HilbertTree {
 
 impl HilbertTree {
     fn find(&self, tile: &Tile) -> FindResult {
+        let leaf_zoom = self.manifest.render.leaf_zoom;
+
         // Tiles do not exist beyond the leaf zoom, and we only use even zoom levels.
-        if tile.z & 1 == 1 || tile.z > self.leaf_zoom {
+        if tile.z & 1 == 1 || tile.z > leaf_zoom {
             return FindResult::None;
         }
 
@@ -64,7 +62,7 @@ impl HilbertTree {
             };
             // If we are all the way down to the leaves,
             // return a leaf result pair.
-            if z == self.leaf_zoom {
+            if z == leaf_zoom {
                 return FindResult::Leaf(ResultPair {
                     item: &leaves[i],
                     next: if i + 1 < leaves.len() {
@@ -96,7 +94,6 @@ impl HilbertTree {
         let ways_len = ways.len();
         let relations_len = relations.len();
         let node_pairs = self.archive.hilbert_node_pairs().unwrap();
-        let way_pairs = self.way_pairs.slice();
         let tags = self.archive.tags();
         let nodes_index = self.archive.nodes_index();
         let tags_index = self.archive.tags_index();
@@ -192,7 +189,9 @@ impl HilbertTree {
         features.clear();
 
         let tile_ways = ways[w_range].iter();
-        let ext_ways = external_entities[w_ext_range].iter().map(|i| &ways[*i as usize]);
+        let ext_ways = external_entities[w_ext_range]
+            .iter()
+            .map(|i| &ways[*i as usize]);
         let all_ways = tile_ways.chain(ext_ways);
 
         for way in all_ways {
@@ -279,9 +278,9 @@ impl HilbertTree {
 
     fn compose_h_tile(
         &self,
-        tile: &Tile,
-        pair: ResultPair<&HilbertTile>,
-        builder: &mut PVTBuilder,
+        _tile: &Tile,
+        _pair: ResultPair<&HilbertTile>,
+        _builder: &mut PVTBuilder,
     ) {
         //NHTODO - First, we need to populate chunks...
     }
@@ -321,16 +320,10 @@ fn build_tags(
         let tag_i = tag_idx.value() as usize;
         debug_assert!(tag_i < tags.len());
         let tag = &tags[tag_i];
-        let k = tag.key_idx() as usize;
-        let v = tag.value_idx() as usize;
-        match strings.substring(k) {
-            Ok(key) => keys.push(builder.attributes.upsert_string(key)),
-            Err(e) => eprintln!("Invalid tag key {:?}", e),
-        }
-        match strings.substring(v) {
-            Ok(val) => vals.push(builder.attributes.upsert_string_value(val)),
-            Err(e) => eprintln!("Invalid tag val {:?}", e),
-        }
+        let k = unsafe { strings.substring_unchecked(tag.key_idx() as usize) };
+        let v = unsafe { strings.substring_unchecked(tag.value_idx() as usize) };
+        keys.push(builder.attributes.upsert_string(k));
+        vals.push(builder.attributes.upsert_string_value(v));
     }
 
     (keys, vals)
@@ -349,7 +342,7 @@ mod tests {
         let t = Tile::from_zh(12, 3329134);
 
         let dir = PathBuf::from("tests/fixtures/santacruz/sort");
-        let tree = HilbertTree::open(&dir, 12).unwrap();
+        let tree = HilbertTree::open(&dir).unwrap();
 
         match tree.find(&t) {
             FindResult::HilbertTile(_) => panic!("Should not be a HilbertTile. Should be a leaf"),
@@ -371,7 +364,7 @@ mod tests {
         let t = Tile::from_zh(12, 3329134);
 
         let dir = PathBuf::from("tests/fixtures/santacruz/sort");
-        let tree = HilbertTree::open(&dir, 12).unwrap();
+        let tree = HilbertTree::open(&dir).unwrap();
 
         let mut builder = PVTBuilder::new();
         tree.compose_tile(&t, &mut builder);
@@ -429,7 +422,7 @@ mod tests {
     #[test]
     fn test_tags_index() {
         let dir = PathBuf::from("tests/fixtures/santacruz/sort");
-        let tree = HilbertTree::open(&dir, 12).unwrap();
+        let tree = HilbertTree::open(&dir).unwrap();
         let nodes = tree.archive.nodes();
         for n in nodes {
             let t_range = n.tags();
