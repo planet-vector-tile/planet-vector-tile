@@ -1,5 +1,5 @@
 [render]
-leaf_zoom = 12
+leaf_zoom = 14
 layer_order = ["Administrative", "Water", "Boundaries", "Buildings", "Landuse", "Major Roads", "Minor Roads"]
 
 [layers]

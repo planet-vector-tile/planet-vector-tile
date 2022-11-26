@@ -19,7 +19,7 @@
             "tiles": ["info", "../tests/fixtures/santacruz/sort"],
             "sprite": "https://storage.googleapis.com/hellopvt3/sprites",
             "minzoom": 0,
-            "maxzoom": 12
+            "maxzoom": 14
         }
     },
     "layers": [
