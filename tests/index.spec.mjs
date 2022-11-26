@@ -1,7 +1,7 @@
 import test from 'ava';
 
 import { loadPlanet } from '../index.js';
-import PVT from '../dist/bundle.js';
+import { PVT } from '../dist/bundle.js';
 
 test('load planet and fetch tile', async t => {
     const planet = loadPlanet(['info']);
