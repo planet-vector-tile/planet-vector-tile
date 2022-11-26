@@ -155,7 +155,7 @@ fn build_hilbert_way_pairs(
     way_pairs: &mut [HilbertWayPair],
     archive: &Osm,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let nodes = archive.nodes();
+    let node_pairs = archive.hilbert_node_pairs().unwrap();
     let nodes_index = archive.nodes_index();
     let ways = archive.ways();
 
@@ -165,41 +165,37 @@ fn build_hilbert_way_pairs(
     way_pairs.par_iter_mut().enumerate().for_each(|(i, pair)| {
         let way = &ways[i];
         let refs = way.refs();
-        let len = refs.end - refs.start;
-        let mut coords = Vec::<Coordinate<f64>>::with_capacity(len as usize);
 
-        for r in refs {
-            if let Some(idx) = nodes_index[r as usize].value() {
-                let node = &nodes[idx as usize];
-                // georust lib requires f64 for a coordinate.
-                coords.push(coord! { x: node.lon() as f64, y: node.lat() as f64 });
-            };
-        }
-
-        // Calculate point on surface.
-        // http://libgeos.org/doxygen/classgeos_1_1algorithm_1_1InteriorPointArea.html
-        // https://docs.rs/geo/latest/geo/algorithm/interior_point/trait.InteriorPoint.html
+        // Originally I was using the Interior Point (Point on Surface) algorithm provided by georust.
+        // This is an expensive operation, and I was getting topology errors.
         // https://github.com/georust/geo/blob/main/geo/src/algorithm/interior_point.rs
+    
+        // Think about using the polylabel algorithm.
+        // https://crates.io/crates/polylabel
+        
+        // For now we are just using the median ref node. If we are going to use a more expensive
+        // operation, we should prove that it has a measurable boost in tile fetching performance.
 
-        // NHTODO https://crates.io/crates/polylabel
+        let median = ((refs.end - refs.start) / 2) as usize;
+        let median_ref = match nodes_index[median].value() {
+            Some(v) => v as usize,
+            None => {
+                eprintln!("Unable to find median ref of way i{} osm_id{}", i, way.osm_id());
+                for r in refs {
+                    if let Some(n_id) = nodes_index[r as usize].value() {
 
-        let point_on_surface = if coords.first() == coords.last() {
-            Polygon::new(LineString::new(coords), vec![]).interior_point()
-        } else {
-            LineString::new(coords).interior_point()
+                        
+                        n_id as usize;
+                    }
+                }
+                eprintln!("Unable to find any ref of way i{} osm_id{}", i, way.osm_id());
+                return;
+            }
         };
 
-        if let Some(pos) = point_on_surface {
-            let lonlat = (pos.x() as i32, pos.y() as i32);
-            let h = location::lonlat_to_h(lonlat);
-            pair.set_i(i as u32);
-            pair.set_h(h);
-        } else {
-            eprintln!(
-                "Unable to find point on surface to compute hilbert location for way at index {}.",
-                i
-            );
-        }
+        let h = node_pairs[median_ref].h();
+        pair.set_i(i as u32);
+        pair.set_h(h);
     });
 
     info!("Finished in {} secs.", t.elapsed().as_secs());
