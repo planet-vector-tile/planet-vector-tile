@@ -39,11 +39,26 @@ impl Rules {
         let t = Instant::now();
 
         // Note: This is expensive.
-        let strs = get_strs(strings);
+        // let strs = get_strs(strings);
+        let str_ranges = get_str_ranges(strings);
 
-        let _ = strs.par_iter().enumerate().find_any(|(i, &s)| {
+        // let _ = strs.par_iter().enumerate().find_any(|(i, &s)| {
+        //     if rule_strs.contains(s) {
+        //         str_to_idx.insert(s, *i);
+        //         rule_strs.remove(s);
+        //     }
+        //     // halt iterating when the set is empty
+        //     if rule_strs.is_empty() {
+        //         true
+        //     } else {
+        //         false
+        //     }
+        // });
+        let _ = str_ranges.par_iter().find_any(|r| {
+            let bytes = &strings.as_bytes()[r.start..r.end];
+            let s = unsafe { std::str::from_utf8_unchecked(bytes) };
             if rule_strs.contains(s) {
-                str_to_idx.insert(s, *i);
+                str_to_idx.insert(s, r.start);
                 rule_strs.remove(s);
             }
             // halt iterating when the set is empty
@@ -186,6 +201,21 @@ fn get_strs(strings: RawData) -> Vec<&str> {
         .collect();
 
     strs
+}
+
+fn get_str_ranges(strings: RawData) -> Vec<Range<usize>> {
+    let delimeters = get_str_null_delimeters(strings);
+    let ranges: Vec<Range<usize>> = delimeters
+        .par_iter()
+        .enumerate()
+        .map(|(i, delimeter)| {
+            let start = if i == 0 { 0 } else { delimeters[i - 1] + 1 };
+            let end = *delimeter;
+            start..end
+        })
+        .collect();
+
+    ranges
 }
 
 #[cfg(test)]
