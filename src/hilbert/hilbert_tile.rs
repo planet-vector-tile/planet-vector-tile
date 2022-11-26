@@ -21,7 +21,7 @@ pub struct HilbertTile {
     pub mask: u16,
     // Chunks of indices to the entities in the given tile.
     // The node chunk array is just node indices, since they are sparse.
-    n_chunk: u32, 
+    n_chunk: u32,
     // Way and relation chunks are actual chunks that are the index and length,
     // since they are usually together in chunks.
     w_chunk: u32,
@@ -34,7 +34,6 @@ pub struct Chunk {
     pub idx: u32,
     pub len: u32,
 }
-
 
 pub fn build_tiles(
     m_leaves: &Mutant<Leaf>,
@@ -270,5 +269,4 @@ mod tests {
         assert!(mask_has(m3, 5));
         assert!(mask_has(m3, 15));
     }
-
 }

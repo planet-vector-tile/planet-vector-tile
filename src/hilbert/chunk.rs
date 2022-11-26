@@ -1,12 +1,12 @@
 use super::{
     hilbert_tile::{Chunk, HilbertTile},
-    leaf::Leaf
+    leaf::Leaf,
 };
 use crate::{
+    filter::Filter,
     manifest::Manifest,
     mutant::Mutant,
-    osmflat::osmflat_generated::osm::{Osm, Way},
-    filter::Filter,
+    osmflat::osmflat_generated::osm::{Node, Osm, Way},
 };
 use std::path::Path;
 
@@ -51,6 +51,9 @@ pub fn build_chunks(
             None
         };
 
+        let node_filter = filter.node_at_zoom(z);
+        let way_filter = filter.way_at_zoom(z);
+
         // Get a vec of references to all of the entities in the tile.
         // We will then filter from this to build chunks.
         let (nodes, ways) = if z == leaf_zoom - 2 {
@@ -65,29 +68,25 @@ pub fn build_chunks(
                 Some(end_leaf) => &nodes[first_leaf.n as usize..end_leaf.n as usize],
                 None => &nodes[first_leaf.n as usize..],
             };
+            let filtered_nodes: Vec<&Node> = nodes.iter().filter(node_filter).collect();
 
-            let ways = match end_leaf {
-                Some(end_leaf) => {
-                    let inner_ways = ways[first_leaf.w as usize..end_leaf.w as usize].iter();
-                    let ext_ways = external[first_leaf.w_ext as usize..end_leaf.w_ext as usize]
-                        .iter()
-                        .map(|i| &ways[*i as usize]);
-                    let all_ways = inner_ways.chain(ext_ways);
-                    all_ways.collect::<Vec<&Way>>()
-                }
-                None => {
-                    let inner_ways = ways[first_leaf.w as usize..].iter().map(|w| w); // this peels out the reference to the way without removing the way
-                    let ext_ways = external[first_leaf.w_ext as usize..]
-                        .iter()
-                        .map(|i| &ways[*i as usize]);
-                    let all_ways = inner_ways.chain(ext_ways);
-                    all_ways.collect::<Vec<&Way>>()
-                }
+            let w_range = match end_leaf {
+                Some(end_leaf) => first_leaf.w as usize..end_leaf.w as usize,
+                None => first_leaf.w as usize..ways.len(),
+            };
+            let w_ext_range = match end_leaf {
+                Some(end_leaf) => first_leaf.w_ext as usize..end_leaf.w_ext as usize,
+                None => first_leaf.w_ext as usize..external.len(),
             };
 
-            (nodes, ways)
+            let inner_ways = ways[w_range].iter();
+            let ext_ways = external[w_ext_range].iter().map(|i| &ways[*i as usize]);
+            let ways = inner_ways.chain(ext_ways);
+            let filtered_ways: Vec<&Way> = ways.filter(way_filter).collect();
+
+            (filtered_nodes, filtered_ways)
         } else {
-            (&nodes[0..0], vec![])
+            (vec![], vec![])
         };
 
         println!(

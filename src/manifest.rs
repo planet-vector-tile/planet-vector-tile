@@ -2,8 +2,8 @@ use std::{collections::BTreeMap, path::PathBuf};
 
 use serde_derive::{Deserialize, Serialize};
 
-pub type Layers = BTreeMap<String, Vec<String>>;
-pub type Rules = BTreeMap<String, Rule>;
+type Layers = BTreeMap<String, Vec<String>>;
+type Rules = BTreeMap<String, Rule>;
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 pub struct Manifest {
@@ -43,7 +43,10 @@ pub fn parse(path: Option<PathBuf>) -> Manifest {
         Ok(manifest) => manifest,
         Err(_) => {
             eprintln!("No manifest file found at {}", manifest_path.display());
-            eprintln!("Process working directory: {}", std::env::current_dir().unwrap().display());
+            eprintln!(
+                "Process working directory: {}",
+                std::env::current_dir().unwrap().display()
+            );
             std::process::exit(1);
         }
     };
@@ -66,7 +69,10 @@ pub fn parse(path: Option<PathBuf>) -> Manifest {
 
     // Maximum supported zoom is 14.
     if leaf_zoom > 14 {
-        eprintln!("The maximum supported leaf zoom is 14. leaf_zoom: {}", leaf_zoom);
+        eprintln!(
+            "The maximum supported leaf zoom is 14. leaf_zoom: {}",
+            leaf_zoom
+        );
         std::process::exit(1);
     }
 

@@ -1,14 +1,14 @@
 mod args;
-mod manifest;
-mod rules;
 mod filter;
 mod hilbert;
 pub mod info;
 pub mod location;
+mod manifest;
 mod mutant;
 mod osmflat;
 mod parallel;
 mod pvt_builder;
+mod rules;
 mod sort_archive;
 mod source;
 pub mod tile;

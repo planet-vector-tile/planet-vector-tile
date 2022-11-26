@@ -1,13 +1,13 @@
 mod args;
-mod manifest;
-mod rules;
 mod filter;
 mod hilbert;
 mod location;
+mod manifest;
 mod mutant;
 mod osmflat;
 mod parallel;
 pub mod pvt_builder;
+mod rules;
 mod sort_archive;
 mod source;
 mod tile;
@@ -15,9 +15,9 @@ mod tile_attributes;
 
 use args::*;
 use clap::Parser;
+use hilbert::tree::HilbertTree;
 use humantime::format_duration;
 use std::{error::Error, fs, time::Instant};
-use hilbert::tree::HilbertTree;
 
 fn main() {
     let time = Instant::now();

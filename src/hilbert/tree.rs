@@ -4,7 +4,7 @@ use super::{
     leaf::{build_leaves, populate_hilbert_leaves_external, Leaf},
 };
 use crate::{
-    manifest::{Manifest, self},
+    manifest::{self, Manifest},
     mutant::Mutant,
     osmflat::osmflat_generated::osm::{HilbertNodePair, HilbertWayPair, Osm},
 };

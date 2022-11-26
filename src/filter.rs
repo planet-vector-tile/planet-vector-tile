@@ -1,58 +1,127 @@
-
-use std::ops::Range;
-use ahash::AHashMap;
 use flatdata::RawData;
+use std::ops::Range;
 
 use crate::{
     manifest::Manifest,
-    osmflat::osmflat_generated::osm::{Node, Osm, Tag, TagIndex},
+    osmflat::osmflat_generated::osm::{Node, Osm, Tag, TagIndex, Way},
+    rules::{Rules, ZoomRangeRuleEval},
 };
 
 pub struct Filter<'a> {
     archive: &'a Osm,
+    rules: Rules,
+    leaf_zoom: u8,
 }
 
 impl<'a> Filter<'a> {
     pub fn new(manifest: &'a Manifest, archive: &'a Osm) -> Filter<'a> {
-
-        // The order of precedence for the evaluation of rules is to look 
-        // at tags first, then values, then keys.
-        let mut tag_to_zoom_range: AHashMap<(usize, usize), Range<u8>> = AHashMap::new();
-        let mut value_to_zoom_range: AHashMap<usize, Range<u8>> = AHashMap::new();
-        let mut key_to_zoom_range: AHashMap<usize, Range<u8>> = AHashMap::new();
-
-        // let strings: RawData = archive.stringtable();
-
-        // for (_, rule) in &manifest.rules {
-        //     let zoom_range = match rule.maxzoom {
-        //         Some(maxzoom) => rule.minzoom..maxzoom,
-        //         None => rule.minzoom..manifest.render.leaf_zoom,
-        //     };
-        //     for tag in &rule.tags {
-        //         tag_to_zoom_range.insert((&tag.0, &tag.1), zoom_range.clone());
-        //     }
-        //     for value in &rule.values {
-        //         value_to_zoom_range.insert(value, zoom_range.clone());
-        //     }
-        //     for key in &rule.keys {
-        //         key_to_zoom_range.insert(key, zoom_range.clone());
-        //     }
-        // }
-
         Filter {
             archive,
+            rules: Rules::new(manifest, archive),
+            leaf_zoom: manifest.render.leaf_zoom,
         }
     }
 
     // https://stackoverflow.com/questions/25445761/returning-a-closure-from-a-function
-    pub fn node_filter(&self, zoom: u8) -> impl Fn(&Node) -> bool {
-        let evaluate_node = |node: &Node| -> bool {
-            // node.tags()
+    pub fn node_at_zoom(&self, zoom: u8) -> impl Fn(&&'a Node) -> bool + '_ {
+        let ways = self.archive.ways();
+        let relations = self.archive.relations();
+        let tags_index = self.archive.tags_index();
 
-            true
+        let evaluate_node = move |node: &&'a Node| -> bool {
+            let range = node.tags();
+            let tags_index_start = range.start as usize;
+            let tags_index_end = if range.end != 0 {
+                range.end as usize
+            } else if ways.len() > 0 {
+                ways[0].tag_first_idx() as usize
+            } else if relations.len() > 0 {
+                relations[0].tag_first_idx() as usize
+            } else {
+                tags_index.len()
+            };
+
+            self.evaluate_tags(tags_index_start..tags_index_end, zoom)
         };
 
         evaluate_node
+    }
+
+    pub fn way_at_zoom(&self, zoom: u8) -> impl Fn(&&'a Way) -> bool + '_ {
+        let relations = self.archive.relations();
+        let tags_index = self.archive.tags_index();
+
+        let evaluate_way = move |way: &&'a Way| -> bool {
+            let range = way.tags();
+            let tags_index_start = range.start as usize;
+            let tags_index_end = if range.end != 0 {
+                range.end as usize
+            } else if relations.len() > 0 {
+                relations[0].tag_first_idx() as usize
+            } else {
+                tags_index.len()
+            };
+
+            self.evaluate_tags(tags_index_start..tags_index_end, zoom)
+        };
+
+        evaluate_way
+    }
+
+    fn evaluate_tags(&self, tags_idx_range: Range<usize>, zoom: u8) -> bool {
+        let tags_index = self.archive.tags_index();
+        let tags = self.archive.tags();
+        let mut winning_eval = ZoomRangeRuleEval::None;
+
+        for i in &tags_index[tags_idx_range] {
+            let tag = &tags[i.value() as usize];
+
+            let eval = self.rules.get_zoom_range(tag);
+
+            match winning_eval {
+                ZoomRangeRuleEval::None => {
+                    winning_eval = eval;
+                }
+                ZoomRangeRuleEval::Tag(_) => {
+                    break;
+                }
+                ZoomRangeRuleEval::Value(_) => match eval {
+                    ZoomRangeRuleEval::None => (),
+                    ZoomRangeRuleEval::Tag(_) => {
+                        winning_eval = eval;
+                        break;
+                    }
+                    ZoomRangeRuleEval::Value(_) => (),
+                    ZoomRangeRuleEval::Key(_) => (),
+                },
+                ZoomRangeRuleEval::Key(_) => match eval {
+                    ZoomRangeRuleEval::None => (),
+                    ZoomRangeRuleEval::Tag(_) => {
+                        winning_eval = eval;
+                        break;
+                    }
+                    ZoomRangeRuleEval::Value(_) => {
+                        winning_eval = eval;
+                    }
+                    ZoomRangeRuleEval::Key(_) => (),
+                },
+            }
+        }
+
+        let default_range = self.leaf_zoom..self.leaf_zoom;
+
+        let range = match winning_eval {
+            ZoomRangeRuleEval::None => &default_range,
+            ZoomRangeRuleEval::Tag(r) => r,
+            ZoomRangeRuleEval::Value(r) => r,
+            ZoomRangeRuleEval::Key(r) => r,
+        };
+
+        if zoom >= range.start && zoom <= range.end {
+            true
+        } else {
+            false
+        }
     }
 
     // https://stackoverflow.com/questions/41269043/how-would-one-return-a-function-from-a-function-in-rust

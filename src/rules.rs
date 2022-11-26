@@ -1,24 +1,26 @@
 use std::{ops::Range, time::Instant};
 
 use ahash::AHashMap;
-use dashmap::{DashSet, DashMap};
+use dashmap::{DashMap, DashSet};
 use flatdata::RawData;
 use humantime::format_duration;
 use rayon::prelude::{IndexedParallelIterator, IntoParallelRefIterator, ParallelIterator};
 
-
-use crate::{manifest::{Manifest, self}, osmflat::osmflat_generated::osm::{Osm, Tag}};
+use crate::{
+    manifest::{self, Manifest},
+    osmflat::osmflat_generated::osm::{Osm, Tag},
+};
 
 pub struct Rules {
-    default_zoom_range: Range<u8>,
     tag_to_zoom_range: AHashMap<(usize, usize), Range<u8>>,
     value_to_zoom_range: AHashMap<usize, Range<u8>>,
     key_to_zoom_range: AHashMap<usize, Range<u8>>,
 }
 
 impl Rules {
+    // NOTE: This is expensive to construct due to get_strs. Don't construct in a loop.
     pub fn new(manifest: &Manifest, archive: &Osm) -> Self {
-        let rule_strs: DashSet::<&str> = DashSet::new();
+        let rule_strs: DashSet<&str> = DashSet::new();
         for (_, rule) in &manifest.rules {
             for (k, v) in &rule.tags {
                 rule_strs.insert(k);
@@ -35,6 +37,8 @@ impl Rules {
         let str_to_idx: DashMap<&str, usize> = DashMap::new();
         let strings = archive.stringtable();
         let t = Instant::now();
+
+        // Note: This is expensive.
         let strs = get_strs(strings);
 
         let _ = strs.par_iter().enumerate().find_any(|(i, &s)| {
@@ -61,60 +65,77 @@ impl Rules {
         let mut key_to_zoom_range: AHashMap<usize, Range<u8>> = AHashMap::new();
 
         for (_, rule) in &manifest.rules {
-            let zoom_range = if let Some(maxzoom) = rule.maxzoom { rule.minzoom..maxzoom } else { rule.minzoom..manifest.render.leaf_zoom };
+            let zoom_range = if let Some(maxzoom) = rule.maxzoom {
+                rule.minzoom..maxzoom
+            } else {
+                rule.minzoom..manifest.render.leaf_zoom
+            };
 
             for (k, v) in &rule.tags {
                 let k_idx = match str_to_idx.get(k.as_str()) {
                     Some(idx) => *idx,
-                    None => { break; }
+                    None => {
+                        break;
+                    }
                 };
                 let v_idx = match str_to_idx.get(v.as_str()) {
                     Some(idx) => *idx,
-                    None => { break; }
+                    None => {
+                        break;
+                    }
                 };
                 tag_to_zoom_range.insert((k_idx, v_idx), zoom_range.clone());
             }
             for v in &rule.values {
                 let v_idx = match str_to_idx.get(v.as_str()) {
                     Some(idx) => *idx,
-                    None => { break; }
+                    None => {
+                        break;
+                    }
                 };
                 value_to_zoom_range.insert(v_idx, zoom_range.clone());
             }
             for k in &rule.keys {
                 let k_idx = match str_to_idx.get(k.as_str()) {
                     Some(idx) => *idx,
-                    None => { break; }
+                    None => {
+                        break;
+                    }
                 };
                 key_to_zoom_range.insert(k_idx, zoom_range.clone());
             }
         }
 
         Rules {
-            default_zoom_range : manifest.render.leaf_zoom..manifest.render.leaf_zoom,
             tag_to_zoom_range,
             value_to_zoom_range,
             key_to_zoom_range,
         }
     }
 
-    pub fn get_zoom_range(&self, tag: Tag) -> Range<u8> {
+    pub fn get_zoom_range(&self, tag: &Tag) -> ZoomRangeRuleEval {
         let key = tag.key_idx() as usize;
         let value = tag.value_idx() as usize;
         if let Some(zoom_range) = self.tag_to_zoom_range.get(&(key, value)) {
-            return zoom_range.clone();
+            return ZoomRangeRuleEval::Tag(zoom_range);
         }
         if let Some(zoom_range) = self.value_to_zoom_range.get(&value) {
-            return zoom_range.clone();
+            return ZoomRangeRuleEval::Value(zoom_range);
         }
         if let Some(zoom_range) = self.key_to_zoom_range.get(&key) {
-            return zoom_range.clone();
+            return ZoomRangeRuleEval::Key(zoom_range);
         }
-        self.default_zoom_range.clone()
+        ZoomRangeRuleEval::None
     }
-
 }
 
+#[derive(Debug, PartialEq, Eq, Clone)]
+pub enum ZoomRangeRuleEval<'a> {
+    None,
+    Tag(&'a Range<u8>),
+    Value(&'a Range<u8>),
+    Key(&'a Range<u8>),
+}
 
 fn get_str_null_delimeters(strings: RawData) -> Vec<usize> {
     let bytes = strings.as_bytes();
@@ -126,7 +147,7 @@ fn get_str_null_delimeters(strings: RawData) -> Vec<usize> {
     //     }
     // }
 
-    // Parallel - 570ms 808us 375ns for california 
+    // Parallel - 570ms 808us 375ns for california
     let delimeters: Vec<usize> = bytes
         .par_iter()
         .enumerate()
@@ -257,23 +278,28 @@ mod tests {
         let mut tag = Tag::new();
         tag.set_key_idx(28381);
         tag.set_value_idx(6223);
-        
-        let zoom_range = rules.get_zoom_range(tag);
-        assert_eq!(zoom_range, 0..12);
+
+        let zr = 0..12;
+        let zoom_range = rules.get_zoom_range(&tag);
+        assert_eq!(zoom_range, ZoomRangeRuleEval::Value(&zr));
 
         // key of building
         let mut tag2 = Tag::new();
         tag2.set_key_idx(2716);
         tag2.set_value_idx(1);
 
-        let zoom_range2 = rules.get_zoom_range(tag2);
-        assert_eq!(zoom_range2, 10..12);
+        let zr2 = 10..12;
+        let zoom_range2 = rules.get_zoom_range(&tag2);
+        assert_eq!(zoom_range2, ZoomRangeRuleEval::Key(&zr2));
     }
 
     #[test]
     #[ignore]
     fn test_california_time() {
-        let archive = Osm::open(FileResourceStorage::new("/Users/n/geodata/flatdata/california")).unwrap();
+        let archive = Osm::open(FileResourceStorage::new(
+            "/Users/n/geodata/flatdata/california",
+        ))
+        .unwrap();
         let strings: RawData = archive.stringtable();
 
         let time = Instant::now();
