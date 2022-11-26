@@ -1,6 +1,6 @@
 use std::ops::Range;
 
-use super::leaf::Leaf;
+use super::{leaf::Leaf, tree::{FindResult, ResultPair}};
 use crate::tile::planet_vector_tile_generated::*;
 use flatdata::RawData;
 
@@ -19,17 +19,6 @@ use crate::{
     },
 };
 
-struct ResultPair<T> {
-    item: T,
-    next: Option<T>,
-}
-
-enum FindResult<'a> {
-    HilbertTile(ResultPair<&'a HilbertTile>),
-    Leaf(ResultPair<&'a Leaf>),
-    None,
-}
-
 impl Source for HilbertTree {
     fn compose_tile(&self, tile: &Tile, builder: &mut PVTBuilder) {
         match self.find(tile) {
@@ -41,51 +30,6 @@ impl Source for HilbertTree {
 }
 
 impl HilbertTree {
-    fn find(&self, tile: &Tile) -> FindResult {
-        let leaf_zoom = self.manifest.render.leaf_zoom;
-
-        // Tiles do not exist beyond the leaf zoom, and we only use even zoom levels.
-        if tile.z & 1 == 1 || tile.z > leaf_zoom {
-            return FindResult::None;
-        }
-
-        let h_tiles = self.tiles.slice();
-        let leaves = self.leaves.slice();
-        let mut h_tile = h_tiles.last().unwrap();
-        let mut z = 2;
-        let mut i = 0;
-        while z <= tile.z {
-            let h = tile.h >> (2 * (tile.z - z));
-            i = match child_index(h_tile, h) {
-                Some(i) => i,
-                None => return FindResult::None,
-            };
-            // If we are all the way down to the leaves,
-            // return a leaf result pair.
-            if z == leaf_zoom {
-                return FindResult::Leaf(ResultPair {
-                    item: &leaves[i],
-                    next: if i + 1 < leaves.len() {
-                        Some(&leaves[i + 1])
-                    } else {
-                        None
-                    },
-                });
-            }
-            h_tile = &h_tiles[i];
-            z += 2;
-        }
-
-        FindResult::HilbertTile(ResultPair {
-            item: h_tile,
-            next: if i + 1 < h_tiles.len() {
-                Some(&h_tiles[i + 1])
-            } else {
-                None
-            },
-        })
-    }
-
     fn compose_leaf(&self, tile: &Tile, pair: ResultPair<&Leaf>, builder: &mut PVTBuilder) {
         let nodes = self.archive.nodes();
         let ways = self.archive.ways();
@@ -142,14 +86,30 @@ impl HilbertTree {
             }
 
             // Tags
-            let (keys, vals) = build_tags(
-                tags_index_range,
-                node.osm_id(),
-                tags_index,
-                tags,
-                strings,
-                builder,
-            );
+            let (keys, vals) = match self.manifest.render.exclude_tags {
+                Some(exclude_tags) => {
+                    if exclude_tags {
+                        (Vec::new(), Vec::new())
+                    } else {
+                        build_tags(
+                            tags_index_range,
+                            node.osm_id(),
+                            tags_index,
+                            tags,
+                            strings,
+                            builder,
+                        )
+                    }
+                }
+                None => build_tags(
+                    tags_index_range,
+                    node.osm_id(),
+                    tags_index,
+                    tags,
+                    strings,
+                    builder,
+                )
+            };
             let keys_vec = builder.fbb.create_vector(&keys);
             let vals_vec = builder.fbb.create_vector(&vals);
 
@@ -284,19 +244,6 @@ impl HilbertTree {
     ) {
         //NHTODO - First, we need to populate chunks...
     }
-}
-
-fn child_index(h_tile: &HilbertTile, child_h: u64) -> Option<usize> {
-    let child_pos = child_h & 0xf;
-    let mask = h_tile.mask;
-    if mask >> child_pos & 1 != 1 {
-        return None;
-    }
-    let mut offset = 0;
-    for i in 0..child_pos {
-        offset += mask >> i & 1;
-    }
-    Some(h_tile.child as usize + offset as usize)
 }
 
 fn build_tags(

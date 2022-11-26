@@ -16,6 +16,7 @@ pub struct Manifest {
 pub struct Render {
     pub leaf_zoom: u8,
     pub layer_order: Vec<String>,
+    pub exclude_tags: Option<bool>,
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
