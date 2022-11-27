@@ -5,10 +5,12 @@ use super::{
 use crate::{
     filter::Filter,
     manifest::Manifest,
-    mutant::Mutant,
-    osmflat::osmflat_generated::osm::{Node, Osm, Way},
+    mutant::{Mutant, to_bytes},
+    osmflat::osmflat_generated::osm::{Node, Osm, Way}, location,
 };
-use std::path::Path;
+use std::{path::Path, io::{BufWriter, Write}, fs::File};
+
+type Err = Box<dyn std::error::Error>;
 
 pub fn build_chunks(
     m_leaves: &Mutant<Leaf>,
@@ -17,7 +19,7 @@ pub fn build_chunks(
     dir: &Path,
     archive: &Osm,
     manifest: &Manifest,
-) -> Result<(Mutant<Chunk>, Mutant<Chunk>, Mutant<Chunk>), Box<dyn std::error::Error>> {
+) -> Result<(Mutant<Chunk>, Mutant<Chunk>, Mutant<Chunk>), Err> {
     let filter = Filter::new(manifest, archive);
     let leaf_zoom = manifest.render.leaf_zoom;
     let leaves = m_leaves.slice();
@@ -27,12 +29,10 @@ pub fn build_chunks(
     let ways = archive.ways();
     let external = m_leaves_external.slice();
 
-    let n_chunks_writer = Mutant::<u64>::empty_buffered_writer(dir, "hilbert_n_chunks")?;
-    let w_chunks_writer = Mutant::<Chunk>::empty_buffered_writer(dir, "hilbert_w_chunks")?;
-    let r_chunks_writer = Mutant::<Chunk>::empty_buffered_writer(dir, "hilbert_r_chunks")?;
+    let mut n_chunks_writer = Mutant::<u64>::empty_buffered_writer(dir, "hilbert_n_chunks")?;
+    let mut w_chunks_writer = Mutant::<Chunk>::empty_buffered_writer(dir, "hilbert_w_chunks")?;
     let mut n_chunk_count = 0;
     let mut w_chunk_count = 0;
-    let mut r_chunk_count = 0;
 
     let mut z = leaf_zoom - 2;
     let mut level_tile_count = 0;
@@ -54,9 +54,9 @@ pub fn build_chunks(
         let node_filter = filter.node_at_zoom(z);
         let way_filter = filter.way_at_zoom(z);
 
-        // Get a vec of references to all of the entities in the tile.
+        // Get a vec of indices to all of the entities in the tile.
         // We will then filter from this to build chunks.
-        let (nodes, ways) = if z == leaf_zoom - 2 {
+        let (nodes, ways): (Vec<usize>, Vec<usize>) = if z == leaf_zoom - 2 {
             let first_leaf = &leaves[tile.child as usize];
             // The leaf after the last leaf of this tile's children. (the first leaf of the next tile)
             let end_leaf = match next_tile {
@@ -64,11 +64,12 @@ pub fn build_chunks(
                 None => None,
             };
 
-            let nodes = match end_leaf {
-                Some(end_leaf) => &nodes[first_leaf.n as usize..end_leaf.n as usize],
-                None => &nodes[first_leaf.n as usize..],
+            let nodes_range = match end_leaf {
+                Some(end_leaf) => first_leaf.n as usize..end_leaf.n as usize,
+                None => first_leaf.n as usize..nodes.len(),
             };
-            let filtered_nodes: Vec<&Node> = nodes.iter().filter(node_filter).collect();
+            let nodes = nodes_range.map(|i| (i, &nodes[i]));
+            let filtered_nodes: Vec<usize> = nodes.filter(node_filter).map(|(i, _)| i).collect();
 
             let w_range = match end_leaf {
                 Some(end_leaf) => first_leaf.w as usize..end_leaf.w as usize,
@@ -79,14 +80,27 @@ pub fn build_chunks(
                 None => first_leaf.w_ext as usize..external.len(),
             };
 
-            let inner_ways = ways[w_range].iter();
-            let ext_ways = external[w_ext_range].iter().map(|i| &ways[*i as usize]);
+            let inner_ways = w_range.map(|i| (i, &ways[i]));
+            let ext_ways = external[w_ext_range].iter().map(|&i| (i as usize, &ways[i as usize]));
             let ways = inner_ways.chain(ext_ways);
-            let filtered_ways: Vec<&Way> = ways.filter(way_filter).collect();
+            let filtered_ways: Vec<usize> = ways.filter(way_filter).map(|(i, _)| i).collect();
 
             (filtered_nodes, filtered_ways)
         } else {
             (vec![], vec![])
+        };
+
+        let origin_leaf = get_origin_leaf(i, z, leaf_zoom, tiles, leaves);
+        let origin_n_idx = origin_leaf.n as usize;
+        let origin_w_idx = origin_leaf.w as usize;
+
+        let n_start = n_chunk_count;
+        let w_start = w_chunk_count;
+        if write_chunks(&nodes, origin_n_idx, &mut n_chunks_writer, &mut n_chunk_count)? {
+            tiles_mut[i].n_chunk = n_start;
+        };
+        if write_chunks(&ways, origin_w_idx, &mut w_chunks_writer, &mut w_chunk_count)? {
+            tiles_mut[i].w_chunk = w_start;
         };
 
         println!(
@@ -111,7 +125,10 @@ pub fn build_chunks(
 
     let n_chunks = Mutant::<Chunk>::open(dir, "hilbert_n_chunks", false)?;
     let w_chunks = Mutant::<Chunk>::open(dir, "hilbert_w_chunks", false)?;
-    let r_chunks = Mutant::<Chunk>::open(dir, "hilbert_r_chunks", false)?;
+    let r_chunks = Mutant::<Chunk>::new(dir, "hilbert_r_chunks", 0)?;
+
+    println!("n_chunks {:?}", n_chunks.slice());
+    println!("w_chunks {:?}", w_chunks.slice());
 
     Ok((n_chunks, w_chunks, r_chunks))
 }
@@ -124,6 +141,46 @@ fn count_children(mask: u16) -> u32 {
         }
     }
     count
+}
+
+fn get_origin_leaf<'a>(tiles_i: usize, zoom: u8, leaf_zoom: u8, tiles: &[HilbertTile], leaves: &'a [Leaf]) -> &'a Leaf {
+    let mut tile = &tiles[tiles_i];
+    let mut z = zoom;
+    while z < leaf_zoom - 2 {
+        tile = &tiles[tile.child as usize];
+        z += 2;
+    }
+    &leaves[tile.child as usize]
+}
+
+fn write_chunks(entities: &Vec<usize>, origin_idx: usize, writer: &mut BufWriter<File>, chunk_count: &mut u32) -> Result<bool, Err> {
+    if let Some(first) = entities.first() {
+        let mut chunk = Chunk {
+            offset: (origin_idx - first) as i32,
+            length: 1,
+        };
+        let mut prev_idx = *first;
+        for &idx in entities[1..].iter() {
+            if idx == prev_idx + 1 {
+                chunk.length += 1;
+                prev_idx = idx;
+            } else {
+                let bytes = unsafe { to_bytes(&chunk) };
+                writer.write(bytes)?;
+                *chunk_count += 1;
+                chunk = Chunk {
+                    offset: (origin_idx - idx) as i32,
+                    length: 1,
+                };
+            }
+        }
+        let bytes = unsafe { to_bytes(&chunk) };
+        writer.write_all(bytes)?;
+        *chunk_count += 1;
+        Ok(true)
+    } else {
+        Ok(false)
+    }
 }
 
 #[cfg(test)]

@@ -21,18 +21,18 @@ pub struct HilbertTile {
     pub mask: u16,
     // Chunks of indices to the entities in the given tile.
     // The node chunk array is just node indices, since they are sparse.
-    n_chunk: u32,
+    pub n_chunk: u32,
     // Way and relation chunks are actual chunks that are the index and length,
     // since they are usually together in chunks.
-    w_chunk: u32,
-    r_chunk: u32,
+    pub w_chunk: u32,
+    pub r_chunk: u32,
 }
 
-// Chunks are offsets and run lengths of entities used for a given tile in the entity.
+// Chunks are offsets and run lengths of entities relative to the first entity of the first leaf.
 #[derive(Debug)]
 pub struct Chunk {
-    pub idx: u32,
-    pub len: u32,
+    pub offset: i32,
+    pub length: u32,
 }
 
 pub fn build_tiles(
@@ -207,27 +207,18 @@ fn mask_has(mask: u16, child_pos: u8) -> bool {
     (mask >> child_pos & 1) == 1
 }
 
-// https://doc.rust-lang.org/nomicon/other-reprs.html
-// https://adventures.michaelfbryan.com/posts/deserializing-binary-data-files/
-// https://stackoverflow.com/questions/28127165/how-to-convert-struct-to-u8
-// We don't actually need to use this, but it is helpful for tests.
-// The mutant memmap vectors get allocated in bulk, and they are effectively this on disk.
-// No serde is necessary, due to the memmap mechanism.
-unsafe fn to_bytes<T: Sized>(p: &T) -> &[u8] {
-    ::std::slice::from_raw_parts((p as *const T) as *const u8, ::std::mem::size_of::<T>())
-}
-
 #[cfg(test)]
 mod tests {
     use std::path::PathBuf;
 
     use super::*;
+    use crate::mutant::to_bytes;
 
     #[test]
     fn test_struct_binary() {
         let c = Chunk {
-            idx: 0xABCDEF33,
-            len: 0x87654321,
+            offset: 0xABCDEF33,
+            length: 0x87654321,
         };
 
         unsafe {
@@ -242,8 +233,8 @@ mod tests {
 
         let s = chunks.mutable_slice();
         let s0 = &mut s[0];
-        s0.idx = 0x11111111;
-        s0.len = 0x22222222;
+        s0.offset = 0x11111111;
+        s0.length = 0x22222222;
 
         let slc2 = chunks.slice();
         let s2 = &slc2[0];
