@@ -22,12 +22,12 @@ impl<'a> Filter<'a> {
     }
 
     // https://stackoverflow.com/questions/25445761/returning-a-closure-from-a-function
-    pub fn node_at_zoom(&self, zoom: u8) -> impl Fn(&&'a Node) -> bool + '_ {
+    pub fn node_at_zoom(&self, zoom: u8) -> impl Fn(&(usize, &'a Node)) -> bool + '_ {
         let ways = self.archive.ways();
         let relations = self.archive.relations();
         let tags_index = self.archive.tags_index();
 
-        let evaluate_node = move |node: &&'a Node| -> bool {
+        let evaluate_node = move |(_, node): &(usize, &'a Node)| -> bool {
             let range = node.tags();
             let tags_index_start = range.start as usize;
             let tags_index_end = if range.end != 0 {
@@ -46,11 +46,11 @@ impl<'a> Filter<'a> {
         evaluate_node
     }
 
-    pub fn way_at_zoom(&self, zoom: u8) -> impl Fn(&&'a Way) -> bool + '_ {
+    pub fn way_at_zoom(&self, zoom: u8) -> impl Fn(&(usize, &'a Way)) -> bool + '_ {
         let relations = self.archive.relations();
         let tags_index = self.archive.tags_index();
 
-        let evaluate_way = move |way: &&'a Way| -> bool {
+        let evaluate_way = move |(_, way): &(usize, &'a Way)| -> bool {
             let range = way.tags();
             let tags_index_start = range.start as usize;
             let tags_index_end = if range.end != 0 {
