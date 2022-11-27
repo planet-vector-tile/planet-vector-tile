@@ -209,39 +209,7 @@ fn mask_has(mask: u16, child_pos: u8) -> bool {
 
 #[cfg(test)]
 mod tests {
-    use std::path::PathBuf;
-
     use super::*;
-    use crate::mutant::to_bytes;
-
-    #[test]
-    fn test_struct_binary() {
-        let c = Chunk {
-            offset: 0xABCDEF33,
-            length: 0x87654321,
-        };
-
-        unsafe {
-            let bytes = to_bytes(&c);
-            let str = format!("{:x?}", bytes);
-            assert_eq!(str, "[33, ef, cd, ab, 21, 43, 65, 87]")
-        }
-
-        // NHTODO do portable tmp
-        let p = PathBuf::from("/Users/n/tmp");
-        let chunks = Mutant::<Chunk>::new(&p, "test", 1000).unwrap();
-
-        let s = chunks.mutable_slice();
-        let s0 = &mut s[0];
-        s0.offset = 0x11111111;
-        s0.length = 0x22222222;
-
-        let slc2 = chunks.slice();
-        let s2 = &slc2[0];
-
-        let str2 = format!("{:x?}", unsafe { to_bytes(s2) });
-        assert_eq!(str2, "[11, 11, 11, 11, 22, 22, 22, 22]");
-    }
 
     #[test]
     fn test_mask() {

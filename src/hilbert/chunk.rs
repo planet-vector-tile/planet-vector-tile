@@ -12,6 +12,8 @@ use std::{path::Path, io::{BufWriter, Write}, fs::File};
 
 type Err = Box<dyn std::error::Error>;
 
+static mut ONE:u32 = 0;
+
 pub fn build_chunks(
     m_leaves: &Mutant<Leaf>,
     m_tiles: &Mutant<HilbertTile>,
@@ -29,7 +31,11 @@ pub fn build_chunks(
     let ways = archive.ways();
     let external = m_leaves_external.slice();
 
-    let mut n_chunks_writer = Mutant::<u64>::empty_buffered_writer(dir, "hilbert_n_chunks")?;
+    // Delete previous chunks if they exist.
+    let _ = std::fs::remove_file(dir.join("hilbert_n_chunks"));
+    let _ = std::fs::remove_file(dir.join("hilbert_w_chunks"));
+
+    let mut n_chunks_writer = Mutant::<Chunk>::empty_buffered_writer(dir, "hilbert_n_chunks")?;
     let mut w_chunks_writer = Mutant::<Chunk>::empty_buffered_writer(dir, "hilbert_w_chunks")?;
     let mut n_chunk_count = 0;
     let mut w_chunk_count = 0;
@@ -127,9 +133,6 @@ pub fn build_chunks(
     let w_chunks = Mutant::<Chunk>::open(dir, "hilbert_w_chunks", false)?;
     let r_chunks = Mutant::<Chunk>::new(dir, "hilbert_r_chunks", 0)?;
 
-    println!("n_chunks {:?}", n_chunks.slice());
-    println!("w_chunks {:?}", w_chunks.slice());
-
     Ok((n_chunks, w_chunks, r_chunks))
 }
 
@@ -156,23 +159,23 @@ fn get_origin_leaf<'a>(tiles_i: usize, zoom: u8, leaf_zoom: u8, tiles: &[Hilbert
 fn write_chunks(entities: &Vec<usize>, origin_idx: usize, writer: &mut BufWriter<File>, chunk_count: &mut u32) -> Result<bool, Err> {
     if let Some(first) = entities.first() {
         let mut chunk = Chunk {
-            offset: (origin_idx - first) as i32,
+            offset: (first - origin_idx) as i32,
             length: 1,
         };
         let mut prev_idx = *first;
         for &idx in entities[1..].iter() {
             if idx == prev_idx + 1 {
                 chunk.length += 1;
-                prev_idx = idx;
             } else {
                 let bytes = unsafe { to_bytes(&chunk) };
                 writer.write(bytes)?;
                 *chunk_count += 1;
                 chunk = Chunk {
-                    offset: (origin_idx - idx) as i32,
+                    offset: (idx - origin_idx) as i32,
                     length: 1,
                 };
             }
+            prev_idx = idx;
         }
         let bytes = unsafe { to_bytes(&chunk) };
         writer.write_all(bytes)?;
