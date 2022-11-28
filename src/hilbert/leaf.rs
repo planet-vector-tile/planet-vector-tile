@@ -171,6 +171,7 @@ pub fn populate_hilbert_leaves_external(
     m_leaves: &Mutant<Leaf>,
     leaf_zoom: u8,
 ) -> Result<Mutant<u32>, Box<dyn std::error::Error>> {
+    // NHTODO Profile memory usage here.
     let leaf_to_ways: DashMap<u32, BTreeSet<u32>> = DashMap::new();
 
     let ways = archive.ways();
@@ -209,27 +210,25 @@ pub fn populate_hilbert_leaves_external(
         }
     });
 
-    let mut leaves_ext_stream =
-        Mutant::<u32>::empty_buffered_writer(dir, "hilbert_leaves_external")?;
-    let mut leaves_ext_count = 0;
+    let mut leaves_ext = Mutant::<u32>::with_capacity(dir, "hilbert_leaves_external", 1024)?;
 
     let leaves = m_leaves.mutable_slice();
 
     for i in 0..leaves.len() {
         let leaf = &mut leaves[i];
         if let Some(ways) = leaf_to_ways.get(&leaf.h) {
-            leaf.w_ext = leaves_ext_count;
-            for &way_i in ways.iter() {
-                leaves_ext_stream.write_all(&way_i.to_le_bytes())?;
-                leaves_ext_count += 1;
+            let mut it = ways.iter();
+            let Some(&first) = it.next() else { break; };
+            leaf.w_ext = first;
+            leaves_ext.push(first);
+            for &way_i in it {
+                leaves_ext.push(way_i);
             }
         }
     }
 
-    leaves_ext_stream.flush()?;
-    let mut m_leaves_external = Mutant::<u32>::open(dir, "hilbert_leaves_external", false)?;
-    m_leaves_external.set_len(leaves_ext_count as usize);
-    Ok(m_leaves_external)
+    leaves_ext.trim();
+    Ok(leaves_ext)
 }
 
 #[cfg(test)]
