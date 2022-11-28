@@ -182,20 +182,18 @@ impl<T: Sized> Mutant<T> {
     /// Append a value to the end of the array, similar to Vec.
     /// Grows the underlying file by 2x when the capacity is reached.
     pub fn push(&mut self, item: T) -> Result<&mut Self> {
-        if self.len < self.capacity {
-            let slc = self.mutable_slice();
-            slc[self.len] = item;
-            self.len += 1;
-        } else {
-            let len2x = self.len * 2;
-            let size = 8 + size_of::<T>() * len2x;
+        let len = self.len;
+        if len >= self.capacity {
+            let cap2x = self.capacity * 2;
+            let size = 8 + size_of::<T>() * cap2x;
             self.file.set_len(size as u64)?;
             self.mmap = unsafe { MmapMut::map_mut(&self.file)? };
-            let slc = self.mutable_slice();
-            slc[self.len] = item;
-            self.len += 1;
-            self.capacity = len2x;
+            self.capacity = cap2x;
         }
+
+        self.len += 1;
+        let slc = self.mutable_slice();
+        slc[len] = item;
 
         Ok(self)
     }
@@ -270,11 +268,5 @@ impl<T: Sized> Mutant<T> {
                 *header_ptr = self.len as u64;
             }
         }
-    }
-}
-
-impl<T: Sized> Drop for Mutant<T> {
-    fn drop(&mut self) {
-        self.trim();
     }
 }
