@@ -21,6 +21,10 @@ pub struct Mutant<T: Sized> {
     phantom: PhantomData<T>,
 }
 
+// Using new with BufWriter only gives you 8KB, which is tiny...
+// This sets it to 64 MB. It would be good to experiment with different values...
+const DEFAULT_BUF_SIZE: usize = 64 * 1024 * 1024;
+
 impl<T: Sized> Mutant<T> {
     pub fn new(dir: &Path, file_name: &str, len: usize) -> Result<Self> {
         let size = 8 + size_of::<T>() * len;
@@ -70,7 +74,7 @@ impl<T: Sized> Mutant<T> {
             *header_ptr = 0;
         }
 
-        let writer = BufWriter::new(file);
+        let writer = BufWriter::with_capacity(DEFAULT_BUF_SIZE, file);
         Ok(writer)
     }
 
@@ -230,14 +234,4 @@ impl<T: Sized> Mutant<T> {
             phantom: PhantomData,
         })
     }
-}
-
-// https://doc.rust-lang.org/nomicon/other-reprs.html
-// https://adventures.michaelfbryan.com/posts/deserializing-binary-data-files/
-// https://stackoverflow.com/questions/28127165/how-to-convert-struct-to-u8
-// We don't actually need to use this, but it is helpful for tests.
-// The mutant memmap vectors get allocated in bulk, and they are effectively this on disk.
-// No serde is necessary, due to the memmap mechanism.
-pub unsafe fn to_bytes<T: Sized>(p: &T) -> &[u8] {
-    ::std::slice::from_raw_parts((p as *const T) as *const u8, ::std::mem::size_of::<T>())
 }

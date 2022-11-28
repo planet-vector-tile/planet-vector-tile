@@ -41,7 +41,6 @@ impl Rules {
         // Note: This is expensive.
         let str_ranges = get_str_ranges(strings);
 
-
         let _ = str_ranges.par_iter().find_any(|r| {
             let bytes = &strings.as_bytes()[r.start..r.end];
             let s = unsafe { std::str::from_utf8_unchecked(bytes) };
@@ -188,7 +187,7 @@ mod tests {
                 str
             })
             .collect();
-    
+
         strs
     }
 
