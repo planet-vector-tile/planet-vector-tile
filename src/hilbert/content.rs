@@ -1,8 +1,10 @@
+use humantime::format_duration;
+
 use super::{hilbert_tile::HilbertTile, leaf::Leaf};
 use crate::{
     filter::Filter, manifest::Manifest, mutant::Mutant, osmflat::osmflat_generated::osm::Osm,
 };
-use std::{io::Write, path::Path};
+use std::{path::Path, time::Instant};
 
 type Err = Box<dyn std::error::Error>;
 
@@ -28,16 +30,19 @@ pub fn populate_tile_content(
     // Delete previous contents
     let _ = std::fs::remove_file(dir.join("n"));
     let _ = std::fs::remove_file(dir.join("w"));
+    let _ = std::fs::remove_file(dir.join("r"));
 
-    let mut n_writer = Mutant::<u64>::empty_buffered_writer(dir, "n")?;
-    let mut w_writer = Mutant::<u32>::empty_buffered_writer(dir, "w")?;
-    let mut n_count: usize = 0;
-    let mut w_count: usize = 0;
+    let mut m_n = Mutant::<u64>::with_capacity(dir, "n", 1024)?;
+    let mut m_w = Mutant::<u32>::with_capacity(dir, "w", 1024)?;
+    let mut m_r = Mutant::<u32>::with_capacity(dir, "r", 1024)?;
 
     let mut z = leaf_zoom - 2;
     let mut level_tile_count = 0;
     let mut total_children = leaves.len() as u32;
     let mut children = 0;
+
+    let t = Instant::now();
+    println!("Populating tile content...");
 
     for i in 0..tiles.len() {
         let tile = &tiles[i];
@@ -93,18 +98,8 @@ pub fn populate_tile_content(
             (vec![], vec![])
         };
 
-        tiles_mut[i].n = n_count as u64;
-        tiles_mut[i].w = w_count as u32;
-
-        // Yeehaw!!!
-        let n_bytes = unsafe { to_bytes(&nodes) };
-        let w_bytes = unsafe { to_bytes(&ways) };
-
-        n_writer.write(&n_bytes)?;
-        w_writer.write(&w_bytes)?;
-
-        n_count += nodes.len();
-        w_count += ways.len();
+        m_n.append(&nodes)?;
+        m_w.append(&ways)?;
 
         println!(
             "z {} children {} total_children {} nodes {} ways {} {:?}",
@@ -126,17 +121,13 @@ pub fn populate_tile_content(
         }
     }
 
-    n_writer.flush()?;
-    w_writer.flush()?;
+    m_n.trim();
+    m_w.trim();
+    m_r.trim();
 
-    let mut n = Mutant::<u64>::open(dir, "n", false)?;
-    let mut w = Mutant::<u32>::open(dir, "w", false)?;
-    let r = Mutant::<u32>::new(dir, "r", 0)?;
+    println!("Populating tile content took {:?}", format_duration(t.elapsed()));
 
-    n.set_len(n_count);
-    w.set_len(w_count);
-
-    Ok((n, w, r))
+    Ok((m_n, m_w, m_r))
 }
 
 fn count_children(mask: u16) -> u32 {

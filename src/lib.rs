@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 mod args;
 mod filter;
 mod hilbert;

@@ -1,5 +1,6 @@
-use std::io::{Error, ErrorKind, Write};
+use std::io::{Error, ErrorKind};
 use std::path::Path;
+use std::time::Instant;
 
 use crate::location;
 use crate::osmflat::osmflat_generated::osm::Osm;
@@ -11,6 +12,7 @@ use crate::{
 };
 use dashmap::mapref::entry::Entry::{Occupied, Vacant};
 use dashmap::DashMap;
+use humantime::format_duration;
 use log::info;
 use rayon::prelude::*;
 use std::collections::BTreeSet;
@@ -180,6 +182,9 @@ pub fn populate_hilbert_leaves_external(
     let nodes_index = archive.nodes_index();
     let nodes_index_len = nodes_index.len();
 
+    let t = Instant::now();
+    println!("Populating external leaf entities...");
+
     ways.par_iter().enumerate().for_each(|(i, way)| {
         let way_h = way_pairs[i].h();
         let way_tile_h = h_to_zoom_h(way_h, leaf_zoom) as u32;
@@ -220,12 +225,14 @@ pub fn populate_hilbert_leaves_external(
             let mut it = ways.iter();
             let Some(&first) = it.next() else { break; };
             leaf.w_ext = first;
-            leaves_ext.push(first);
+            leaves_ext.push(first)?;
             for &way_i in it {
-                leaves_ext.push(way_i);
+                leaves_ext.push(way_i)?;
             }
         }
     }
+
+    println!("Populated external leaf entities in {}", format_duration(t.elapsed()));
 
     leaves_ext.trim();
     Ok(leaves_ext)

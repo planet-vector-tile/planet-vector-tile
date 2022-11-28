@@ -1,8 +1,11 @@
+#![allow(dead_code)]
+
 use core::mem::size_of;
 use core::slice::{from_raw_parts, from_raw_parts_mut};
 use memmap2::MmapMut;
 use std::fs::File;
-use std::io::{BufWriter, Error, ErrorKind, Result};
+use std::io::{Error, ErrorKind, Result};
+use std::ptr::copy_nonoverlapping;
 use std::{
     fs,
     fs::OpenOptions,
@@ -197,6 +200,36 @@ impl<T: Sized> Mutant<T> {
         Ok(self)
     }
 
+    pub fn append(&mut self, items: &[T]) -> Result<&mut Self> {
+        let new_len = self.len + items.len();
+        if new_len > self.capacity {
+            let mut new_cap = self.capacity * 2;
+            if new_len > new_cap {
+                new_cap = new_len;
+            }
+            let size = 8 + size_of::<T>() * new_cap;
+            self.file.set_len(size as u64)?;
+            self.mmap = unsafe { MmapMut::map_mut(&self.file)? };
+            self.capacity = new_cap;
+        }
+
+        let slc = self.mutable_slice();
+        let src = items.as_ptr();
+        let dst = slc[self.len..].as_mut_ptr();
+        unsafe {
+            copy_nonoverlapping(src, dst, items.len());
+        };
+
+        // NHTODO: It would be better do do a safe copy_from_slice,
+        // but flatdata structs do not implement copy trait.
+        // let slc = self.mutable_slice();
+        // slc[self.len..new_len].copy_from_slice(items);
+
+        self.len = new_len;
+
+        Ok(self)
+    }
+
     pub fn expand_to(&mut self, len: usize) -> Result<&mut Self> {
         if len < self.len {
             return Err(Error::new(
@@ -238,7 +271,6 @@ impl<T: Sized> Mutant<T> {
             }
         }
     }
-
 }
 
 impl<T: Sized> Drop for Mutant<T> {

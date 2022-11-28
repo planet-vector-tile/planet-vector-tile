@@ -102,7 +102,7 @@ impl HilbertTree {
         let external_entities = self.leaves_external.slice();
 
         // The range of indices in the entities vectors.
-        let (n_range, w_range, r_range, w_ext_range) = if let Some(next) = pair.next {
+        let (n_range, w_range, _r_range, w_ext_range) = if let Some(next) = pair.next {
             (
                 (pair.item.n as usize)..(next.n as usize),
                 (pair.item.w as usize)..(next.w as usize),
