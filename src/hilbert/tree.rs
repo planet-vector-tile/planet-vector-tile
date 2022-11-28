@@ -1,6 +1,6 @@
 use super::{
-    chunk::build_chunks,
-    hilbert_tile::{build_tiles, Chunk, HilbertTile},
+    content::populate_tile_content,
+    hilbert_tile::{build_tiles, HilbertTile},
     leaf::{build_leaves, populate_hilbert_leaves_external, Leaf},
 };
 use crate::{
@@ -16,9 +16,9 @@ pub struct HilbertTree {
     pub tiles: Mutant<HilbertTile>,
     pub leaves: Mutant<Leaf>,
     pub leaves_external: Mutant<u32>,
-    pub n_chunks: Mutant<Chunk>,
-    pub w_chunks: Mutant<Chunk>,
-    pub r_chunks: Mutant<Chunk>,
+    pub n: Mutant<u64>,
+    pub w: Mutant<u32>,
+    pub r: Mutant<u32>,
     pub archive: Osm,
     pub way_pairs: Mutant<HilbertWayPair>,
 }
@@ -47,7 +47,7 @@ impl HilbertTree {
             leaf_zoom,
         )?;
 
-        let (n_chunks, w_chunks, r_chunks) = build_chunks(
+        let (n, w, r) = populate_tile_content(
             &m_leaves,
             &m_tiles,
             &m_leaves_external,
@@ -61,9 +61,9 @@ impl HilbertTree {
             tiles: m_tiles,
             leaves: m_leaves,
             leaves_external: m_leaves_external,
-            n_chunks,
-            w_chunks,
-            r_chunks,
+            n,
+            w,
+            r,
             archive,
             way_pairs: m_way_pairs,
         })
@@ -71,35 +71,24 @@ impl HilbertTree {
 
     pub fn open(dir: &Path) -> Result<Self, Box<dyn std::error::Error>> {
         let manifest = manifest::parse(Some(dir.join("manifest.toml")));
-        let leaf_zoom = manifest.render.leaf_zoom;
+        let archive = Osm::open(FileResourceStorage::new(dir))?;
 
-        let m_node_pairs = Mutant::<HilbertNodePair>::open(dir, "hilbert_node_pairs", true)?;
         let m_way_pairs = Mutant::<HilbertWayPair>::open(dir, "hilbert_way_pairs", true)?;
         let m_leaves = Mutant::<Leaf>::open(dir, "hilbert_leaves", false)?;
+        let m_leaves_external = Mutant::<u32>::open(dir, "hilbert_leaves_external", false)?;
         let m_tiles = Mutant::<HilbertTile>::open(dir, "hilbert_tiles", false)?;
-
-        let n_chunks = Mutant::<Chunk>::new(dir, "hilbert_n_chunks", 1000)?;
-        let w_chunks = Mutant::<Chunk>::new(dir, "hilbert_w_chunks", 1000)?;
-        let r_chunks = Mutant::<Chunk>::new(dir, "hilbert_r_chunks", 1000)?;
-
-        let archive = Osm::open(FileResourceStorage::new(dir))?;
-        let m_leaves_external = populate_hilbert_leaves_external(
-            dir,
-            &archive,
-            &m_node_pairs,
-            &m_way_pairs,
-            &m_leaves,
-            leaf_zoom,
-        )?;
+        let m_n = Mutant::<u64>::open(dir, "n", false)?;
+        let m_w = Mutant::<u32>::open(dir, "w", false)?;
+        let m_r = Mutant::<u32>::open(dir, "r", false)?;
 
         Ok(Self {
             manifest,
             tiles: m_tiles,
             leaves: m_leaves,
             leaves_external: m_leaves_external,
-            n_chunks,
-            w_chunks,
-            r_chunks,
+            n: m_n,
+            w: m_w,
+            r: m_r,
             archive,
             way_pairs: m_way_pairs,
         })

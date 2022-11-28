@@ -6,10 +6,6 @@ use super::leaf::Leaf;
 
 // Each vector tile corresponds to one of these tiles.
 //
-// n,w,r are the indices to the entity chunk vectors (n_chunks, w_chunks, r_chunks).
-// These are used to retrieve the chunks that tell us what chunks of the entity vectors
-// we need to retrieve to construct the given tile.
-//
 // The levels are descending, with the first level corresponding to the highest zoom,
 // in parity with the leaf vector. Each level is z - 2, allowing 16 children per tile.
 #[derive(Debug)]
@@ -19,20 +15,9 @@ pub struct HilbertTile {
     // Bit mask denoting which of the 16 children for the given tile exist.
     // MSB is index 15, MSB is index 0.
     pub mask: u16,
-    // Chunks of indices to the entities in the given tile.
-    // The node chunk array is just node indices, since they are sparse.
-    pub n_chunk: u32,
-    // Way and relation chunks are actual chunks that are the index and length,
-    // since they are usually together in chunks.
-    pub w_chunk: u32,
-    pub r_chunk: u32,
-}
-
-// Chunks are offsets and run lengths of entities relative to the first entity of the first leaf.
-#[derive(Debug)]
-pub struct Chunk {
-    pub offset: i32,
-    pub length: u32,
+    pub n: u64,
+    pub w: u32,
+    pub r: u32,
 }
 
 pub fn build_tiles(
@@ -107,9 +92,9 @@ pub fn build_tiles(
             let tile = HilbertTile {
                 child: first_child_i,
                 mask,
-                n_chunk: 0,
-                w_chunk: 0,
-                r_chunk: 0,
+                n: 0,
+                w: 0,
+                r: 0,
             };
             println!(
                 "i {} z {} h {} mask {:#018b} {:?}",

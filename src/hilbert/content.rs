@@ -1,27 +1,27 @@
 use super::{
-    hilbert_tile::{Chunk, HilbertTile},
+    hilbert_tile::HilbertTile,
     leaf::Leaf,
 };
 use crate::{
     filter::Filter,
     manifest::Manifest,
-    mutant::{Mutant, to_bytes},
-    osmflat::osmflat_generated::osm::{Node, Osm, Way}, location,
+    mutant::Mutant,
+    osmflat::osmflat_generated::osm::Osm,
 };
-use std::{path::Path, io::{BufWriter, Write}, fs::File};
+use std::{path::Path, io::Write};
 
 type Err = Box<dyn std::error::Error>;
 
 static mut ONE:u32 = 0;
 
-pub fn build_chunks(
+pub fn populate_tile_content(
     m_leaves: &Mutant<Leaf>,
     m_tiles: &Mutant<HilbertTile>,
     m_leaves_external: &Mutant<u32>,
     dir: &Path,
     archive: &Osm,
     manifest: &Manifest,
-) -> Result<(Mutant<Chunk>, Mutant<Chunk>, Mutant<Chunk>), Err> {
+) -> Result<(Mutant<u64>, Mutant<u32>, Mutant<u32>), Err> {
     let filter = Filter::new(manifest, archive);
     let leaf_zoom = manifest.render.leaf_zoom;
     let leaves = m_leaves.slice();
@@ -31,14 +31,14 @@ pub fn build_chunks(
     let ways = archive.ways();
     let external = m_leaves_external.slice();
 
-    // Delete previous chunks if they exist.
-    let _ = std::fs::remove_file(dir.join("hilbert_n_chunks"));
-    let _ = std::fs::remove_file(dir.join("hilbert_w_chunks"));
+    // Delete previous contents
+    let _ = std::fs::remove_file(dir.join("n"));
+    let _ = std::fs::remove_file(dir.join("w"));
 
-    let mut n_chunks_writer = Mutant::<Chunk>::empty_buffered_writer(dir, "hilbert_n_chunks")?;
-    let mut w_chunks_writer = Mutant::<Chunk>::empty_buffered_writer(dir, "hilbert_w_chunks")?;
-    let mut n_chunk_count = 0;
-    let mut w_chunk_count = 0;
+    let mut n_writer = Mutant::<u64>::empty_buffered_writer(dir, "n")?;
+    let mut w_writer = Mutant::<u32>::empty_buffered_writer(dir, "w")?;
+    let mut n_count: usize = 0;
+    let mut w_count: usize = 0;
 
     let mut z = leaf_zoom - 2;
     let mut level_tile_count = 0;
@@ -61,7 +61,7 @@ pub fn build_chunks(
         let way_filter = filter.way_at_zoom(z);
 
         // Get a vec of indices to all of the entities in the tile.
-        // We will then filter from this to build chunks.
+        // We will then filter from this to populate tile content.
         let (nodes, ways): (Vec<usize>, Vec<usize>) = if z == leaf_zoom - 2 {
             let first_leaf = &leaves[tile.child as usize];
             // The leaf after the last leaf of this tile's children. (the first leaf of the next tile)
@@ -96,18 +96,20 @@ pub fn build_chunks(
             (vec![], vec![])
         };
 
-        let origin_leaf = get_origin_leaf(i, z, leaf_zoom, tiles, leaves);
-        let origin_n_idx = origin_leaf.n as usize;
-        let origin_w_idx = origin_leaf.w as usize;
+        tiles_mut[i].n = n_count as u64;
+        tiles_mut[i].w = w_count as u32;
 
-        let n_start = n_chunk_count;
-        let w_start = w_chunk_count;
-        if write_chunks(&nodes, origin_n_idx, &mut n_chunks_writer, &mut n_chunk_count)? {
-            tiles_mut[i].n_chunk = n_start;
-        };
-        if write_chunks(&ways, origin_w_idx, &mut w_chunks_writer, &mut w_chunk_count)? {
-            tiles_mut[i].w_chunk = w_start;
-        };
+        for i in &nodes {
+            let n = *i as u64;
+            n_writer.write(&n.to_le_bytes())?;
+        }
+        for i in &ways {
+            let w = *i as u32;
+            w_writer.write(&w.to_le_bytes())?;
+        }
+
+        n_count += nodes.len();
+        w_count += ways.len();
 
         println!(
             "z {} children {} total_children {} nodes {} ways {} {:?}",
@@ -129,11 +131,14 @@ pub fn build_chunks(
         }
     }
 
-    let n_chunks = Mutant::<Chunk>::open(dir, "hilbert_n_chunks", false)?;
-    let w_chunks = Mutant::<Chunk>::open(dir, "hilbert_w_chunks", false)?;
-    let r_chunks = Mutant::<Chunk>::new(dir, "hilbert_r_chunks", 0)?;
+    let mut n = Mutant::<u64>::open(dir, "n", false)?;
+    let mut w = Mutant::<u32>::open(dir, "w", false)?;
+    let r = Mutant::<u32>::new(dir, "r", 0)?;
 
-    Ok((n_chunks, w_chunks, r_chunks))
+    n.set_len(n_count);
+    w.set_len(w_count);
+
+    Ok((n, w, r))
 }
 
 fn count_children(mask: u16) -> u32 {
@@ -156,36 +161,6 @@ fn get_origin_leaf<'a>(tiles_i: usize, zoom: u8, leaf_zoom: u8, tiles: &[Hilbert
     &leaves[tile.child as usize]
 }
 
-fn write_chunks(entities: &Vec<usize>, origin_idx: usize, writer: &mut BufWriter<File>, chunk_count: &mut u32) -> Result<bool, Err> {
-    if let Some(first) = entities.first() {
-        let mut chunk = Chunk {
-            offset: (first - origin_idx) as i32,
-            length: 1,
-        };
-        let mut prev_idx = *first;
-        for &idx in entities[1..].iter() {
-            if idx == prev_idx + 1 {
-                chunk.length += 1;
-            } else {
-                let bytes = unsafe { to_bytes(&chunk) };
-                writer.write(bytes)?;
-                *chunk_count += 1;
-                chunk = Chunk {
-                    offset: (idx - origin_idx) as i32,
-                    length: 1,
-                };
-            }
-            prev_idx = idx;
-        }
-        let bytes = unsafe { to_bytes(&chunk) };
-        writer.write_all(bytes)?;
-        *chunk_count += 1;
-        Ok(true)
-    } else {
-        Ok(false)
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use flatdata::FileResourceStorage;
@@ -203,7 +178,7 @@ mod tests {
         let m_tiles = Mutant::<HilbertTile>::open(&dir, "hilbert_tiles", false).unwrap();
         let m_leaves_external =
             Mutant::<u32>::open(&dir, "hilbert_leaves_external", false).unwrap();
-        let _ = build_chunks(
+        let _ = populate_tile_content(
             &m_leaves,
             &m_tiles,
             &m_leaves_external,
