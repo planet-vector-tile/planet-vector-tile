@@ -125,7 +125,7 @@ pub fn populate_tile_content(
     m_w.trim();
     m_r.trim();
 
-    println!("Populating tile content took {:?}", format_duration(t.elapsed()));
+    println!("Populating tile content took {}", format_duration(t.elapsed()));
 
     Ok((m_n, m_w, m_r))
 }

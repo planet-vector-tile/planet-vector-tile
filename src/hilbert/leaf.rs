@@ -219,12 +219,15 @@ pub fn populate_hilbert_leaves_external(
 
     let leaves = m_leaves.mutable_slice();
 
+    let mut counter: u32 = 0;
+
     for i in 0..leaves.len() {
         let leaf = &mut leaves[i];
         if let Some(ways) = leaf_to_ways.get(&leaf.h) {
             let mut it = ways.iter();
             let Some(&first) = it.next() else { break; };
-            leaf.w_ext = first;
+            leaf.w_ext = counter;
+            counter += 1;
             leaves_ext.push(first)?;
             for &way_i in it {
                 leaves_ext.push(way_i)?;
