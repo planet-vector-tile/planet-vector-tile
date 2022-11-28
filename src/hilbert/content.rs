@@ -1,18 +1,12 @@
-use super::{
-    hilbert_tile::HilbertTile,
-    leaf::Leaf,
-};
+use super::{hilbert_tile::HilbertTile, leaf::Leaf};
 use crate::{
-    filter::Filter,
-    manifest::Manifest,
-    mutant::Mutant,
-    osmflat::osmflat_generated::osm::Osm,
+    filter::Filter, manifest::Manifest, mutant::Mutant, osmflat::osmflat_generated::osm::Osm,
 };
-use std::{path::Path, io::Write};
+use std::{io::Write, path::Path};
 
 type Err = Box<dyn std::error::Error>;
 
-static mut ONE:u32 = 0;
+static mut ONE: u32 = 0;
 
 pub fn populate_tile_content(
     m_leaves: &Mutant<Leaf>,
@@ -62,7 +56,7 @@ pub fn populate_tile_content(
 
         // Get a vec of indices to all of the entities in the tile.
         // We will then filter from this to populate tile content.
-        let (nodes, ways): (Vec<usize>, Vec<usize>) = if z == leaf_zoom - 2 {
+        let (nodes, ways): (Vec<u64>, Vec<u32>) = if z == leaf_zoom - 2 {
             let first_leaf = &leaves[tile.child as usize];
             // The leaf after the last leaf of this tile's children. (the first leaf of the next tile)
             let end_leaf = match next_tile {
@@ -75,7 +69,8 @@ pub fn populate_tile_content(
                 None => first_leaf.n as usize..nodes.len(),
             };
             let nodes = nodes_range.map(|i| (i, &nodes[i]));
-            let filtered_nodes: Vec<usize> = nodes.filter(node_filter).map(|(i, _)| i).collect();
+            let filtered_nodes: Vec<u64> =
+                nodes.filter(node_filter).map(|(i, _)| i as u64).collect();
 
             let w_range = match end_leaf {
                 Some(end_leaf) => first_leaf.w as usize..end_leaf.w as usize,
@@ -87,9 +82,11 @@ pub fn populate_tile_content(
             };
 
             let inner_ways = w_range.map(|i| (i, &ways[i]));
-            let ext_ways = external[w_ext_range].iter().map(|&i| (i as usize, &ways[i as usize]));
+            let ext_ways = external[w_ext_range]
+                .iter()
+                .map(|&i| (i as usize, &ways[i as usize]));
             let ways = inner_ways.chain(ext_ways);
-            let filtered_ways: Vec<usize> = ways.filter(way_filter).map(|(i, _)| i).collect();
+            let filtered_ways: Vec<u32> = ways.filter(way_filter).map(|(i, _)| i as u32).collect();
 
             (filtered_nodes, filtered_ways)
         } else {
@@ -99,14 +96,12 @@ pub fn populate_tile_content(
         tiles_mut[i].n = n_count as u64;
         tiles_mut[i].w = w_count as u32;
 
-        for i in &nodes {
-            let n = *i as u64;
-            n_writer.write(&n.to_le_bytes())?;
-        }
-        for i in &ways {
-            let w = *i as u32;
-            w_writer.write(&w.to_le_bytes())?;
-        }
+        // Yeehaw!!!
+        let n_bytes = unsafe { to_bytes(&nodes) };
+        let w_bytes = unsafe { to_bytes(&ways) };
+
+        n_writer.write(&n_bytes)?;
+        w_writer.write(&w_bytes)?;
 
         n_count += nodes.len();
         w_count += ways.len();
@@ -131,6 +126,9 @@ pub fn populate_tile_content(
         }
     }
 
+    n_writer.flush()?;
+    w_writer.flush()?;
+
     let mut n = Mutant::<u64>::open(dir, "n", false)?;
     let mut w = Mutant::<u32>::open(dir, "w", false)?;
     let r = Mutant::<u32>::new(dir, "r", 0)?;
@@ -151,7 +149,13 @@ fn count_children(mask: u16) -> u32 {
     count
 }
 
-fn get_origin_leaf<'a>(tiles_i: usize, zoom: u8, leaf_zoom: u8, tiles: &[HilbertTile], leaves: &'a [Leaf]) -> &'a Leaf {
+fn get_origin_leaf<'a>(
+    tiles_i: usize,
+    zoom: u8,
+    leaf_zoom: u8,
+    tiles: &[HilbertTile],
+    leaves: &'a [Leaf],
+) -> &'a Leaf {
     let mut tile = &tiles[tiles_i];
     let mut z = zoom;
     while z < leaf_zoom - 2 {
@@ -159,6 +163,10 @@ fn get_origin_leaf<'a>(tiles_i: usize, zoom: u8, leaf_zoom: u8, tiles: &[Hilbert
         z += 2;
     }
     &leaves[tile.child as usize]
+}
+
+pub unsafe fn to_bytes<T: Sized>(p: &T) -> &[u8] {
+    ::std::slice::from_raw_parts((p as *const T) as *const u8, ::std::mem::size_of::<T>())
 }
 
 #[cfg(test)]

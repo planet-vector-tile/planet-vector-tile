@@ -21,6 +21,10 @@ pub struct Mutant<T: Sized> {
     phantom: PhantomData<T>,
 }
 
+// Using new with BufWriter only gives you 8KB, which is tiny...
+// This sets it to 64 MB. It would be good to experiment with different values...
+const DEFAULT_BUF_SIZE: usize = 64 * 1024 * 1024;
+
 impl<T: Sized> Mutant<T> {
     pub fn new(dir: &Path, file_name: &str, len: usize) -> Result<Self> {
         let size = 8 + size_of::<T>() * len;
@@ -70,7 +74,7 @@ impl<T: Sized> Mutant<T> {
             *header_ptr = 0;
         }
 
-        let writer = BufWriter::new(file);
+        let writer = BufWriter::with_capacity(DEFAULT_BUF_SIZE, file);
         Ok(writer)
     }
 
