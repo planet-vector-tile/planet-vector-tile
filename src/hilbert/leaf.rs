@@ -228,9 +228,9 @@ pub fn populate_hilbert_leaves_external(
             let Some(&first) = it.next() else { break; };
             leaf.w_ext = counter;
             counter += 1;
-            leaves_ext.push(first)?;
+            leaves_ext.push(first);
             for &way_i in it {
-                leaves_ext.push(way_i)?;
+                leaves_ext.push(way_i);
             }
         }
     }

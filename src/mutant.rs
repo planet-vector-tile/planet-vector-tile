@@ -171,31 +171,33 @@ impl<T: Sized> Mutant<T> {
         fs::rename(&self.path, path)
     }
 
+    #[inline(always)]
     pub fn mutable_slice(&self) -> &mut [T] {
         unsafe { from_raw_parts_mut(self.mmap[8..].as_ptr() as *mut T, self.len) }
     }
 
+    #[inline(always)]
     pub fn slice(&self) -> &[T] {
         unsafe { from_raw_parts(self.mmap[8..].as_ptr() as *mut T, self.len) }
     }
 
     /// Append a value to the end of the array, similar to Vec.
     /// Grows the underlying file by 2x when the capacity is reached.
-    pub fn push(&mut self, item: T) -> Result<&mut Self> {
+    pub fn push(&mut self, item: T) {
         let len = self.len;
         if len >= self.capacity {
             let cap2x = self.capacity * 2;
             let size = 8 + size_of::<T>() * cap2x;
-            self.file.set_len(size as u64)?;
-            self.mmap = unsafe { MmapMut::map_mut(&self.file)? };
+            // We force unwrap, because if this fails, we will know about it soon anyway...
+            // It's best to not return a result, as pushes may be in a tight loop.
+            self.file.set_len(size as u64).unwrap();
+            self.mmap = unsafe { MmapMut::map_mut(&self.file).unwrap() };
             self.capacity = cap2x;
         }
 
         self.len += 1;
         let slc = self.mutable_slice();
         slc[len] = item;
-
-        Ok(self)
     }
 
     pub fn append(&mut self, items: &[T]) -> Result<&mut Self> {
@@ -211,6 +213,7 @@ impl<T: Sized> Mutant<T> {
             self.capacity = new_cap;
         }
 
+        // NHTODO See if there is a performance increase if directly using pointers instead of slice.
         let slc = self.mutable_slice();
         let src = items.as_ptr();
         let dst = slc[self.len..].as_mut_ptr();
