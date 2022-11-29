@@ -24,7 +24,8 @@ use std::collections::BTreeSet;
 // Though the hilbert index can be derived from the n,w,r by looking at the hilbert pairs,
 // This is referenced often, so this is simpler and saves us from paging into the entity
 // (nodes, ways, relations) vectors unnecessarily.
-#[derive(Debug)]
+#[repr(packed)]
+#[derive(Clone, Copy, Debug)]
 pub struct Leaf {
     // Indices to the first node of the given leaf tile.
     pub n: u64,
@@ -223,7 +224,8 @@ pub fn populate_hilbert_leaves_external(
 
     for i in 0..leaves.len() {
         let leaf = &mut leaves[i];
-        if let Some(ways) = leaf_to_ways.get(&leaf.h) {
+        let h = leaf.h;
+        if let Some(ways) = leaf_to_ways.get(&h) {
             let mut it = ways.iter();
             let Some(&first) = it.next() else { break; };
             leaf.w_ext = counter;

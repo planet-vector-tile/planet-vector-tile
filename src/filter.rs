@@ -29,7 +29,7 @@ impl<'a> Filter<'a> {
         let relations = self.archive.relations();
         let tags_index = self.archive.tags_index();
 
-        let evaluate_node = move |(i, node): &(usize, &'a Node)| -> bool {
+        let evaluate_node = move |(_, node): &(usize, &'a Node)| -> bool {
             let range = node.tags();
             let tags_index_start = range.start as usize;
             let tags_index_end = if range.end != 0 {

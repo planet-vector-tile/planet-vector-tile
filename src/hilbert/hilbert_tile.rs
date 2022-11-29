@@ -8,7 +8,8 @@ use super::leaf::Leaf;
 //
 // The levels are descending, with the first level corresponding to the highest zoom,
 // in parity with the leaf vector. Each level is z - 2, allowing 16 children per tile.
-#[derive(Debug)]
+#[repr(packed)]
+#[derive(Clone, Copy, Debug)]
 pub struct HilbertTile {
     // Index of the first child.
     pub child: u32,
@@ -97,8 +98,8 @@ pub fn build_tiles(
                 r: 0,
             };
             println!(
-                "i {} z {} h {} mask {:#018b} {:?}",
-                tiles_i, zoom, tile_h, tile.mask, tile
+                "i {} z {} h {} mask {:#018b}",
+                tiles_i, zoom, tile_h, mask
             );
             tiles[tiles_i] = tile;
             tiles_i += 1;
