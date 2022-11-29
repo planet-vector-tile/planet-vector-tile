@@ -229,7 +229,6 @@ impl HilbertTree {
         pair: ResultPair<&HilbertTile>,
         builder: &mut PVTBuilder,
     ) {
-        println!("compose_h_tile {:?}", tile);
         let tile_n_idx = self.n.slice();
         let tile_w_idx = self.w.slice();
 
