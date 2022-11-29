@@ -52,19 +52,29 @@ pub fn populate_tile_content(
         let node_filter = filter.node_at_zoom(z);
         let way_filter = filter.way_at_zoom(z);
 
+        let is_leaf_parent_zoom = z == leaf_zoom - 2;
+
+        let next_tile = if i + 1 < tiles.len() {
+            Some(&tiles[i + 1])
+        } else {
+            None
+        };
+
         // Get a vec of indices to all of the entities in the tile.
         // We will then filter from this to populate tile content.
-        let (nodes, ways): (Vec<u64>, Vec<u32>) = if z == leaf_zoom - 2 {
-            let next_tile = if i + 1 < tiles.len() && children < total_children {
-                Some(&tiles[i + 1])
-            } else {
-                None
-            };
+        let (nodes, ways): (Vec<u64>, Vec<u32>) = if is_leaf_parent_zoom {
+            let is_last_leaf_parent = children == total_children;
 
             let start_leaf = &leaves[tile.child as usize];
             // The leaf after the last leaf of this tile's children. (the first leaf of the next tile)
             let end_leaf = match next_tile {
-                Some(next_tile) => Some(&leaves[next_tile.child as usize]),
+                Some(next_tile) => {
+                    if is_last_leaf_parent {
+                        None
+                    } else {
+                        Some(&leaves[next_tile.child as usize])
+                    }
+                }
                 None => None,
             };
 
@@ -94,12 +104,6 @@ pub fn populate_tile_content(
 
             (filtered_nodes, filtered_ways)
         } else {
-            let next_tile = if i + 1 < tiles.len() {
-                Some(&tiles[i + 1])
-            } else {
-                None
-            };
-
             let start_child = &tiles[tile.child as usize];
             let end_child = match next_tile {
                 Some(next_tile) => Some(&tiles[next_tile.child as usize]),
@@ -130,11 +134,16 @@ pub fn populate_tile_content(
             (filtered_nodes, filtered_ways)
         };
 
-        tiles_mut[i].n = m_n.len as u64;
-        tiles_mut[i].w = m_w.len as u32;
-
         m_n.append(&nodes)?;
         m_w.append(&ways)?;
+
+        // We set the entity content index of the next tile,
+        // as that will be the current tile in the next loop iteration.
+        if next_tile.is_some() {
+            let next_tile = &mut tiles_mut[i + 1];
+            next_tile.n = m_n.len as u64;
+            next_tile.w = m_w.len as u32;
+        }
 
         println!(
             "z {} children {} total_children {} nodes {} ways {} {:?}",
