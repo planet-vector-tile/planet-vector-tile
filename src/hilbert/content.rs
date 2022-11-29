@@ -1,8 +1,10 @@
+use humantime::format_duration;
+
 use super::{hilbert_tile::HilbertTile, leaf::Leaf};
 use crate::{
     filter::Filter, manifest::Manifest, mutant::Mutant, osmflat::osmflat_generated::osm::Osm,
 };
-use std::{io::Write, path::Path};
+use std::{path::Path, time::Instant};
 
 type Err = Box<dyn std::error::Error>;
 
@@ -28,57 +30,69 @@ pub fn populate_tile_content(
     // Delete previous contents
     let _ = std::fs::remove_file(dir.join("n"));
     let _ = std::fs::remove_file(dir.join("w"));
+    let _ = std::fs::remove_file(dir.join("r"));
 
-    let mut n_writer = Mutant::<u64>::empty_buffered_writer(dir, "n")?;
-    let mut w_writer = Mutant::<u32>::empty_buffered_writer(dir, "w")?;
-    let mut n_count: usize = 0;
-    let mut w_count: usize = 0;
+    let mut m_n = Mutant::<u64>::with_capacity(dir, "n", 1024)?;
+    let mut m_w = Mutant::<u32>::with_capacity(dir, "w", 1024)?;
+    let mut m_r = Mutant::<u32>::with_capacity(dir, "r", 1024)?;
 
     let mut z = leaf_zoom - 2;
     let mut level_tile_count = 0;
     let mut total_children = leaves.len() as u32;
     let mut children = 0;
 
+    let t = Instant::now();
+    println!("Populating tile content...");
+
     for i in 0..tiles.len() {
         let tile = &tiles[i];
 
         children += count_children(tile.mask);
 
-        // some if it is not the last tile or the last tile of the level
-        let next_tile = if i + 1 < tiles.len() && children < total_children {
+        let node_filter = filter.node_at_zoom(z);
+        let way_filter = filter.way_at_zoom(z);
+
+        let is_leaf_parent_zoom = z == leaf_zoom - 2;
+
+        let next_tile = if i + 1 < tiles.len() {
             Some(&tiles[i + 1])
         } else {
             None
         };
 
-        let node_filter = filter.node_at_zoom(z);
-        let way_filter = filter.way_at_zoom(z);
-
         // Get a vec of indices to all of the entities in the tile.
         // We will then filter from this to populate tile content.
-        let (nodes, ways): (Vec<u64>, Vec<u32>) = if z == leaf_zoom - 2 {
-            let first_leaf = &leaves[tile.child as usize];
+        let (nodes, ways): (Vec<u64>, Vec<u32>) = if is_leaf_parent_zoom {
+            let is_last_leaf_parent = children == total_children;
+
+            let start_leaf = &leaves[tile.child as usize];
             // The leaf after the last leaf of this tile's children. (the first leaf of the next tile)
             let end_leaf = match next_tile {
-                Some(next_tile) => Some(&leaves[next_tile.child as usize]),
+                Some(next_tile) => {
+                    if is_last_leaf_parent {
+                        None
+                    } else {
+                        Some(&leaves[next_tile.child as usize])
+                    }
+                }
                 None => None,
             };
 
             let nodes_range = match end_leaf {
-                Some(end_leaf) => first_leaf.n as usize..end_leaf.n as usize,
-                None => first_leaf.n as usize..nodes.len(),
+                Some(end_leaf) => start_leaf.n as usize..end_leaf.n as usize,
+                None => start_leaf.n as usize..nodes.len(),
             };
             let nodes = nodes_range.map(|i| (i, &nodes[i]));
             let filtered_nodes: Vec<u64> =
                 nodes.filter(node_filter).map(|(i, _)| i as u64).collect();
 
             let w_range = match end_leaf {
-                Some(end_leaf) => first_leaf.w as usize..end_leaf.w as usize,
-                None => first_leaf.w as usize..ways.len(),
+                Some(end_leaf) => start_leaf.w as usize..end_leaf.w as usize,
+                None => start_leaf.w as usize..ways.len(),
             };
             let w_ext_range = match end_leaf {
-                Some(end_leaf) => first_leaf.w_ext as usize..end_leaf.w_ext as usize,
-                None => first_leaf.w_ext as usize..external.len(),
+                Some(end_leaf) => start_leaf.w_ext as usize..end_leaf.w_ext as usize,
+                None => start_leaf.w_ext as usize..external.len(),
             };
 
             let inner_ways = w_range.map(|i| (i, &ways[i]));
@@ -90,21 +104,46 @@ pub fn populate_tile_content(
 
             (filtered_nodes, filtered_ways)
         } else {
-            (vec![], vec![])
+            let start_child = &tiles[tile.child as usize];
+            let end_child = match next_tile {
+                Some(next_tile) => Some(&tiles[next_tile.child as usize]),
+                None => None,
+            };
+
+            let n_idxs = m_n.slice();
+
+            let node_idxs = match end_child {
+                Some(end_child) => &n_idxs[start_child.n as usize..end_child.n as usize],
+                None => &n_idxs[start_child.n as usize..],
+            };
+
+            let nodes = node_idxs.iter().map(|i| (*i as usize, &nodes[*i as usize]));
+            let filtered_nodes: Vec<u64> =
+                nodes.filter(node_filter).map(|(i, _)| i as u64).collect();
+
+            let w_idxs = m_w.slice();
+
+            let way_idxs = match end_child {
+                Some(end_child) => &w_idxs[start_child.w as usize..end_child.w as usize],
+                None => &w_idxs[start_child.w as usize..],
+            };
+
+            let ways = way_idxs.iter().map(|i| (*i as usize, &ways[*i as usize]));
+            let filtered_ways: Vec<u32> = ways.filter(way_filter).map(|(i, _)| i as u32).collect();
+
+            (filtered_nodes, filtered_ways)
         };
 
-        tiles_mut[i].n = n_count as u64;
-        tiles_mut[i].w = w_count as u32;
+        m_n.append(&nodes)?;
+        m_w.append(&ways)?;
 
-        // Yeehaw!!!
-        let n_bytes = unsafe { to_bytes(&nodes) };
-        let w_bytes = unsafe { to_bytes(&ways) };
-
-        n_writer.write(&n_bytes)?;
-        w_writer.write(&w_bytes)?;
-
-        n_count += nodes.len();
-        w_count += ways.len();
+        // We set the entity content index of the next tile,
+        // as that will be the current tile in the next loop iteration.
+        if next_tile.is_some() {
+            let next_tile = &mut tiles_mut[i + 1];
+            next_tile.n = m_n.len as u64;
+            next_tile.w = m_w.len as u32;
+        }
 
         println!(
             "z {} children {} total_children {} nodes {} ways {} {:?}",
@@ -126,17 +165,16 @@ pub fn populate_tile_content(
         }
     }
 
-    n_writer.flush()?;
-    w_writer.flush()?;
+    m_n.trim();
+    m_w.trim();
+    m_r.trim();
 
-    let mut n = Mutant::<u64>::open(dir, "n", false)?;
-    let mut w = Mutant::<u32>::open(dir, "w", false)?;
-    let r = Mutant::<u32>::new(dir, "r", 0)?;
+    println!(
+        "Populating tile content took {}",
+        format_duration(t.elapsed())
+    );
 
-    n.set_len(n_count);
-    w.set_len(w_count);
-
-    Ok((n, w, r))
+    Ok((m_n, m_w, m_r))
 }
 
 fn count_children(mask: u16) -> u32 {

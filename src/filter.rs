@@ -1,5 +1,7 @@
 use std::ops::Range;
 
+use dashmap::DashSet;
+
 use crate::{
     manifest::Manifest,
     osmflat::osmflat_generated::osm::{Node, Osm, Way},
@@ -27,7 +29,7 @@ impl<'a> Filter<'a> {
         let relations = self.archive.relations();
         let tags_index = self.archive.tags_index();
 
-        let evaluate_node = move |(_, node): &(usize, &'a Node)| -> bool {
+        let evaluate_node = move |(i, node): &(usize, &'a Node)| -> bool {
             let range = node.tags();
             let tags_index_start = range.start as usize;
             let tags_index_end = if range.end != 0 {
@@ -49,8 +51,14 @@ impl<'a> Filter<'a> {
     pub fn way_at_zoom(&self, zoom: u8) -> impl Fn(&(usize, &'a Way)) -> bool + '_ {
         let relations = self.archive.relations();
         let tags_index = self.archive.tags_index();
+        let way_set: DashSet<usize> = DashSet::new();
 
-        let evaluate_way = move |(_, way): &(usize, &'a Way)| -> bool {
+        let evaluate_way = move |(i, way): &(usize, &'a Way)| -> bool {
+            if way_set.contains(i) {
+                return false;
+            }
+            way_set.insert(*i);
+
             let range = way.tags();
             let tags_index_start = range.start as usize;
             let tags_index_end = if range.end != 0 {
