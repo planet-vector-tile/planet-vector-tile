@@ -1,6 +1,6 @@
 use std::ops::Range;
 
-use super::leaf::Leaf;
+use super::{leaf::Leaf, tree::{FindResult, ResultPair}};
 use crate::tile::planet_vector_tile_generated::*;
 use flatdata::RawData;
 
@@ -19,17 +19,6 @@ use crate::{
     },
 };
 
-struct ResultPair<T> {
-    item: T,
-    next: Option<T>,
-}
-
-enum FindResult<'a> {
-    HilbertTile(ResultPair<&'a HilbertTile>),
-    Leaf(ResultPair<&'a Leaf>),
-    None,
-}
-
 impl Source for HilbertTree {
     fn compose_tile(&self, tile: &Tile, builder: &mut PVTBuilder) {
         match self.find(tile) {
@@ -41,51 +30,6 @@ impl Source for HilbertTree {
 }
 
 impl HilbertTree {
-    fn find(&self, tile: &Tile) -> FindResult {
-        let leaf_zoom = self.manifest.render.leaf_zoom;
-
-        // Tiles do not exist beyond the leaf zoom, and we only use even zoom levels.
-        if tile.z & 1 == 1 || tile.z > leaf_zoom {
-            return FindResult::None;
-        }
-
-        let h_tiles = self.tiles.slice();
-        let leaves = self.leaves.slice();
-        let mut h_tile = h_tiles.last().unwrap();
-        let mut z = 2;
-        let mut i = 0;
-        while z <= tile.z {
-            let h = tile.h >> (2 * (tile.z - z));
-            i = match child_index(h_tile, h) {
-                Some(i) => i,
-                None => return FindResult::None,
-            };
-            // If we are all the way down to the leaves,
-            // return a leaf result pair.
-            if z == leaf_zoom {
-                return FindResult::Leaf(ResultPair {
-                    item: &leaves[i],
-                    next: if i + 1 < leaves.len() {
-                        Some(&leaves[i + 1])
-                    } else {
-                        None
-                    },
-                });
-            }
-            h_tile = &h_tiles[i];
-            z += 2;
-        }
-
-        FindResult::HilbertTile(ResultPair {
-            item: h_tile,
-            next: if i + 1 < h_tiles.len() {
-                Some(&h_tiles[i + 1])
-            } else {
-                None
-            },
-        })
-    }
-
     fn compose_leaf(&self, tile: &Tile, pair: ResultPair<&Leaf>, builder: &mut PVTBuilder) {
         let nodes = self.archive.nodes();
         let ways = self.archive.ways();
@@ -286,19 +230,6 @@ impl HilbertTree {
     }
 }
 
-fn child_index(h_tile: &HilbertTile, child_h: u64) -> Option<usize> {
-    let child_pos = child_h & 0xf;
-    let mask = h_tile.mask;
-    if mask >> child_pos & 1 != 1 {
-        return None;
-    }
-    let mut offset = 0;
-    for i in 0..child_pos {
-        offset += mask >> i & 1;
-    }
-    Some(h_tile.child as usize + offset as usize)
-}
-
 fn build_tags(
     tags_index_range: Range<usize>,
     osm_id: i64,
@@ -332,30 +263,7 @@ fn build_tags(
 #[cfg(test)]
 mod tests {
     use std::path::PathBuf;
-
     use super::*;
-
-    #[test]
-    fn test_basic_find() {
-        // Scotts Valley
-        // z 12 x 659 y 1593
-        let t = Tile::from_zh(12, 3329134);
-
-        let dir = PathBuf::from("tests/fixtures/santacruz/sort");
-        let tree = HilbertTree::open(&dir).unwrap();
-
-        match tree.find(&t) {
-            FindResult::HilbertTile(_) => panic!("Should not be a HilbertTile. Should be a leaf"),
-            FindResult::Leaf(pair) => {
-                let leaf = pair.item;
-                assert_eq!(leaf.n, 865693);
-                assert_eq!(leaf.w, 98588);
-                assert_eq!(leaf.r, 0);
-                assert_eq!(leaf.h, 3329134);
-            }
-            FindResult::None => panic!("Should be a leaf."),
-        }
-    }
 
     #[test]
     fn test_basic_compose_tile() {
