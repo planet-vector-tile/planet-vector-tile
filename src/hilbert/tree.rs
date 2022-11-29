@@ -6,7 +6,8 @@ use super::{
 use crate::{
     manifest::{self, Manifest},
     mutant::Mutant,
-    osmflat::osmflat_generated::osm::{HilbertNodePair, HilbertWayPair, Osm}, tile::Tile,
+    osmflat::osmflat_generated::osm::{HilbertNodePair, HilbertWayPair, Osm},
+    tile::Tile,
 };
 use flatdata::FileResourceStorage;
 use std::{fs, path::Path};
@@ -166,9 +167,9 @@ fn child_index(h_tile: &HilbertTile, child_h: u64) -> Option<usize> {
 
 #[cfg(test)]
 mod tests {
-    use std::path::PathBuf;
-    use std::mem::size_of;
     use super::*;
+    use std::mem::size_of;
+    use std::path::PathBuf;
 
     #[test]
     fn test_basic_find() {

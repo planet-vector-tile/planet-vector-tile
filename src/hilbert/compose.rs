@@ -1,6 +1,9 @@
 use std::ops::Range;
 
-use super::{leaf::Leaf, tree::{FindResult, ResultPair}};
+use super::{
+    leaf::Leaf,
+    tree::{FindResult, ResultPair},
+};
 use crate::tile::planet_vector_tile_generated::*;
 use flatdata::RawData;
 
@@ -37,12 +40,6 @@ impl HilbertTree {
         let nodes_len = nodes.len();
         let ways_len = ways.len();
         let relations_len = relations.len();
-        let node_pairs = self.archive.hilbert_node_pairs().unwrap();
-        let tags = self.archive.tags();
-        let nodes_index = self.archive.nodes_index();
-        let tags_index = self.archive.tags_index();
-        let tags_index_len = tags_index.len();
-        let strings = self.archive.stringtable();
         let external_entities = self.leaves_external.slice();
 
         // The range of indices in the entities vectors.
@@ -62,10 +59,63 @@ impl HilbertTree {
             )
         };
 
-        // We reuse this for nodes, ways, relations.
-        let mut features = Vec::with_capacity(w_range.end - w_range.start);
+        let ways_ext = w_ext_range.map(|i| external_entities[i] as usize);
+        let ways_it = w_range.chain(ways_ext);
+        self.build_pvt(n_range, ways_it, tile, builder)
+    }
 
-        for i in n_range {
+    fn compose_h_tile(
+        &self,
+        tile: &Tile,
+        pair: ResultPair<&HilbertTile>,
+        builder: &mut PVTBuilder,
+    ) {
+        let tile_n_idx = self.n.slice();
+        let tile_w_idx = self.w.slice();
+
+        let (n_range, w_range, _r_range) = if let Some(next) = pair.next {
+            (
+                (pair.item.n as usize)..(next.n as usize),
+                (pair.item.w as usize)..(next.w as usize),
+                (pair.item.r as usize)..(next.r as usize),
+            )
+        } else {
+            (
+                (pair.item.n as usize)..self.n.len,
+                (pair.item.w as usize)..self.w.len,
+                (pair.item.r as usize)..self.r.len,
+            )
+        };
+
+        let nodes_it = n_range.map(|i| tile_n_idx[i] as usize).into_iter();
+        let ways_it = w_range.map(|i| tile_w_idx[i] as usize).into_iter();
+
+        self.build_pvt(nodes_it, ways_it, tile, builder)
+    }
+
+    fn build_pvt<N, W>(&self, nodes_it: N, ways_it: W, tile: &Tile, builder: &mut PVTBuilder)
+    where
+        N: Iterator<Item = usize>,
+        W: Iterator<Item = usize>,
+    {
+        let nodes = self.archive.nodes();
+        let ways = self.archive.ways();
+        let relations = self.archive.relations();
+        let nodes_len = nodes.len();
+        let ways_len = ways.len();
+        let relations_len = relations.len();
+        let node_pairs = self.archive.hilbert_node_pairs().unwrap();
+        let tags = self.archive.tags();
+        let nodes_index = self.archive.nodes_index();
+        let nodes_index_len = nodes_index.len();
+        let tags_index = self.archive.tags_index();
+        let tags_index_len = tags_index.len();
+        let strings = self.archive.stringtable();
+
+        // We reuse this for nodes, ways, relations.
+        let mut features = Vec::new();
+
+        for i in nodes_it {
             let node = &nodes[i];
 
             let tags_index_start = node.tag_first_idx() as usize;
@@ -132,13 +182,9 @@ impl HilbertTree {
         builder.add_layer(layer);
         features.clear();
 
-        let tile_ways = ways[w_range].iter();
-        let ext_ways = external_entities[w_ext_range]
-            .iter()
-            .map(|i| &ways[*i as usize]);
-        let all_ways = tile_ways.chain(ext_ways);
+        for i in ways_it {
+            let way = &ways[i];
 
-        for way in all_ways {
             let range = way.tags();
             let tags_index_start = range.start as usize;
             let tags_index_end = if range.end != 0 {
@@ -170,7 +216,7 @@ impl HilbertTree {
             let refs_index_end = if range.end != 0 {
                 range.end as usize
             } else {
-                nodes_len
+                nodes_index_len
             };
 
             let mut path = Vec::with_capacity(refs_index_end - refs_index_start);
@@ -216,17 +262,6 @@ impl HilbertTree {
             },
         );
         builder.add_layer(layer);
-
-        // NHTODO Relations
-    }
-
-    fn compose_h_tile(
-        &self,
-        _tile: &Tile,
-        _pair: ResultPair<&HilbertTile>,
-        _builder: &mut PVTBuilder,
-    ) {
-        //NHTODO - First, we need to populate chunks...
     }
 }
 
@@ -262,8 +297,8 @@ fn build_tags(
 
 #[cfg(test)]
 mod tests {
-    use std::path::PathBuf;
     use super::*;
+    use std::path::PathBuf;
 
     #[test]
     fn test_basic_compose_tile() {
@@ -336,5 +371,18 @@ mod tests {
             let t_range = n.tags();
             assert!(t_range.start <= t_range.end || t_range.end == 0);
         }
+    }
+
+    #[test]
+    fn test_h_tile() {
+        let dir = PathBuf::from("tests/fixtures/santacruz/sort");
+        let tree = HilbertTree::open(&dir).unwrap();
+
+        let mut builder = PVTBuilder::new();
+        let t = Tile::from_zh(2, 3);
+        tree.compose_tile(&t, &mut builder);
+        let vec_u8 = builder.build();
+        // just making sure no panic happened and there is content
+        assert!(vec_u8.len() > 1000);
     }
 }

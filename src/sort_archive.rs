@@ -274,4 +274,23 @@ mod tests {
             assert!(range.start <= range.end || range.end == 0);
         }
     }
+
+    #[test]
+    fn test_way_ref_under_nodes_idx_len() {
+        let dir = PathBuf::from("tests/fixtures/santacruz/sort");
+        let m_ways = Mutant::<Way>::open(&dir, "ways", true).unwrap();
+        let ways = m_ways.slice();
+        let w = &ways[186316];
+        let osm_id = w.osm_id();
+        assert_eq!(osm_id, 42298798);
+
+        let first_ref = w.ref_first_idx() as usize;
+
+        let m_nodes_idx = Mutant::<NodeIndex>::open(&dir, "nodes_index", true).unwrap();
+        let n_idx = m_nodes_idx.slice();
+        let n_idx_len = n_idx.len();
+
+        assert_eq!(m_nodes_idx.len, n_idx_len);
+        assert!((first_ref as usize) < n_idx.len());
+    }
 }
