@@ -167,6 +167,7 @@ fn child_index(h_tile: &HilbertTile, child_h: u64) -> Option<usize> {
 #[cfg(test)]
 mod tests {
     use std::path::PathBuf;
+    use std::mem::size_of;
     use super::*;
 
     #[test]
@@ -182,12 +183,22 @@ mod tests {
             FindResult::HilbertTile(_) => panic!("Should not be a HilbertTile. Should be a leaf"),
             FindResult::Leaf(pair) => {
                 let leaf = pair.item;
-                assert_eq!(leaf.n, 865693);
-                assert_eq!(leaf.w, 98588);
-                assert_eq!(leaf.r, 0);
-                assert_eq!(leaf.h, 3329134);
+                let n = leaf.n;
+                let w = leaf.w;
+                let r = leaf.r;
+                let h = leaf.h;
+                assert_eq!(n, 865693);
+                assert_eq!(w, 98588);
+                assert_eq!(r, 0);
+                assert_eq!(h, 3329134);
             }
             FindResult::None => panic!("Should be a leaf."),
         }
+    }
+
+    #[test]
+    fn test_struct_size() {
+        assert_eq!(22, size_of::<HilbertTile>());
+        assert_eq!(28, size_of::<Leaf>());
     }
 }

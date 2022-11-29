@@ -146,13 +146,12 @@ pub fn populate_tile_content(
         }
 
         println!(
-            "z {} children {} total_children {} nodes {} ways {} {:?}",
+            "z {} children {} total_children {} nodes {} ways {}",
             z,
             children,
             total_children,
             nodes.len(),
             ways.len(),
-            tile
         );
 
         level_tile_count += 1;
