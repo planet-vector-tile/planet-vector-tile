@@ -28,14 +28,8 @@ impl<'a> Filter<'a> {
         let ways = self.archive.ways();
         let relations = self.archive.relations();
         let tags_index = self.archive.tags_index();
-        let node_set: DashSet<usize> = DashSet::new();
 
         let evaluate_node = move |(i, node): &(usize, &'a Node)| -> bool {
-            if node_set.contains(i) {
-                return false;
-            }
-            node_set.insert(*i);
-
             let range = node.tags();
             let tags_index_start = range.start as usize;
             let tags_index_end = if range.end != 0 {

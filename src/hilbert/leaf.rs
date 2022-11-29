@@ -235,7 +235,10 @@ pub fn populate_hilbert_leaves_external(
         }
     }
 
-    println!("Populated external leaf entities in {}", format_duration(t.elapsed()));
+    println!(
+        "Populated external leaf entities in {}",
+        format_duration(t.elapsed())
+    );
 
     leaves_ext.trim();
     Ok(leaves_ext)

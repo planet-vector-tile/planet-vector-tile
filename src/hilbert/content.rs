@@ -107,14 +107,15 @@ pub fn populate_tile_content(
             };
 
             let n_idxs = m_n.slice();
-            
+
             let node_idxs = match end_child {
                 Some(end_child) => &n_idxs[start_child.n as usize..end_child.n as usize],
                 None => &n_idxs[start_child.n as usize..],
             };
 
             let nodes = node_idxs.iter().map(|i| (*i as usize, &nodes[*i as usize]));
-            let filtered_nodes: Vec<u64> = nodes.filter(node_filter).map(|(i, _)| i as u64).collect();
+            let filtered_nodes: Vec<u64> =
+                nodes.filter(node_filter).map(|(i, _)| i as u64).collect();
 
             let w_idxs = m_w.slice();
 
@@ -156,7 +157,10 @@ pub fn populate_tile_content(
     m_w.trim();
     m_r.trim();
 
-    println!("Populating tile content took {}", format_duration(t.elapsed()));
+    println!(
+        "Populating tile content took {}",
+        format_duration(t.elapsed())
+    );
 
     Ok((m_n, m_w, m_r))
 }
