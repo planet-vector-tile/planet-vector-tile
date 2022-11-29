@@ -267,6 +267,7 @@ impl HilbertTree {
         let node_pairs = self.archive.hilbert_node_pairs().unwrap();
         let tags = self.archive.tags();
         let nodes_index = self.archive.nodes_index();
+        let nodes_index_len = nodes_index.len();
         let tags_index = self.archive.tags_index();
         let tags_index_len = tags_index.len();
         let strings = self.archive.stringtable();
@@ -376,7 +377,7 @@ impl HilbertTree {
             let refs_index_end = if range.end != 0 {
                 range.end as usize
             } else {
-                nodes_len
+                nodes_index_len
             };
 
             let mut path = Vec::with_capacity(refs_index_end - refs_index_start);
@@ -531,5 +532,18 @@ mod tests {
             let t_range = n.tags();
             assert!(t_range.start <= t_range.end || t_range.end == 0);
         }
+    }
+
+    #[test]
+    fn test_h_tile() {
+        let dir = PathBuf::from("tests/fixtures/santacruz/sort");
+        let tree = HilbertTree::open(&dir).unwrap();
+
+        let mut builder = PVTBuilder::new();
+        let t = Tile::from_zh(2, 3);
+        tree.compose_tile(&t, &mut builder);
+        let vec_u8 = builder.build();
+        // just making sure no panic happened and there is content
+        assert!(vec_u8.len()> 1000);
     }
 }
