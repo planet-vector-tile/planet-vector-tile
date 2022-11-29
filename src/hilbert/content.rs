@@ -130,6 +130,9 @@ pub fn populate_tile_content(
             (filtered_nodes, filtered_ways)
         };
 
+        tiles_mut[i].n = m_n.len as u64;
+        tiles_mut[i].w = m_w.len as u32;
+
         m_n.append(&nodes)?;
         m_w.append(&ways)?;
 
