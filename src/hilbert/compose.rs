@@ -1,6 +1,9 @@
 use std::ops::Range;
 
-use super::{leaf::Leaf, tree::{FindResult, ResultPair}};
+use super::{
+    leaf::Leaf,
+    tree::{FindResult, ResultPair},
+};
 use crate::tile::planet_vector_tile_generated::*;
 use flatdata::RawData;
 
@@ -222,11 +225,203 @@ impl HilbertTree {
 
     fn compose_h_tile(
         &self,
-        _tile: &Tile,
-        _pair: ResultPair<&HilbertTile>,
-        _builder: &mut PVTBuilder,
+        tile: &Tile,
+        pair: ResultPair<&HilbertTile>,
+        builder: &mut PVTBuilder,
     ) {
-        //NHTODO - First, we need to populate chunks...
+        println!("compose_h_tile {:?}", tile);
+        let tile_n_idx = self.n.slice();
+        let tile_w_idx = self.w.slice();
+
+        let (n_range, w_range, _r_range) = if let Some(next) = pair.next {
+            (
+                (pair.item.n as usize)..(next.n as usize),
+                (pair.item.w as usize)..(next.w as usize),
+                (pair.item.r as usize)..(next.r as usize),
+            )
+        } else {
+            (
+                (pair.item.n as usize)..self.n.len,
+                (pair.item.w as usize)..self.w.len,
+                (pair.item.r as usize)..self.r.len,
+            )
+        };
+
+        let nodes_it = n_range.map(|i| tile_n_idx[i]).into_iter();
+        let ways_it = w_range.map(|i| tile_w_idx[i]).into_iter();
+
+        self.build_pvt(nodes_it, ways_it, tile, builder)
+    }
+
+    fn build_pvt<N, W>(&self, nodes_it: N, ways_it: W, tile: &Tile, builder: &mut PVTBuilder)
+    where
+        N: Iterator<Item = u64>,
+        W: Iterator<Item = u32>,
+    {
+        let nodes = self.archive.nodes();
+        let ways = self.archive.ways();
+        let relations = self.archive.relations();
+        let nodes_len = nodes.len();
+        let ways_len = ways.len();
+        let relations_len = relations.len();
+        let node_pairs = self.archive.hilbert_node_pairs().unwrap();
+        let tags = self.archive.tags();
+        let nodes_index = self.archive.nodes_index();
+        let tags_index = self.archive.tags_index();
+        let tags_index_len = tags_index.len();
+        let strings = self.archive.stringtable();
+
+        // We reuse this for nodes, ways, relations.
+        let mut features = Vec::new();
+
+        for i_ in nodes_it {
+            let i = i_ as usize;
+            let node = &nodes[i];
+
+            let tags_index_start = node.tag_first_idx() as usize;
+            let tags_index_end = if i + 1 < nodes_len {
+                nodes[i + 1].tag_first_idx() as usize
+            } else if ways_len > 0 {
+                ways[0].tag_first_idx() as usize
+            } else if relations_len > 0 {
+                relations[0].tag_first_idx() as usize
+            } else {
+                tags_index_len
+            };
+            let tags_index_range = tags_index_start..tags_index_end;
+
+            // We don't include untagged nodes.
+            if tags_index_start == tags_index_end {
+                continue;
+            }
+
+            // Tags
+            let (keys, vals) = build_tags(
+                tags_index_range,
+                node.osm_id(),
+                tags_index,
+                tags,
+                strings,
+                builder,
+            );
+            let keys_vec = builder.fbb.create_vector(&keys);
+            let vals_vec = builder.fbb.create_vector(&vals);
+
+            // Geometries
+            let lon = node.lon();
+            let lat = node.lat();
+            let xy = lonlat_to_xy((lon, lat));
+            let tile_point = tile.project(xy);
+            let points = builder.fbb.create_vector(&[tile_point]);
+            let mut geom_builder = PVTGeometryBuilder::new(&mut builder.fbb);
+            geom_builder.add_points(points);
+            let geom = geom_builder.finish();
+            let geoms = builder.fbb.create_vector(&[geom]);
+
+            let feature = PVTFeature::create(
+                &mut builder.fbb,
+                &PVTFeatureArgs {
+                    id: node_pairs[i].h(),
+                    keys: Some(keys_vec),
+                    values: Some(vals_vec),
+                    geometries: Some(geoms),
+                },
+            );
+            features.push(feature);
+        }
+
+        let features_vec = builder.fbb.create_vector(&features);
+        let name = builder.attributes.upsert_string("nodes");
+        let layer = PVTLayer::create(
+            &mut builder.fbb,
+            &PVTLayerArgs {
+                name,
+                features: Some(features_vec),
+            },
+        );
+        builder.add_layer(layer);
+        features.clear();
+
+        for i in ways_it {
+            let way = &ways[i as usize];
+
+            let range = way.tags();
+            let tags_index_start = range.start as usize;
+            let tags_index_end = if range.end != 0 {
+                range.end as usize
+            } else {
+                if relations_len > 0 {
+                    relations[0].tag_first_idx() as usize
+                } else {
+                    tags_index_len
+                }
+            };
+            let tags_index_range = tags_index_start..tags_index_end;
+
+            // Tags
+            let (keys, vals) = build_tags(
+                tags_index_range,
+                way.osm_id(),
+                tags_index,
+                tags,
+                strings,
+                builder,
+            );
+            let keys_vec = builder.fbb.create_vector(&keys);
+            let vals_vec = builder.fbb.create_vector(&vals);
+
+            // Geometries
+            let range = way.refs();
+            let refs_index_start = range.start as usize;
+            let refs_index_end = if range.end != 0 {
+                range.end as usize
+            } else {
+                nodes_len
+            };
+
+            let mut path = Vec::with_capacity(refs_index_end - refs_index_start);
+            for i in refs_index_start..refs_index_end {
+                if let Some(r) = nodes_index[i].value() {
+                    let n = &nodes[r as usize];
+                    let lon = n.lon();
+                    let lat = n.lat();
+                    let xy = lonlat_to_xy((lon, lat));
+                    let tile_point = tile.project(xy);
+                    path.push(tile_point);
+                }
+            }
+            let points = builder.fbb.create_vector(&path);
+            let geom = PVTGeometry::create(
+                &mut builder.fbb,
+                &PVTGeometryArgs {
+                    points: Some(points),
+                },
+            );
+            let geoms = builder.fbb.create_vector(&[geom]);
+
+            let feature = PVTFeature::create(
+                &mut builder.fbb,
+                &PVTFeatureArgs {
+                    id: way.osm_id() as u64, // NHTODO get h instead of osm_id
+                    keys: Some(keys_vec),
+                    values: Some(vals_vec),
+                    geometries: Some(geoms),
+                },
+            );
+            features.push(feature);
+        }
+
+        let features_vec = builder.fbb.create_vector(&features);
+
+        let name = builder.attributes.upsert_string("ways");
+        let layer = PVTLayer::create(
+            &mut builder.fbb,
+            &PVTLayerArgs {
+                name,
+                features: Some(features_vec),
+            },
+        );
+        builder.add_layer(layer);
     }
 }
 
@@ -262,8 +457,8 @@ fn build_tags(
 
 #[cfg(test)]
 mod tests {
-    use std::path::PathBuf;
     use super::*;
+    use std::path::PathBuf;
 
     #[test]
     fn test_basic_compose_tile() {

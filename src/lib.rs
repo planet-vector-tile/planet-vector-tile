@@ -22,6 +22,9 @@ extern crate napi_derive;
 use args::Args;
 use hilbert::tree::HilbertTree;
 use info::*;
+use napi::bindgen_prelude::*;
+use napi::tokio::sync::RwLock;
+use napi::tokio::{self};
 use pvt_builder::PVTBuilder;
 use source::Source;
 use std::error::Error;
@@ -29,10 +32,6 @@ use std::path::PathBuf;
 use std::sync::Arc;
 use std::time::Instant;
 use tile::Tile;
-
-use napi::bindgen_prelude::*;
-use napi::tokio::sync::RwLock;
-use napi::tokio::{self};
 
 #[napi]
 pub fn load_planet(tiles: Vec<String>) -> Planet {
@@ -75,12 +74,15 @@ impl Planet {
         }
     }
 
+    // To see stack trace:
+    // RUST_BACKTRACE=full npm start
+
     #[napi]
     pub async fn tile(&self, z: u8, x: u32, y: u32) -> Result<Uint8Array> {
         let time = Instant::now();
         let sources_rw = self.sources.clone();
-        let task_result = tokio::task::spawn(async move {
-            let tile = Tile::from_zxy(z, x, y);
+        let tile = Tile::from_zxy(z, x, y);
+        let task_handle = tokio::task::spawn(async move {
             let mut builder = PVTBuilder::new();
             let sources = sources_rw.read().await;
             for i in 0..sources.len() {
@@ -89,11 +91,24 @@ impl Planet {
             }
             let vec_u8 = builder.build();
             Ok(vec_u8.into())
-        })
-        .await
-        .unwrap();
-        println!("{}/{}/{} {}ms.", z, x, y, time.elapsed().as_millis());
-        task_result
+        });
+        match task_handle.await {
+            Ok(result) => {
+                println!(
+                    "{:8} {}/{}/{} {} ms",
+                    tile.h,
+                    z,
+                    x,
+                    y,
+                    time.elapsed().as_millis()
+                );
+                result
+            }
+            Err(err) => Err(napi::Error::new(
+                napi::Status::GenericFailure,
+                format!("{:8} {}/{}/{} Error: {:?}", tile.h, z, x, y, err),
+            )),
+        }
     }
 }
 
