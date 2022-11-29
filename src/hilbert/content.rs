@@ -49,20 +49,19 @@ pub fn populate_tile_content(
 
         children += count_children(tile.mask);
 
-        // some if it is not the last tile or the last tile of the level
-        let next_tile = if i + 1 < tiles.len() && children < total_children {
-            Some(&tiles[i + 1])
-        } else {
-            None
-        };
-
         let node_filter = filter.node_at_zoom(z);
         let way_filter = filter.way_at_zoom(z);
 
         // Get a vec of indices to all of the entities in the tile.
         // We will then filter from this to populate tile content.
         let (nodes, ways): (Vec<u64>, Vec<u32>) = if z == leaf_zoom - 2 {
-            let first_leaf = &leaves[tile.child as usize];
+            let next_tile = if i + 1 < tiles.len() && children < total_children {
+                Some(&tiles[i + 1])
+            } else {
+                None
+            };
+
+            let start_leaf = &leaves[tile.child as usize];
             // The leaf after the last leaf of this tile's children. (the first leaf of the next tile)
             let end_leaf = match next_tile {
                 Some(next_tile) => Some(&leaves[next_tile.child as usize]),
@@ -70,20 +69,20 @@ pub fn populate_tile_content(
             };
 
             let nodes_range = match end_leaf {
-                Some(end_leaf) => first_leaf.n as usize..end_leaf.n as usize,
-                None => first_leaf.n as usize..nodes.len(),
+                Some(end_leaf) => start_leaf.n as usize..end_leaf.n as usize,
+                None => start_leaf.n as usize..nodes.len(),
             };
             let nodes = nodes_range.map(|i| (i, &nodes[i]));
             let filtered_nodes: Vec<u64> =
                 nodes.filter(node_filter).map(|(i, _)| i as u64).collect();
 
             let w_range = match end_leaf {
-                Some(end_leaf) => first_leaf.w as usize..end_leaf.w as usize,
-                None => first_leaf.w as usize..ways.len(),
+                Some(end_leaf) => start_leaf.w as usize..end_leaf.w as usize,
+                None => start_leaf.w as usize..ways.len(),
             };
             let w_ext_range = match end_leaf {
-                Some(end_leaf) => first_leaf.w_ext as usize..end_leaf.w_ext as usize,
-                None => first_leaf.w_ext as usize..external.len(),
+                Some(end_leaf) => start_leaf.w_ext as usize..end_leaf.w_ext as usize,
+                None => start_leaf.w_ext as usize..external.len(),
             };
 
             let inner_ways = w_range.map(|i| (i, &ways[i]));
@@ -95,7 +94,39 @@ pub fn populate_tile_content(
 
             (filtered_nodes, filtered_ways)
         } else {
-            (vec![], vec![])
+            let next_tile = if i + 1 < tiles.len() {
+                Some(&tiles[i + 1])
+            } else {
+                None
+            };
+
+            let start_child = &tiles[tile.child as usize];
+            let end_child = match next_tile {
+                Some(next_tile) => Some(&tiles[next_tile.child as usize]),
+                None => None,
+            };
+
+            let n_idxs = m_n.slice();
+            
+            let node_idxs = match end_child {
+                Some(end_child) => &n_idxs[start_child.n as usize..end_child.n as usize],
+                None => &n_idxs[start_child.n as usize..],
+            };
+
+            let nodes = node_idxs.iter().map(|i| (*i as usize, &nodes[*i as usize]));
+            let filtered_nodes: Vec<u64> = nodes.filter(node_filter).map(|(i, _)| i as u64).collect();
+
+            let w_idxs = m_w.slice();
+
+            let way_idxs = match end_child {
+                Some(end_child) => &w_idxs[start_child.w as usize..end_child.w as usize],
+                None => &w_idxs[start_child.w as usize..],
+            };
+
+            let ways = way_idxs.iter().map(|i| (*i as usize, &ways[*i as usize]));
+            let filtered_ways: Vec<u32> = ways.filter(way_filter).map(|(i, _)| i as u32).collect();
+
+            (filtered_nodes, filtered_ways)
         };
 
         m_n.append(&nodes)?;
