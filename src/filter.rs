@@ -31,6 +31,10 @@ impl<'a> Filter<'a> {
 
         let evaluate_node = move |(_, node): &(usize, &'a Node)| -> bool {
             let range = node.tags();
+            // Don't include nodes without tags.
+            if range.start == range.end {
+                return false;
+            }
             let tags_index_start = range.start as usize;
             let tags_index_end = if range.end != 0 {
                 range.end as usize

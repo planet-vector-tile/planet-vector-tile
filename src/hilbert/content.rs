@@ -216,8 +216,27 @@ mod tests {
     use std::path::PathBuf;
 
     #[test]
-    fn test_build_chunks() {
+    fn test_build_content() {
         let dir = PathBuf::from("tests/fixtures/santacruz/sort");
+        let archive = Osm::open(FileResourceStorage::new(&dir)).unwrap();
+        let m_leaves = Mutant::<Leaf>::open(&dir, "hilbert_leaves", false).unwrap();
+        let m_tiles = Mutant::<HilbertTile>::open(&dir, "hilbert_tiles", false).unwrap();
+        let m_leaves_external =
+            Mutant::<u32>::open(&dir, "hilbert_leaves_external", false).unwrap();
+        let _ = populate_tile_content(
+            &m_leaves,
+            &m_tiles,
+            &m_leaves_external,
+            &dir,
+            &archive,
+            &manifest::parse(None),
+        );
+    }
+
+    #[test]
+    #[ignore]
+    fn test_build_content_california() {
+        let dir = PathBuf::from("/Users/n/geodata/flatdata/california");
         let archive = Osm::open(FileResourceStorage::new(&dir)).unwrap();
         let m_leaves = Mutant::<Leaf>::open(&dir, "hilbert_leaves", false).unwrap();
         let m_tiles = Mutant::<HilbertTile>::open(&dir, "hilbert_tiles", false).unwrap();

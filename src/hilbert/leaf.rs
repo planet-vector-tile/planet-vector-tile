@@ -234,6 +234,8 @@ pub fn populate_hilbert_leaves_external(
             for &way_i in it {
                 leaves_ext.push(way_i);
             }
+        } else {
+            leaf.w_ext = counter;
         }
     }
 
@@ -284,6 +286,17 @@ mod tests {
         }
         assert_eq!(count, ext.len());
         assert_eq!(osm_id, 336027088);
+
+        // Check that w_ext is ascending or equal for the leaves.
+        let mut leaves_it = m_leaves.slice().iter();
+        let mut leaf = leaves_it.next().unwrap();
+        let mut next = leaves_it.next();
+        while next.is_some() {
+            let next_leaf = next.unwrap();
+            assert!(leaf.w_ext <= next_leaf.w_ext);
+            leaf = next_leaf;
+            next = leaves_it.next();
+        }
     }
 
     #[test]
