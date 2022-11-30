@@ -95,10 +95,6 @@ pub fn populate_tile_content(
                 None => start_leaf.w_ext as usize..external.len(),
             };
 
-            if w_ext_range.start > w_ext_range.end {
-                println!("w_ext_range: {:?}", w_ext_range);
-            }
-
             let inner_ways = w_range.map(|i| (i, &ways[i]));
             let ext_ways = external[w_ext_range]
                 .iter()
