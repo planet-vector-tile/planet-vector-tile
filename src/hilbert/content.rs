@@ -95,6 +95,10 @@ pub fn populate_tile_content(
                 None => start_leaf.w_ext as usize..external.len(),
             };
 
+            if w_ext_range.start > w_ext_range.end {
+                println!("w_ext_range: {:?}", w_ext_range);
+            }
+
             let inner_ways = w_range.map(|i| (i, &ways[i]));
             let ext_ways = external[w_ext_range]
                 .iter()
@@ -216,8 +220,27 @@ mod tests {
     use std::path::PathBuf;
 
     #[test]
-    fn test_build_chunks() {
+    fn test_build_content() {
         let dir = PathBuf::from("tests/fixtures/santacruz/sort");
+        let archive = Osm::open(FileResourceStorage::new(&dir)).unwrap();
+        let m_leaves = Mutant::<Leaf>::open(&dir, "hilbert_leaves", false).unwrap();
+        let m_tiles = Mutant::<HilbertTile>::open(&dir, "hilbert_tiles", false).unwrap();
+        let m_leaves_external =
+            Mutant::<u32>::open(&dir, "hilbert_leaves_external", false).unwrap();
+        let _ = populate_tile_content(
+            &m_leaves,
+            &m_tiles,
+            &m_leaves_external,
+            &dir,
+            &archive,
+            &manifest::parse(None),
+        );
+    }
+
+    #[test]
+    #[ignore]
+    fn test_build_content_california() {
+        let dir = PathBuf::from("/Users/n/geodata/flatdata/california");
         let archive = Osm::open(FileResourceStorage::new(&dir)).unwrap();
         let m_leaves = Mutant::<Leaf>::open(&dir, "hilbert_leaves", false).unwrap();
         let m_tiles = Mutant::<HilbertTile>::open(&dir, "hilbert_tiles", false).unwrap();
