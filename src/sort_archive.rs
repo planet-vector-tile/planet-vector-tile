@@ -157,6 +157,7 @@ fn build_hilbert_way_pairs(
 ) -> Result<(), Box<dyn std::error::Error>> {
     let nodes = archive.nodes();
     let nodes_index = archive.nodes_index();
+    let node_pairs = archive.hilbert_node_pairs().unwrap();
     let ways = archive.ways();
 
     info!("Building hilbert way pairs.");
@@ -166,6 +167,25 @@ fn build_hilbert_way_pairs(
         let way = &ways[i];
         let refs = way.refs();
         let len = refs.end - refs.start;
+
+        // invalid ring
+        // https://github.com/georust/geo/blob/3b0d5738f54bd8964f7d1f573bd63dc114587dc4/geo/src/algorithm/relate/geomgraph/geometry_graph.rs#L182
+        if len < 4 {
+            if let Some(idx) = nodes_index[refs.start as usize].value() {
+                let h = node_pairs[idx as usize].h();
+                pair.set_i(i as u32);
+                pair.set_h(h);
+            } else {
+                println!(
+                    "Unable to find a hilbert location for way with {} refs. i={} osm_id={}",
+                    len,
+                    i,
+                    way.osm_id()
+                );
+            }
+            return;
+        }
+
         let mut coords = Vec::<Coordinate<f64>>::with_capacity(len as usize);
 
         for r in refs {
@@ -195,10 +215,40 @@ fn build_hilbert_way_pairs(
             pair.set_i(i as u32);
             pair.set_h(h);
         } else {
-            eprintln!(
-                "Unable to find point on surface to compute hilbert location for way at index {}.",
-                i
+            println!(
+                "Unable to find point on surface for way at index {}. osm_id={}.",
+                i,
+                way.osm_id()
             );
+            let refs = way.refs();
+            let median_ref = refs.start + ((refs.end - refs.start) / 2);
+            if let Some(idx) = nodes_index[median_ref as usize].value() {
+                let h = node_pairs[idx as usize].h();
+                pair.set_i(i as u32);
+                pair.set_h(h);
+                println!(
+                    "Using median ref of way for hilbert location at index {}. osm_id={}.",
+                    i,
+                    way.osm_id()
+                );
+            }
+            // Also trying the first ref if the median doesn't work.
+            else if let Some(idx) = nodes_index[refs.start as usize].value() {
+                let h = node_pairs[idx as usize].h();
+                pair.set_i(i as u32);
+                pair.set_h(h);
+                println!(
+                    "Using first ref of way for hilbert location at index {}. osm_id={}.",
+                    i,
+                    way.osm_id()
+                );
+            } else {
+                println!(
+                    "Unable to find hilbert location for way at index {}. osm_id={}.",
+                    i,
+                    way.osm_id()
+                );
+            }
         }
     });
 
@@ -237,6 +287,8 @@ impl Prog {
 
 #[cfg(test)]
 mod tests {
+    use flatdata::FileResourceStorage;
+
     use super::*;
 
     #[test]
@@ -292,5 +344,14 @@ mod tests {
 
         assert_eq!(m_nodes_idx.len, n_idx_len);
         assert!((first_ref as usize) < n_idx.len());
+    }
+
+    #[test]
+    fn test_find_some_bad_ones() {
+        let dir = PathBuf::from("/Users/n/geodata/flatdata/planet");
+        let archive = Osm::open(FileResourceStorage::new(&dir)).unwrap();
+        let way_pairs = Mutant::<HilbertWayPair>::open(&dir, "hilbert_way_pairs", false).unwrap();
+        
+        build_hilbert_way_pairs(way_pairs, &archive);
     }
 }
