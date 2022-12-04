@@ -347,11 +347,11 @@ mod tests {
     }
 
     #[test]
-    fn test_find_some_bad_ones() {
+    fn test_build_hilbert_way_pairs_planet() {
         let dir = PathBuf::from("/Users/n/geodata/flatdata/planet");
         let archive = Osm::open(FileResourceStorage::new(&dir)).unwrap();
-        let way_pairs = Mutant::<HilbertWayPair>::open(&dir, "hilbert_way_pairs", false).unwrap();
-        
-        build_hilbert_way_pairs(way_pairs, &archive);
+        let m_way_pairs = Mutant::<HilbertWayPair>::open(&dir, "hilbert_way_pairs", true).unwrap();
+        let way_pairs = m_way_pairs.mutable_slice();
+        let _ = build_hilbert_way_pairs(way_pairs, &archive);
     }
 }
