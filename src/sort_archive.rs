@@ -14,7 +14,7 @@ use rayon::prelude::*;
 use std::{
     io::{Error, ErrorKind, Stdout},
     path::PathBuf,
-    time::Instant,
+    time::Instant, panic,
 };
 
 pub fn sort(archive: Osm, dir: &PathBuf) -> Result<(), Box<dyn std::error::Error>> {
@@ -167,11 +167,12 @@ fn build_hilbert_way_pairs(
         let way = &ways[i];
         let refs = way.refs();
         let len = refs.end - refs.start;
+        let refs_start = refs.clone().start as usize;
 
         // invalid ring
         // https://github.com/georust/geo/blob/3b0d5738f54bd8964f7d1f573bd63dc114587dc4/geo/src/algorithm/relate/geomgraph/geometry_graph.rs#L182
         if len < 4 {
-            if let Some(idx) = nodes_index[refs.start as usize].value() {
+            if let Some(idx) = nodes_index[refs_start].value() {
                 let h = node_pairs[idx as usize].h();
                 pair.set_i(i as u32);
                 pair.set_h(h);
@@ -196,6 +197,22 @@ fn build_hilbert_way_pairs(
             };
         }
 
+        if coords.len() < 4 {
+            if let Some(idx) = nodes_index[refs_start].value() {
+                let h = node_pairs[idx as usize].h();
+                pair.set_i(i as u32);
+                pair.set_h(h);
+            } else {
+                println!(
+                    "way refs >= 4 but coords.len() < 4 for way with {} refs. i={} osm_id={}",
+                    len,
+                    i,
+                    way.osm_id()
+                );
+            }
+            return;
+        }
+
         // Calculate point on surface.
         // http://libgeos.org/doxygen/classgeos_1_1algorithm_1_1InteriorPointArea.html
         // https://docs.rs/geo/latest/geo/algorithm/interior_point/trait.InteriorPoint.html
@@ -203,10 +220,27 @@ fn build_hilbert_way_pairs(
 
         // NHTODO https://crates.io/crates/polylabel
 
-        let point_on_surface = if coords.first() == coords.last() {
-            Polygon::new(LineString::new(coords), vec![]).interior_point()
-        } else {
-            LineString::new(coords).interior_point()
+        let point_on_surface_res = panic::catch_unwind(|| {
+            let point_on_surface = if coords.first() == coords.last() {
+                Polygon::new(LineString::new(coords), vec![]).interior_point()
+            } else {
+                LineString::new(coords).interior_point()
+            };
+            point_on_surface
+        });
+
+        let point_on_surface = match point_on_surface_res {
+            Ok(point_on_surface) => point_on_surface,
+            Err(e) => {
+                eprintln!(
+                    "interior_point panic for way with {} refs. i={} osm_id={} Error: {:?}",
+                    len,
+                    i,
+                    way.osm_id(),
+                    e
+                );
+                None
+            }
         };
 
         if let Some(pos) = point_on_surface {
@@ -347,6 +381,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn test_build_hilbert_way_pairs_planet() {
         let dir = PathBuf::from("/Users/n/geodata/flatdata/planet");
         let archive = Osm::open(FileResourceStorage::new(&dir)).unwrap();

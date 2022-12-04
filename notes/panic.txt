@@ -1,0 +1,96 @@
+https://overpass-turbo.eu/s/1oDY
+
+[2022-12-04T19:37:55.219766000Z pvt::sort_archive] Finished in 5071 secs.
+
+Log...
+
+[2022-12-04T19:13:41.131747000Z geo::algorithm::relate::geomgraph::geometry_graph] polygon had no winding order. Results are undefined.
+[2022-12-04T19:13:51.449164000Z geo::algorithm::sweep::active] could not compare segments:
+        Active(Segment{ LPt((443086818.2845118, 333325475.5), (443086891.0, 333325475.5))
+        of Line { start: Coordinate { x: 443084262.0, y: 333325475.5 }, end: Coordinate { x: 443086891.0, y: 333325475.5 } }
+         [NON/NON] })
+        Active(Segment{ LPt((443086703.0, 333326204.0), (443086818.2845118, 333325475.5))
+        of Line { start: Coordinate { x: 443086891.0, y: 333325016.0 }, end: Coordinate { x: 443086703.0, y: 333326204.0 } }
+        [1st] [NON/NON] })
+thread '<unnamed>' panicked at 'unable to compare active segments!', /Users/n/.cargo/registry/src/github.com-1ecc6299db9ec823/geo-0.23.0/src/algorithm/sweep/active.rs:54:13
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+interior_point panic for way with 9 refs. i=793560564 osm_id=983463092 Error: Any { .. }
+Unable to find point on surface for way at index 793560564. osm_id=983463092.
+Using median ref of way for hilbert location at index 793560564. osm_id=983463092.
+[2022-12-04T19:13:51.451293000Z geo::algorithm::sweep::active] could not compare segments:
+        Active(Segment{ LPt((443069142.2845118, 333335716.5), (443069215.0, 333335716.5))
+        of Line { start: Coordinate { x: 443066586.0, y: 333335716.5 }, end: Coordinate { x: 443069215.0, y: 333335716.5 } }
+         [NON/NON] })
+        Active(Segment{ LPt((443069027.0, 333336445.0), (443069142.2845118, 333335716.5))
+        of Line { start: Coordinate { x: 443069215.0, y: 333335257.0 }, end: Coordinate { x: 443069027.0, y: 333336445.0 } }
+        [1st] [NON/NON] })
+thread '<unnamed>' panicked at 'unable to compare active segments!', /Users/n/.cargo/registry/src/github.com-1ecc6299db9ec823/geo-0.23.0/src/algorithm/sweep/active.rs:54:13
+interior_point panic for way with 9 refs. i=793560586 osm_id=983463191 Error: Any { .. }
+Unable to find point on surface for way at index 793560586. osm_id=983463191.
+Using median ref of way for hilbert location at index 793560586. osm_id=983463191.
+[2022-12-04T19:13:51.451556000Z geo::algorithm::sweep::active] could not compare segments:
+        Active(Segment{ LPt((443071341.6891323, 333313688.0), (443071414.0, 333313688.0))
+        of Line { start: Coordinate { x: 443068786.0, y: 333313688.0 }, end: Coordinate { x: 443071414.0, y: 333313688.0 } }
+         [NON/NON] })
+        Active(Segment{ LPt((443071227.0, 333314416.0), (443071341.6891323, 333313688.0))
+        of Line { start: Coordinate { x: 443071414.0, y: 333313229.0 }, end: Coordinate { x: 443071227.0, y: 333314416.0 } }
+        [1st] [NON/NON] })
+thread '<unnamed>' panicked at 'unable to compare active segments!', /Users/n/.cargo/registry/src/github.com-1ecc6299db9ec823/geo-0.23.0/src/algorithm/sweep/active.rs:54:13
+interior_point panic for way with 9 refs. i=793560602 osm_id=983463324 Error: Any { .. }
+Unable to find point on surface for way at index 793560602. osm_id=983463324.
+Using median ref of way for hilbert location at index 793560602. osm_id=983463324.
+[2022-12-04T19:13:51.452033000Z geo::algorithm::sweep::active] could not compare segments:
+        Active(Segment{ LPt((443055999.2845118, 333308623.5), (443056072.0, 333308623.5))
+        of Line { start: Coordinate { x: 443053417.0, y: 333308623.5 }, end: Coordinate { x: 443056072.0, y: 333308623.5 } }
+         [NON/NON] })
+        Active(Segment{ LPt((443055884.0, 333309352.0), (443055999.2845118, 333308623.5))
+        of Line { start: Coordinate { x: 443056072.0, y: 333308164.0 }, end: Coordinate { x: 443055884.0, y: 333309352.0 } }
+        [1st] [NON/NON] })
+thread '<unnamed>' panicked at 'unable to compare active segments!', /Users/n/.cargo/registry/src/github.com-1ecc6299db9ec823/geo-0.23.0/src/algorithm/sweep/active.rs:54:13
+interior_point panic for way with 9 refs. i=793560610 osm_id=983463366 Error: Any { .. }
+Unable to find point on surface for way at index 793560610. osm_id=983463366.
+Using median ref of way for hilbert location at index 793560610. osm_id=983463366.
+[2022-12-04T19:13:51.452254000Z geo::algorithm::sweep::active] could not compare segments:
+        Active(Segment{ LPt((443046102.2845118, 333326797.5), (443046175.0, 333326797.5))
+        of Line { start: Coordinate { x: 443043546.0, y: 333326797.5 }, end: Coordinate { x: 443046175.0, y: 333326797.5 } }
+         [NON/NON] })
+        Active(Segment{ LPt((443045987.0, 333327526.0), (443046102.2845118, 333326797.5))
+        of Line { start: Coordinate { x: 443046175.0, y: 333326338.0 }, end: Coordinate { x: 443045987.0, y: 333327526.0 } }
+        [1st] [NON/NON] })
+thread '<unnamed>' panicked at 'unable to compare active segments!', /Users/n/.cargo/registry/src/github.com-1ecc6299db9ec823/geo-0.23.0/src/algorithm/sweep/active.rs:54:13
+interior_point panic for way with 9 refs. i=793560614 osm_id=983463378 Error: Any { .. }
+Unable to find point on surface for way at index 793560614. osm_id=983463378.
+Using median ref of way for hilbert location at index 793560614. osm_id=983463378.
+[2022-12-04T19:13:51.452907000Z geo::algorithm::sweep::active] could not compare segments:
+        Active(Segment{ LPt((443056562.6891323, 333304948.0), (443056635.0, 333304948.0))
+        of Line { start: Coordinate { x: 443053980.0, y: 333304948.0 }, end: Coordinate { x: 443056635.0, y: 333304948.0 } }
+         [NON/NON] })
+        Active(Segment{ LPt((443056448.0, 333305676.0), (443056562.6891323, 333304948.0))
+        of Line { start: Coordinate { x: 443056635.0, y: 333304489.0 }, end: Coordinate { x: 443056448.0, y: 333305676.0 } }
+        [1st] [NON/NON] })
+thread '<unnamed>' panicked at 'unable to compare active segments!', /Users/n/.cargo/registry/src/github.com-1ecc6299db9ec823/geo-0.23.0/src/algorithm/sweep/active.rs:54:13
+interior_point panic for way with 9 refs. i=793560648 osm_id=983463560 Error: Any { .. }
+Unable to find point on surface for way at index 793560648. osm_id=983463560.
+Using median ref of way for hilbert location at index 793560648. osm_id=983463560.
+[2022-12-04T19:13:51.453111000Z geo::algorithm::sweep::active] could not compare segments:
+        Active(Segment{ LPt((443056750.2845118, 333303715.5), (443056823.0, 333303715.5))
+        of Line { start: Coordinate { x: 443054195.0, y: 333303715.5 }, end: Coordinate { x: 443056823.0, y: 333303715.5 } }
+         [NON/NON] })
+        Active(Segment{ LPt((443056635.0, 333304444.0), (443056750.2845118, 333303715.5))
+        of Line { start: Coordinate { x: 443056823.0, y: 333303256.0 }, end: Coordinate { x: 443056635.0, y: 333304444.0 } }
+        [1st] [NON/NON] })
+thread '<unnamed>' panicked at 'unable to compare active segments!', /Users/n/.cargo/registry/src/github.com-1ecc6299db9ec823/geo-0.23.0/src/algorithm/sweep/active.rs:54:13
+interior_point panic for way with 9 refs. i=793560650 osm_id=983463562 Error: Any { .. }
+Unable to find point on surface for way at index 793560650. osm_id=983463562.
+Using median ref of way for hilbert location at index 793560650. osm_id=983463562.
+[2022-12-04T19:13:51.660917000Z geo::algorithm::sweep::active] could not compare segments:
+        Active(Segment{ LPt((444305206.60385334, 332680899.02542853), (444305341.8709199, 332680744.5))
+        of Line { start: Coordinate { x: 444305204.0, y: 332680902.0 }, end: Coordinate { x: 444305499.0, y: 332680565.0 } }
+         [NON/NON] })
+        Active(Segment{ LPt((444305204.0, 332680902.0), (444305206.6038532, 332680899.02542865))
+        of Line { start: Coordinate { x: 444305204.0, y: 332680902.0 }, end: Coordinate { x: 444305499.0, y: 332680565.0 } }
+        [1st] [NON/NON] })
+thread '<unnamed>' panicked at 'unable to compare active segments!', /Users/n/.cargo/registry/src/github.com-1ecc6299db9ec823/geo-0.23.0/src/algorithm/sweep/active.rs:54:13
+interior_point panic for way with 9 refs. i=793566650 osm_id=983492305 Error: Any { .. }
+Unable to find point on surface for way at index 793566650. osm_id=983492305.
+Using median ref of way for hilbert location at index 793566650. osm_id=983492305.
