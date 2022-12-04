@@ -15,7 +15,7 @@ body,
 
 #sat-slider {
     position: absolute;
-    top: 4px;
+    top: 28px;
     left: 4px;
     width: 20px;
     appearance: slider-vertical;
@@ -73,4 +73,13 @@ body,
 
 #features summary > button {
     float: right;
+}
+
+.app-drag {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 40px;
+    height: 28px;
+    -webkit-app-region: drag;
 }

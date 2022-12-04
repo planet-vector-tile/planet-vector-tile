@@ -1,0 +1,2 @@
+https://ftp.osuosl.org/pub/openstreetmap/pbf/
+https://daylightmap.org/

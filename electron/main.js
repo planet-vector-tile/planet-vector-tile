@@ -18,6 +18,7 @@ function createWindow() {
             nodeIntegration: true,
             contextIsolation: false,
         },
+        titleBarStyle: 'hidden',
     });
 
     if (app.commandLine.hasSwitch('bench')) {

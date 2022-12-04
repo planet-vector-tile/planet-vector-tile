@@ -29,6 +29,7 @@ or
 
 ```
 cargo run -r -- --overwrite ~/geodata/extracts/california.osm.pbf ~/geodata/flatdata/california
+cargo run -r -- --overwrite ~/geodata/source/planet-220808.osm.pbf ~/geodata/flatdata/planet
 cargo run -r -- --overwrite ~/geodata/extracts/santacruz.osm.pbf ~/geodata/flatdata/santacruz
 ```
 
