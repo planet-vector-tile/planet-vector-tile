@@ -1,4 +1,3 @@
-mod args;
 mod filter;
 mod hilbert;
 mod location;
@@ -13,7 +12,6 @@ mod source;
 mod tile;
 mod tile_attributes;
 
-use args::*;
 use fs_extra::dir::{copy, CopyOptions};
 use hilbert::tree::HilbertTree;
 use humantime::format_duration;
@@ -31,42 +29,35 @@ fn main() {
     let _ = fs::remove_dir_all("tests/fixtures/nodes4");
     let _ = fs::remove_dir_all("tests/fixtures/santacruz");
 
-    let args1 = Args {
-        input: "tests/fixtures/nodes4.osm.pbf".into(),
-        output: "tests/fixtures/nodes4/convert".into(),
-        manifest: None,
-        overwrite: true,
-        ids: false,
-    };
-    let args2 = Args {
-        input: "tests/fixtures/santacruz.osm.pbf".into(),
-        output: "tests/fixtures/santacruz/convert".into(),
-        manifest: None,
-        overwrite: true,
-        ids: false,
-    };
-
-    let manifest1 = manifest::parse(Some("./fixtures/nodes4_manifest.toml".into()));
-    let manifest2 = manifest::parse(Some("./fixtures/santacruz_manifest.toml".into()));
+    let manifest1 = manifest::parse(Some("./tests/fixtures/nodes4.toml".into()));
+    let manifest2 = manifest::parse(Some("./tests/fixtures/santacruz.toml".into()));
+    let convert_dir1 = manifest1.data.dir.clone();
+    let convert_dir2 = manifest2.data.dir.clone();
 
     let a1 = osmflat::convert(&manifest1).unwrap_or_else(quit);
     let a2 = osmflat::convert(&manifest2).unwrap_or_else(quit);
 
-    let dir1 = PathBuf::from("tests/fixtures/nodes4/sort");
-    let dir2 = PathBuf::from("tests/fixtures/santacruz/sort");
-    fs::create_dir_all(&dir1).unwrap();
-    fs::create_dir_all(&dir2).unwrap();
+    let sort_dir1 = PathBuf::from("tests/fixtures/nodes4/sort");
+    let sort_dir2 = PathBuf::from("tests/fixtures/santacruz/sort");
+
+    fs::create_dir_all(&sort_dir1).unwrap();
+    fs::create_dir_all(&sort_dir2).unwrap();
 
     let mut opts = CopyOptions::default();
     opts.content_only = true;
-    copy("./tests/fixtures/nodes4/convert", &dir1, &opts).unwrap();
-    copy("./tests/fixtures/santacruz/convert", &dir2, &opts).unwrap();
+    copy(convert_dir1, &sort_dir1, &opts).unwrap();
+    copy(convert_dir2, &sort_dir2, &opts).unwrap();
 
-    sort_archive::sort(a1, &dir1).unwrap_or_else(quit);
-    HilbertTree::build(&dir1, manifest1.clone()).unwrap_or_else(quit);
+    let mut sort_manifest1 = manifest1.clone();
+    sort_manifest1.data.dir = sort_dir1.clone();
+    let mut sort_manifest2 = manifest2.clone();
+    sort_manifest2.data.dir = sort_dir2.clone();
 
-    sort_archive::sort(a2, &dir2).unwrap_or_else(quit);
-    HilbertTree::build(&dir2, manifest2).unwrap_or_else(quit);
+    sort_archive::sort(a1, &sort_dir1).unwrap_or_else(quit);
+    HilbertTree::build(sort_manifest1).unwrap_or_else(quit);
+
+    sort_archive::sort(a2, &sort_dir2).unwrap_or_else(quit);
+    HilbertTree::build(sort_manifest2).unwrap_or_else(quit);
 
     println!("Total Time: {}", format_duration(time.elapsed()));
 }

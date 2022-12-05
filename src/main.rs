@@ -13,7 +13,7 @@ mod source;
 mod tile;
 mod tile_attributes;
 
-use clap::{ArgMatches, Parser};
+use clap::ArgMatches;
 use hilbert::tree::HilbertTree;
 use humantime::format_duration;
 use manifest::Manifest;
@@ -62,18 +62,6 @@ fn main() {
         }
         _ => unreachable!(),
     }
-
-    // let manifest = manifest::parse(args.manifest.clone());
-
-    // if args.overwrite {
-    //     if let Err(e) = fs::remove_dir_all(args.output.clone()) {
-    //         eprintln!("Unable to remove output dir: {}", e);
-    //     }
-    // }
-
-    // let archive = osmflat::convert(&args).unwrap_or_else(quit);
-    // sort_archive::sort(archive, &args.output).unwrap_or_else(quit);
-    // HilbertTree::build(&args.output, manifest).unwrap_or_else(quit);
 
     println!("Total Time: {}", format_duration(time.elapsed()));
 }
