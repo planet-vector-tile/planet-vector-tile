@@ -1,4 +1,4 @@
-mod args;
+mod commands;
 mod filter;
 mod hilbert;
 mod location;
@@ -13,16 +13,14 @@ mod source;
 mod tile;
 mod tile_attributes;
 
-use args::*;
-use clap::Parser;
+use clap::{ArgMatches, Parser};
 use hilbert::tree::HilbertTree;
 use humantime::format_duration;
+use manifest::Manifest;
 use std::{error::Error, fs, time::Instant};
 
 fn main() {
     let time = Instant::now();
-
-    let args = Args::parse();
 
     env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info"))
         .format_level(false)
@@ -30,17 +28,52 @@ fn main() {
         .format_timestamp_nanos()
         .init();
 
-    let manifest = manifest::parse(args.manifest.clone());
+    let matches = commands::cli().get_matches();
 
-    if args.overwrite {
-        if let Err(e) = fs::remove_dir_all(args.output.clone()) {
-            eprintln!("Unable to remove output dir: {}", e);
+    let sub = match matches.subcommand() {
+        Some(sub) => sub,
+        None => {
+            eprintln!(
+                "pvt requires one of the following subcommands: convert, render, archive, build"
+            );
+            std::process::exit(1);
         }
+    };
+
+    match sub {
+        ("convert", matches) => {
+            let manifest = handle_args(matches);
+            let archive = osmflat::convert(&manifest).unwrap_or_else(quit);
+            sort_archive::sort(archive, &manifest.data.dir).unwrap_or_else(quit);
+        }
+        ("render", matches) => {
+            let manifest = handle_args(matches);
+            HilbertTree::build(manifest).unwrap_or_else(quit);
+
+        }
+        ("archive", _) => {
+            println!("Make a .pvt archive.")
+        }
+        ("build", matches) => {
+            let manifest = handle_args(matches);
+            let archive = osmflat::convert(&manifest).unwrap_or_else(quit);
+            sort_archive::sort(archive, &manifest.data.dir).unwrap_or_else(quit);
+            HilbertTree::build(manifest).unwrap_or_else(quit);
+        }
+        _ => unreachable!(),
     }
 
-    let archive = osmflat::convert(&args).unwrap_or_else(quit);
-    sort_archive::sort(archive, &args.output).unwrap_or_else(quit);
-    HilbertTree::build(&args.output, manifest).unwrap_or_else(quit);
+    // let manifest = manifest::parse(args.manifest.clone());
+
+    // if args.overwrite {
+    //     if let Err(e) = fs::remove_dir_all(args.output.clone()) {
+    //         eprintln!("Unable to remove output dir: {}", e);
+    //     }
+    // }
+
+    // let archive = osmflat::convert(&args).unwrap_or_else(quit);
+    // sort_archive::sort(archive, &args.output).unwrap_or_else(quit);
+    // HilbertTree::build(&args.output, manifest).unwrap_or_else(quit);
 
     println!("Total Time: {}", format_duration(time.elapsed()));
 }
@@ -49,4 +82,19 @@ fn quit<T>(e: Box<dyn Error>) -> T {
     eprintln!("Planet generation FAILED!");
     eprintln!("Error: {}", e);
     std::process::exit(1);
+}
+
+fn handle_args(matches: &ArgMatches) -> Manifest {
+    let manifest_str = matches.get_one::<String>("manifest").unwrap();
+    let manifest = manifest::parse(Some(manifest_str.into()));
+
+    let overwrite = matches.get_one::<bool>("overwrite").unwrap();
+
+    if *overwrite {
+        if let Err(e) = fs::remove_dir_all(&manifest.data.dir) {
+            eprintln!("Unable to remove output dir: {}", e);
+        }
+    }
+
+    manifest
 }

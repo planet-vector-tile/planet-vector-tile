@@ -7,9 +7,17 @@ type Rules = BTreeMap<String, Rule>;
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 pub struct Manifest {
+    pub data: Data,
     pub render: Render,
     pub layers: Layers,
     pub rules: Rules,
+}
+
+#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
+pub struct Data {
+    pub pbf: PathBuf,
+    pub dir: PathBuf,
+    pub pvt: PathBuf,
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
@@ -107,6 +115,11 @@ mod tests {
         );
 
         let m = Manifest {
+            data: Data {
+                pbf: PathBuf::from("pbf"),
+                dir: PathBuf::from("dir"),
+                pvt: PathBuf::from("pvt"),
+            },
             render: Render {
                 leaf_zoom: 12,
                 layer_order: vec!["layer0".to_string()],

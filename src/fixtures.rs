@@ -46,8 +46,11 @@ fn main() {
         ids: false,
     };
 
-    let a1 = osmflat::convert(&args1).unwrap_or_else(quit);
-    let a2 = osmflat::convert(&args2).unwrap_or_else(quit);
+    let manifest1 = manifest::parse(Some("./fixtures/nodes4_manifest.toml".into()));
+    let manifest2 = manifest::parse(Some("./fixtures/santacruz_manifest.toml".into()));
+
+    let a1 = osmflat::convert(&manifest1).unwrap_or_else(quit);
+    let a2 = osmflat::convert(&manifest2).unwrap_or_else(quit);
 
     let dir1 = PathBuf::from("tests/fixtures/nodes4/sort");
     let dir2 = PathBuf::from("tests/fixtures/santacruz/sort");
@@ -59,13 +62,11 @@ fn main() {
     copy("./tests/fixtures/nodes4/convert", &dir1, &opts).unwrap();
     copy("./tests/fixtures/santacruz/convert", &dir2, &opts).unwrap();
 
-    let manifest = manifest::parse(None);
-
     sort_archive::sort(a1, &dir1).unwrap_or_else(quit);
-    HilbertTree::build(&dir1, manifest.clone()).unwrap_or_else(quit);
+    HilbertTree::build(&dir1, manifest1.clone()).unwrap_or_else(quit);
 
     sort_archive::sort(a2, &dir2).unwrap_or_else(quit);
-    HilbertTree::build(&dir2, manifest).unwrap_or_else(quit);
+    HilbertTree::build(&dir2, manifest2).unwrap_or_else(quit);
 
     println!("Total Time: {}", format_duration(time.elapsed()));
 }

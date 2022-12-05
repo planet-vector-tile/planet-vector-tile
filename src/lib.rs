@@ -124,10 +124,10 @@ pub async fn pvt() -> Result<()> {
         ids: false,
         overwrite: false,
     };
-    let dir = args.output.clone();
-    let archive = osmflat::convert(&args).unwrap_or_else(quit);
-    sort_archive::sort(archive, &dir).unwrap_or_else(quit);
-    hilbert::tree::HilbertTree::build(&dir, manifest::parse(None)).unwrap_or_else(quit);
+    let manifest = manifest::parse(None);
+    let archive = osmflat::convert(&manifest).unwrap_or_else(quit);
+    sort_archive::sort(archive, &manifest.data.dir).unwrap_or_else(quit);
+    hilbert::tree::HilbertTree::build(&manifest.data.dir, manifest::parse(None)).unwrap_or_else(quit);
     Ok(())
 }
 

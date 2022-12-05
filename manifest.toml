@@ -1,3 +1,15 @@
+[data]
+# Source OSM PBF that can be converted
+pbf = "./tests/fixtures/santacruz.osm.pbf"
+# Working directory where planet data is stored
+dir = "./tests/fixtures/santacruz/sort"
+# Compressed PVT archive output
+pvt = "./tests/fixtures/santacruz.pvt"
+
+# pbf = "/mnt/disks/geodata/osm/planet-2022-11-26.osm.pbf"
+# dir = "/mnt/disks/localssd/planet"
+# pvt = "/mnt/disks/localssd/planet.pvt"
+
 [render]
 leaf_zoom = 12
 layer_order = ["Administrative", "Water", "Boundaries", "Buildings", "Landuse", "Major Roads", "Minor Roads"]
