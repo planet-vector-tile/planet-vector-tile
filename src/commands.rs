@@ -18,7 +18,7 @@ pub fn cli() -> Command {
 
     let render = Command::new("render")
         .about("Renders a Hilbert tile tree according to the layer rules in the manifest")
-        .args([manifest_path.clone(), overwrite_arg.clone()]);
+        .args([manifest_path.clone()]);
 
     let archive = Command::new("archive")
         .about("Archives a planet data directory into a single PVT file")

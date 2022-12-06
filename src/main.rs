@@ -42,12 +42,19 @@ fn main() {
 
     match sub {
         ("convert", matches) => {
-            let manifest = handle_args(matches);
+            let manifest = get_manifest(matches);
+            let overwrite = matches.get_one::<bool>("overwrite").unwrap();
+            if *overwrite {
+                if let Err(e) = fs::remove_dir_all(&manifest.data.planet) {
+                    eprintln!("Unable to remove planet dir: {}", e);
+                }
+            }
+
             let flatdata = osmflat::convert(&manifest).unwrap_or_else(quit);
             sort::sort_flatdata(flatdata, &manifest.data.planet).unwrap_or_else(quit);
         }
         ("render", matches) => {
-            let manifest = handle_args(matches);
+            let manifest = get_manifest(matches);
             let mut tree = HilbertTree::new(manifest).unwrap_or_else(quit);
             tree.render_tile_content().unwrap_or_else(quit);
         }
@@ -55,7 +62,14 @@ fn main() {
             println!("TODO: Make a .pvt archive.")
         }
         ("build", matches) => {
-            let manifest = handle_args(matches);
+            let manifest = get_manifest(matches);
+            let overwrite = matches.get_one::<bool>("overwrite").unwrap();
+            if *overwrite {
+                if let Err(e) = fs::remove_dir_all(&manifest.data.planet) {
+                    eprintln!("Unable to remove planet dir: {}", e);
+                }
+            }
+
             let flatdata = osmflat::convert(&manifest).unwrap_or_else(quit);
             sort::sort_flatdata(flatdata, &manifest.data.planet).unwrap_or_else(quit);
             let mut tree = HilbertTree::new(manifest).unwrap_or_else(quit);
@@ -72,7 +86,7 @@ fn quit<T>(e: Box<dyn Error>) -> T {
     std::process::exit(1);
 }
 
-fn handle_args(matches: &ArgMatches) -> Manifest {
+fn get_manifest(matches: &ArgMatches) -> Manifest {
     let manifest_path_str = matches.get_one::<String>("MANIFEST_PATH").unwrap();
 
     let manifest = match manifest::parse(manifest_path_str) {
@@ -82,12 +96,5 @@ fn handle_args(matches: &ArgMatches) -> Manifest {
             std::process::exit(1);
         }
     };
-
-    let overwrite = matches.get_one::<bool>("overwrite").unwrap();
-    if *overwrite {
-        if let Err(e) = fs::remove_dir_all(&manifest.data.planet) {
-            eprintln!("Unable to remove planet dir: {}", e);
-        }
-    }
     manifest
 }
