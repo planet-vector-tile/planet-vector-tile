@@ -1,8 +1,10 @@
 [package]
 edition = "2021"
 name = "planet-vector-tile"
-version = "0.0.0"
+version = "0.1.0"
 default-run = "pvt"
+license = "MIT"
+license-file = "LICENSE.md"
 
 [lib]
 crate-type = ["cdylib"]
