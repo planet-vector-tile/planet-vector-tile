@@ -122,7 +122,7 @@ pub async fn pvt() -> Result<()> {
     let manifest = manifest::parse("manifests/basic.toml").unwrap();
     let flatdata = osmflat::convert(&manifest).unwrap_or_else(quit);
     sort::sort_flatdata(flatdata, &manifest.data.planet).unwrap_or_else(quit);
-    hilbert::tree::HilbertTree::new(manifest).unwrap_or_else(quit);
+    hilbert::tree::HilbertTree::new(&manifest).unwrap_or_else(quit);
     Ok(())
 }
 

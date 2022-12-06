@@ -15,7 +15,7 @@ use std::{
 
 pub struct Mutant<T: Sized> {
     file: File,
-    path: PathBuf,
+    pub path: PathBuf,
     mmap: MmapMut,
     pub len: usize,
     pub capacity: usize,

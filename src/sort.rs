@@ -16,7 +16,7 @@ use std::{
     io::{Error, ErrorKind, Stdout},
     panic,
     path::PathBuf,
-    time::Instant,
+    time::Instant, fs,
 };
 
 pub fn sort_flatdata(flatdata: Osm, dir: &PathBuf) -> Result<(), Box<dyn std::error::Error>> {
@@ -99,6 +99,11 @@ pub fn sort_flatdata(flatdata: Osm, dir: &PathBuf) -> Result<(), Box<dyn std::er
         node_index.set_value(Some(new_i as u64));
         pb.tick(i);
     }
+
+    // Remove the old node index, as we don't need it anymore.
+    let old_node_idx_path = m_old_node_idx.path.clone();
+    drop(m_old_node_idx);
+    let _ = fs::remove_file(old_node_idx_path);
 
     // Reorder ways to sorted hilbert way pairs.
     let mut pb = Prog::new("Reordering ways. ", ways_len);
