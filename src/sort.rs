@@ -6,7 +6,8 @@ use crate::{
     },
 };
 use geo::algorithm::interior_point::InteriorPoint;
-use geo::geometry::{Coord, LineString};
+use geo::geometry::LineString;
+use geo::Coord;
 use geo::{coord, Polygon};
 use log::info;
 use pbr::ProgressBar;

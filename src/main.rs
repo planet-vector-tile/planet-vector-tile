@@ -68,7 +68,6 @@ fn main() {
 }
 
 fn quit<T>(e: Box<dyn Error>) -> T {
-    eprintln!("Planet generation FAILED!");
     eprintln!("Error: {}", e);
     std::process::exit(1);
 }
@@ -84,7 +83,7 @@ fn handle_args(matches: &ArgMatches) -> Manifest {
         }
     };
 
-    let overwrite = matches.get_one::<bool>("OVERWRITE").unwrap();
+    let overwrite = matches.get_one::<bool>("overwrite").unwrap();
     if *overwrite {
         if let Err(e) = fs::remove_dir_all(&manifest.data.planet) {
             eprintln!("Unable to remove planet dir: {}", e);

@@ -20,7 +20,7 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug executable 'pvt'",
+            "name": "convert",
             "cargo": {
                 "args": ["build", "--bin=pvt", "--package=planet-vector-tile"],
                 "filter": {
@@ -28,7 +28,7 @@
                     "kind": "bin"
                 }
             },
-            "args": ["--overwrite", "./tests/fixtures/santacruz.osm.pbf", "./tests/fixtures/santacruz/sort"],
+            "args": ["convert", "./manifests/basic.toml", "-o"],
             "cwd": "${workspaceFolder}"
         },
         {
