@@ -44,7 +44,7 @@ fn main() {
         ("convert", matches) => {
             let manifest = handle_args(matches);
             let flatdata = osmflat::convert(&manifest).unwrap_or_else(quit);
-            sort::sort_flatdata(flatdata, &manifest.data.dir).unwrap_or_else(quit);
+            sort::sort_flatdata(flatdata, &manifest.data.planet).unwrap_or_else(quit);
         }
         ("render", matches) => {
             let manifest = handle_args(matches);
@@ -57,7 +57,7 @@ fn main() {
         ("build", matches) => {
             let manifest = handle_args(matches);
             let flatdata = osmflat::convert(&manifest).unwrap_or_else(quit);
-            sort::sort_flatdata(flatdata, &manifest.data.dir).unwrap_or_else(quit);
+            sort::sort_flatdata(flatdata, &manifest.data.planet).unwrap_or_else(quit);
             HilbertTree::build(manifest).unwrap_or_else(quit);
         }
         _ => unreachable!(),
@@ -73,14 +73,15 @@ fn quit<T>(e: Box<dyn Error>) -> T {
 }
 
 fn handle_args(matches: &ArgMatches) -> Manifest {
-    let manifest_str = matches.get_one::<String>("manifest").unwrap();
-    let manifest = manifest::parse(Some(manifest_str.into()));
+    let manifest_path_str = matches.get_one::<String>("MANIFEST_PATH").unwrap();
 
-    let overwrite = matches.get_one::<bool>("overwrite").unwrap();
+    let manifest = manifest::parse(manifest_path_str);
+
+    let overwrite = matches.get_one::<bool>("OVERWRITE").unwrap();
 
     if *overwrite {
-        if let Err(e) = fs::remove_dir_all(&manifest.data.dir) {
-            eprintln!("Unable to remove output dir: {}", e);
+        if let Err(e) = fs::remove_dir_all(&manifest.data.planet) {
+            eprintln!("Unable to remove planet dir: {}", e);
         }
     }
 

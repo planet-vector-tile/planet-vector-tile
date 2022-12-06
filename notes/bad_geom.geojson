@@ -1,56 +1,29 @@
 {
-  "type": "FeatureCollection",
-  "generator": "overpass-ide",
-  "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL.",
-  "timestamp": "2022-12-04T19:43:53Z",
-  "features": [
-    {
-      "type": "Feature",
-      "properties": {
-        "@id": "way/983492305"
-      },
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [
-          [
-            44.4305686,
-            33.2680386
-          ],
-          [
-            44.4305016,
-            33.2681103
-          ],
-          [
-            44.4305204,
-            33.2680902
-          ],
-          [
-            44.4305499,
-            33.2680565
-          ],
-          [
-            44.4305606,
-            33.2680632
-          ],
-          [
-            44.4305284,
-            33.2680969
-          ],
-          [
-            44.4305204,
-            33.2680902
-          ],
-          [
-            44.4305499,
-            33.2680565
-          ],
-          [
-            44.4305686,
-            33.2680386
-          ]
-        ]
-      },
-      "id": "way/983492305"
-    }
-  ]
+    "type": "FeatureCollection",
+    "generator": "overpass-ide",
+    "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL.",
+    "timestamp": "2022-12-04T19:43:53Z",
+    "features": [
+        {
+            "type": "Feature",
+            "properties": {
+                "@id": "way/983492305"
+            },
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [
+                    [44.4305686, 33.2680386],
+                    [44.4305016, 33.2681103],
+                    [44.4305204, 33.2680902],
+                    [44.4305499, 33.2680565],
+                    [44.4305606, 33.2680632],
+                    [44.4305284, 33.2680969],
+                    [44.4305204, 33.2680902],
+                    [44.4305499, 33.2680565],
+                    [44.4305686, 33.2680386]
+                ]
+            },
+            "id": "way/983492305"
+        }
+    ]
 }

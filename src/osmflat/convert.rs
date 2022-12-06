@@ -27,10 +27,10 @@ pub fn convert(manifest: &Manifest) -> Result<osmflat::Osm, Error> {
     let time = Instant::now();
     println!("Converting osm.pbf to osm.flatdata...");
 
-    let input_file = File::open(&manifest.data.pbf)?;
+    let input_file = File::open(&manifest.data.source)?;
     let input_data = unsafe { Mmap::map(&input_file)? };
 
-    let storage = FileResourceStorage::new(&manifest.data.dir);
+    let storage = FileResourceStorage::new(&manifest.data.planet);
     let builder = osmflat::OsmBuilder::new(storage.clone())?;
 
     // TODO: Would be nice not store all these strings in memory, but to flush them
@@ -40,7 +40,7 @@ pub fn convert(manifest: &Manifest) -> Result<osmflat::Osm, Error> {
 
     info!(
         "Initialized new osmflat archive at: {}",
-        &manifest.data.dir.display()
+        &manifest.data.planet.display()
     );
 
     info!("Building index of PBF blocks...");

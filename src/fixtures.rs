@@ -29,10 +29,10 @@ fn main() {
     let _ = fs::remove_dir_all("tests/fixtures/nodes4");
     let _ = fs::remove_dir_all("tests/fixtures/santacruz");
 
-    let manifest1 = manifest::parse(Some("./tests/fixtures/nodes4.toml".into()));
-    let manifest2 = manifest::parse(Some("./tests/fixtures/santacruz.toml".into()));
-    let convert_dir1 = manifest1.data.dir.clone();
-    let convert_dir2 = manifest2.data.dir.clone();
+    let manifest1 = manifest::parse("./tests/fixtures/nodes4.toml");
+    let manifest2 = manifest::parse("./tests/fixtures/santacruz.toml");
+    let convert_dir1 = manifest1.data.planet.clone();
+    let convert_dir2 = manifest2.data.planet.clone();
 
     let a1 = osmflat::convert(&manifest1).unwrap_or_else(quit);
     let a2 = osmflat::convert(&manifest2).unwrap_or_else(quit);
@@ -49,9 +49,9 @@ fn main() {
     copy(convert_dir2, &sort_dir2, &opts).unwrap();
 
     let mut sort_manifest1 = manifest1.clone();
-    sort_manifest1.data.dir = sort_dir1.clone();
+    sort_manifest1.data.planet = sort_dir1.clone();
     let mut sort_manifest2 = manifest2.clone();
-    sort_manifest2.data.dir = sort_dir2.clone();
+    sort_manifest2.data.planet = sort_dir2.clone();
 
     sort::sort_flatdata(a1, &sort_dir1).unwrap_or_else(quit);
     HilbertTree::build(sort_manifest1).unwrap_or_else(quit);

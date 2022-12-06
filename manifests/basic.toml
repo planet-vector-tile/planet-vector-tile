@@ -1,11 +1,12 @@
 [data]
-pbf = "./tests/fixtures/santacruz.osm.pbf"
-dir = "./tests/fixtures/santacruz/sort"
-pvt = "./tests/fixtures/santacruz.pvt"
+source = "/opt/pvt/sources/santacruz.osm.pbf"
+planet = "/opt/pvt/planets/santacruz"
+archive = "/opt/pvt/archives/santacruz.pvt"
 
 [render]
 leaf_zoom = 12
 layer_order = ["Administrative", "Water", "Boundaries", "Buildings", "Landuse", "Major Roads", "Minor Roads"]
+style = "/opt/pvt/styles/basic.json"
 
 [layers]
 Administrative = ["admin"]

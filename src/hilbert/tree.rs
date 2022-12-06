@@ -26,7 +26,7 @@ pub struct HilbertTree {
 
 impl HilbertTree {
     pub fn build(manifest: Manifest) -> Result<Self, Box<dyn std::error::Error>> {
-        let dir = &manifest.data.dir;
+        let dir = &manifest.data.planet;
 
         // Copy the manifest to the build directory so we know exactly what it was at the time of build.
         let manifest_str = toml::to_string(&manifest)?;
@@ -72,8 +72,8 @@ impl HilbertTree {
         })
     }
 
-    pub fn open(dir: &Path) -> Result<Self, Box<dyn std::error::Error>> {
-        let manifest = manifest::parse(Some(dir.join("manifest.toml")));
+    pub fn open(manifest: &Manifest) -> Result<Self, Box<dyn std::error::Error>> {
+        let dir = &manifest.data.planet;
         let flatdata = Osm::open(FileResourceStorage::new(dir))?;
 
         let m_way_pairs = Mutant::<HilbertWayPair>::open(dir, "hilbert_way_pairs", true)?;
@@ -85,7 +85,7 @@ impl HilbertTree {
         let m_r = Mutant::<u32>::open(dir, "r", false)?;
 
         Ok(Self {
-            manifest,
+            manifest: manifest.clone(),
             tiles: m_tiles,
             leaves: m_leaves,
             leaves_external: m_leaves_external,

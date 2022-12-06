@@ -15,9 +15,9 @@ pub struct Manifest {
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 pub struct Data {
-    pub pbf: PathBuf,
-    pub dir: PathBuf,
-    pub pvt: PathBuf,
+    pub source: PathBuf,
+    pub planet: PathBuf,
+    pub archive: PathBuf,
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
@@ -38,19 +38,13 @@ pub struct Rule {
     pub tags: Vec<(String, String)>,
 }
 
-// NHTODO It would be cleaner to return a result when we have an error rather than exiting the process.
-pub fn parse(path: Option<PathBuf>) -> Manifest {
-    let default = PathBuf::from("manifest.toml");
+pub fn parse(path_str: &str) -> Manifest {
+    let path = PathBuf::from(path_str);
 
-    let manifest_path = match path {
-        Some(manifest) => manifest,
-        None => default,
-    };
-
-    let manifest_str = match std::fs::read_to_string(&manifest_path) {
+    let manifest_str = match std::fs::read_to_string(&path) {
         Ok(manifest) => manifest,
         Err(_) => {
-            eprintln!("No manifest file found at {}", manifest_path.display());
+            eprintln!("No manifest file found at: {}", path.display());
             eprintln!(
                 "Process working directory: {}",
                 std::env::current_dir().unwrap().display()
