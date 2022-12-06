@@ -19,7 +19,7 @@ pub struct Rules {
 
 impl Rules {
     // NOTE: This is expensive to construct due to get_strs. Don't construct in a loop.
-    pub fn new(manifest: &Manifest, archive: &Osm) -> Self {
+    pub fn new(manifest: &Manifest, flatdata: &Osm) -> Self {
         let rule_strs: DashSet<&str> = DashSet::new();
         for (_, rule) in &manifest.rules {
             for (k, v) in &rule.tags {
@@ -35,7 +35,7 @@ impl Rules {
         }
 
         let str_to_idx: DashMap<&str, usize> = DashMap::new();
-        let strings = archive.stringtable();
+        let strings = flatdata.stringtable();
         let t = Instant::now();
 
         // Note: This is expensive.
@@ -207,8 +207,9 @@ mod tests {
 
     #[test]
     fn test_get_strs_santacruz() {
-        let archive = Osm::open(FileResourceStorage::new("tests/fixtures/santacruz/sort")).unwrap();
-        let strings: RawData = archive.stringtable();
+        let flatdata =
+            Osm::open(FileResourceStorage::new("tests/fixtures/santacruz/sort")).unwrap();
+        let strings: RawData = flatdata.stringtable();
         let delimeters = get_str_null_delimeters(strings);
         let d1 = delimeters[0];
         assert_eq!(d1, 8);
@@ -262,9 +263,10 @@ mod tests {
 
     #[test]
     fn test_build_rules_santacruz() {
-        let manifest = manifest::parse(None);
-        let archive = Osm::open(FileResourceStorage::new("tests/fixtures/santacruz/sort")).unwrap();
-        let rules = Rules::new(&manifest, &archive);
+        let manifest = manifest::parse("tests/fixtures/santacruz_sort.toml").unwrap();
+        let flatdata =
+            Osm::open(FileResourceStorage::new("tests/fixtures/santacruz/sort")).unwrap();
+        let rules = Rules::new(&manifest, &flatdata);
 
         // boundary = administrative
         let mut tag = Tag::new();
@@ -288,11 +290,11 @@ mod tests {
     #[test]
     #[ignore]
     fn test_california_time() {
-        let archive = Osm::open(FileResourceStorage::new(
+        let flatdata = Osm::open(FileResourceStorage::new(
             "/Users/n/geodata/flatdata/california",
         ))
         .unwrap();
-        let strings: RawData = archive.stringtable();
+        let strings: RawData = flatdata.stringtable();
 
         let time = Instant::now();
         let strs = get_str_ranges(strings);

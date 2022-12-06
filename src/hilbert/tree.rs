@@ -1,16 +1,18 @@
 use super::{
-    content::populate_tile_content,
+    content::render_tile_content,
     hilbert_tile::{build_tiles, HilbertTile},
     leaf::{build_leaves, populate_hilbert_leaves_external, Leaf},
 };
 use crate::{
-    manifest::{self, Manifest},
+    manifest::Manifest,
     mutant::Mutant,
     osmflat::osmflat_generated::osm::{HilbertNodePair, HilbertWayPair, Osm},
     tile::Tile,
 };
 use flatdata::FileResourceStorage;
-use std::{fs, path::Path};
+use std::fs;
+
+type Err = Box<dyn std::error::Error>;
 
 pub struct HilbertTree {
     pub manifest: Manifest,
@@ -20,20 +22,20 @@ pub struct HilbertTree {
     pub n: Mutant<u64>,
     pub w: Mutant<u32>,
     pub r: Mutant<u32>,
-    pub archive: Osm,
+    pub flatdata: Osm,
     pub way_pairs: Mutant<HilbertWayPair>,
 }
 
 impl HilbertTree {
-    pub fn build(manifest: Manifest) -> Result<Self, Box<dyn std::error::Error>> {
-        let dir = &manifest.data.dir;
+    pub fn new(manifest: Manifest) -> Result<Self, Err> {
+        let dir = &manifest.data.planet.clone();
 
         // Copy the manifest to the build directory so we know exactly what it was at the time of build.
         let manifest_str = toml::to_string(&manifest)?;
         fs::write(dir.join("manifest.toml"), manifest_str)?;
 
         let leaf_zoom = manifest.render.leaf_zoom;
-        let archive = Osm::open(FileResourceStorage::new(dir))?;
+        let flatdata = Osm::open(FileResourceStorage::new(dir))?;
 
         let m_node_pairs = Mutant::<HilbertNodePair>::open(dir, "hilbert_node_pairs", true)?;
         let m_way_pairs = Mutant::<HilbertWayPair>::open(dir, "hilbert_way_pairs", true)?;
@@ -43,20 +45,11 @@ impl HilbertTree {
 
         let m_leaves_external = populate_hilbert_leaves_external(
             dir,
-            &archive,
+            &flatdata,
             &m_node_pairs,
             &m_way_pairs,
             &m_leaves,
             leaf_zoom,
-        )?;
-
-        let (n, w, r) = populate_tile_content(
-            &m_leaves,
-            &m_tiles,
-            &m_leaves_external,
-            &dir,
-            &archive,
-            &manifest,
         )?;
 
         Ok(Self {
@@ -64,17 +57,31 @@ impl HilbertTree {
             tiles: m_tiles,
             leaves: m_leaves,
             leaves_external: m_leaves_external,
-            n,
-            w,
-            r,
-            archive,
+            n: Mutant::<u64>::new(&dir, "n", 0)?,
+            w: Mutant::<u32>::new(&dir, "w", 0)?,
+            r: Mutant::<u32>::new(&dir, "r", 0)?,
+            flatdata,
             way_pairs: m_way_pairs,
         })
     }
 
-    pub fn open(dir: &Path) -> Result<Self, Box<dyn std::error::Error>> {
-        let manifest = manifest::parse(Some(dir.join("manifest.toml")));
-        let archive = Osm::open(FileResourceStorage::new(dir))?;
+    pub fn render_tile_content(&mut self) -> Result<&Self, Err> {
+        let (n, w, r) = render_tile_content(
+            &self.leaves,
+            &self.tiles,
+            &self.leaves_external,
+            &self.flatdata,
+            &self.manifest,
+        )?;
+        self.n = n;
+        self.w = w;
+        self.r = r;
+        Ok(self)
+    }
+
+    pub fn open(manifest: &Manifest) -> Result<Self, Box<dyn std::error::Error>> {
+        let dir = &manifest.data.planet;
+        let flatdata = Osm::open(FileResourceStorage::new(dir))?;
 
         let m_way_pairs = Mutant::<HilbertWayPair>::open(dir, "hilbert_way_pairs", true)?;
         let m_leaves = Mutant::<Leaf>::open(dir, "hilbert_leaves", false)?;
@@ -85,14 +92,14 @@ impl HilbertTree {
         let m_r = Mutant::<u32>::open(dir, "r", false)?;
 
         Ok(Self {
-            manifest,
+            manifest: manifest.clone(),
             tiles: m_tiles,
             leaves: m_leaves,
             leaves_external: m_leaves_external,
             n: m_n,
             w: m_w,
             r: m_r,
-            archive,
+            flatdata,
             way_pairs: m_way_pairs,
         })
     }
@@ -169,9 +176,10 @@ fn child_index(h_tile: &HilbertTile, child_h: u64) -> Option<usize> {
 
 #[cfg(test)]
 mod tests {
+    use crate::manifest;
+
     use super::*;
     use std::mem::size_of;
-    use std::path::PathBuf;
 
     #[test]
     fn test_basic_find() {
@@ -179,8 +187,8 @@ mod tests {
         // z 12 x 659 y 1593
         let t = Tile::from_zh(12, 3329134);
 
-        let dir = PathBuf::from("tests/fixtures/santacruz/sort");
-        let tree = HilbertTree::open(&dir).unwrap();
+        let manifest = manifest::parse("tests/fixtures/santacruz_sort.toml").unwrap();
+        let tree = HilbertTree::open(&manifest).unwrap();
 
         match tree.find(&t) {
             FindResult::HilbertTile(_) => panic!("Should not be a HilbertTile. Should be a leaf"),

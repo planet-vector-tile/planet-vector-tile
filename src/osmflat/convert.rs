@@ -27,10 +27,23 @@ pub fn convert(manifest: &Manifest) -> Result<osmflat::Osm, Error> {
     let time = Instant::now();
     println!("Converting osm.pbf to osm.flatdata...");
 
-    let input_file = File::open(&manifest.data.pbf)?;
+    let input_file = match File::open(&manifest.data.source) {
+        Ok(f) => f,
+        Err(err) => {
+            eprintln!(
+                "Unable to open source file: {}",
+                manifest.data.source.display(),
+            );
+            eprintln!(
+                "Are you pointing to the right source, planet, and archive in your manifest?"
+            );
+            return Err(Box::new(err));
+        }
+    };
+
     let input_data = unsafe { Mmap::map(&input_file)? };
 
-    let storage = FileResourceStorage::new(&manifest.data.dir);
+    let storage = FileResourceStorage::new(&manifest.data.planet);
     let builder = osmflat::OsmBuilder::new(storage.clone())?;
 
     // TODO: Would be nice not store all these strings in memory, but to flush them
@@ -40,7 +53,7 @@ pub fn convert(manifest: &Manifest) -> Result<osmflat::Osm, Error> {
 
     info!(
         "Initialized new osmflat archive at: {}",
-        &manifest.data.dir.display()
+        &manifest.data.planet.display()
     );
 
     info!("Building index of PBF blocks...");
@@ -151,7 +164,7 @@ pub fn convert(manifest: &Manifest) -> Result<osmflat::Osm, Error> {
     builder.set_stringtable(&stringtable.into_bytes())?;
 
     std::mem::drop(builder);
-    let archive = osmflat::Osm::open(storage)?;
+    let flatdata = osmflat::Osm::open(storage)?;
 
     println!(
         "Conversion from osm.pbf to osm.flatdata is complete. {}",
@@ -159,7 +172,7 @@ pub fn convert(manifest: &Manifest) -> Result<osmflat::Osm, Error> {
     );
     println!("{}", stats);
 
-    Ok(archive)
+    Ok(flatdata)
 }
 
 fn serialize_header(

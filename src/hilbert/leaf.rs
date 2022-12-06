@@ -168,7 +168,7 @@ pub fn build_leaves(
 
 pub fn populate_hilbert_leaves_external(
     dir: &Path,
-    archive: &Osm,
+    flatdata: &Osm,
     m_node_pairs: &Mutant<HilbertNodePair>,
     m_way_pairs: &Mutant<HilbertWayPair>,
     m_leaves: &Mutant<Leaf>,
@@ -177,10 +177,10 @@ pub fn populate_hilbert_leaves_external(
     // NHTODO Profile memory usage here.
     let leaf_to_ways: DashMap<u32, BTreeSet<u32>> = DashMap::new();
 
-    let ways = archive.ways();
+    let ways = flatdata.ways();
     let way_pairs = m_way_pairs.slice();
     let node_pairs = m_node_pairs.slice();
-    let nodes_index = archive.nodes_index();
+    let nodes_index = flatdata.nodes_index();
     let nodes_index_len = nodes_index.len();
 
     let t = Instant::now();
@@ -258,7 +258,7 @@ mod tests {
     #[test]
     fn test_populate_hilbert_leaves_external() {
         let dir = PathBuf::from("tests/fixtures/santacruz/sort");
-        let archive = Osm::open(FileResourceStorage::new(&dir)).unwrap();
+        let flatdata = Osm::open(FileResourceStorage::new(&dir)).unwrap();
         let m_node_pairs =
             Mutant::<HilbertNodePair>::open(&dir, "hilbert_node_pairs", true).unwrap();
         let m_way_pairs = Mutant::<HilbertWayPair>::open(&dir, "hilbert_way_pairs", true).unwrap();
@@ -266,7 +266,7 @@ mod tests {
 
         let m_ext = populate_hilbert_leaves_external(
             &dir,
-            &archive,
+            &flatdata,
             &m_node_pairs,
             &m_way_pairs,
             &m_leaves,
@@ -278,7 +278,7 @@ mod tests {
 
         let mut osm_id = 0;
         let mut count = 0;
-        let ways = archive.ways();
+        let ways = flatdata.ways();
         for i in 0..ext.len() {
             let w = &ways[i];
             osm_id = w.osm_id();

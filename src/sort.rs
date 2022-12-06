@@ -6,19 +6,21 @@ use crate::{
     },
 };
 use geo::algorithm::interior_point::InteriorPoint;
-use geo::geometry::{Coordinate, LineString};
+use geo::geometry::LineString;
+use geo::Coord;
 use geo::{coord, Polygon};
 use log::info;
 use pbr::ProgressBar;
 use rayon::prelude::*;
 use std::{
     io::{Error, ErrorKind, Stdout},
+    panic,
     path::PathBuf,
-    time::Instant, panic,
+    time::Instant,
 };
 
-pub fn sort(archive: Osm, dir: &PathBuf) -> Result<(), Box<dyn std::error::Error>> {
-    match archive.hilbert_node_pairs() {
+pub fn sort_flatdata(flatdata: Osm, dir: &PathBuf) -> Result<(), Box<dyn std::error::Error>> {
+    match flatdata.hilbert_node_pairs() {
         Some(p) => p,
         None => {
             return Err(Box::new(Error::new(
@@ -29,11 +31,11 @@ pub fn sort(archive: Osm, dir: &PathBuf) -> Result<(), Box<dyn std::error::Error
     };
 
     // Build hilbert way pairs.
-    let ways = archive.ways();
-    let ways_len = archive.ways().len();
+    let ways = flatdata.ways();
+    let ways_len = flatdata.ways().len();
     let way_pairs_mut = Mutant::<HilbertWayPair>::new(dir, "hilbert_way_pairs", ways_len)?;
     let way_pairs = way_pairs_mut.mutable_slice();
-    build_hilbert_way_pairs(way_pairs, &archive)?;
+    build_hilbert_way_pairs(way_pairs, &flatdata)?;
 
     // Sort hilbert way pairs.
     info!("Sorting hilbert way pairs.");
@@ -44,7 +46,7 @@ pub fn sort(archive: Osm, dir: &PathBuf) -> Result<(), Box<dyn std::error::Error
     // Sort hilbert node pairs.
     info!("Sorting hilbert node pairs.");
     let t = Instant::now();
-    let nodes_len = archive.nodes().len();
+    let nodes_len = flatdata.nodes().len();
     let node_pairs_mut = Mutant::<HilbertNodePair>::open(dir, "hilbert_node_pairs", true)?;
     let node_pairs = node_pairs_mut.mutable_slice();
     node_pairs.par_sort_unstable_by_key(|idx| idx.h());
@@ -52,13 +54,13 @@ pub fn sort(archive: Osm, dir: &PathBuf) -> Result<(), Box<dyn std::error::Error
 
     // Reorder nodes to sorted hilbert node pairs.
     let mut pb = Prog::new("Reordering nodes. ", nodes_len);
-    let nodes = archive.nodes();
+    let nodes = flatdata.nodes();
     let mut m_sorted_nodes = Mutant::<Node>::new_from_flatdata(&dir, "sorted_nodes", "nodes")?;
     let sorted_nodes = m_sorted_nodes.mutable_slice();
     let m_old_node_idx = Mutant::<usize>::new(dir, "old_node_idx", nodes_len)?;
     let old_node_idx = m_old_node_idx.mutable_slice();
     let mut tag_counter: usize = 0;
-    let tags_index = archive.tags_index();
+    let tags_index = flatdata.tags_index();
     let mut sorted_tags_index_mut =
         Mutant::<TagIndex>::new_from_flatdata(dir, "sorted_tags_index", "tags_index")?;
     let sorted_tags_index = sorted_tags_index_mut.mutable_slice();
@@ -138,7 +140,7 @@ pub fn sort(archive: Osm, dir: &PathBuf) -> Result<(), Box<dyn std::error::Error
         });
     pb.finish();
 
-    std::mem::drop(archive);
+    std::mem::drop(flatdata);
     m_sorted_nodes.mv("nodes")?;
     info!("Moved sorted_nodes to nodes");
     sorted_ways_mut.mv("ways")?;
@@ -153,12 +155,12 @@ pub fn sort(archive: Osm, dir: &PathBuf) -> Result<(), Box<dyn std::error::Error
 
 fn build_hilbert_way_pairs(
     way_pairs: &mut [HilbertWayPair],
-    archive: &Osm,
+    flatdata: &Osm,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let nodes = archive.nodes();
-    let nodes_index = archive.nodes_index();
-    let node_pairs = archive.hilbert_node_pairs().unwrap();
-    let ways = archive.ways();
+    let nodes = flatdata.nodes();
+    let nodes_index = flatdata.nodes_index();
+    let node_pairs = flatdata.hilbert_node_pairs().unwrap();
+    let ways = flatdata.ways();
 
     info!("Building hilbert way pairs.");
     let t = Instant::now();
@@ -187,7 +189,7 @@ fn build_hilbert_way_pairs(
             return;
         }
 
-        let mut coords = Vec::<Coordinate<f64>>::with_capacity(len as usize);
+        let mut coords = Vec::<Coord<f64>>::with_capacity(len as usize);
 
         for r in refs {
             if let Some(idx) = nodes_index[r as usize].value() {
@@ -384,9 +386,9 @@ mod tests {
     #[ignore]
     fn test_build_hilbert_way_pairs_planet() {
         let dir = PathBuf::from("/Users/n/geodata/flatdata/planet");
-        let archive = Osm::open(FileResourceStorage::new(&dir)).unwrap();
+        let flatdata = Osm::open(FileResourceStorage::new(&dir)).unwrap();
         let m_way_pairs = Mutant::<HilbertWayPair>::open(&dir, "hilbert_way_pairs", true).unwrap();
         let way_pairs = m_way_pairs.mutable_slice();
-        let _ = build_hilbert_way_pairs(way_pairs, &archive);
+        let _ = build_hilbert_way_pairs(way_pairs, &flatdata);
     }
 }

@@ -10,7 +10,7 @@ mod osmflat;
 mod parallel;
 mod pvt_builder;
 mod rules;
-mod sort_archive;
+mod sort;
 mod source;
 pub mod tile;
 pub mod tile_attributes;
@@ -26,7 +26,6 @@ use napi::tokio::{self};
 use pvt_builder::PVTBuilder;
 use source::Source;
 use std::error::Error;
-use std::path::PathBuf;
 use std::sync::Arc;
 use std::time::Instant;
 use tile::Tile;
@@ -52,15 +51,20 @@ impl Planet {
                 let info = Box::new(Info::new()) as Box<dyn Source>;
                 sources.push(info);
             } else {
-                let path = PathBuf::from(tile);
-                match HilbertTree::open(&path) {
-                    Ok(tree) => {
-                        let box_tree = Box::new(tree) as Box<dyn Source>;
-                        sources.push(box_tree);
-                    }
-                    Err(err) => {
-                        eprintln!("Unable to open {:?} Skipping...", path);
-                        eprintln!("{:?} Skipping...", err);
+                match manifest::parse(tile) {
+                    Ok(manifest) => match HilbertTree::open(&manifest) {
+                        Ok(tree) => {
+                            let box_tree = Box::new(tree) as Box<dyn Source>;
+                            sources.push(box_tree);
+                        }
+                        Err(err) => {
+                            eprintln!("Unable to open {} Error: {:?}", tile, err);
+                            eprintln!("Skipping {}", tile);
+                        }
+                    },
+                    Err(e) => {
+                        eprintln!("Unable to parse manifest at {} Error: {:?}", tile, e);
+                        eprintln!("Skipping {}", tile);
                     }
                 }
             }
@@ -115,10 +119,10 @@ impl Planet {
 // Don't use this, not finished implementing...
 #[napi]
 pub async fn pvt() -> Result<()> {
-    let manifest = manifest::parse(None);
-    let archive = osmflat::convert(&manifest).unwrap_or_else(quit);
-    sort_archive::sort(archive, &manifest.data.dir).unwrap_or_else(quit);
-    hilbert::tree::HilbertTree::build(manifest).unwrap_or_else(quit);
+    let manifest = manifest::parse("manifests/basic.toml").unwrap();
+    let flatdata = osmflat::convert(&manifest).unwrap_or_else(quit);
+    sort::sort_flatdata(flatdata, &manifest.data.planet).unwrap_or_else(quit);
+    hilbert::tree::HilbertTree::new(manifest).unwrap_or_else(quit);
     Ok(())
 }
 

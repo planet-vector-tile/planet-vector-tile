@@ -8,7 +8,7 @@ mod osmflat;
 mod parallel;
 pub mod pvt_builder;
 mod rules;
-mod sort_archive;
+mod sort;
 mod source;
 mod tile;
 mod tile_attributes;
@@ -42,23 +42,38 @@ fn main() {
 
     match sub {
         ("convert", matches) => {
-            let manifest = handle_args(matches);
-            let archive = osmflat::convert(&manifest).unwrap_or_else(quit);
-            sort_archive::sort(archive, &manifest.data.dir).unwrap_or_else(quit);
+            let manifest = get_manifest(matches);
+            let overwrite = matches.get_one::<bool>("overwrite").unwrap();
+            if *overwrite {
+                if let Err(e) = fs::remove_dir_all(&manifest.data.planet) {
+                    eprintln!("Unable to remove planet dir: {}", e);
+                }
+            }
+
+            let flatdata = osmflat::convert(&manifest).unwrap_or_else(quit);
+            sort::sort_flatdata(flatdata, &manifest.data.planet).unwrap_or_else(quit);
         }
         ("render", matches) => {
-            let manifest = handle_args(matches);
-            HilbertTree::build(manifest).unwrap_or_else(quit);
-
+            let manifest = get_manifest(matches);
+            let mut tree = HilbertTree::new(manifest).unwrap_or_else(quit);
+            tree.render_tile_content().unwrap_or_else(quit);
         }
         ("archive", _) => {
-            println!("Make a .pvt archive.")
+            println!("TODO: Make a .pvt archive.")
         }
         ("build", matches) => {
-            let manifest = handle_args(matches);
-            let archive = osmflat::convert(&manifest).unwrap_or_else(quit);
-            sort_archive::sort(archive, &manifest.data.dir).unwrap_or_else(quit);
-            HilbertTree::build(manifest).unwrap_or_else(quit);
+            let manifest = get_manifest(matches);
+            let overwrite = matches.get_one::<bool>("overwrite").unwrap();
+            if *overwrite {
+                if let Err(e) = fs::remove_dir_all(&manifest.data.planet) {
+                    eprintln!("Unable to remove planet dir: {}", e);
+                }
+            }
+
+            let flatdata = osmflat::convert(&manifest).unwrap_or_else(quit);
+            sort::sort_flatdata(flatdata, &manifest.data.planet).unwrap_or_else(quit);
+            let mut tree = HilbertTree::new(manifest).unwrap_or_else(quit);
+            tree.render_tile_content().unwrap_or_else(quit);
         }
         _ => unreachable!(),
     }
@@ -67,22 +82,19 @@ fn main() {
 }
 
 fn quit<T>(e: Box<dyn Error>) -> T {
-    eprintln!("Planet generation FAILED!");
     eprintln!("Error: {}", e);
     std::process::exit(1);
 }
 
-fn handle_args(matches: &ArgMatches) -> Manifest {
-    let manifest_str = matches.get_one::<String>("manifest").unwrap();
-    let manifest = manifest::parse(Some(manifest_str.into()));
+fn get_manifest(matches: &ArgMatches) -> Manifest {
+    let manifest_path_str = matches.get_one::<String>("MANIFEST_PATH").unwrap();
 
-    let overwrite = matches.get_one::<bool>("overwrite").unwrap();
-
-    if *overwrite {
-        if let Err(e) = fs::remove_dir_all(&manifest.data.dir) {
-            eprintln!("Unable to remove output dir: {}", e);
+    let manifest = match manifest::parse(manifest_path_str) {
+        Ok(manifest) => manifest,
+        Err(e) => {
+            eprintln!("{:?}", e);
+            std::process::exit(1);
         }
-    }
-
+    };
     manifest
 }

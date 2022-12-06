@@ -7,7 +7,7 @@ mod osmflat;
 mod parallel;
 pub mod pvt_builder;
 mod rules;
-mod sort_archive;
+mod sort;
 mod source;
 mod tile;
 mod tile_attributes;
@@ -15,7 +15,7 @@ mod tile_attributes;
 use fs_extra::dir::{copy, CopyOptions};
 use hilbert::tree::HilbertTree;
 use humantime::format_duration;
-use std::{error::Error, fs, path::PathBuf, time::Instant};
+use std::{error::Error, fs, time::Instant};
 
 fn main() {
     let time = Instant::now();
@@ -29,37 +29,57 @@ fn main() {
     let _ = fs::remove_dir_all("tests/fixtures/nodes4");
     let _ = fs::remove_dir_all("tests/fixtures/santacruz");
 
-    let manifest1 = manifest::parse(Some("./tests/fixtures/nodes4.toml".into()));
-    let manifest2 = manifest::parse(Some("./tests/fixtures/santacruz.toml".into()));
-    let convert_dir1 = manifest1.data.dir.clone();
-    let convert_dir2 = manifest2.data.dir.clone();
+    build(
+        "./tests/fixtures/nodes4_convert.toml",
+        "tests/fixtures/nodes4_sort.toml",
+    );
+    build(
+        "./tests/fixtures/santacruz_convert.toml",
+        "tests/fixtures/santacruz_sort.toml",
+    );
 
-    let a1 = osmflat::convert(&manifest1).unwrap_or_else(quit);
-    let a2 = osmflat::convert(&manifest2).unwrap_or_else(quit);
+    println!("Total Time: {}", format_duration(time.elapsed()));
+}
 
-    let sort_dir1 = PathBuf::from("tests/fixtures/nodes4/sort");
-    let sort_dir2 = PathBuf::from("tests/fixtures/santacruz/sort");
+fn build(convert_manifest_path_str: &str, sort_manifest_path_str: &str) {
+    let convert_manifest = match manifest::parse(convert_manifest_path_str) {
+        Ok(manifest) => manifest,
+        Err(e) => {
+            eprintln!(
+                "Unable to parse manifest at: {} Err: {:?}",
+                convert_manifest_path_str, e
+            );
+            quit(Box::new(e))
+        }
+    };
 
-    fs::create_dir_all(&sort_dir1).unwrap();
-    fs::create_dir_all(&sort_dir2).unwrap();
+    let flatdata = osmflat::convert(&convert_manifest).unwrap_or_else(quit);
+
+    let sort_manifest = match manifest::parse(sort_manifest_path_str) {
+        Ok(manifest) => manifest,
+        Err(e) => {
+            eprintln!(
+                "Unable to parse manifest at: {} Err: {:?}",
+                convert_manifest_path_str, e
+            );
+            quit(Box::new(e))
+        }
+    };
+
+    fs::create_dir_all(&sort_manifest.data.planet).unwrap();
 
     let mut opts = CopyOptions::default();
     opts.content_only = true;
-    copy(convert_dir1, &sort_dir1, &opts).unwrap();
-    copy(convert_dir2, &sort_dir2, &opts).unwrap();
+    copy(
+        convert_manifest.data.planet,
+        &sort_manifest.data.planet,
+        &opts,
+    )
+    .unwrap();
 
-    let mut sort_manifest1 = manifest1.clone();
-    sort_manifest1.data.dir = sort_dir1.clone();
-    let mut sort_manifest2 = manifest2.clone();
-    sort_manifest2.data.dir = sort_dir2.clone();
-
-    sort_archive::sort(a1, &sort_dir1).unwrap_or_else(quit);
-    HilbertTree::build(sort_manifest1).unwrap_or_else(quit);
-
-    sort_archive::sort(a2, &sort_dir2).unwrap_or_else(quit);
-    HilbertTree::build(sort_manifest2).unwrap_or_else(quit);
-
-    println!("Total Time: {}", format_duration(time.elapsed()));
+    sort::sort_flatdata(flatdata, &sort_manifest.data.planet).unwrap_or_else(quit);
+    let mut tree = HilbertTree::new(sort_manifest).unwrap_or_else(quit);
+    tree.render_tile_content().unwrap_or_else(quit);
 }
 
 fn quit<T>(e: Box<dyn Error>) -> T {

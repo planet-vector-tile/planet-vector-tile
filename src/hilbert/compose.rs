@@ -34,9 +34,9 @@ impl Source for HilbertTree {
 
 impl HilbertTree {
     fn compose_leaf(&self, tile: &Tile, pair: ResultPair<&Leaf>, builder: &mut PVTBuilder) {
-        let nodes = self.archive.nodes();
-        let ways = self.archive.ways();
-        let relations = self.archive.relations();
+        let nodes = self.flatdata.nodes();
+        let ways = self.flatdata.ways();
+        let relations = self.flatdata.relations();
         let nodes_len = nodes.len();
         let ways_len = ways.len();
         let relations_len = relations.len();
@@ -98,19 +98,19 @@ impl HilbertTree {
         N: Iterator<Item = usize>,
         W: Iterator<Item = usize>,
     {
-        let nodes = self.archive.nodes();
-        let ways = self.archive.ways();
-        let relations = self.archive.relations();
+        let nodes = self.flatdata.nodes();
+        let ways = self.flatdata.ways();
+        let relations = self.flatdata.relations();
         let nodes_len = nodes.len();
         let ways_len = ways.len();
         let relations_len = relations.len();
-        let node_pairs = self.archive.hilbert_node_pairs().unwrap();
-        let tags = self.archive.tags();
-        let nodes_index = self.archive.nodes_index();
+        let node_pairs = self.flatdata.hilbert_node_pairs().unwrap();
+        let tags = self.flatdata.tags();
+        let nodes_index = self.flatdata.nodes_index();
         let nodes_index_len = nodes_index.len();
-        let tags_index = self.archive.tags_index();
+        let tags_index = self.flatdata.tags_index();
         let tags_index_len = tags_index.len();
-        let strings = self.archive.stringtable();
+        let strings = self.flatdata.stringtable();
 
         // We reuse this for nodes, ways, relations.
         let mut features = Vec::new();
@@ -297,6 +297,8 @@ fn build_tags(
 
 #[cfg(test)]
 mod tests {
+    use crate::manifest;
+
     use super::*;
     use std::path::PathBuf;
 
@@ -306,8 +308,8 @@ mod tests {
         // 9, 659, 1593
         let t = Tile::from_zh(12, 3329134);
 
-        let dir = PathBuf::from("tests/fixtures/santacruz/sort");
-        let tree = HilbertTree::open(&dir).unwrap();
+        let manifest = manifest::parse("tests/fixtures/santacruz_sort.toml").unwrap();
+        let tree = HilbertTree::open(&manifest).unwrap();
 
         let mut builder = PVTBuilder::new();
         tree.compose_tile(&t, &mut builder);
@@ -364,9 +366,9 @@ mod tests {
 
     #[test]
     fn test_tags_index() {
-        let dir = PathBuf::from("tests/fixtures/santacruz/sort");
-        let tree = HilbertTree::open(&dir).unwrap();
-        let nodes = tree.archive.nodes();
+        let manifest = manifest::parse("tests/fixtures/santacruz_sort.toml").unwrap();
+        let tree = HilbertTree::open(&manifest).unwrap();
+        let nodes = tree.flatdata.nodes();
         for n in nodes {
             let t_range = n.tags();
             assert!(t_range.start <= t_range.end || t_range.end == 0);
@@ -375,8 +377,8 @@ mod tests {
 
     #[test]
     fn test_h_tile() {
-        let dir = PathBuf::from("tests/fixtures/santacruz/sort");
-        let tree = HilbertTree::open(&dir).unwrap();
+        let manifest = manifest::parse("tests/fixtures/santacruz_sort.toml").unwrap();
+        let tree = HilbertTree::open(&manifest).unwrap();
 
         let mut builder = PVTBuilder::new();
         let t = Tile::from_zh(2, 3);
