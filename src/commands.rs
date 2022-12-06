@@ -9,7 +9,7 @@ pub fn cli() -> Command {
         .arg_required_else_help(true);
 
     let manifest_arg = arg!(-m --manifest <MANIFEST_PATH> "Path to manifest file (default: ./manifest.json)")
-        .default_value("./manifest.json");
+        .default_value("./manifest.toml");
 
     let overwrite_arg = arg!(-o --overwrite "Overwrite existing planet data directory")
         .default_value("false")
