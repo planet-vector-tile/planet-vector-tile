@@ -7,7 +7,7 @@ mod osmflat;
 mod parallel;
 pub mod pvt_builder;
 mod rules;
-mod sort_archive;
+mod sort;
 mod source;
 mod tile;
 mod tile_attributes;
@@ -53,10 +53,10 @@ fn main() {
     let mut sort_manifest2 = manifest2.clone();
     sort_manifest2.data.dir = sort_dir2.clone();
 
-    sort_archive::sort(a1, &sort_dir1).unwrap_or_else(quit);
+    sort::sort_flatdata(a1, &sort_dir1).unwrap_or_else(quit);
     HilbertTree::build(sort_manifest1).unwrap_or_else(quit);
 
-    sort_archive::sort(a2, &sort_dir2).unwrap_or_else(quit);
+    sort::sort_flatdata(a2, &sort_dir2).unwrap_or_else(quit);
     HilbertTree::build(sort_manifest2).unwrap_or_else(quit);
 
     println!("Total Time: {}", format_duration(time.elapsed()));

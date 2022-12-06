@@ -10,7 +10,7 @@ mod osmflat;
 mod parallel;
 mod pvt_builder;
 mod rules;
-mod sort_archive;
+mod sort;
 mod source;
 pub mod tile;
 pub mod tile_attributes;
@@ -117,7 +117,7 @@ impl Planet {
 pub async fn pvt() -> Result<()> {
     let manifest = manifest::parse(None);
     let archive = osmflat::convert(&manifest).unwrap_or_else(quit);
-    sort_archive::sort(archive, &manifest.data.dir).unwrap_or_else(quit);
+    sort::sort_flatdata(archive, &manifest.data.dir).unwrap_or_else(quit);
     hilbert::tree::HilbertTree::build(manifest).unwrap_or_else(quit);
     Ok(())
 }

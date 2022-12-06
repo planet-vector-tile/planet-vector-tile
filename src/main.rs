@@ -8,7 +8,7 @@ mod osmflat;
 mod parallel;
 pub mod pvt_builder;
 mod rules;
-mod sort_archive;
+mod sort;
 mod source;
 mod tile;
 mod tile_attributes;
@@ -44,7 +44,7 @@ fn main() {
         ("convert", matches) => {
             let manifest = handle_args(matches);
             let archive = osmflat::convert(&manifest).unwrap_or_else(quit);
-            sort_archive::sort(archive, &manifest.data.dir).unwrap_or_else(quit);
+            sort::sort_flatdata(archive, &manifest.data.dir).unwrap_or_else(quit);
         }
         ("render", matches) => {
             let manifest = handle_args(matches);
@@ -57,7 +57,7 @@ fn main() {
         ("build", matches) => {
             let manifest = handle_args(matches);
             let archive = osmflat::convert(&manifest).unwrap_or_else(quit);
-            sort_archive::sort(archive, &manifest.data.dir).unwrap_or_else(quit);
+            sort::sort_flatdata(archive, &manifest.data.dir).unwrap_or_else(quit);
             HilbertTree::build(manifest).unwrap_or_else(quit);
         }
         _ => unreachable!(),

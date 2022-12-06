@@ -17,8 +17,8 @@ use std::{
     time::Instant, panic,
 };
 
-pub fn sort(archive: Osm, dir: &PathBuf) -> Result<(), Box<dyn std::error::Error>> {
-    match archive.hilbert_node_pairs() {
+pub fn sort_flatdata(flatdata: Osm, dir: &PathBuf) -> Result<(), Box<dyn std::error::Error>> {
+    match flatdata.hilbert_node_pairs() {
         Some(p) => p,
         None => {
             return Err(Box::new(Error::new(
@@ -29,11 +29,11 @@ pub fn sort(archive: Osm, dir: &PathBuf) -> Result<(), Box<dyn std::error::Error
     };
 
     // Build hilbert way pairs.
-    let ways = archive.ways();
-    let ways_len = archive.ways().len();
+    let ways = flatdata.ways();
+    let ways_len = flatdata.ways().len();
     let way_pairs_mut = Mutant::<HilbertWayPair>::new(dir, "hilbert_way_pairs", ways_len)?;
     let way_pairs = way_pairs_mut.mutable_slice();
-    build_hilbert_way_pairs(way_pairs, &archive)?;
+    build_hilbert_way_pairs(way_pairs, &flatdata)?;
 
     // Sort hilbert way pairs.
     info!("Sorting hilbert way pairs.");
@@ -44,7 +44,7 @@ pub fn sort(archive: Osm, dir: &PathBuf) -> Result<(), Box<dyn std::error::Error
     // Sort hilbert node pairs.
     info!("Sorting hilbert node pairs.");
     let t = Instant::now();
-    let nodes_len = archive.nodes().len();
+    let nodes_len = flatdata.nodes().len();
     let node_pairs_mut = Mutant::<HilbertNodePair>::open(dir, "hilbert_node_pairs", true)?;
     let node_pairs = node_pairs_mut.mutable_slice();
     node_pairs.par_sort_unstable_by_key(|idx| idx.h());
@@ -52,13 +52,13 @@ pub fn sort(archive: Osm, dir: &PathBuf) -> Result<(), Box<dyn std::error::Error
 
     // Reorder nodes to sorted hilbert node pairs.
     let mut pb = Prog::new("Reordering nodes. ", nodes_len);
-    let nodes = archive.nodes();
+    let nodes = flatdata.nodes();
     let mut m_sorted_nodes = Mutant::<Node>::new_from_flatdata(&dir, "sorted_nodes", "nodes")?;
     let sorted_nodes = m_sorted_nodes.mutable_slice();
     let m_old_node_idx = Mutant::<usize>::new(dir, "old_node_idx", nodes_len)?;
     let old_node_idx = m_old_node_idx.mutable_slice();
     let mut tag_counter: usize = 0;
-    let tags_index = archive.tags_index();
+    let tags_index = flatdata.tags_index();
     let mut sorted_tags_index_mut =
         Mutant::<TagIndex>::new_from_flatdata(dir, "sorted_tags_index", "tags_index")?;
     let sorted_tags_index = sorted_tags_index_mut.mutable_slice();
@@ -138,7 +138,7 @@ pub fn sort(archive: Osm, dir: &PathBuf) -> Result<(), Box<dyn std::error::Error
         });
     pb.finish();
 
-    std::mem::drop(archive);
+    std::mem::drop(flatdata);
     m_sorted_nodes.mv("nodes")?;
     info!("Moved sorted_nodes to nodes");
     sorted_ways_mut.mv("ways")?;
