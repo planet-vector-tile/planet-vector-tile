@@ -229,7 +229,7 @@ mod tests {
             &m_leaves_external,
             &dir,
             &flatdata,
-            &manifest::parse(None),
+            &manifest::parse("tests/fixtures/santacruz_sort.toml").unwrap(),
         );
     }
 
@@ -248,7 +248,7 @@ mod tests {
             &m_leaves_external,
             &dir,
             &flatdata,
-            &manifest::parse(None),
+            &manifest::parse("tests/fixtures/santacruz_sort.toml").unwrap(),
         );
     }
 }

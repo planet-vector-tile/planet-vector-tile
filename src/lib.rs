@@ -26,7 +26,6 @@ use napi::tokio::{self};
 use pvt_builder::PVTBuilder;
 use source::Source;
 use std::error::Error;
-use std::path::PathBuf;
 use std::sync::Arc;
 use std::time::Instant;
 use tile::Tile;
@@ -53,26 +52,21 @@ impl Planet {
                 sources.push(info);
             } else {
                 match manifest::parse(tile) {
-                    Ok(manifest) => {
-
-                        match HilbertTree::open(&manifest) {
-                            Ok(tree) => {
-                                let box_tree = Box::new(tree) as Box<dyn Source>;
-                                sources.push(box_tree);
-                            }
-                            Err(err) => {
-                                eprintln!("Unable to open {} Error: {:?}", tile, err);
-                                eprintln!("Skipping {}", tile);
-                            }
+                    Ok(manifest) => match HilbertTree::open(&manifest) {
+                        Ok(tree) => {
+                            let box_tree = Box::new(tree) as Box<dyn Source>;
+                            sources.push(box_tree);
                         }
-
+                        Err(err) => {
+                            eprintln!("Unable to open {} Error: {:?}", tile, err);
+                            eprintln!("Skipping {}", tile);
+                        }
                     },
                     Err(e) => {
                         eprintln!("Unable to parse manifest at {} Error: {:?}", tile, e);
                         eprintln!("Skipping {}", tile);
                     }
                 }
-                
             }
         }
 

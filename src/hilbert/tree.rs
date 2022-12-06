@@ -169,9 +169,10 @@ fn child_index(h_tile: &HilbertTile, child_h: u64) -> Option<usize> {
 
 #[cfg(test)]
 mod tests {
+    use crate::manifest;
+
     use super::*;
     use std::mem::size_of;
-    use std::path::PathBuf;
 
     #[test]
     fn test_basic_find() {
@@ -179,8 +180,8 @@ mod tests {
         // z 12 x 659 y 1593
         let t = Tile::from_zh(12, 3329134);
 
-        let dir = PathBuf::from("tests/fixtures/santacruz/sort");
-        let tree = HilbertTree::open(&dir).unwrap();
+        let manifest = manifest::parse("tests/fixtures/santacruz_sort.toml").unwrap();
+        let tree = HilbertTree::open(&manifest).unwrap();
 
         match tree.find(&t) {
             FindResult::HilbertTile(_) => panic!("Should not be a HilbertTile. Should be a leaf"),

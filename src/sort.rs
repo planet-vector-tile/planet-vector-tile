@@ -13,8 +13,9 @@ use pbr::ProgressBar;
 use rayon::prelude::*;
 use std::{
     io::{Error, ErrorKind, Stdout},
+    panic,
     path::PathBuf,
-    time::Instant, panic,
+    time::Instant,
 };
 
 pub fn sort_flatdata(flatdata: Osm, dir: &PathBuf) -> Result<(), Box<dyn std::error::Error>> {

@@ -15,7 +15,7 @@ mod tile_attributes;
 use fs_extra::dir::{copy, CopyOptions};
 use hilbert::tree::HilbertTree;
 use humantime::format_duration;
-use std::{error::Error, fs, path::PathBuf, time::Instant};
+use std::{error::Error, fs, time::Instant};
 
 fn main() {
     let time = Instant::now();
@@ -41,32 +41,43 @@ fn main() {
     println!("Total Time: {}", format_duration(time.elapsed()));
 }
 
-fn build(manifest_path_str: &str, sort_dir_str: &str) {
-    let manifest = match manifest::parse(manifest_path_str) {
+fn build(convert_manifest_path_str: &str, sort_manifest_path_str: &str) {
+    let convert_manifest = match manifest::parse(convert_manifest_path_str) {
         Ok(manifest) => manifest,
         Err(e) => {
             eprintln!(
                 "Unable to parse manifest at: {} Err: {:?}",
-                manifest_path_str, e
+                convert_manifest_path_str, e
             );
             quit(Box::new(e))
         }
     };
 
-    let convert_dir = manifest.data.planet.clone();
-    let flatdata = osmflat::convert(&manifest).unwrap_or_else(quit);
+    let flatdata = osmflat::convert(&convert_manifest).unwrap_or_else(quit);
 
-    let sort_dir = PathBuf::from(sort_dir_str);
-    fs::create_dir_all(&sort_dir).unwrap();
+    let sort_manifest = match manifest::parse(sort_manifest_path_str) {
+        Ok(manifest) => manifest,
+        Err(e) => {
+            eprintln!(
+                "Unable to parse manifest at: {} Err: {:?}",
+                convert_manifest_path_str, e
+            );
+            quit(Box::new(e))
+        }
+    };
+
+    fs::create_dir_all(&sort_manifest.data.planet).unwrap();
 
     let mut opts = CopyOptions::default();
     opts.content_only = true;
-    copy(convert_dir, &sort_dir, &opts).unwrap();
+    copy(
+        convert_manifest.data.planet,
+        &sort_manifest.data.planet,
+        &opts,
+    )
+    .unwrap();
 
-    let mut sort_manifest = manifest.clone();
-    sort_manifest.data.planet = sort_dir.clone();
-
-    sort::sort_flatdata(flatdata, &sort_dir).unwrap_or_else(quit);
+    sort::sort_flatdata(flatdata, &sort_manifest.data.planet).unwrap_or_else(quit);
     HilbertTree::build(sort_manifest).unwrap_or_else(quit);
 }
 

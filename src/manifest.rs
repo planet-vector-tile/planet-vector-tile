@@ -53,7 +53,7 @@ pub fn parse(path_str: &str) -> Result<Manifest> {
         }
     };
 
-    let manifest: Manifest = match toml::from_str(&manifest_str) {
+    let mut manifest: Manifest = match toml::from_str(&manifest_str) {
         Ok(manifest) => manifest,
         Err(e) => {
             let msg = format!("Failed to parse manifest file: {}", e);
@@ -71,9 +71,29 @@ pub fn parse(path_str: &str) -> Result<Manifest> {
 
     // Maximum supported zoom is 14.
     if leaf_zoom > 14 {
-        let msg = format!("The maximum supported leaf zoom is 14. leaf_zoom: {}", leaf_zoom);
+        let msg = format!(
+            "The maximum supported leaf zoom is 14. leaf_zoom: {}",
+            leaf_zoom
+        );
         return Err(Error::new(ErrorKind::InvalidData, msg));
     }
+
+    // Make the paths in the manifest be relative to the directory of the manifest file.
+    // Canonicalize to absolute paths to reduce ambiguity.
+    let mut dir = path.clone();
+    dir.pop();
+
+    let mut source = dir.clone();
+    let mut planet = dir.clone();
+    let mut archive = dir.clone();
+
+    source.push(manifest.data.source);
+    planet.push(manifest.data.planet);
+    archive.push(manifest.data.archive);
+
+    manifest.data.source = source.canonicalize()?;
+    manifest.data.planet = planet.canonicalize()?;
+    manifest.data.archive = archive.canonicalize()?;
 
     Ok(manifest)
 }
@@ -107,9 +127,9 @@ mod tests {
 
         let m = Manifest {
             data: Data {
-                pbf: PathBuf::from("pbf"),
-                dir: PathBuf::from("dir"),
-                pvt: PathBuf::from("pvt"),
+                source: PathBuf::from("source"),
+                planet: PathBuf::from("planet"),
+                archive: PathBuf::from("archive"),
             },
             render: Render {
                 leaf_zoom: 12,

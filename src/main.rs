@@ -49,7 +49,6 @@ fn main() {
         ("render", matches) => {
             let manifest = handle_args(matches);
             HilbertTree::build(manifest).unwrap_or_else(quit);
-
         }
         ("archive", _) => {
             println!("Make a .pvt archive.")
@@ -80,7 +79,7 @@ fn handle_args(matches: &ArgMatches) -> Manifest {
         Err(e) => {
             eprintln!("{:?}", e);
             std::process::exit(1);
-        },
+        }
     };
 
     let overwrite = matches.get_one::<bool>("OVERWRITE").unwrap();

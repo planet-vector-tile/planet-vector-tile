@@ -297,6 +297,8 @@ fn build_tags(
 
 #[cfg(test)]
 mod tests {
+    use crate::manifest;
+
     use super::*;
     use std::path::PathBuf;
 
@@ -306,8 +308,8 @@ mod tests {
         // 9, 659, 1593
         let t = Tile::from_zh(12, 3329134);
 
-        let dir = PathBuf::from("tests/fixtures/santacruz/sort");
-        let tree = HilbertTree::open(&dir).unwrap();
+        let manifest = manifest::parse("tests/fixtures/santacruz_sort.toml").unwrap();
+        let tree = HilbertTree::open(&manifest).unwrap();
 
         let mut builder = PVTBuilder::new();
         tree.compose_tile(&t, &mut builder);
@@ -364,8 +366,8 @@ mod tests {
 
     #[test]
     fn test_tags_index() {
-        let dir = PathBuf::from("tests/fixtures/santacruz/sort");
-        let tree = HilbertTree::open(&dir).unwrap();
+        let manifest = manifest::parse("tests/fixtures/santacruz_sort.toml").unwrap();
+        let tree = HilbertTree::open(&manifest).unwrap();
         let nodes = tree.flatdata.nodes();
         for n in nodes {
             let t_range = n.tags();
@@ -375,8 +377,8 @@ mod tests {
 
     #[test]
     fn test_h_tile() {
-        let dir = PathBuf::from("tests/fixtures/santacruz/sort");
-        let tree = HilbertTree::open(&dir).unwrap();
+        let manifest = manifest::parse("tests/fixtures/santacruz_sort.toml").unwrap();
+        let tree = HilbertTree::open(&manifest).unwrap();
 
         let mut builder = PVTBuilder::new();
         let t = Tile::from_zh(2, 3);

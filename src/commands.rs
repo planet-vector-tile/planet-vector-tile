@@ -10,8 +10,7 @@ pub fn cli() -> Command {
 
     let manifest_path = arg!(<MANIFEST_PATH> "Path to manifest file");
 
-    let overwrite_arg = arg!(-o --overwrite "Overwrite existing planet")
-        .default_value("false");
+    let overwrite_arg = arg!(-o --overwrite "Overwrite existing planet").default_value("false");
 
     let convert = Command::new("convert")
         .about("Converts an OSM PBF to planet data")
@@ -30,5 +29,4 @@ pub fn cli() -> Command {
         .args([manifest_path.clone(), overwrite_arg.clone()]);
 
     pvt.subcommands([convert, render, archive, build])
-
 }
