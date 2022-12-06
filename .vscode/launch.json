@@ -42,7 +42,7 @@
                     "kind": "bin"
                 }
             },
-            "args": ["render", "./manifests/basic.toml", "-o"],
+            "args": ["render", "./manifests/full_planet.toml"],
             "cwd": "${workspaceFolder}"
         },
         {

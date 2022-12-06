@@ -27,7 +27,7 @@ pub struct HilbertTree {
 }
 
 impl HilbertTree {
-    pub fn new(manifest: Manifest) -> Result<Self, Err> {
+    pub fn new(manifest: &Manifest) -> Result<Self, Err> {
         let dir = &manifest.data.planet.clone();
 
         // Copy the manifest to the build directory so we know exactly what it was at the time of build.
@@ -53,7 +53,7 @@ impl HilbertTree {
         )?;
 
         Ok(Self {
-            manifest,
+            manifest: manifest.clone(),
             tiles: m_tiles,
             leaves: m_leaves,
             leaves_external: m_leaves_external,
