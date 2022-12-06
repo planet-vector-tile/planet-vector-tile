@@ -1,7 +1,7 @@
 [data]
-pbf = "./tests/fixtures/santacruz.osm.pbf"
-dir = "./tests/fixtures/santacruz/convert"
-pvt = "./tests/fixtures/santacruz.pvt"
+source = "./tests/fixtures/santacruz.osm.pbf"
+planet = "./tests/fixtures/santacruz/convert"
+archive = "./tests/fixtures/santacruz.pvt"
 
 [render]
 leaf_zoom = 12

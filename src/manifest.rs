@@ -1,6 +1,6 @@
-use std::{collections::BTreeMap, path::PathBuf};
-
 use serde_derive::{Deserialize, Serialize};
+use std::io::{Error, ErrorKind, Result};
+use std::{collections::BTreeMap, path::PathBuf};
 
 type Layers = BTreeMap<String, Vec<String>>;
 type Rules = BTreeMap<String, Rule>;
@@ -38,26 +38,26 @@ pub struct Rule {
     pub tags: Vec<(String, String)>,
 }
 
-pub fn parse(path_str: &str) -> Manifest {
+pub fn parse(path_str: &str) -> Result<Manifest> {
     let path = PathBuf::from(path_str);
 
     let manifest_str = match std::fs::read_to_string(&path) {
         Ok(manifest) => manifest,
         Err(_) => {
-            eprintln!("No manifest file found at: {}", path.display());
-            eprintln!(
-                "Process working directory: {}",
+            let msg = format!(
+                "No manifest file found at: {}. pwd: {}",
+                path.display(),
                 std::env::current_dir().unwrap().display()
             );
-            std::process::exit(1);
+            return Err(Error::new(ErrorKind::NotFound, msg));
         }
     };
 
     let manifest: Manifest = match toml::from_str(&manifest_str) {
         Ok(manifest) => manifest,
         Err(e) => {
-            eprintln!("Failed to parse manifest file: {}", e);
-            std::process::exit(1);
+            let msg = format!("Failed to parse manifest file: {}", e);
+            return Err(Error::new(ErrorKind::InvalidData, msg));
         }
     };
 
@@ -65,20 +65,17 @@ pub fn parse(path_str: &str) -> Manifest {
 
     // Leaf zoom must be even
     if leaf_zoom & 1 != 0 {
-        eprintln!("The leaf zoom must be even. leaf_zoom: {}", leaf_zoom);
-        std::process::exit(1);
+        let msg = format!("The leaf zoom must be even. leaf_zoom: {}", leaf_zoom);
+        return Err(Error::new(ErrorKind::InvalidData, msg));
     }
 
     // Maximum supported zoom is 14.
     if leaf_zoom > 14 {
-        eprintln!(
-            "The maximum supported leaf zoom is 14. leaf_zoom: {}",
-            leaf_zoom
-        );
-        std::process::exit(1);
+        let msg = format!("The maximum supported leaf zoom is 14. leaf_zoom: {}", leaf_zoom);
+        return Err(Error::new(ErrorKind::InvalidData, msg));
     }
 
-    manifest
+    Ok(manifest)
 }
 
 #[cfg(test)]

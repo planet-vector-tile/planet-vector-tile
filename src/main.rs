@@ -75,15 +75,19 @@ fn quit<T>(e: Box<dyn Error>) -> T {
 fn handle_args(matches: &ArgMatches) -> Manifest {
     let manifest_path_str = matches.get_one::<String>("MANIFEST_PATH").unwrap();
 
-    let manifest = manifest::parse(manifest_path_str);
+    let manifest = match manifest::parse(manifest_path_str) {
+        Ok(manifest) => manifest,
+        Err(e) => {
+            eprintln!("{:?}", e);
+            std::process::exit(1);
+        },
+    };
 
     let overwrite = matches.get_one::<bool>("OVERWRITE").unwrap();
-
     if *overwrite {
         if let Err(e) = fs::remove_dir_all(&manifest.data.planet) {
             eprintln!("Unable to remove planet dir: {}", e);
         }
     }
-
     manifest
 }

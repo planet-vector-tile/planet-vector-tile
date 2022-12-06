@@ -29,37 +29,45 @@ fn main() {
     let _ = fs::remove_dir_all("tests/fixtures/nodes4");
     let _ = fs::remove_dir_all("tests/fixtures/santacruz");
 
-    let manifest1 = manifest::parse("./tests/fixtures/nodes4.toml");
-    let manifest2 = manifest::parse("./tests/fixtures/santacruz.toml");
-    let convert_dir1 = manifest1.data.planet.clone();
-    let convert_dir2 = manifest2.data.planet.clone();
+    build(
+        "./tests/fixtures/fixtures/nodes4.toml",
+        "tests/fixtures/nodes4/santacruz/sort",
+    );
+    build(
+        "./tests/fixtures/santacruz.toml",
+        "tests/fixtures/santacruz/sort",
+    );
 
-    let a1 = osmflat::convert(&manifest1).unwrap_or_else(quit);
-    let a2 = osmflat::convert(&manifest2).unwrap_or_else(quit);
+    println!("Total Time: {}", format_duration(time.elapsed()));
+}
 
-    let sort_dir1 = PathBuf::from("tests/fixtures/nodes4/sort");
-    let sort_dir2 = PathBuf::from("tests/fixtures/santacruz/sort");
+fn build(manifest_path_str: &str, sort_dir_str: &str) {
+    let manifest = match manifest::parse(manifest_path_str) {
+        Ok(manifest) => manifest,
+        Err(e) => {
+            eprintln!(
+                "Unable to parse manifest at: {} Err: {:?}",
+                manifest_path_str, e
+            );
+            quit(Box::new(e))
+        }
+    };
 
-    fs::create_dir_all(&sort_dir1).unwrap();
-    fs::create_dir_all(&sort_dir2).unwrap();
+    let convert_dir = manifest.data.planet.clone();
+    let flatdata = osmflat::convert(&manifest).unwrap_or_else(quit);
+
+    let sort_dir = PathBuf::from(sort_dir_str);
+    fs::create_dir_all(&sort_dir).unwrap();
 
     let mut opts = CopyOptions::default();
     opts.content_only = true;
-    copy(convert_dir1, &sort_dir1, &opts).unwrap();
-    copy(convert_dir2, &sort_dir2, &opts).unwrap();
+    copy(convert_dir, &sort_dir, &opts).unwrap();
 
-    let mut sort_manifest1 = manifest1.clone();
-    sort_manifest1.data.planet = sort_dir1.clone();
-    let mut sort_manifest2 = manifest2.clone();
-    sort_manifest2.data.planet = sort_dir2.clone();
+    let mut sort_manifest = manifest.clone();
+    sort_manifest.data.planet = sort_dir.clone();
 
-    sort::sort_flatdata(a1, &sort_dir1).unwrap_or_else(quit);
-    HilbertTree::build(sort_manifest1).unwrap_or_else(quit);
-
-    sort::sort_flatdata(a2, &sort_dir2).unwrap_or_else(quit);
-    HilbertTree::build(sort_manifest2).unwrap_or_else(quit);
-
-    println!("Total Time: {}", format_duration(time.elapsed()));
+    sort::sort_flatdata(flatdata, &sort_dir).unwrap_or_else(quit);
+    HilbertTree::build(sort_manifest).unwrap_or_else(quit);
 }
 
 fn quit<T>(e: Box<dyn Error>) -> T {

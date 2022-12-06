@@ -1,7 +1,7 @@
 [data]
-pbf = "./tests/fixtures/nodes4.osm.pbf"
-dir = "./tests/fixtures/nodes4/convert"
-pvt = "./tests/fixtures/nodes4.pvt"
+source = "./tests/fixtures/nodes4.osm.pbf"
+planet = "./tests/fixtures/nodes4/convert"
+archive = "./tests/fixtures/nodes4.pvt"
 
 [render]
 leaf_zoom = 12

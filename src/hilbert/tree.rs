@@ -4,13 +4,13 @@ use super::{
     leaf::{build_leaves, populate_hilbert_leaves_external, Leaf},
 };
 use crate::{
-    manifest::{self, Manifest},
+    manifest::Manifest,
     mutant::Mutant,
     osmflat::osmflat_generated::osm::{HilbertNodePair, HilbertWayPair, Osm},
     tile::Tile,
 };
 use flatdata::FileResourceStorage;
-use std::{fs, path::Path};
+use std::fs;
 
 pub struct HilbertTree {
     pub manifest: Manifest,
