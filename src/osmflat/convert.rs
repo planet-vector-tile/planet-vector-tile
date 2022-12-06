@@ -10,8 +10,8 @@ use std::io;
 use std::str;
 use std::time::Instant;
 
-use crate::args::Args;
 use crate::location;
+use crate::manifest::Manifest;
 use crate::parallel;
 
 use super::ids;
@@ -23,14 +23,14 @@ use super::strings::StringTable;
 
 type Error = Box<dyn std::error::Error>;
 
-pub fn convert(args: &Args) -> Result<osmflat::Osm, Error> {
+pub fn convert(manifest: &Manifest) -> Result<osmflat::Osm, Error> {
     let time = Instant::now();
     println!("Converting osm.pbf to osm.flatdata...");
 
-    let input_file = File::open(&args.input)?;
+    let input_file = File::open(&manifest.data.pbf)?;
     let input_data = unsafe { Mmap::map(&input_file)? };
 
-    let storage = FileResourceStorage::new(args.output.clone());
+    let storage = FileResourceStorage::new(&manifest.data.dir);
     let builder = osmflat::OsmBuilder::new(storage.clone())?;
 
     // TODO: Would be nice not store all these strings in memory, but to flush them
@@ -40,7 +40,7 @@ pub fn convert(args: &Args) -> Result<osmflat::Osm, Error> {
 
     info!(
         "Initialized new osmflat archive at: {}",
-        &args.output.display()
+        &manifest.data.dir.display()
     );
 
     info!("Building index of PBF blocks...");
@@ -95,16 +95,17 @@ pub fn convert(args: &Args) -> Result<osmflat::Osm, Error> {
 
     let mut stats = Stats::default();
 
-    let ids_archive;
-    let mut node_ids = None;
-    let mut way_ids = None;
-    let mut relation_ids = None;
-    if args.ids {
-        ids_archive = builder.ids()?;
-        node_ids = Some(ids_archive.start_nodes()?);
-        way_ids = Some(ids_archive.start_ways()?);
-        relation_ids = Some(ids_archive.start_relations()?);
-    }
+    // let ids_archive;
+    let node_ids = None;
+    let way_ids = None;
+    let relation_ids = None;
+    // NHTODO Think about how we want to handle IDs as well as other OSM entity attributes regarding optionality.
+    // if args.ids {
+    //     ids_archive = builder.ids()?;
+    //     node_ids = Some(ids_archive.start_nodes()?);
+    //     way_ids = Some(ids_archive.start_ways()?);
+    //     relation_ids = Some(ids_archive.start_relations()?);
+    // }
 
     let hilbert_node_pairs = builder.start_hilbert_node_pairs()?;
 

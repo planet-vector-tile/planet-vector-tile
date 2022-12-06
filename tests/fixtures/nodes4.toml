@@ -1,7 +1,7 @@
 [data]
-pbf = "./tests/fixtures/santacruz.osm.pbf"
-dir = "./tests/fixtures/santacruz/sort"
-pvt = "./tests/fixtures/santacruz.pvt"
+pbf = "./tests/fixtures/nodes4.osm.pbf"
+dir = "./tests/fixtures/nodes4/convert"
+pvt = "./tests/fixtures/nodes4.pvt"
 
 [render]
 leaf_zoom = 12

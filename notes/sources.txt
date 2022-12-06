@@ -1,0 +1,4 @@
+pbf = "/Users/n/geodata/extracts/california.osm.pbf"
+dir = "/Users/n/geodata/flatdata/california"
+pvt = "/Users/n/geodata/pvt/california.pvt"
+

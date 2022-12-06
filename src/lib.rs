@@ -1,6 +1,5 @@
 #![allow(dead_code)]
 
-mod args;
 mod filter;
 mod hilbert;
 pub mod info;
@@ -19,7 +18,6 @@ pub mod tile_attributes;
 #[macro_use]
 extern crate napi_derive;
 
-use args::Args;
 use hilbert::tree::HilbertTree;
 use info::*;
 use napi::bindgen_prelude::*;
@@ -117,17 +115,10 @@ impl Planet {
 // Don't use this, not finished implementing...
 #[napi]
 pub async fn pvt() -> Result<()> {
-    let args = Args {
-        input: PathBuf::from("./tests/fixtures/nodes4.osm.pbf"),
-        output: PathBuf::from("./tests/fixtures/nodes4/debug"),
-        manifest: None,
-        ids: false,
-        overwrite: false,
-    };
-    let dir = args.output.clone();
-    let archive = osmflat::convert(&args).unwrap_or_else(quit);
-    sort_archive::sort(archive, &dir).unwrap_or_else(quit);
-    hilbert::tree::HilbertTree::build(&dir, manifest::parse(None)).unwrap_or_else(quit);
+    let manifest = manifest::parse(None);
+    let archive = osmflat::convert(&manifest).unwrap_or_else(quit);
+    sort_archive::sort(archive, &manifest.data.dir).unwrap_or_else(quit);
+    hilbert::tree::HilbertTree::build(manifest).unwrap_or_else(quit);
     Ok(())
 }
 

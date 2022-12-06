@@ -25,7 +25,9 @@ pub struct HilbertTree {
 }
 
 impl HilbertTree {
-    pub fn build(dir: &Path, manifest: Manifest) -> Result<Self, Box<dyn std::error::Error>> {
+    pub fn build(manifest: Manifest) -> Result<Self, Box<dyn std::error::Error>> {
+        let dir = &manifest.data.dir;
+
         // Copy the manifest to the build directory so we know exactly what it was at the time of build.
         let manifest_str = toml::to_string(&manifest)?;
         fs::write(dir.join("manifest.toml"), manifest_str)?;
@@ -189,7 +191,7 @@ mod tests {
                 let r = leaf.r;
                 let h = leaf.h;
                 assert_eq!(n, 865693);
-                assert_eq!(w, 98588);
+                assert_eq!(w, 98587);
                 assert_eq!(r, 0);
                 assert_eq!(h, 3329134);
             }

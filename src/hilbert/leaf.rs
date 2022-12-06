@@ -285,7 +285,7 @@ mod tests {
             count += 1;
         }
         assert_eq!(count, ext.len());
-        assert_eq!(osm_id, 336027088);
+        assert_eq!(osm_id, 962148640);
 
         // Check that w_ext is ascending or equal for the leaves.
         let mut leaves_it = m_leaves.slice().iter();
