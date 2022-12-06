@@ -153,12 +153,12 @@ pub fn sort_flatdata(flatdata: Osm, dir: &PathBuf) -> Result<(), Box<dyn std::er
 
 fn build_hilbert_way_pairs(
     way_pairs: &mut [HilbertWayPair],
-    archive: &Osm,
+    flatdata: &Osm,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let nodes = archive.nodes();
-    let nodes_index = archive.nodes_index();
-    let node_pairs = archive.hilbert_node_pairs().unwrap();
-    let ways = archive.ways();
+    let nodes = flatdata.nodes();
+    let nodes_index = flatdata.nodes_index();
+    let node_pairs = flatdata.hilbert_node_pairs().unwrap();
+    let ways = flatdata.ways();
 
     info!("Building hilbert way pairs.");
     let t = Instant::now();
@@ -384,9 +384,9 @@ mod tests {
     #[ignore]
     fn test_build_hilbert_way_pairs_planet() {
         let dir = PathBuf::from("/Users/n/geodata/flatdata/planet");
-        let archive = Osm::open(FileResourceStorage::new(&dir)).unwrap();
+        let flatdata = Osm::open(FileResourceStorage::new(&dir)).unwrap();
         let m_way_pairs = Mutant::<HilbertWayPair>::open(&dir, "hilbert_way_pairs", true).unwrap();
         let way_pairs = m_way_pairs.mutable_slice();
-        let _ = build_hilbert_way_pairs(way_pairs, &archive);
+        let _ = build_hilbert_way_pairs(way_pairs, &flatdata);
     }
 }

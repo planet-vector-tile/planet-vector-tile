@@ -43,8 +43,8 @@ fn main() {
     match sub {
         ("convert", matches) => {
             let manifest = handle_args(matches);
-            let archive = osmflat::convert(&manifest).unwrap_or_else(quit);
-            sort::sort_flatdata(archive, &manifest.data.dir).unwrap_or_else(quit);
+            let flatdata = osmflat::convert(&manifest).unwrap_or_else(quit);
+            sort::sort_flatdata(flatdata, &manifest.data.dir).unwrap_or_else(quit);
         }
         ("render", matches) => {
             let manifest = handle_args(matches);
@@ -56,8 +56,8 @@ fn main() {
         }
         ("build", matches) => {
             let manifest = handle_args(matches);
-            let archive = osmflat::convert(&manifest).unwrap_or_else(quit);
-            sort::sort_flatdata(archive, &manifest.data.dir).unwrap_or_else(quit);
+            let flatdata = osmflat::convert(&manifest).unwrap_or_else(quit);
+            sort::sort_flatdata(flatdata, &manifest.data.dir).unwrap_or_else(quit);
             HilbertTree::build(manifest).unwrap_or_else(quit);
         }
         _ => unreachable!(),

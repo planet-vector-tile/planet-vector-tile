@@ -9,25 +9,25 @@ use crate::{
 };
 
 pub struct Filter<'a> {
-    archive: &'a Osm,
+    flatdata: &'a Osm,
     rules: Rules,
     leaf_zoom: u8,
 }
 
 impl<'a> Filter<'a> {
-    pub fn new(manifest: &'a Manifest, archive: &'a Osm) -> Filter<'a> {
+    pub fn new(manifest: &'a Manifest, flatdata: &'a Osm) -> Filter<'a> {
         Filter {
-            archive,
-            rules: Rules::new(manifest, archive),
+            flatdata,
+            rules: Rules::new(manifest, flatdata),
             leaf_zoom: manifest.render.leaf_zoom,
         }
     }
 
     // https://stackoverflow.com/questions/25445761/returning-a-closure-from-a-function
     pub fn node_at_zoom(&self, zoom: u8) -> impl Fn(&(usize, &'a Node)) -> bool + '_ {
-        let ways = self.archive.ways();
-        let relations = self.archive.relations();
-        let tags_index = self.archive.tags_index();
+        let ways = self.flatdata.ways();
+        let relations = self.flatdata.relations();
+        let tags_index = self.flatdata.tags_index();
 
         let evaluate_node = move |(_, node): &(usize, &'a Node)| -> bool {
             let range = node.tags();
@@ -53,8 +53,8 @@ impl<'a> Filter<'a> {
     }
 
     pub fn way_at_zoom(&self, zoom: u8) -> impl Fn(&(usize, &'a Way)) -> bool + '_ {
-        let relations = self.archive.relations();
-        let tags_index = self.archive.tags_index();
+        let relations = self.flatdata.relations();
+        let tags_index = self.flatdata.tags_index();
         let way_set: DashSet<usize> = DashSet::new();
 
         let evaluate_way = move |(i, way): &(usize, &'a Way)| -> bool {
@@ -80,8 +80,8 @@ impl<'a> Filter<'a> {
     }
 
     fn evaluate_tags(&self, tags_idx_range: Range<usize>, zoom: u8) -> bool {
-        let tags_index = self.archive.tags_index();
-        let tags = self.archive.tags();
+        let tags_index = self.flatdata.tags_index();
+        let tags = self.flatdata.tags();
         let mut winning_eval = ZoomRangeRuleEval::None;
 
         for i in &tags_index[tags_idx_range] {

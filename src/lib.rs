@@ -116,8 +116,8 @@ impl Planet {
 #[napi]
 pub async fn pvt() -> Result<()> {
     let manifest = manifest::parse(None);
-    let archive = osmflat::convert(&manifest).unwrap_or_else(quit);
-    sort::sort_flatdata(archive, &manifest.data.dir).unwrap_or_else(quit);
+    let flatdata = osmflat::convert(&manifest).unwrap_or_else(quit);
+    sort::sort_flatdata(flatdata, &manifest.data.dir).unwrap_or_else(quit);
     hilbert::tree::HilbertTree::build(manifest).unwrap_or_else(quit);
     Ok(())
 }

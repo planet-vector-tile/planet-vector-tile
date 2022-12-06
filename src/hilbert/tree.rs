@@ -20,7 +20,7 @@ pub struct HilbertTree {
     pub n: Mutant<u64>,
     pub w: Mutant<u32>,
     pub r: Mutant<u32>,
-    pub archive: Osm,
+    pub flatdata: Osm,
     pub way_pairs: Mutant<HilbertWayPair>,
 }
 
@@ -33,7 +33,7 @@ impl HilbertTree {
         fs::write(dir.join("manifest.toml"), manifest_str)?;
 
         let leaf_zoom = manifest.render.leaf_zoom;
-        let archive = Osm::open(FileResourceStorage::new(dir))?;
+        let flatdata = Osm::open(FileResourceStorage::new(dir))?;
 
         let m_node_pairs = Mutant::<HilbertNodePair>::open(dir, "hilbert_node_pairs", true)?;
         let m_way_pairs = Mutant::<HilbertWayPair>::open(dir, "hilbert_way_pairs", true)?;
@@ -43,7 +43,7 @@ impl HilbertTree {
 
         let m_leaves_external = populate_hilbert_leaves_external(
             dir,
-            &archive,
+            &flatdata,
             &m_node_pairs,
             &m_way_pairs,
             &m_leaves,
@@ -55,7 +55,7 @@ impl HilbertTree {
             &m_tiles,
             &m_leaves_external,
             &dir,
-            &archive,
+            &flatdata,
             &manifest,
         )?;
 
@@ -67,14 +67,14 @@ impl HilbertTree {
             n,
             w,
             r,
-            archive,
+            flatdata,
             way_pairs: m_way_pairs,
         })
     }
 
     pub fn open(dir: &Path) -> Result<Self, Box<dyn std::error::Error>> {
         let manifest = manifest::parse(Some(dir.join("manifest.toml")));
-        let archive = Osm::open(FileResourceStorage::new(dir))?;
+        let flatdata = Osm::open(FileResourceStorage::new(dir))?;
 
         let m_way_pairs = Mutant::<HilbertWayPair>::open(dir, "hilbert_way_pairs", true)?;
         let m_leaves = Mutant::<Leaf>::open(dir, "hilbert_leaves", false)?;
@@ -92,7 +92,7 @@ impl HilbertTree {
             n: m_n,
             w: m_w,
             r: m_r,
-            archive,
+            flatdata,
             way_pairs: m_way_pairs,
         })
     }

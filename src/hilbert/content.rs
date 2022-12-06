@@ -15,16 +15,16 @@ pub fn populate_tile_content(
     m_tiles: &Mutant<HilbertTile>,
     m_leaves_external: &Mutant<u32>,
     dir: &Path,
-    archive: &Osm,
+    flatdata: &Osm,
     manifest: &Manifest,
 ) -> Result<(Mutant<u64>, Mutant<u32>, Mutant<u32>), Err> {
-    let filter = Filter::new(manifest, archive);
+    let filter = Filter::new(manifest, flatdata);
     let leaf_zoom = manifest.render.leaf_zoom;
     let leaves = m_leaves.slice();
     let tiles = m_tiles.slice();
     let tiles_mut = m_tiles.mutable_slice();
-    let nodes = archive.nodes();
-    let ways = archive.ways();
+    let nodes = flatdata.nodes();
+    let ways = flatdata.ways();
     let external = m_leaves_external.slice();
 
     // Delete previous contents
@@ -218,7 +218,7 @@ mod tests {
     #[test]
     fn test_build_content() {
         let dir = PathBuf::from("tests/fixtures/santacruz/sort");
-        let archive = Osm::open(FileResourceStorage::new(&dir)).unwrap();
+        let flatdata = Osm::open(FileResourceStorage::new(&dir)).unwrap();
         let m_leaves = Mutant::<Leaf>::open(&dir, "hilbert_leaves", false).unwrap();
         let m_tiles = Mutant::<HilbertTile>::open(&dir, "hilbert_tiles", false).unwrap();
         let m_leaves_external =
@@ -228,7 +228,7 @@ mod tests {
             &m_tiles,
             &m_leaves_external,
             &dir,
-            &archive,
+            &flatdata,
             &manifest::parse(None),
         );
     }
@@ -237,7 +237,7 @@ mod tests {
     #[ignore]
     fn test_build_content_california() {
         let dir = PathBuf::from("/Users/n/geodata/flatdata/california");
-        let archive = Osm::open(FileResourceStorage::new(&dir)).unwrap();
+        let flatdata = Osm::open(FileResourceStorage::new(&dir)).unwrap();
         let m_leaves = Mutant::<Leaf>::open(&dir, "hilbert_leaves", false).unwrap();
         let m_tiles = Mutant::<HilbertTile>::open(&dir, "hilbert_tiles", false).unwrap();
         let m_leaves_external =
@@ -247,7 +247,7 @@ mod tests {
             &m_tiles,
             &m_leaves_external,
             &dir,
-            &archive,
+            &flatdata,
             &manifest::parse(None),
         );
     }

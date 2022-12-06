@@ -151,7 +151,7 @@ pub fn convert(manifest: &Manifest) -> Result<osmflat::Osm, Error> {
     builder.set_stringtable(&stringtable.into_bytes())?;
 
     std::mem::drop(builder);
-    let archive = osmflat::Osm::open(storage)?;
+    let flatdata = osmflat::Osm::open(storage)?;
 
     println!(
         "Conversion from osm.pbf to osm.flatdata is complete. {}",
@@ -159,7 +159,7 @@ pub fn convert(manifest: &Manifest) -> Result<osmflat::Osm, Error> {
     );
     println!("{}", stats);
 
-    Ok(archive)
+    Ok(flatdata)
 }
 
 fn serialize_header(
