@@ -191,7 +191,7 @@ mod tests {
                 let r = leaf.r;
                 let h = leaf.h;
                 assert_eq!(n, 865693);
-                assert_eq!(w, 98588);
+                assert_eq!(w, 98587);
                 assert_eq!(r, 0);
                 assert_eq!(h, 3329134);
             }
