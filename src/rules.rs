@@ -263,7 +263,7 @@ mod tests {
 
     #[test]
     fn test_build_rules_santacruz() {
-        let manifest = manifest::parse("tests/fixtures/santacruz.toml").unwrap();
+        let manifest = manifest::parse("tests/fixtures/santacruz_sort.toml").unwrap();
         let flatdata =
             Osm::open(FileResourceStorage::new("tests/fixtures/santacruz/sort")).unwrap();
         let rules = Rules::new(&manifest, &flatdata);

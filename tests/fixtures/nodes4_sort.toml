@@ -1,7 +1,7 @@
 [data]
-source = "./tests/fixtures/nodes4.osm.pbf"
-planet = "./tests/fixtures/nodes4/sort"
-archive = "./tests/fixtures/nodes4.pvt"
+source = "nodes4.osm.pbf"
+planet = "nodes4/sort"
+archive = "nodes4.pvt"
 
 [render]
 leaf_zoom = 12

@@ -1,4 +1,5 @@
 use serde_derive::{Deserialize, Serialize};
+use std::fs;
 use std::io::{Error, ErrorKind, Result};
 use std::{collections::BTreeMap, path::PathBuf};
 
@@ -78,10 +79,10 @@ pub fn parse(path_str: &str) -> Result<Manifest> {
         return Err(Error::new(ErrorKind::InvalidData, msg));
     }
 
-    // Make the paths in the manifest be relative to the directory of the manifest file.
-    // Canonicalize to absolute paths to reduce ambiguity.
     let mut dir = path.clone();
     dir.pop();
+
+    dir = dir.canonicalize()?;
 
     let mut source = dir.clone();
     let mut planet = dir.clone();
@@ -91,9 +92,27 @@ pub fn parse(path_str: &str) -> Result<Manifest> {
     planet.push(manifest.data.planet);
     archive.push(manifest.data.archive);
 
-    manifest.data.source = source.canonicalize()?;
-    manifest.data.planet = planet.canonicalize()?;
-    manifest.data.archive = archive.canonicalize()?;
+    if !planet.exists() {
+        match fs::create_dir_all(&planet) {
+            Ok(_) => (),
+            Err(e) => {
+                let msg = format!(
+                    "Unable to create planet directory: {} Err: {:?}",
+                    planet.display(),
+                    e
+                );
+                return Err(Error::new(e.kind(), msg));
+            }
+        }
+    }
+
+    // Make the paths in the manifest be relative to the directory of the manifest file.
+    // Canonicalize to absolute paths to reduce ambiguity.
+    manifest.data.source = source.canonicalize().unwrap_or(source);
+    manifest.data.planet = planet.canonicalize().unwrap_or(planet);
+    manifest.data.archive = archive.canonicalize().unwrap_or(archive);
+
+    println!("planet dir: {:?}", manifest.data.planet);
 
     Ok(manifest)
 }
@@ -147,7 +166,7 @@ mod tests {
 
     #[test]
     fn test_reading_manifest() {
-        let s = std::fs::read_to_string("manifest.toml").unwrap();
+        let s = std::fs::read_to_string("manifests/basic.toml").unwrap();
         let m: Manifest = toml::from_str(&s).unwrap();
         let s2 = toml::to_string(&m).unwrap();
 
