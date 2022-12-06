@@ -30,7 +30,7 @@ fn main() {
     let _ = fs::remove_dir_all("tests/fixtures/santacruz");
 
     build(
-        "./tests/fixtures/fixtures/nodes4.toml",
+        "./tests/fixtures/nodes4.toml",
         "tests/fixtures/nodes4/santacruz/sort",
     );
     build(
