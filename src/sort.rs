@@ -6,7 +6,7 @@ use crate::{
     },
 };
 use geo::algorithm::interior_point::InteriorPoint;
-use geo::geometry::{Coordinate, LineString};
+use geo::geometry::{Coord, LineString};
 use geo::{coord, Polygon};
 use log::info;
 use pbr::ProgressBar;
@@ -188,7 +188,7 @@ fn build_hilbert_way_pairs(
             return;
         }
 
-        let mut coords = Vec::<Coordinate<f64>>::with_capacity(len as usize);
+        let mut coords = Vec::<Coord<f64>>::with_capacity(len as usize);
 
         for r in refs {
             if let Some(idx) = nodes_index[r as usize].value() {

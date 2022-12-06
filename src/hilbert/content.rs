@@ -4,20 +4,20 @@ use super::{hilbert_tile::HilbertTile, leaf::Leaf};
 use crate::{
     filter::Filter, manifest::Manifest, mutant::Mutant, osmflat::osmflat_generated::osm::Osm,
 };
-use std::{path::Path, time::Instant};
+use std::time::Instant;
 
 type Err = Box<dyn std::error::Error>;
 
 static mut ONE: u32 = 0;
 
-pub fn populate_tile_content(
+pub fn render_tile_content(
     m_leaves: &Mutant<Leaf>,
     m_tiles: &Mutant<HilbertTile>,
     m_leaves_external: &Mutant<u32>,
-    dir: &Path,
     flatdata: &Osm,
     manifest: &Manifest,
 ) -> Result<(Mutant<u64>, Mutant<u32>, Mutant<u32>), Err> {
+    let dir = &manifest.data.planet;
     let filter = Filter::new(manifest, flatdata);
     let leaf_zoom = manifest.render.leaf_zoom;
     let leaves = m_leaves.slice();
@@ -42,7 +42,7 @@ pub fn populate_tile_content(
     let mut children = 0;
 
     let t = Instant::now();
-    println!("Populating tile content...");
+    println!("Rendering tile content...");
 
     for i in 0..tiles.len() {
         let tile = &tiles[i];
@@ -61,7 +61,7 @@ pub fn populate_tile_content(
         };
 
         // Get a vec of indices to all of the entities in the tile.
-        // We will then filter from this to populate tile content.
+        // We will then filter from this to render tile content.
         let (nodes, ways): (Vec<u64>, Vec<u32>) = if is_leaf_parent_zoom {
             let is_last_leaf_parent = children == total_children;
 
@@ -169,7 +169,7 @@ pub fn populate_tile_content(
     m_r.trim();
 
     println!(
-        "Populating tile content took {}",
+        "Rendering tile content took {}",
         format_duration(t.elapsed())
     );
 
@@ -223,14 +223,13 @@ mod tests {
         let m_tiles = Mutant::<HilbertTile>::open(&dir, "hilbert_tiles", false).unwrap();
         let m_leaves_external =
             Mutant::<u32>::open(&dir, "hilbert_leaves_external", false).unwrap();
-        let _ = populate_tile_content(
+        let _ = render_tile_content(
             &m_leaves,
             &m_tiles,
             &m_leaves_external,
-            &dir,
             &flatdata,
             &manifest::parse("tests/fixtures/santacruz_sort.toml").unwrap(),
-        );
+        ).unwrap();
     }
 
     #[test]
@@ -242,13 +241,12 @@ mod tests {
         let m_tiles = Mutant::<HilbertTile>::open(&dir, "hilbert_tiles", false).unwrap();
         let m_leaves_external =
             Mutant::<u32>::open(&dir, "hilbert_leaves_external", false).unwrap();
-        let _ = populate_tile_content(
+        let _ = render_tile_content(
             &m_leaves,
             &m_tiles,
             &m_leaves_external,
-            &dir,
             &flatdata,
             &manifest::parse("tests/fixtures/santacruz_sort.toml").unwrap(),
-        );
+        ).unwrap();
     }
 }

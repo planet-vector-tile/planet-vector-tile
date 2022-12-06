@@ -78,7 +78,8 @@ fn build(convert_manifest_path_str: &str, sort_manifest_path_str: &str) {
     .unwrap();
 
     sort::sort_flatdata(flatdata, &sort_manifest.data.planet).unwrap_or_else(quit);
-    HilbertTree::build(sort_manifest).unwrap_or_else(quit);
+    let mut tree = HilbertTree::new(sort_manifest).unwrap_or_else(quit);
+    tree.render_tile_content().unwrap_or_else(quit);
 }
 
 fn quit<T>(e: Box<dyn Error>) -> T {

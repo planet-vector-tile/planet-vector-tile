@@ -1,5 +1,5 @@
 use super::{
-    content::populate_tile_content,
+    content::render_tile_content,
     hilbert_tile::{build_tiles, HilbertTile},
     leaf::{build_leaves, populate_hilbert_leaves_external, Leaf},
 };
@@ -11,6 +11,8 @@ use crate::{
 };
 use flatdata::FileResourceStorage;
 use std::fs;
+
+type Err = Box<dyn std::error::Error>;
 
 pub struct HilbertTree {
     pub manifest: Manifest,
@@ -25,8 +27,8 @@ pub struct HilbertTree {
 }
 
 impl HilbertTree {
-    pub fn build(manifest: Manifest) -> Result<Self, Box<dyn std::error::Error>> {
-        let dir = &manifest.data.planet;
+    pub fn new(manifest: Manifest) -> Result<Self, Err> {
+        let dir = &manifest.data.planet.clone();
 
         // Copy the manifest to the build directory so we know exactly what it was at the time of build.
         let manifest_str = toml::to_string(&manifest)?;
@@ -50,26 +52,31 @@ impl HilbertTree {
             leaf_zoom,
         )?;
 
-        let (n, w, r) = populate_tile_content(
-            &m_leaves,
-            &m_tiles,
-            &m_leaves_external,
-            &dir,
-            &flatdata,
-            &manifest,
-        )?;
-
         Ok(Self {
             manifest,
             tiles: m_tiles,
             leaves: m_leaves,
             leaves_external: m_leaves_external,
-            n,
-            w,
-            r,
+            n: Mutant::<u64>::new(&dir, "n", 0)?,
+            w: Mutant::<u32>::new(&dir, "w", 0)?,
+            r: Mutant::<u32>::new(&dir, "r", 0)?,
             flatdata,
             way_pairs: m_way_pairs,
         })
+    }
+
+    pub fn render_tile_content(&mut self) -> Result<&Self, Err> {
+        let (n, w, r) = render_tile_content(
+            &self.leaves,
+            &self.tiles,
+            &self.leaves_external,
+            &self.flatdata,
+            &self.manifest,
+        )?;
+        self.n = n;
+        self.w = w;
+        self.r = r;
+        Ok(self)
     }
 
     pub fn open(manifest: &Manifest) -> Result<Self, Box<dyn std::error::Error>> {

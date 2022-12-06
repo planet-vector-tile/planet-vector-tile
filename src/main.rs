@@ -48,16 +48,18 @@ fn main() {
         }
         ("render", matches) => {
             let manifest = handle_args(matches);
-            HilbertTree::build(manifest).unwrap_or_else(quit);
+            let mut tree = HilbertTree::new(manifest).unwrap_or_else(quit);
+            tree.render_tile_content().unwrap_or_else(quit);
         }
         ("archive", _) => {
-            println!("Make a .pvt archive.")
+            println!("TODO: Make a .pvt archive.")
         }
         ("build", matches) => {
             let manifest = handle_args(matches);
             let flatdata = osmflat::convert(&manifest).unwrap_or_else(quit);
             sort::sort_flatdata(flatdata, &manifest.data.planet).unwrap_or_else(quit);
-            HilbertTree::build(manifest).unwrap_or_else(quit);
+            let mut tree = HilbertTree::new(manifest).unwrap_or_else(quit);
+            tree.render_tile_content().unwrap_or_else(quit);
         }
         _ => unreachable!(),
     }
