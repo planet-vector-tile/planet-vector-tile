@@ -55,7 +55,16 @@ fn main() {
         }
         ("render", matches) => {
             let manifest = get_manifest(matches);
-            let mut tree = HilbertTree::open(&manifest).unwrap_or_else(quit);
+
+            let mut tree = match HilbertTree::open(&manifest) {
+                Ok(tree) => tree,
+                Err(e) => {
+                    eprintln!("Unable to open planet dir: {} Error: {:?}", manifest.data.planet.display(), e);
+                    eprintln!("Are you pointing to the right source, planet, and archive in your manifest?");
+                    std::process::exit(1);
+                },
+            };
+  
             tree.render_tile_content().unwrap_or_else(quit);
         }
         ("archive", _) => {
@@ -72,7 +81,16 @@ fn main() {
 
             let flatdata = osmflat::convert(&manifest).unwrap_or_else(quit);
             sort::sort_flatdata(flatdata, &manifest.data.planet).unwrap_or_else(quit);
-            let mut tree = HilbertTree::new(&manifest).unwrap_or_else(quit);
+            
+            let mut tree = match HilbertTree::new(&manifest) {
+                Ok(tree) => tree,
+                Err(e) => {
+                    eprintln!("Unable to open planet dir: {} Error: {:?}", manifest.data.planet.display(), e);
+                    eprintln!("Are you pointing to the right source, planet, and archive in your manifest?");
+                    std::process::exit(1);
+                },
+            };
+
             tree.render_tile_content().unwrap_or_else(quit);
         }
         _ => unreachable!(),
