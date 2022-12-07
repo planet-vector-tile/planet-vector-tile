@@ -16,7 +16,7 @@
         },
         "planet": {
             "type": "planet",
-            "tiles": ["info", "../manifests/basic.toml"],
+            "tiles": ["info", "../manifests/full_planet.toml"],
             "sprite": "https://storage.googleapis.com/hellopvt3/sprites",
             "minzoom": 0,
             "maxzoom": 12
@@ -164,7 +164,7 @@
             "source-layer": "ways",
             "paint": {
                 "line-color": "rgba(192, 255, 239, 0.8)",
-                "line-width": 2
+                "line-width": 1
             }
         },
         {

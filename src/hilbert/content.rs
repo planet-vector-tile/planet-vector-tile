@@ -1,4 +1,5 @@
 use humantime::format_duration;
+use rayon::prelude::{IntoParallelIterator, ParallelIterator, IntoParallelRefIterator};
 
 use super::{hilbert_tile::HilbertTile, leaf::Leaf};
 use crate::{
@@ -82,7 +83,10 @@ pub fn render_tile_content(
                 Some(end_leaf) => start_leaf.n as usize..end_leaf.n as usize,
                 None => start_leaf.n as usize..nodes.len(),
             };
-            let nodes = nodes_range.map(|i| (i, &nodes[i]));
+
+            // let nodes = nodes_range.map(|i| (i, &nodes[i]));
+            let nodes = nodes_range.into_par_iter().map(|i| (i, &nodes[i]));
+
             let filtered_nodes: Vec<u64> =
                 nodes.filter(node_filter).map(|(i, _)| i as u64).collect();
 
@@ -95,9 +99,11 @@ pub fn render_tile_content(
                 None => start_leaf.w_ext as usize..external.len(),
             };
 
-            let inner_ways = w_range.map(|i| (i, &ways[i]));
+            // let inner_ways = w_range.map(|i| (i, &ways[i]));
+            let inner_ways = w_range.into_par_iter().map(|i| (i, &ways[i]));
+
             let ext_ways = external[w_ext_range]
-                .iter()
+                .into_par_iter()
                 .map(|&i| (i as usize, &ways[i as usize]));
             let ways = inner_ways.chain(ext_ways);
             let filtered_ways: Vec<u32> = ways.filter(way_filter).map(|(i, _)| i as u32).collect();
@@ -117,7 +123,9 @@ pub fn render_tile_content(
                 None => &n_idxs[start_child.n as usize..],
             };
 
-            let nodes = node_idxs.iter().map(|i| (*i as usize, &nodes[*i as usize]));
+            // let nodes = node_idxs.iter().map(|i| (*i as usize, &nodes[*i as usize]));
+            let nodes = node_idxs.par_iter().map(|i| (*i as usize, &nodes[*i as usize]));
+            
             let filtered_nodes: Vec<u64> =
                 nodes.filter(node_filter).map(|(i, _)| i as u64).collect();
 
@@ -128,7 +136,9 @@ pub fn render_tile_content(
                 None => &w_idxs[start_child.w as usize..],
             };
 
-            let ways = way_idxs.iter().map(|i| (*i as usize, &ways[*i as usize]));
+            // let ways = way_idxs.iter().map(|i| (*i as usize, &ways[*i as usize]));
+            let ways = way_idxs.par_iter().map(|i| (*i as usize, &ways[*i as usize]));
+            
             let filtered_ways: Vec<u32> = ways.filter(way_filter).map(|(i, _)| i as u32).collect();
 
             (filtered_nodes, filtered_ways)
