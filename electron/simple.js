@@ -17,6 +17,11 @@ let pvt = (window.pvt = {
     selectedFeature: null,
 });
 
+map.on('zoom', () => {
+    const zoom = map.getZoom();
+    document.getElementById('zoom').innerHTML = zoom;
+});
+
 map.on('mouseup', e => {
     const features = (pvt.clickedFeatures = map.queryRenderedFeatures(e.point));
 
