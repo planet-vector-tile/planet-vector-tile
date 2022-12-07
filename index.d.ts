@@ -8,4 +8,5 @@ export function pvt(): Promise<void>;
 export class Planet {
     constructor(tiles: Array<string>);
     tile(z: number, x: number, y: number): Promise<Uint8Array>;
+    abort(z: number, x: number, y: number): void;
 }

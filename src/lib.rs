@@ -82,7 +82,6 @@ impl Planet {
     #[napi]
     pub async fn tile(&self, z: u8, x: u32, y: u32) -> Result<Uint8Array> {
         let time = Instant::now();
-        let sources_rw = self.sources.clone();
         let tile = Tile::from_zxy(z, x, y);
         let task_handle = tokio::task::spawn(async move {
             let mut builder = PVTBuilder::new();
@@ -111,6 +110,13 @@ impl Planet {
                 format!("{:8} {}/{}/{} Error: {:?}", tile.h, z, x, y, err),
             )),
         }
+    }
+
+    #[napi]
+    pub fn abort(&self, z: u8, x: u32, y: u32) {
+        // NHTODO Provide ability to abort task
+        // https://github.com/cyb0124/abort-on-drop/blob/master/src/lib.rs
+        println!("abort {}/{}/{}", z, x, y);
     }
 }
 
