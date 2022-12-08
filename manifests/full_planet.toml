@@ -1,5 +1,5 @@
 [data]
-source = "/opt/geodata/planet-2022-11-26.osm.pbf"
+source = "/opt/geodata/osm/planet-2022-11-26.osm.pbf"
 planet = "/opt/pvt/planets/full_planet"
 archive = "/opt/pvt/archives/full_planet.pvt"
 
