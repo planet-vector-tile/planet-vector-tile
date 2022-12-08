@@ -10,12 +10,15 @@ const { app, BrowserWindow } = require('electron');
 // Also
 // https://www.electron.build/
 
+app.commandLine.appendSwitch('js-flags', '--max-old-space-size=16384');
+
 function createWindow() {
     const win = new BrowserWindow({
         width: 1100,
         height: 800,
         webPreferences: {
             nodeIntegration: true,
+            nodeIntegrationInWorker: true,
             contextIsolation: false,
         },
         titleBarStyle: 'hidden',

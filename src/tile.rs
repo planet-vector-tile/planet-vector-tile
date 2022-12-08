@@ -229,7 +229,7 @@ impl Tile {
         [nw, sw, se, ne]
     }
 
-    pub fn grand_children(&self) -> [Tile; 16] {
+    pub fn grandchildren(&self) -> [Tile; 16] {
         let mut tiles = [Tile::default(); 16];
         let mut i = 0;
         for child in self.children().iter() {
@@ -245,20 +245,20 @@ impl Tile {
         if child_levels == 0 {
             return Vec::<Tile>::new();
         }
-        let top_z = if self.z + child_levels >= 31 {
-            31
+        let top_z = if self.z + child_levels >= 28 {
+            28
         } else {
             self.z + child_levels
         };
         let mut desc = Vec::<Tile>::new();
         let mut q = Queue::<Tile>::new();
-        for t in self.children() {
+        for t in self.grandchildren() {
             q.queue(t).unwrap();
         }
         while !q.is_empty() {
             let t = q.dequeue().unwrap();
-            if t.z < top_z {
-                for c in t.children() {
+            if t.z <= top_z {
+                for c in t.grandchildren() {
                     q.queue(c).unwrap();
                 }
             }
@@ -273,7 +273,7 @@ impl Tile {
 
         let mut pyramid = Vec::<Tile>::with_capacity(size);
 
-        for z in 0..self.z {
+        for z in (0..self.z).step_by(2) {
             pyramid.push(self.ancestor(z));
         }
         pyramid.push(self.clone());

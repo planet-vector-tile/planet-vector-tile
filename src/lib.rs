@@ -112,6 +112,13 @@ impl Planet {
             )),
         }
     }
+
+    #[napi]
+    pub fn abort(&self, z: u8, x: u32, y: u32) {
+        // NHTODO Provide ability to abort task
+        // https://github.com/cyb0124/abort-on-drop/blob/master/src/lib.rs
+        println!("abort {}/{}/{}", z, x, y);
+    }
 }
 
 // NHTODO This removes all the dead code warnings, because lib is the main codepath, not the pvt main bin.
