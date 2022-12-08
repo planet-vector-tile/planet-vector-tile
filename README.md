@@ -1,4 +1,11 @@
-# Planet Vector Tile
+# PlanetVectorTile
+
+## Contributing
+
+You are welcome to submit pull requests to this repo for core PlanetVectorTile changes. If you need to modify MapLibre, you can submit a pull request to the planet branch of:
+
+https://github.com/planet-vector-tile/maplibre-gl-js
+
 
 ## Dependencies
 
@@ -13,6 +20,10 @@ Install NodeJS
 
 https://nodejs.org/en/download/
 
+## Clone Repo
+
+    git clone --recursive git@github.com:planet-vector-tile/planet-vector-tile.git
+    
 ## Install
 
 You can run the install script that will build and install the CLI, MapLibre, and the Electron app.
@@ -44,7 +55,7 @@ npm test
 
 If you want to modify the flatdata or flatbuffer schema, you will need to install the corresponding schema compilers.
 
-### 1. Install FlatBuffers flatc schema compiler. 
+### 1. Install flatdata flatc schema compiler. 
 
 https://github.com/heremaps/flatdata/tree/master/flatdata-generator
 
