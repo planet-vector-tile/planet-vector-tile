@@ -1,39 +1,23 @@
 # Planet Vector Tile
 
-# Build the entire project.
+## Dependencies
 
-### Dependencies
-
--   Rust (cargo and rustc) >= v1.63
+-   Rust >= v1.65
 -   NodeJS >= v16.17
 
-Build maplibre-gl-js.
+Install Rust
 
-```
-npm run build
-```
+    curl https://sh.rustup.rs -sSf | sh -s -- -y
 
-## Install the Command Line Interface.
+Install NodeJS
 
-```
-cargo install --path .
-```
+https://nodejs.org/en/download/
 
-## Convert an OSM PBF to osmflat.
+## Install
 
-```
-pvt ~/geodata/extracts/california.osm.pbf ~/geodata/flatdata/california
-```
+You can run the install script that will build and install the CLI, MapLibre, and the Electron app.
 
-or
-
-```
-cargo run -r -- --overwrite ~/geodata/extracts/california.osm.pbf ~/geodata/flatdata/california
-cargo run -r -- --overwrite ~/geodata/source/planet-220808.osm.pbf ~/geodata/flatdata/planet
-cargo run -r -- --overwrite ~/geodata/extracts/santacruz.osm.pbf ~/geodata/flatdata/santacruz
-```
-
-Note that if you are not using the release flag (-r) for your the tool will run much more slowly.
+    ./install.sh
 
 ## Run the Electron app.
 
@@ -60,6 +44,22 @@ npm test
 
 If you want to modify the flatdata or flatbuffer schema, you will need to install the corresponding schema compilers.
 
-Install FlatBuffers flatc schema compiler.
+### 1. Install FlatBuffers flatc schema compiler. 
 
-Install flatdata flatdata-generator schema compiler.
+https://github.com/heremaps/flatdata/tree/master/flatdata-generator
+
+    pip3 install flatdata-generator
+
+### 2. Build the flatbuffer schema compiler.
+
+    brew install flatbuffers
+
+or
+
+https://google.github.io/flatbuffers/flatbuffers_guide_building.html
+
+### 3. Regenerate schema
+
+Then run to regnerate schema files:
+
+    npm run generate:schema
