@@ -22,13 +22,13 @@ rules:
         tags: []
     admin_state:
         minzoom: 4
-        tags: { admin_level: 4, admin_level: 5 }
+        tags: [ [admin_level, 4], [admin_level, 5]]
     admin_county:
         minzoom: 8
-        tags: { admin_level: }
+        tags: [ [admin_level, 4], [admin_level, 5]]
     admin_city:
         minzoom: 10
-        tags: { admin_level: }
+        keys: [admin_level]
     admin_other:
         minzoom: 12
         keys: [admin_level]
@@ -37,12 +37,8 @@ rules:
         minzoom: 12
         keys: [building]
 
-    
+    # tags = [["key0", "value0"], ["key1", "value1"]]
 
-    admin: { minzoom: 4, values: ['administrative'] }
-    admin2:
-      minzoom: 4
-      tags: { admin_level: 2 }
     water: { minzoom: 10, keys: ['water'] }
     boundaries: { minzoom: 8, keys: ['boundary'] }
     buildings: { minzoom: 10, keys: ['building'] }
@@ -50,5 +46,5 @@ rules:
     roads_major: { minzoom: 10, values: ['motorway', 'trunk', 'primary'] }
     roads_minor: { minzoom: 12, keys: ['highway'] }
 
-info:
-    entities_by_rule: [admin_country, admin_state, admin_county, admin_other]
+# info:
+#     entities_by_rule: [admin_country, admin_state, admin_county, admin_other]

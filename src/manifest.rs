@@ -36,8 +36,8 @@ pub struct Rule {
     pub keys: Vec<String>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub values: Vec<String>,
-    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-    pub tags: BTreeMap<String, String>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub tags: Vec<(String, String)>,
 }
 
 pub fn parse(path_str: &str) -> Result<Manifest> {
@@ -131,10 +131,6 @@ mod tests {
         );
 
         let mut rules = Rules::new();
-        let mut tags = BTreeMap::new();
-        tags.insert("key0".to_string(), "value0".to_string());
-        tags.insert("key1".to_string(), "value1".to_string());
-        tags.insert("key2".to_string(), "value2".to_string());
         rules.insert(
             "rule0".to_string(),
             Rule {
@@ -142,7 +138,11 @@ mod tests {
                 maxzoom: None,
                 keys: vec!["key0".to_string(), "key1".to_string()],
                 values: vec!["value0".to_string(), "value1".to_string()],
-                tags,
+                tags: vec![
+                    ("key0".to_string(), "value0".to_string()).into(),
+                    ("key1".to_string(), "value1".to_string()).into(),
+                ],
+
             },
         );
 
