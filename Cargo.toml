@@ -4,7 +4,6 @@ name = "planet-vector-tile"
 version = "0.1.0"
 default-run = "pvt"
 license = "MIT"
-license-file = "LICENSE.md"
 
 [lib]
 crate-type = ["cdylib"]

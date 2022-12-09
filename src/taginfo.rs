@@ -15,7 +15,6 @@ pub fn survey(manifest: Manifest) -> Result<(), Box<dyn std::error::Error>> {
     let flatdata = Osm::open(FileResourceStorage::new(planet))?;
 
     let tags_idx = flatdata.tags_index();
-    let tags_idx_len = tags_idx.len();
     let tags = flatdata.tags();
     let strings = flatdata.stringtable();
 
@@ -28,29 +27,54 @@ pub fn survey(manifest: Manifest) -> Result<(), Box<dyn std::error::Error>> {
     let total_relations = relations.len();
 
     let mut nodes_count = AtomicU64::new(0);
+    let mut ways_count = AtomicU64::new(0);
+    let mut relations_count = AtomicU64::new(0);
 
     flatdata.nodes().par_iter().for_each(|n| {
-        if n.osm_id() == 316949491 {
-            println!("should be pulaski")
-        }
         let Some(tags) = tags_vec(n.tags(), tags_idx, tags, strings) else { return };
-        let Some(ts ) = place(tags) else { return };
+        let Some(ts ) = with_key("place", tags) else { return };
 
         println!("n {} {}", n.osm_id(), tags_string(ts));
         nodes_count.fetch_add(1, Ordering::Relaxed);
     });
 
+    flatdata.ways().par_iter().for_each(|w| {
+        let Some(tags) = tags_vec(w.tags(), tags_idx, tags, strings) else { return };
+        let Some(ts ) = with_key("admin_level", tags) else { return };
+
+        println!("w {} {}", w.osm_id(), tags_string(ts));
+        ways_count.fetch_add(1, Ordering::Relaxed);
+    });
+
+    flatdata.relations().iter().for_each(|r| {
+        let Some(tags) = tags_vec(r.tags(), tags_idx, tags, strings) else { return };
+        let Some(ts ) = with_key("name", tags) else { return };
+
+        println!("r {} {}", r.osm_id(), tags_string(ts));
+        ways_count.fetch_add(1, Ordering::Relaxed);
+    });
+
     let n_count = *nodes_count.get_mut();
     println!(
-        "node matches: {} / {} - {:.5} %",
+        "node matches: {} / {} - {} %",
         n_count,
         total_nodes,
-        n_count as usize / total_nodes * 100
+        n_count as f64 / total_nodes as f64 * 100.0
     );
-
-    flatdata.ways().par_iter().for_each(|w| {});
-
-    flatdata.relations().par_iter().for_each(|r| {});
+    let w_count = *ways_count.get_mut();
+    println!(
+        "way matches: {} / {} - {} %",
+        w_count,
+        total_nodes,
+        w_count as f64 / total_ways as f64 * 100.0
+    );
+    let r_count = *relations_count.get_mut();
+    println!(
+        "relation matches: {} / {} - {} %",
+        r_count,
+        total_relations,
+        r_count as f64 / total_relations as f64 * 100.0
+    );
 
     Ok(())
 }
@@ -91,8 +115,21 @@ fn tags_string<'a>(tags: Vec<(&'a str, &'a str)>) -> String {
     tags.iter().map(|(k, v)| format!("{}={}", k, v)).join(" ")
 }
 
-pub fn place<'a>(tags: Vec<(&'a str, &'a str)>) -> Option<Vec<(&'a str, &'a str)>> {
-    let m = tags.iter().find(|(k, v)| *k == "place");
+pub fn with_key<'a>(key: &str, tags: Vec<(&'a str, &'a str)>) -> Option<Vec<(&'a str, &'a str)>> {
+    let m = tags.iter().find(|(k, _)| *k == key);
+    if m.is_some() {
+        Some(sort(tags))
+    } else {
+        None
+    }
+}
+
+pub fn with_kv<'a>(
+    key: &str,
+    val: &str,
+    tags: Vec<(&'a str, &'a str)>,
+) -> Option<Vec<(&'a str, &'a str)>> {
+    let m = tags.iter().find(|(k, v)| *k == key && *v == val);
     if m.is_some() {
         Some(sort(tags))
     } else {
