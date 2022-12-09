@@ -25,17 +25,22 @@ rules:
         tags: [ [admin_level, 4], [admin_level, 5]]
     admin_county:
         minzoom: 8
-        tags: [ [admin_level, 4], [admin_level, 5]]
+        tags: [ [admin_level, 5], [admin_level, 6]]
     admin_city:
         minzoom: 10
-        keys: [admin_level]
+        tags: [ [admin_level, 7], [admin_level, 8]]
     admin_other:
         minzoom: 12
         keys: [admin_level]
-
+        tags: [[boundary, administrative]]
+    boundary:
+        minzoom: 10
+        keys: [boundary]
     building:
         minzoom: 12
         keys: [building]
+    
+    
 
     # tags = [["key0", "value0"], ["key1", "value1"]]
 
