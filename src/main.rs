@@ -2,7 +2,7 @@ mod commands;
 mod filter;
 mod hilbert;
 mod location;
-mod manifest;
+pub mod manifest;
 mod mutant;
 mod osmflat;
 mod parallel;
@@ -12,6 +12,7 @@ mod sort;
 mod source;
 mod tile;
 mod tile_attributes;
+mod taginfo;
 
 use clap::ArgMatches;
 use hilbert::tree::HilbertTree;
@@ -92,7 +93,11 @@ fn main() {
             };
 
             tree.render_tile_content().unwrap_or_else(quit);
-        }
+        },
+        ("taginfo", matches) => {
+            let manifest = get_manifest(matches);
+            taginfo::survey(manifest).unwrap_or_else(quit);
+        },
         _ => unreachable!(),
     }
 

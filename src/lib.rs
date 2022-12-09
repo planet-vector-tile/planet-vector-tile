@@ -6,7 +6,7 @@ pub mod info;
 pub mod location;
 mod manifest;
 mod mutant;
-mod osmflat;
+pub mod osmflat;
 mod parallel;
 mod pvt_builder;
 mod rules;
