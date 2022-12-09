@@ -37,6 +37,8 @@ pub struct Rule {
     pub values: Vec<String>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub tags: Vec<(String, String)>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub compare: Vec<(String, String, f64)>,
 }
 
 pub fn parse(path_str: &str) -> Result<Manifest> {
@@ -141,6 +143,7 @@ mod tests {
                     ("key0".to_string(), "value0".to_string()).into(),
                     ("key1".to_string(), "value1".to_string()).into(),
                 ],
+                compare: vec![],
             },
         );
 
@@ -171,5 +174,49 @@ mod tests {
         let s2 = toml::to_string(&m).unwrap();
 
         assert!(s2.len() > 500);
+    }
+
+    #[test]
+    fn test_compare() {
+        let mut layers = Layers::new();
+        layers.insert(
+            "layer0".to_string(),
+            vec!["rule0".to_string(), "rule1".to_string()],
+        );
+
+        let mut rules = Rules::new();
+        rules.insert(
+            "rule0".to_string(),
+            Rule {
+                minzoom: 0,
+                maxzoom: None,
+                keys: vec!["key0".to_string(), "key1".to_string()],
+                values: vec!["value0".to_string(), "value1".to_string()],
+                tags: vec![],
+                compare: vec![
+                    ("fun_key".to_string(), "<=".to_string(), 4.3),
+                    ("anotherkey".to_string(), ">".to_string(), -32.0),
+                ],
+            },
+        );
+
+        let m = Manifest {
+            data: Data {
+                source: PathBuf::from("source"),
+                planet: PathBuf::from("planet"),
+                archive: PathBuf::from("archive"),
+            },
+            render: Render {
+                leaf_zoom: 12,
+                layer_order: vec!["layer0".to_string()],
+            },
+            layers,
+            rules,
+        };
+
+        let s = toml::to_string(&m).unwrap();
+        println!("{}", s);
+        let m2: Manifest = toml::from_str(&s).unwrap();
+        assert_eq!(m, m2);
     }
 }

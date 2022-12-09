@@ -100,9 +100,9 @@ pub fn sort_flatdata(flatdata: Osm, dir: &PathBuf) -> Result<(), Box<dyn std::er
         pb.tick(i);
     }
 
-    // Remove the old node index, as we don't need it anymore.
+    info!("Removing the old node index, as we don't need it anymore...");
     let old_node_idx_path = m_old_node_idx.path.clone();
-    drop(m_old_node_idx);
+    // drop(m_old_node_idx);
     let _ = fs::remove_file(old_node_idx_path);
 
     // Reorder ways to sorted hilbert way pairs.
@@ -145,7 +145,8 @@ pub fn sort_flatdata(flatdata: Osm, dir: &PathBuf) -> Result<(), Box<dyn std::er
         });
     pb.finish();
 
-    std::mem::drop(flatdata);
+    // This drop takes several minutes for the planet. Do we need to do this?
+    // std::mem::drop(flatdata);
     m_sorted_nodes.mv("nodes")?;
     info!("Moved sorted_nodes to nodes");
     sorted_ways_mut.mv("ways")?;

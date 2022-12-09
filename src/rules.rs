@@ -118,6 +118,7 @@ impl Rules {
     pub fn get_zoom_range(&self, tag: &Tag) -> ZoomRangeRuleEval {
         let key = tag.key_idx() as usize;
         let value = tag.value_idx() as usize;
+        if let Some(zoom_range) = self.
         if let Some(zoom_range) = self.tag_to_zoom_range.get(&(key, value)) {
             return ZoomRangeRuleEval::Tag(zoom_range);
         }
@@ -134,6 +135,7 @@ impl Rules {
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum ZoomRangeRuleEval<'a> {
     None,
+    Compare(&'a Range<u8>),
     Tag(&'a Range<u8>),
     Value(&'a Range<u8>),
     Key(&'a Range<u8>),

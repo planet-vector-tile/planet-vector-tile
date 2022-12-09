@@ -282,15 +282,15 @@ fn build_tags(
     keys.push(osm_id_key);
     vals.push(osm_id_val);
 
-    for tag_idx in &tags_index[tags_index_range] {
-        let tag_i = tag_idx.value() as usize;
-        debug_assert!(tag_i < tags.len());
-        let tag = &tags[tag_i];
-        let k = unsafe { strings.substring_unchecked(tag.key_idx() as usize) };
-        let v = unsafe { strings.substring_unchecked(tag.value_idx() as usize) };
-        keys.push(builder.attributes.upsert_string(k));
-        vals.push(builder.attributes.upsert_string_value(v));
-    }
+    // for tag_idx in &tags_index[tags_index_range] {
+    //     let tag_i = tag_idx.value() as usize;
+    //     debug_assert!(tag_i < tags.len());
+    //     let tag = &tags[tag_i];
+    //     let k = unsafe { strings.substring_unchecked(tag.key_idx() as usize) };
+    //     let v = unsafe { strings.substring_unchecked(tag.value_idx() as usize) };
+    //     keys.push(builder.attributes.upsert_string(k));
+    //     vals.push(builder.attributes.upsert_string_value(v));
+    // }
 
     (keys, vals)
 }
