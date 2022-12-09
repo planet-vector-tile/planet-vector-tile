@@ -4,6 +4,7 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
+
         {
             "type": "lldb",
             "request": "launch",
@@ -43,6 +44,20 @@
                 }
             },
             "args": ["render", "./manifests/full_planet.toml"],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "taginfo",
+            "cargo": {
+                "args": ["build", "--bin=pvt", "--package=planet-vector-tile"],
+                "filter": {
+                    "name": "pvt",
+                    "kind": "bin"
+                }
+            },
+            "args": ["taginfo", "./manifests/admin.toml"],
             "cwd": "${workspaceFolder}"
         },
         {
