@@ -1,0 +1,26 @@
+data:
+    source: ../tests/fixtures/santacruz.osm.pbf
+    planet: ../planets/santacruz
+    archive: ../archives/santacruz.pvt
+render:
+    leaf_zoom: 12
+    layer_order: [Administrative, Water, Boundaries, Buildings, Landuse, Major Roads, Minor Roads]
+layers:
+    Administrative: [admin]
+    Water: [water]
+    Boundaries: [boundaries]
+    Buildings: ['buildings']
+    Landuse: ['landuse']
+    'Major Roads': ['roads_major']
+    'Minor Roads': ['roads_minor']
+rules:
+    admin: { minzoom: 4, values: ['administrative'] }
+    admin2:
+      minzoom: 4
+      tags: { admin_level: 2 }
+    water: { minzoom: 10, keys: ['water'] }
+    boundaries: { minzoom: 8, keys: ['boundary'] }
+    buildings: { minzoom: 10, keys: ['building'] }
+    landuse: { minzoom: 10, keys: ['landuse'] }
+    roads_major: { minzoom: 10, values: ['motorway', 'trunk', 'primary'] }
+    roads_minor: { minzoom: 12, keys: ['highway'] }

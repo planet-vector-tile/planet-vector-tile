@@ -30,13 +30,14 @@ pub struct Render {
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 pub struct Rule {
     pub minzoom: u8,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub maxzoom: Option<u8>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub keys: Vec<String>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub values: Vec<String>,
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub tags: Vec<(String, String)>,
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub tags: BTreeMap<String, String>,
 }
 
 pub fn parse(path_str: &str) -> Result<Manifest> {
@@ -54,7 +55,7 @@ pub fn parse(path_str: &str) -> Result<Manifest> {
         }
     };
 
-    let mut manifest: Manifest = match toml::from_str(&manifest_str) {
+    let mut manifest: Manifest = match serde_yaml::from_str(&manifest_str) {
         Ok(manifest) => manifest,
         Err(e) => {
             let msg = format!("Failed to parse manifest file: {}", e);
@@ -130,6 +131,10 @@ mod tests {
         );
 
         let mut rules = Rules::new();
+        let mut tags = BTreeMap::new();
+        tags.insert("key0".to_string(), "value0".to_string());
+        tags.insert("key1".to_string(), "value1".to_string());
+        tags.insert("key2".to_string(), "value2".to_string());
         rules.insert(
             "rule0".to_string(),
             Rule {
@@ -137,10 +142,7 @@ mod tests {
                 maxzoom: None,
                 keys: vec!["key0".to_string(), "key1".to_string()],
                 values: vec!["value0".to_string(), "value1".to_string()],
-                tags: vec![
-                    ("key0".to_string(), "value0".to_string()).into(),
-                    ("key1".to_string(), "value1".to_string()).into(),
-                ],
+                tags,
             },
         );
 
@@ -158,18 +160,20 @@ mod tests {
             rules,
         };
 
-        let s = toml::to_string(&m).unwrap();
+        let s = serde_yaml::to_string(&m).unwrap();
         println!("{}", s);
-        let m2: Manifest = toml::from_str(&s).unwrap();
+        let m2: Manifest = serde_yaml::from_str(&s).unwrap();
         assert_eq!(m, m2);
     }
 
     #[test]
     fn test_reading_manifest() {
-        let s = std::fs::read_to_string("manifests/basic.toml").unwrap();
-        let m: Manifest = toml::from_str(&s).unwrap();
-        let s2 = toml::to_string(&m).unwrap();
+        let s = std::fs::read_to_string("manifests/basic.yaml").unwrap();
+        let m: Manifest = serde_yaml::from_str(&s).unwrap();
+        let s2 = serde_yaml::to_string(&m).unwrap();
 
-        assert!(s2.len() > 500);
+        println!("{}", s2);
+
+        assert!(s2.len() > 300);
     }
 }

@@ -626,6 +626,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "itoa"
+version = "1.0.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4217ad341ebadf8d8e724e264f13e593e0648f5b3e94b3896a5df283be015ecc"
+
+[[package]]
 name = "lazy_static"
 version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -927,6 +933,7 @@ dependencies = [
  "rayon",
  "serde",
  "serde_derive",
+ "serde_yaml",
  "toml",
 ]
 
@@ -1248,6 +1255,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "ryu"
+version = "1.0.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4501abdff3ae82a1c1b477a17252eb69cee9e66eb915c1abaa4f44d873df9f09"
+
+[[package]]
 name = "same-file"
 version = "1.0.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1298,6 +1311,19 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
+]
+
+[[package]]
+name = "serde_yaml"
+version = "0.9.14"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6d232d893b10de3eb7258ff01974d6ee20663d8e833263c99409d4b13a0209da"
+dependencies = [
+ "indexmap",
+ "itoa",
+ "ryu",
+ "serde",
+ "unsafe-libyaml",
 ]
 
 [[package]]
@@ -1454,6 +1480,12 @@ name = "unicode-ident"
 version = "1.0.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6ceab39d59e4c9499d4e5a8ee0e2735b891bb7308ac83dfb4e80cad195c9f6f3"
+
+[[package]]
+name = "unsafe-libyaml"
+version = "0.2.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c1e5fa573d8ac5f1a856f8d7be41d390ee973daf97c806b2c1a465e4e1406e68"
 
 [[package]]
 name = "vcell"
