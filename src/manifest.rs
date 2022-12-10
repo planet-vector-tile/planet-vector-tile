@@ -12,7 +12,6 @@ pub struct Manifest {
     pub render: Render,
     pub layers: Layers,
     pub rules: Rules,
-    pub report: Option<Report>,
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
@@ -26,6 +25,7 @@ pub struct Data {
 pub struct Render {
     pub leaf_zoom: u8,
     pub layer_order: Vec<String>,
+    pub include_tags: IncludeTags,
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
@@ -39,7 +39,6 @@ pub struct Rule {
     pub values: Vec<String>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub tags: Vec<(String, String)>,
-    pub include_tags: Option<IncludeTags>,
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
@@ -47,13 +46,6 @@ pub enum IncludeTags {
     None,
     All,
     Keys(Vec<String>),
-}
-
-#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
-pub struct Report {
-    pub path: PathBuf,
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub log_entity_by_rule: Vec<String>,
 }
 
 pub fn parse(path_str: &str) -> Result<Manifest> {
@@ -162,7 +154,6 @@ mod tests {
                     ("key0".to_string(), "value0".to_string()).into(),
                     ("key1".to_string(), "value1".to_string()).into(),
                 ],
-                include_tags: Some(IncludeTags::Keys(vec!["key0".to_string(), "key1".to_string()])),
             },
         );
 
@@ -175,13 +166,10 @@ mod tests {
             render: Render {
                 leaf_zoom: 12,
                 layer_order: vec!["layer0".to_string()],
+                include_tags: IncludeTags::Keys(vec!["key0".to_string(), "key1".to_string()]),
             },
             layers,
             rules,
-            report: Some(Report {
-                path: PathBuf::from("report"),
-                rules: vec!["rule0".to_string()],
-            }),
         };
 
         let s = serde_yaml::to_string(&m).unwrap();

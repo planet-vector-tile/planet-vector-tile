@@ -8,7 +8,7 @@ use rayon::prelude::{IndexedParallelIterator, IntoParallelRefIterator, ParallelI
 use yaml_rust::{yaml, YamlEmitter};
 
 use crate::{
-    manifest::Manifest,
+    manifest::{Manifest, IncludeTags},
     osmflat::osmflat_generated::osm::{Osm, Tag},
 };
 
@@ -21,17 +21,22 @@ pub struct Rules {
 impl Rules {
     // NOTE: This is expensive to construct due to get_strs. Don't construct in a loop.
     pub fn new(manifest: &Manifest, flatdata: &Osm) -> Self {
-        let rule_strs: DashSet<&str> = DashSet::new();
+        let strs: DashSet<&str> = DashSet::new();
         for (_, rule) in &manifest.rules {
             for (k, v) in &rule.tags {
-                rule_strs.insert(k);
-                rule_strs.insert(v);
+                strs.insert(k);
+                strs.insert(v);
             }
             for v in &rule.values {
-                rule_strs.insert(v);
+                strs.insert(v);
             }
             for k in &rule.keys {
-                rule_strs.insert(k);
+                strs.insert(k);
+            }
+        }
+        if let IncludeTags::Keys(keys) = &manifest.include_tags {
+            for k in keys {
+                strs.insert(k);
             }
         }
 
@@ -46,25 +51,25 @@ impl Rules {
         let _ = str_ranges.par_iter().find_any(|r| {
             let bytes = &strings.as_bytes()[r.start..r.end];
             let s = unsafe { std::str::from_utf8_unchecked(bytes) };
-            if rule_strs.contains(s) {
+            if strs.contains(s) {
                 str_to_idx.insert(s, r.start);
-                rule_strs.remove(s);
+                strs.remove(s);
             }
             // halt iterating when the set is empty
-            if rule_strs.is_empty() {
+            if strs.is_empty() {
                 true
             } else {
                 false
             }
         });
 
-        if rule_strs.len() > 0 {
-            println!("NOTICE: Not all rules were matched to a string in the stringtable. Unmatched strings:\n{:?}", rule_strs);
+        if strs.len() > 0 {
+            println!("NOTICE: Not all rules and include_tags were matched to a string in the stringtable. Unmatched strings:\n{:?}", strs);
         }
-        println!("Built pointers to strings from rules in: {}", format_duration(t.elapsed()));
+        println!("Built pointers to strings from rules and include_tags in: {}", format_duration(t.elapsed()));
 
-        let str_to_idx_path = manifest.data.planet.join("rule_str_to_idx.yaml");
-        println!("Saving rule string index to {}", str_to_idx_path.display());
+        let str_to_idx_path = manifest.data.planet.join("str_to_idx.yaml");
+        println!("Saving string index to {}", str_to_idx_path.display());
         let mut yaml_hash = yaml::Hash::new();
         for ref_multi in str_to_idx.iter() {
             let (k, v) = ref_multi.pair();
@@ -75,11 +80,11 @@ impl Rules {
         match emitter.dump(&yaml::Yaml::Hash(yaml_hash)) {
             Ok(_) => {
                 if let Err(err) = fs::write(&str_to_idx_path, str_to_idx_yaml_str) {
-                    eprintln!("Failed to write rule string index to file {} Err: {}", str_to_idx_path.display(), err);
+                    eprintln!("Failed to write string index to file {} Err: {}", str_to_idx_path.display(), err);
                 }
             },
             Err(e) => {
-                eprintln!("Failed to write rule string index. Err: {}", e);
+                eprintln!("Failed to write string index. Err: {}", e);
             }
         }
 
