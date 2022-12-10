@@ -48,10 +48,13 @@ pub fn convert(manifest: &Manifest) -> Result<osmflat::Osm, Error> {
     let builder = match osmflat::OsmBuilder::new(storage.clone()) {
         Ok(builder) => builder,
         Err(e) => {
-            eprintln!("Unable to create new flatdata at {}", &manifest.data.planet.display());
+            eprintln!(
+                "Unable to create new flatdata at {}",
+                &manifest.data.planet.display()
+            );
             eprintln!("If you want to overwrite an existing planet, add the argument --overwrite.");
             return Err(Box::new(e));
-        },
+        }
     };
 
     // TODO: Would be nice not store all these strings in memory, but to flush them

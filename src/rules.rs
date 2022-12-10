@@ -1,4 +1,4 @@
-use std::{ops::Range, time::Instant, fs};
+use std::{fs, ops::Range, time::Instant};
 
 use ahash::AHashMap;
 use dashmap::{DashMap, DashSet};
@@ -8,7 +8,7 @@ use rayon::prelude::{IndexedParallelIterator, IntoParallelRefIterator, ParallelI
 use yaml_rust::{yaml, YamlEmitter};
 
 use crate::{
-    manifest::{Manifest, IncludeTags},
+    manifest::{IncludeTags, Manifest},
     osmflat::osmflat_generated::osm::{Osm, Tag},
 };
 
@@ -34,7 +34,7 @@ impl Rules {
                 strs.insert(k);
             }
         }
-        if let IncludeTags::Keys(keys) = &manifest.include_tags {
+        if let IncludeTags::Keys(keys) = &manifest.render.include_tags {
             for k in keys {
                 strs.insert(k);
             }
@@ -66,28 +66,37 @@ impl Rules {
         if strs.len() > 0 {
             println!("NOTICE: Not all rules and include_tags were matched to a string in the stringtable. Unmatched strings:\n{:?}", strs);
         }
-        println!("Built pointers to strings from rules and include_tags in: {}", format_duration(t.elapsed()));
+        println!(
+            "Built pointers to strings from rules and include_tags in: {}",
+            format_duration(t.elapsed())
+        );
 
         let str_to_idx_path = manifest.data.planet.join("str_to_idx.yaml");
         println!("Saving string index to {}", str_to_idx_path.display());
         let mut yaml_hash = yaml::Hash::new();
         for ref_multi in str_to_idx.iter() {
             let (k, v) = ref_multi.pair();
-            yaml_hash.insert(yaml::Yaml::String(k.to_string()), yaml::Yaml::Integer(*v as i64));
+            yaml_hash.insert(
+                yaml::Yaml::String(k.to_string()),
+                yaml::Yaml::Integer(*v as i64),
+            );
         }
         let mut str_to_idx_yaml_str = String::new();
         let mut emitter = YamlEmitter::new(&mut str_to_idx_yaml_str);
         match emitter.dump(&yaml::Yaml::Hash(yaml_hash)) {
             Ok(_) => {
                 if let Err(err) = fs::write(&str_to_idx_path, str_to_idx_yaml_str) {
-                    eprintln!("Failed to write string index to file {} Err: {}", str_to_idx_path.display(), err);
+                    eprintln!(
+                        "Failed to write string index to file {} Err: {}",
+                        str_to_idx_path.display(),
+                        err
+                    );
                 }
-            },
+            }
             Err(e) => {
                 eprintln!("Failed to write string index. Err: {}", e);
             }
         }
-
 
         let mut tag_to_zoom_range: AHashMap<(usize, usize), Range<u8>> = AHashMap::new();
         let mut value_to_zoom_range: AHashMap<usize, Range<u8>> = AHashMap::new();

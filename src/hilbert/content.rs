@@ -1,5 +1,5 @@
 use humantime::format_duration;
-use rayon::prelude::{IntoParallelIterator, ParallelIterator, IntoParallelRefIterator};
+use rayon::prelude::{IntoParallelIterator, IntoParallelRefIterator, ParallelIterator};
 
 use super::{hilbert_tile::HilbertTile, leaf::Leaf};
 use crate::{
@@ -124,8 +124,10 @@ pub fn render_tile_content(
             };
 
             // let nodes = node_idxs.iter().map(|i| (*i as usize, &nodes[*i as usize]));
-            let nodes = node_idxs.par_iter().map(|i| (*i as usize, &nodes[*i as usize]));
-            
+            let nodes = node_idxs
+                .par_iter()
+                .map(|i| (*i as usize, &nodes[*i as usize]));
+
             let filtered_nodes: Vec<u64> =
                 nodes.filter(node_filter).map(|(i, _)| i as u64).collect();
 
@@ -137,8 +139,10 @@ pub fn render_tile_content(
             };
 
             // let ways = way_idxs.iter().map(|i| (*i as usize, &ways[*i as usize]));
-            let ways = way_idxs.par_iter().map(|i| (*i as usize, &ways[*i as usize]));
-            
+            let ways = way_idxs
+                .par_iter()
+                .map(|i| (*i as usize, &ways[*i as usize]));
+
             let filtered_ways: Vec<u32> = ways.filter(way_filter).map(|(i, _)| i as u32).collect();
 
             (filtered_nodes, filtered_ways)
