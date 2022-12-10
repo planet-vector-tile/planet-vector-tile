@@ -4,7 +4,7 @@ data:
     archive: /opt/pvt/archives/full_planet.pvt
 
 render:
-    leaf_zoom: 12
+    leaf_zoom: 14
     layer_order: [Administrative, Water, Major Roads, Minor Roads, Places, Buildings]
 
 layers:
@@ -49,7 +49,7 @@ rules:
         keys: [boundary]
 
     building:
-        minzoom: 12
+        minzoom: 14
         keys: [building]
 
     place:
@@ -113,5 +113,5 @@ rules:
     highway:
         minzoom: 12
         keys: [highway]
-# info:
-#     entities_by_rule: [admin_country, admin_state, admin_county, admin_other]
+
+    land

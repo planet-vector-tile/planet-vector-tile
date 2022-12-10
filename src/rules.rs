@@ -1,10 +1,11 @@
-use std::{ops::Range, time::Instant};
+use std::{ops::Range, time::Instant, fs};
 
 use ahash::AHashMap;
 use dashmap::{DashMap, DashSet};
 use flatdata::RawData;
 use humantime::format_duration;
 use rayon::prelude::{IndexedParallelIterator, IntoParallelRefIterator, ParallelIterator};
+use yaml_rust::{yaml, YamlEmitter};
 
 use crate::{
     manifest::Manifest,
@@ -61,6 +62,27 @@ impl Rules {
             println!("NOTICE: Not all rules were matched to a string in the stringtable. Unmatched strings:\n{:?}", rule_strs);
         }
         println!("Built pointers to strings from rules in: {}", format_duration(t.elapsed()));
+
+        let str_to_idx_path = manifest.data.planet.join("rule_str_to_idx.yaml");
+        println!("Saving rule string index to {}", str_to_idx_path.display());
+        let mut yaml_hash = yaml::Hash::new();
+        for ref_multi in str_to_idx.iter() {
+            let (k, v) = ref_multi.pair();
+            yaml_hash.insert(yaml::Yaml::String(k.to_string()), yaml::Yaml::Integer(*v as i64));
+        }
+        let mut str_to_idx_yaml_str = String::new();
+        let mut emitter = YamlEmitter::new(&mut str_to_idx_yaml_str);
+        match emitter.dump(&yaml::Yaml::Hash(yaml_hash)) {
+            Ok(_) => {
+                if let Err(err) = fs::write(&str_to_idx_path, str_to_idx_yaml_str) {
+                    eprintln!("Failed to write rule string index to file {} Err: {}", str_to_idx_path.display(), err);
+                }
+            },
+            Err(e) => {
+                eprintln!("Failed to write rule string index. Err: {}", e);
+            }
+        }
+
 
         let mut tag_to_zoom_range: AHashMap<(usize, usize), Range<u8>> = AHashMap::new();
         let mut value_to_zoom_range: AHashMap<usize, Range<u8>> = AHashMap::new();
