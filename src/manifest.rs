@@ -25,7 +25,7 @@ pub struct Data {
 pub struct Render {
     pub leaf_zoom: u8,
     pub layer_order: Vec<String>,
-    pub include_tags: IncludeTags,
+    pub include_tags: Option<IncludeTags>,
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]

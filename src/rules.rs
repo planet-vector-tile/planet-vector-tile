@@ -34,7 +34,7 @@ impl Rules {
                 strs.insert(k);
             }
         }
-        if let IncludeTags::Keys(keys) = &manifest.render.include_tags {
+        if let Some(IncludeTags::Keys(keys)) = &manifest.render.include_tags {
             for k in keys {
                 strs.insert(k);
             }

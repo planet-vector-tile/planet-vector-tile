@@ -33,7 +33,7 @@ impl Source for HilbertTree {
 }
 
 impl HilbertTree {
-    fn compose_leaf(&self, tile: &Tile, pair: ResultPair<&Leaf>, builder: &mut PVTBuilder) {
+    pub fn compose_leaf(&self, tile: &Tile, pair: ResultPair<&Leaf>, builder: &mut PVTBuilder) {
         let nodes = self.flatdata.nodes();
         let ways = self.flatdata.ways();
         let relations = self.flatdata.relations();
@@ -64,7 +64,7 @@ impl HilbertTree {
         self.build_pvt(n_range, ways_it, tile, builder)
     }
 
-    fn compose_h_tile(
+    pub fn compose_h_tile(
         &self,
         tile: &Tile,
         pair: ResultPair<&HilbertTile>,

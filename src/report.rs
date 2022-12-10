@@ -1,18 +1,19 @@
-use std::{
-    io::Error,
-    ops::Range,
-    sync::atomic::{AtomicU64, Ordering},
-};
-
 use crate::manifest::Manifest;
-use crate::osmflat::osmflat_generated::osm::{Osm, Tag, TagIndex};
-use flatdata::{FileResourceStorage, RawData};
-use itertools::Itertools;
-use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
+use crate::hilbert::tree::HilbertTree;
 
 pub fn generate(manifest: &Manifest) -> Result<(), Box<dyn std::error::Error>> {
     let report_path = manifest.data.planet.join("report.yaml");
     println!("Generating report at: {}", report_path.display());
+
+    let tree = HilbertTree::open(manifest)?;
+
+    let leaf_it = tree.pvt_leaf_iterator();
+
+    for (tile, buffer) in leaf_it {
+        let size = buffer.len();
+        
+        println!("{} {} bytes", tile, size);
+    }
 
     Ok(())
 }
