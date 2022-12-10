@@ -16,7 +16,7 @@
         },
         "planet": {
             "type": "planet",
-            "tiles": ["info", "../manifests/full_planet.toml"],
+            "tiles": ["info", "../manifests/basic.toml"],
             "sprite": "https://storage.googleapis.com/hellopvt3/sprites",
             "minzoom": 0,
             "maxzoom": 12

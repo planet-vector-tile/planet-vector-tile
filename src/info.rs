@@ -7,23 +7,23 @@ use crate::tile::planet_vector_tile_generated::*;
 use crate::tile::{HilbertBearing, Tile};
 
 pub struct Info {
-    child_levels: u8,
+    grandchild_levels: u8,
 }
 
 impl Info {
     pub fn new() -> Self {
-        Info { child_levels: 4 }
+        Info { grandchild_levels: 4 }
     }
 }
 
 impl Source for Info {
     fn compose_tile(&self, tile: &Tile, builder: &mut PVTBuilder) {
-        info(tile, builder, self.child_levels)
+        info(tile, builder, self.grandchild_levels)
     }
 }
 
-fn info(render_tile: &Tile, builder: &mut PVTBuilder, child_levels: u8) {
-    let pyramid = render_tile.pyramid(child_levels);
+fn info(render_tile: &Tile, builder: &mut PVTBuilder, grandchild_levels: u8) {
+    let pyramid = render_tile.pyramid(grandchild_levels);
 
     let mut boundary_vec = Vec::<WIPOffset<PVTFeature>>::new();
     let mut center_vec = Vec::<WIPOffset<PVTFeature>>::new();

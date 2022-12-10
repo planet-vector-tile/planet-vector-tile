@@ -124,15 +124,15 @@ pub fn with_key<'a>(key: &str, tags: Vec<(&'a str, &'a str)>) -> Option<Vec<(&'a
     }
 }
 
-pub fn with_kv<'a>(
-    key: &str,
-    val: &str,
-    tags: Vec<(&'a str, &'a str)>,
-) -> Option<Vec<(&'a str, &'a str)>> {
-    let m = tags.iter().find(|(k, v)| *k == key && *v == val);
-    if m.is_some() {
-        Some(sort(tags))
-    } else {
-        None
-    }
-}
+// pub fn with_kv<'a>(
+//     key: &str,
+//     val: &str,
+//     tags: Vec<(&'a str, &'a str)>,
+// ) -> Option<Vec<(&'a str, &'a str)>> {
+//     let m = tags.iter().find(|(k, v)| *k == key && *v == val);
+//     if m.is_some() {
+//         Some(sort(tags))
+//     } else {
+//         None
+//     }
+// }

@@ -238,7 +238,7 @@ mod tests {
             &m_tiles,
             &m_leaves_external,
             &flatdata,
-            &manifest::parse("tests/fixtures/santacruz_sort.toml").unwrap(),
+            &manifest::parse("tests/fixtures/santacruz_sort.yaml").unwrap(),
         )
         .unwrap();
     }
@@ -257,7 +257,7 @@ mod tests {
             &m_tiles,
             &m_leaves_external,
             &flatdata,
-            &manifest::parse("tests/fixtures/santacruz_sort.toml").unwrap(),
+            &manifest::parse("tests/fixtures/santacruz_sort.yaml").unwrap(),
         )
         .unwrap();
     }

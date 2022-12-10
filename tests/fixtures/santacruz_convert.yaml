@@ -1,0 +1,26 @@
+data:
+    source: santacruz.osm.pbf
+    planet: santacruz/convert
+    archive: santacruz.pvt
+
+render:
+    leaf_zoom: 12
+    layer_order: [Administrative, Water, Boundaries, Buildings, Landuse, Major Roads, Minor Roads]
+
+layers:
+    Administrative: [admin]
+    Water: [water]
+    Boundaries: [boundaries]
+    Buildings: [buildings]
+    Landuse: [landuse]
+    Major Roads: [roads_major]
+    Minor Roads: [roads_minor]
+
+rules:
+    admin: { minzoom: 0, values: [administrative] }
+    water: { minzoom: 0, keys: [water] }
+    boundaries: { minzoom: 0, keys: [boundary] }
+    buildings: { minzoom: 10, keys: [building] }
+    landuse: { minzoom: 6, keys: [landuse] }
+    roads_major: { minzoom: 8, values: [motorway, trunk, primary] }
+    roads_minor: { minzoom: 12, keys: [highway] }

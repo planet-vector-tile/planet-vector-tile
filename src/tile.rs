@@ -241,14 +241,14 @@ impl Tile {
         tiles
     }
 
-    pub fn descendants(&self, child_levels: u8) -> Vec<Tile> {
-        if child_levels == 0 {
+    pub fn descendants(&self, grandchild_levels: u8) -> Vec<Tile> {
+        if grandchild_levels == 0 {
             return Vec::<Tile>::new();
         }
-        let top_z = if self.z + child_levels >= 28 {
+        let top_z = if self.z + grandchild_levels >= 28 {
             28
         } else {
-            self.z + child_levels
+            self.z + grandchild_levels
         };
         let mut desc = Vec::<Tile>::new();
         let mut q = Queue::<Tile>::new();
@@ -268,8 +268,8 @@ impl Tile {
         desc
     }
 
-    pub fn pyramid(&self, child_levels: u8) -> Vec<Tile> {
-        let size = self.z as usize + 1 + (1 << 2 * child_levels);
+    pub fn pyramid(&self, grandchild_levels: u8) -> Vec<Tile> {
+        let size = self.z as usize + 1 + (1 << 2 * grandchild_levels);
 
         let mut pyramid = Vec::<Tile>::with_capacity(size);
 
@@ -277,7 +277,7 @@ impl Tile {
             pyramid.push(self.ancestor(z));
         }
         pyramid.push(self.clone());
-        pyramid.append(&mut self.descendants(child_levels));
+        pyramid.append(&mut self.descendants(grandchild_levels));
         pyramid
     }
 
@@ -624,7 +624,7 @@ mod tests {
         let p = t.pyramid(0);
         assert_eq!(p.len(), 1);
         let p2 = t.pyramid(1);
-        assert_eq!(p2.len(), 5);
+        assert_eq!(p2.len(), 17);
     }
 
     #[test]

@@ -30,12 +30,12 @@ fn main() {
     let _ = fs::remove_dir_all("tests/fixtures/santacruz");
 
     build(
-        "./tests/fixtures/nodes4_convert.toml",
-        "tests/fixtures/nodes4_sort.toml",
+        "./tests/fixtures/nodes4_convert.yaml",
+        "tests/fixtures/nodes4_sort.yaml",
     );
     build(
-        "./tests/fixtures/santacruz_convert.toml",
-        "tests/fixtures/santacruz_sort.toml",
+        "./tests/fixtures/santacruz_convert.yaml",
+        "tests/fixtures/santacruz_sort.yaml",
     );
 
     println!("Total Time: {}", format_duration(time.elapsed()));
