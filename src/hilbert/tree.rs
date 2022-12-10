@@ -32,7 +32,7 @@ impl HilbertTree {
 
         // Copy the manifest to the build directory so we know exactly what it was at the time of build.
         let mut planet_manifest = manifest.clone();
-        planet_manifest.data.planet = PathBuf::from(".");
+        planet_manifest.data.planet = PathBuf::from("./");
         let manifest_str = serde_yaml::to_string(&planet_manifest)?;
         fs::write(dir.join("manifest.yaml"), manifest_str)?;
 
@@ -83,6 +83,7 @@ impl HilbertTree {
 
     pub fn open(manifest: &Manifest) -> Result<Self, Box<dyn std::error::Error>> {
         let dir = &manifest.data.planet;
+        println!("Opening hilbert tree from {}", dir.display());
         let flatdata = Osm::open(FileResourceStorage::new(dir))?;
 
         let m_way_pairs = Mutant::<HilbertWayPair>::open(dir, "hilbert_way_pairs", true)?;

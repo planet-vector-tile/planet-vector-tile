@@ -41,13 +41,17 @@ pub struct Rule {
 }
 
 pub fn parse(path_str: &str) -> Result<Manifest> {
-    let path = PathBuf::from(path_str);
+    let mut path = PathBuf::from(path_str);
+
+    if path.is_dir() {
+        path.push("manifest.yaml");
+    }
 
     let manifest_str = match std::fs::read_to_string(&path) {
         Ok(manifest) => manifest,
         Err(_) => {
             let msg = format!(
-                "No manifest file found at: {}. pwd: {}",
+                "No manifest file found at: {} pwd: {}",
                 path.display(),
                 std::env::current_dir().unwrap().display()
             );
