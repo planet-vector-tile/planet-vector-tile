@@ -300,7 +300,6 @@ mod tests {
     use crate::manifest;
 
     use super::*;
-    use std::path::PathBuf;
 
     #[test]
     fn test_basic_compose_tile() {
