@@ -5,6 +5,7 @@ tests/fixtures/nodes4/
 tests/fixtures/santacruz/
 planets/
 archives/
+report.yml
 
 ### Node ###
 # Logs

@@ -36,9 +36,10 @@ impl Rules {
 
         let str_to_idx: DashMap<&str, usize> = DashMap::new();
         let strings = flatdata.stringtable();
+        println!("Scanning stringtable for rule strings...");
         let t = Instant::now();
 
-        // Note: This is expensive.
+        // Note: This is expensive, but better than constantly strcmp against rules during the build.
         let str_ranges = get_str_ranges(strings);
 
         let _ = str_ranges.par_iter().find_any(|r| {
@@ -57,10 +58,9 @@ impl Rules {
         });
 
         if rule_strs.len() > 0 {
-            println!("WARNING: Not all rules were matched to a string in the stringtable. Unmatched strings : {:?}", rule_strs);
+            println!("NOTICE: Not all rules were matched to a string in the stringtable. Unmatched strings:\n{:?}", rule_strs);
         }
-        println!("Rules str_to_index: {:?}", str_to_idx);
-        println!("Rules str_to_index time: {}", format_duration(t.elapsed()));
+        println!("Built pointers to strings from rules in: {}", format_duration(t.elapsed()));
 
         let mut tag_to_zoom_range: AHashMap<(usize, usize), Range<u8>> = AHashMap::new();
         let mut value_to_zoom_range: AHashMap<usize, Range<u8>> = AHashMap::new();

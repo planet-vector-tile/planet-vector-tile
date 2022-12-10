@@ -7,6 +7,9 @@ render:
     leaf_zoom: 12
     layer_order: [Administrative, Water, Major Roads, Minor Roads, Places, Buildings]
 
+report:
+    path: ../report.yml
+
 layers:
     Administrative: [admin_country, admin_state, admin_county, admin_city, admihn_other, boundary]
     Water: [water, water_lake, water_river, waterway, waterway_intermittent]

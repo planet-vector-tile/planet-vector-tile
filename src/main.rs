@@ -12,7 +12,7 @@ mod sort;
 mod source;
 mod tile;
 mod tile_attributes;
-mod taginfo;
+mod report;
 
 use clap::ArgMatches;
 use hilbert::tree::HilbertTree;
@@ -94,9 +94,9 @@ fn main() {
 
             tree.render_tile_content().unwrap_or_else(quit);
         },
-        ("taginfo", matches) => {
+        ("report", matches) => {
             let manifest = get_manifest(matches);
-            taginfo::survey(manifest).unwrap_or_else(quit);
+            report::generate(&manifest).unwrap_or_else(quit);
         },
         _ => unreachable!(),
     }

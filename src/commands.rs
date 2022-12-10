@@ -28,9 +28,9 @@ pub fn cli() -> Command {
         .about("Converts, renders, and archives a planet")
         .args([manifest_path.clone(), overwrite_arg.clone()]);
 
-    let taginfo = Command::new("taginfo")
-        .about("Provides info and stats about the tags of OSM entities in a planet.")
+    let report = Command::new("report")
+        .about("Reports statistics about the planet and matching rules.")
         .args([manifest_path.clone()]);
 
-    pvt.subcommands([convert, render, archive, build, taginfo])
+    pvt.subcommands([convert, render, archive, build, report])
 }
