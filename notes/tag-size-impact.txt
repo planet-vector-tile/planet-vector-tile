@@ -1,0 +1,2 @@
+12/659/1594 8.02M - with tags
+12/659/1594 6.66M - with only osm_id tag
