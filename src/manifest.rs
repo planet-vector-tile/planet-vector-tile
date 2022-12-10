@@ -30,6 +30,7 @@ pub struct Render {
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 pub struct Rule {
     pub minzoom: u8,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub maxzoom: Option<u8>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub keys: Vec<String>,
@@ -40,13 +41,17 @@ pub struct Rule {
 }
 
 pub fn parse(path_str: &str) -> Result<Manifest> {
-    let path = PathBuf::from(path_str);
+    let mut path = PathBuf::from(path_str);
+
+    if path.is_dir() {
+        path.push("manifest.yaml");
+    }
 
     let manifest_str = match std::fs::read_to_string(&path) {
         Ok(manifest) => manifest,
         Err(_) => {
             let msg = format!(
-                "No manifest file found at: {}. pwd: {}",
+                "No manifest file found at: {} pwd: {}",
                 path.display(),
                 std::env::current_dir().unwrap().display()
             );
@@ -54,7 +59,7 @@ pub fn parse(path_str: &str) -> Result<Manifest> {
         }
     };
 
-    let mut manifest: Manifest = match toml::from_str(&manifest_str) {
+    let mut manifest: Manifest = match serde_yaml::from_str(&manifest_str) {
         Ok(manifest) => manifest,
         Err(e) => {
             let msg = format!("Failed to parse manifest file: {}", e);
@@ -141,6 +146,7 @@ mod tests {
                     ("key0".to_string(), "value0".to_string()).into(),
                     ("key1".to_string(), "value1".to_string()).into(),
                 ],
+
             },
         );
 
@@ -158,18 +164,20 @@ mod tests {
             rules,
         };
 
-        let s = toml::to_string(&m).unwrap();
+        let s = serde_yaml::to_string(&m).unwrap();
         println!("{}", s);
-        let m2: Manifest = toml::from_str(&s).unwrap();
+        let m2: Manifest = serde_yaml::from_str(&s).unwrap();
         assert_eq!(m, m2);
     }
 
     #[test]
     fn test_reading_manifest() {
-        let s = std::fs::read_to_string("manifests/basic.toml").unwrap();
-        let m: Manifest = toml::from_str(&s).unwrap();
-        let s2 = toml::to_string(&m).unwrap();
+        let s = std::fs::read_to_string("manifests/basic.yaml").unwrap();
+        let m: Manifest = serde_yaml::from_str(&s).unwrap();
+        let s2 = serde_yaml::to_string(&m).unwrap();
 
-        assert!(s2.len() > 500);
+        println!("{}", s2);
+
+        assert!(s2.len() > 300);
     }
 }

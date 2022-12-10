@@ -48,6 +48,20 @@
         {
             "type": "lldb",
             "request": "launch",
+            "name": "taginfo",
+            "cargo": {
+                "args": ["build", "--bin=pvt", "--package=planet-vector-tile"],
+                "filter": {
+                    "name": "pvt",
+                    "kind": "bin"
+                }
+            },
+            "args": ["taginfo", "./manifests/admin.toml"],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
             "name": "Debug unit tests in executable 'pvt'",
             "cargo": {
                 "args": ["test", "--no-run", "--bin=pvt", "--package=planet-vector-tile"],

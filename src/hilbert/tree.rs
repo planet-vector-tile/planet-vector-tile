@@ -10,7 +10,7 @@ use crate::{
     tile::Tile,
 };
 use flatdata::FileResourceStorage;
-use std::fs;
+use std::{fs, path::PathBuf};
 
 type Err = Box<dyn std::error::Error>;
 
@@ -31,8 +31,10 @@ impl HilbertTree {
         let dir = &manifest.data.planet.clone();
 
         // Copy the manifest to the build directory so we know exactly what it was at the time of build.
-        let manifest_str = toml::to_string(&manifest)?;
-        fs::write(dir.join("manifest.toml"), manifest_str)?;
+        let mut planet_manifest = manifest.clone();
+        planet_manifest.data.planet = PathBuf::from("./");
+        let manifest_str = serde_yaml::to_string(&planet_manifest)?;
+        fs::write(dir.join("manifest.yaml"), manifest_str)?;
 
         let leaf_zoom = manifest.render.leaf_zoom;
         let flatdata = Osm::open(FileResourceStorage::new(dir))?;
@@ -81,6 +83,7 @@ impl HilbertTree {
 
     pub fn open(manifest: &Manifest) -> Result<Self, Box<dyn std::error::Error>> {
         let dir = &manifest.data.planet;
+        println!("Opening hilbert tree from {}", dir.display());
         let flatdata = Osm::open(FileResourceStorage::new(dir))?;
 
         let m_way_pairs = Mutant::<HilbertWayPair>::open(dir, "hilbert_way_pairs", true)?;
@@ -187,7 +190,7 @@ mod tests {
         // z 12 x 659 y 1593
         let t = Tile::from_zh(12, 3329134);
 
-        let manifest = manifest::parse("tests/fixtures/santacruz_sort.toml").unwrap();
+        let manifest = manifest::parse("tests/fixtures/santacruz_sort.yaml").unwrap();
         let tree = HilbertTree::open(&manifest).unwrap();
 
         match tree.find(&t) {

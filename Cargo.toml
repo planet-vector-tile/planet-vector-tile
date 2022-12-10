@@ -4,7 +4,6 @@ name = "planet-vector-tile"
 version = "0.1.0"
 default-run = "pvt"
 license = "MIT"
-license-file = "LICENSE.md"
 
 [lib]
 crate-type = ["cdylib"]
@@ -48,7 +47,7 @@ queue = "0.3.1"
 rayon = "1.5.3"
 serde = "1.0.147"
 serde_derive = "1.0.147"
-toml = "0.5.9"
+serde_yaml = "0.9.14"
 
 [build-dependencies]
 napi-build = "2.0.1"
