@@ -6,7 +6,6 @@ data:
 render:
     leaf_zoom: 14
     layer_order: [Administrative, Water, Landuse, Major Roads, Minor Roads, Places, Buildings]
-    
 
 layers:
     Administrative: [admin_country, admin_state, admin_county, admin_city, admihn_other, boundary]
