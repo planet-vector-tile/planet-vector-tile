@@ -1,7 +1,6 @@
 pub use super::osmpbf_generated::*;
 use byteorder::{ByteOrder, NetworkEndian};
 use flate2::read::ZlibDecoder;
-use log::info;
 use prost::{self, Message};
 use rayon::prelude::*;
 use std::io::{self, Read};
@@ -228,6 +227,6 @@ pub fn build_block_index(pbf_data: &[u8]) -> Vec<BlockIndex> {
         })
         .collect();
     result.par_sort_unstable();
-    info!("Found {} blocks", result.len());
+    println!("Found {} blocks", result.len());
     result
 }

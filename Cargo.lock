@@ -421,19 +421,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "env_logger"
-version = "0.9.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a12e6657c4c97ebab115a42dcee77225f7f482cdd841cf7088c657a42e9e00e7"
-dependencies = [
- "atty",
- "humantime",
- "log",
- "regex",
- "termcolor",
-]
-
-[[package]]
 name = "fast_hilbert"
 version = "2.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1062,7 +1049,6 @@ dependencies = [
  "clap",
  "crossbeam",
  "dashmap",
- "env_logger",
  "fast_hilbert",
  "flatbuffers",
  "flatdata",
@@ -1073,7 +1059,6 @@ dependencies = [
  "humantime",
  "indexmap",
  "itertools",
- "log",
  "memmap2 0.5.8",
  "napi",
  "napi-build",
