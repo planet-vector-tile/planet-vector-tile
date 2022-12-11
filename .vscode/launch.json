@@ -28,7 +28,7 @@
                     "kind": "bin"
                 }
             },
-            "args": ["convert", "./manifests/basic.toml", "-o"],
+            "args": ["convert", "./manifests/santa_cruz.yaml", "-o"],
             "cwd": "${workspaceFolder}"
         },
         {
@@ -42,13 +42,13 @@
                     "kind": "bin"
                 }
             },
-            "args": ["render", "./manifests/full_planet.toml"],
+            "args": ["render", "./manifests/santa_cruz.yaml"],
             "cwd": "${workspaceFolder}"
         },
         {
             "type": "lldb",
             "request": "launch",
-            "name": "taginfo",
+            "name": "report",
             "cargo": {
                 "args": ["build", "--bin=pvt", "--package=planet-vector-tile"],
                 "filter": {
@@ -56,7 +56,7 @@
                     "kind": "bin"
                 }
             },
-            "args": ["taginfo", "./manifests/admin.toml"],
+            "args": ["report", "./manifests/santa_cruz.yaml"],
             "cwd": "${workspaceFolder}"
         },
         {

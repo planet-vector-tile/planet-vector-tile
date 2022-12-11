@@ -12,7 +12,9 @@ pub struct Info {
 
 impl Info {
     pub fn new() -> Self {
-        Info { grandchild_levels: 4 }
+        Info {
+            grandchild_levels: 4,
+        }
     }
 }
 

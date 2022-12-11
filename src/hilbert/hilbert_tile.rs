@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use crate::mutant::Mutant;
+use crate::{mutant::Mutant, util};
 
 use super::leaf::Leaf;
 
@@ -31,7 +31,7 @@ pub fn build_tiles(
     let mut m_tiles = Mutant::<HilbertTile>::new(dir, "hilbert_tiles", max_tiles_len)?;
     let tiles = m_tiles.mutable_slice();
 
-    println!("TILES");
+    let time = util::timer("Building Hilbert Tiles...");
 
     // We only use even zooms.
     // Begin building at the last zoom before leaves
@@ -48,7 +48,7 @@ pub fn build_tiles(
 
     loop {
         println!(
-            "<== ZOOM {} ==> start {} end {}",
+            "  z{} - start {} end {}",
             zoom, level_child_range.start, level_child_range.end
         );
 
@@ -97,7 +97,7 @@ pub fn build_tiles(
                 w: 0,
                 r: 0,
             };
-            println!("i {} z {} h {} mask {:#018b}", tiles_i, zoom, tile_h, mask);
+            // prinsortln!("i {} z {} h {} mask {:#018b}", tiles_i, zoom, tile_h, mask);
             tiles[tiles_i] = tile;
             tiles_i += 1;
         }
@@ -120,6 +120,7 @@ pub fn build_tiles(
     m_tiles.set_len(tiles_i);
     m_tiles.trim();
 
+    println!("Finished in {} secs.", time.elapsed().as_secs());
     Ok(m_tiles)
 }
 

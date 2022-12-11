@@ -7,28 +7,23 @@ mod mutant;
 mod osmflat;
 mod parallel;
 pub mod pvt_builder;
+mod pvt_yaml;
+mod report;
 mod rules;
 mod sort;
 mod source;
 mod tile;
 mod tile_attributes;
-mod taginfo;
+mod util;
 
 use clap::ArgMatches;
 use hilbert::tree::HilbertTree;
 use humantime::format_duration;
 use manifest::Manifest;
-use std::{error::Error, fs, time::Instant};
+use std::{error::Error, fs};
 
 fn main() {
-    let time = Instant::now();
-
-    env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info"))
-        .format_level(false)
-        .format_module_path(false)
-        .format_timestamp_nanos()
-        .init();
-
+    let time = util::timer("pvt");
     let matches = commands::cli().get_matches();
 
     let sub = match matches.subcommand() {
@@ -60,12 +55,16 @@ fn main() {
             let mut tree = match HilbertTree::open(&manifest) {
                 Ok(tree) => tree,
                 Err(e) => {
-                    eprintln!("Unable to open planet dir: {} Error: {:?}", manifest.data.planet.display(), e);
+                    eprintln!(
+                        "Unable to open planet dir: {} Error: {:?}",
+                        manifest.data.planet.display(),
+                        e
+                    );
                     eprintln!("Are you pointing to the right source, planet, and archive in your manifest?");
                     std::process::exit(1);
-                },
+                }
             };
-  
+
             tree.render_tile_content().unwrap_or_else(quit);
         }
         ("archive", _) => {
@@ -82,22 +81,26 @@ fn main() {
 
             let flatdata = osmflat::convert(&manifest).unwrap_or_else(quit);
             sort::sort_flatdata(flatdata, &manifest.data.planet).unwrap_or_else(quit);
-            
+
             let mut tree = match HilbertTree::new(&manifest) {
                 Ok(tree) => tree,
                 Err(e) => {
-                    eprintln!("Unable to open planet dir: {} Error: {:?}", manifest.data.planet.display(), e);
+                    eprintln!(
+                        "Unable to open planet dir: {} Error: {:?}",
+                        manifest.data.planet.display(),
+                        e
+                    );
                     eprintln!("Are you pointing to the right source, planet, and archive in your manifest?");
                     std::process::exit(1);
-                },
+                }
             };
 
             tree.render_tile_content().unwrap_or_else(quit);
-        },
-        ("taginfo", matches) => {
+        }
+        ("report", matches) => {
             let manifest = get_manifest(matches);
-            taginfo::survey(manifest).unwrap_or_else(quit);
-        },
+            report::generate(&manifest).unwrap_or_else(quit);
+        }
         _ => unreachable!(),
     }
 

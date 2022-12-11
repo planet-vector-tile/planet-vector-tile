@@ -1,5 +1,8 @@
 table PVTTile {
     layers: [PVTLayer];
+    // NHTODO: We don't actually need this array, as we can just use the buffer offsets directly.
+    // However, we need to figure out how to cicumvent the flatbuffer library to access this lower level value.
+    // Or, just use create_shared_string...
     strings: [string];
     values: [PVTValue];
 }

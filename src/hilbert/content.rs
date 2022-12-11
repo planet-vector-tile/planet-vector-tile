@@ -1,11 +1,10 @@
 use humantime::format_duration;
-use rayon::prelude::{IntoParallelIterator, ParallelIterator, IntoParallelRefIterator};
+use rayon::prelude::{IntoParallelIterator, IntoParallelRefIterator, ParallelIterator};
 
 use super::{hilbert_tile::HilbertTile, leaf::Leaf};
 use crate::{
-    filter::Filter, manifest::Manifest, mutant::Mutant, osmflat::osmflat_generated::osm::Osm,
+    filter::Filter, manifest::Manifest, mutant::Mutant, osmflat::osmflat_generated::osm::Osm, util,
 };
-use std::time::Instant;
 
 type Err = Box<dyn std::error::Error>;
 
@@ -42,8 +41,7 @@ pub fn render_tile_content(
     let mut total_children = leaves.len() as u32;
     let mut children = 0;
 
-    let t = Instant::now();
-    println!("Rendering tile content...");
+    let t = util::timer("Rendering tile content...");
 
     for i in 0..tiles.len() {
         let tile = &tiles[i];
@@ -124,8 +122,10 @@ pub fn render_tile_content(
             };
 
             // let nodes = node_idxs.iter().map(|i| (*i as usize, &nodes[*i as usize]));
-            let nodes = node_idxs.par_iter().map(|i| (*i as usize, &nodes[*i as usize]));
-            
+            let nodes = node_idxs
+                .par_iter()
+                .map(|i| (*i as usize, &nodes[*i as usize]));
+
             let filtered_nodes: Vec<u64> =
                 nodes.filter(node_filter).map(|(i, _)| i as u64).collect();
 
@@ -137,8 +137,10 @@ pub fn render_tile_content(
             };
 
             // let ways = way_idxs.iter().map(|i| (*i as usize, &ways[*i as usize]));
-            let ways = way_idxs.par_iter().map(|i| (*i as usize, &ways[*i as usize]));
-            
+            let ways = way_idxs
+                .par_iter()
+                .map(|i| (*i as usize, &ways[*i as usize]));
+
             let filtered_ways: Vec<u32> = ways.filter(way_filter).map(|(i, _)| i as u32).collect();
 
             (filtered_nodes, filtered_ways)
@@ -155,14 +157,14 @@ pub fn render_tile_content(
             next_tile.w = m_w.len as u32;
         }
 
-        println!(
-            "z {} children {} total_children {} nodes {} ways {}",
-            z,
-            children,
-            total_children,
-            nodes.len(),
-            ways.len(),
-        );
+        // println!(
+        //     "z {} children {} total_children {} nodes {} ways {}",
+        //     z,
+        //     children,
+        //     total_children,
+        //     nodes.len(),
+        //     ways.len(),
+        // );
 
         level_tile_count += 1;
         // If we are done with the level, decrement z to the next zoom.

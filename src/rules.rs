@@ -1,13 +1,14 @@
-use std::{ops::Range, time::Instant};
+use std::{fs, ops::Range, time::Instant};
 
 use ahash::AHashMap;
 use dashmap::{DashMap, DashSet};
 use flatdata::RawData;
 use humantime::format_duration;
 use rayon::prelude::{IndexedParallelIterator, IntoParallelRefIterator, ParallelIterator};
+use yaml_rust::{yaml, YamlEmitter};
 
 use crate::{
-    manifest::Manifest,
+    manifest::{IncludeTags, Manifest},
     osmflat::osmflat_generated::osm::{Osm, Tag},
 };
 
@@ -20,47 +21,82 @@ pub struct Rules {
 impl Rules {
     // NOTE: This is expensive to construct due to get_strs. Don't construct in a loop.
     pub fn new(manifest: &Manifest, flatdata: &Osm) -> Self {
-        let rule_strs: DashSet<&str> = DashSet::new();
+        let strs: DashSet<&str> = DashSet::new();
         for (_, rule) in &manifest.rules {
             for (k, v) in &rule.tags {
-                rule_strs.insert(k);
-                rule_strs.insert(v);
+                strs.insert(k);
+                strs.insert(v);
             }
             for v in &rule.values {
-                rule_strs.insert(v);
+                strs.insert(v);
             }
             for k in &rule.keys {
-                rule_strs.insert(k);
+                strs.insert(k);
+            }
+        }
+        if let Some(IncludeTags::Keys(keys)) = &manifest.render.include_tags {
+            for k in keys {
+                strs.insert(k);
             }
         }
 
         let str_to_idx: DashMap<&str, usize> = DashMap::new();
         let strings = flatdata.stringtable();
+        println!("Scanning stringtable for rule strings...");
         let t = Instant::now();
 
-        // Note: This is expensive.
+        // Note: This is expensive, but better than constantly strcmp against rules during the build.
         let str_ranges = get_str_ranges(strings);
 
         let _ = str_ranges.par_iter().find_any(|r| {
             let bytes = &strings.as_bytes()[r.start..r.end];
             let s = unsafe { std::str::from_utf8_unchecked(bytes) };
-            if rule_strs.contains(s) {
+            if strs.contains(s) {
                 str_to_idx.insert(s, r.start);
-                rule_strs.remove(s);
+                strs.remove(s);
             }
             // halt iterating when the set is empty
-            if rule_strs.is_empty() {
+            if strs.is_empty() {
                 true
             } else {
                 false
             }
         });
 
-        if rule_strs.len() > 0 {
-            println!("WARNING: Not all rules were matched to a string in the stringtable. Unmatched strings : {:?}", rule_strs);
+        if strs.len() > 0 {
+            println!("NOTICE: Not all rules and include_tags were matched to a string in the stringtable. Unmatched strings:\n{:?}", strs);
         }
-        println!("Rules str_to_index: {:?}", str_to_idx);
-        println!("Rules str_to_index time: {}", format_duration(t.elapsed()));
+        println!(
+            "Built pointers to strings from rules and include_tags in: {}",
+            format_duration(t.elapsed())
+        );
+
+        let str_to_idx_path = manifest.data.planet.join("str_to_idx.yaml");
+        println!("Saving string index to {}", str_to_idx_path.display());
+        let mut yaml_hash = yaml::Hash::new();
+        for ref_multi in str_to_idx.iter() {
+            let (k, v) = ref_multi.pair();
+            yaml_hash.insert(
+                yaml::Yaml::String(k.to_string()),
+                yaml::Yaml::Integer(*v as i64),
+            );
+        }
+        let mut str_to_idx_yaml_str = String::new();
+        let mut emitter = YamlEmitter::new(&mut str_to_idx_yaml_str);
+        match emitter.dump(&yaml::Yaml::Hash(yaml_hash)) {
+            Ok(_) => {
+                if let Err(err) = fs::write(&str_to_idx_path, str_to_idx_yaml_str) {
+                    eprintln!(
+                        "Failed to write string index to file {} Err: {}",
+                        str_to_idx_path.display(),
+                        err
+                    );
+                }
+            }
+            Err(e) => {
+                eprintln!("Failed to write string index. Err: {}", e);
+            }
+        }
 
         let mut tag_to_zoom_range: AHashMap<(usize, usize), Range<u8>> = AHashMap::new();
         let mut value_to_zoom_range: AHashMap<usize, Range<u8>> = AHashMap::new();
@@ -206,9 +242,9 @@ mod tests {
     }
 
     #[test]
-    fn test_get_strs_santacruz() {
+    fn test_get_strs_santa_cruz() {
         let flatdata =
-            Osm::open(FileResourceStorage::new("tests/fixtures/santacruz/sort")).unwrap();
+            Osm::open(FileResourceStorage::new("tests/fixtures/santa_cruz/sort")).unwrap();
         let strings: RawData = flatdata.stringtable();
         let delimeters = get_str_null_delimeters(strings);
         let d1 = delimeters[0];
@@ -262,10 +298,10 @@ mod tests {
     }
 
     #[test]
-    fn test_build_rules_santacruz() {
-        let manifest = manifest::parse("tests/fixtures/santacruz_sort.yaml").unwrap();
+    fn test_build_rules_santa_cruz() {
+        let manifest = manifest::parse("tests/fixtures/santa_cruz_sort.yaml").unwrap();
         let flatdata =
-            Osm::open(FileResourceStorage::new("tests/fixtures/santacruz/sort")).unwrap();
+            Osm::open(FileResourceStorage::new("tests/fixtures/santa_cruz/sort")).unwrap();
         let rules = Rules::new(&manifest, &flatdata);
 
         // boundary = administrative

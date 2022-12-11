@@ -2,9 +2,9 @@ use std::io::{Error, ErrorKind};
 use std::path::Path;
 use std::time::Instant;
 
-use crate::location;
 use crate::osmflat::osmflat_generated::osm::Osm;
 use crate::tile::tile_count_for_zoom;
+use crate::{location, util};
 use crate::{
     location::h_to_zoom_h,
     mutant::Mutant,
@@ -13,7 +13,6 @@ use crate::{
 use dashmap::mapref::entry::Entry::{Occupied, Vacant};
 use dashmap::DashMap;
 use humantime::format_duration;
-use log::info;
 use rayon::prelude::*;
 use std::collections::BTreeSet;
 
@@ -52,9 +51,11 @@ pub fn build_leaves(
     if node_pairs.len() == 0 && way_pairs.len() == 0 {
         return Err(Box::new(Error::new(
             ErrorKind::Other,
-            "No hilbert pairs found! Cannot build hilbert tiles.",
+            "No hilbert pairs found! Cannot build Hilbert Leaves.",
         )));
     }
+
+    let time = util::timer("Building Hilbert Leaves...");
 
     let mut n_i: usize = 0; // node hilbert pair index
     let mut w_i: usize = 0; // way hilbert pair index
@@ -77,7 +78,7 @@ pub fn build_leaves(
 
     // First leaf Hilbert tile has the lowest hilbert location.
     let mut tile_h = location::h_to_zoom_h(lowest_h, leaf_zoom) as u32;
-    info!(
+    println!(
         "Lowest tile_h for leaves in hilbert tree: {}, leaf_zoom: {}",
         lowest_h, leaf_zoom
     );
@@ -92,8 +93,6 @@ pub fn build_leaves(
     let way_pairs = m_way_pairs.slice();
     let way_pairs_len = way_pairs.len();
 
-    println!("LEAVES zoom {}", leaf_zoom);
-
     // First leaf tile
     let first_leaf = Leaf {
         n: 0,
@@ -103,7 +102,7 @@ pub fn build_leaves(
         w_ext: 0,
         r_ext: 0,
     };
-    println!("0 {:?}", first_leaf);
+    // println!("0 {:?}", first_leaf);
     leaves[0] = first_leaf;
 
     let mut leaf_i = 1;
@@ -151,7 +150,7 @@ pub fn build_leaves(
                 w_ext: 0,
                 r_ext: 0,
             };
-            println!("{} {:?}", leaf_i, leaf);
+            // println!("{} {:?}", leaf_i, leaf);
             leaves[leaf_i] = leaf;
             tile_h = next_tile_h;
             leaf_i += 1;
@@ -163,6 +162,7 @@ pub fn build_leaves(
     // The last increment of t_i falls through both whiles, so it is equal to the length.
     m_leaves.set_len(leaf_i);
     m_leaves.trim();
+    println!("Finished in {} secs.", time.elapsed().as_secs());
     Ok(m_leaves)
 }
 

@@ -1,11 +1,20 @@
 data:
-    source: ../tests/fixtures/santacruz.osm.pbf
-    planet: ../planets/santacruz
-    archive: ../archives/santacruz.pvt
+    source: ../tests/fixtures/santa_cruz.osm.pbf
+    planet: ../planets/santa_cruz
+    archive: ../archives/santa_cruz.pvt
 
 render:
     leaf_zoom: 12
     layer_order: [Administrative, Water, Major Roads, Minor Roads, Places, Buildings]
+
+report_options:
+    - write_fb_tiles
+    - lookup_strings_and_values
+    # - include_strings
+    # - include_values
+    - include_layers
+    - include_features
+    # - include_geometries
 
 layers:
     Administrative: [admin_country, admin_state, admin_county, admin_city, admihn_other, boundary]

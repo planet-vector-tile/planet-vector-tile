@@ -1,7 +1,10 @@
+# This manifest is for testing the conversion of an OSM PBF to osmflat. This is the state of the data before
+# sorting, which is done in sort.rs
+---
 data:
-    source: santacruz.osm.pbf
-    planet: santacruz/sort
-    archive: santacruz.pvt
+    source: santa_cruz.osm.pbf
+    planet: santa_cruz/convert
+    archive: santa_cruz.pvt
 
 render:
     leaf_zoom: 12

@@ -1,3 +1,5 @@
+# This manifest is for testing the fully built planet data after being sorted.
+---
 data:
     source: nodes4.osm.pbf
     planet: nodes4/sort

@@ -1,7 +1,9 @@
+# This manifest is for testing the fully built planet data after being sorted.
+---
 data:
-    source: santacruz.osm.pbf
-    planet: santacruz/convert
-    archive: santacruz.pvt
+    source: santa_cruz.osm.pbf
+    planet: santa_cruz/sort
+    archive: santa_cruz.pvt
 
 render:
     leaf_zoom: 12

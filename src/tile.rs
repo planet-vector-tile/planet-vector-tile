@@ -444,7 +444,7 @@ impl Eq for Tile {}
 
 impl fmt::Display for Tile {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "z{} x{} y{} h{}", self.z, self.x, self.y, self.h)
+        write!(f, "{} {}/{}/{}", self.h, self.z, self.x, self.y)
     }
 }
 

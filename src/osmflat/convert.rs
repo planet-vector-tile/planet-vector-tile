@@ -1,7 +1,6 @@
 use ahash::AHashMap;
 use flatdata::FileResourceStorage;
 use itertools::Itertools;
-use log::info;
 use memmap2::Mmap;
 use pbr::ProgressBar;
 use std::collections::hash_map;
@@ -48,10 +47,13 @@ pub fn convert(manifest: &Manifest) -> Result<osmflat::Osm, Error> {
     let builder = match osmflat::OsmBuilder::new(storage.clone()) {
         Ok(builder) => builder,
         Err(e) => {
-            eprintln!("Unable to create new flatdata at {}", &manifest.data.planet.display());
+            eprintln!(
+                "Unable to create new flatdata at {}",
+                &manifest.data.planet.display()
+            );
             eprintln!("If you want to overwrite an existing planet, add the argument --overwrite.");
             return Err(Box::new(e));
-        },
+        }
     };
 
     // TODO: Would be nice not store all these strings in memory, but to flush them
@@ -59,12 +61,12 @@ pub fn convert(manifest: &Manifest) -> Result<osmflat::Osm, Error> {
     let mut stringtable = StringTable::new();
     let mut tags = TagSerializer::new(&builder)?;
 
-    info!(
+    println!(
         "Initialized new osmflat archive at: {}",
         &manifest.data.planet.display()
     );
 
-    info!("Building index of PBF blocks...");
+    println!("Building index of PBF blocks...");
     let block_index = build_block_index(&input_data);
 
     // NHTODO Remove this granularity stuff. It's always DM7.
@@ -79,7 +81,7 @@ pub fn convert(manifest: &Manifest) -> Result<osmflat::Osm, Error> {
         }
     }
     let coord_scale = 1_000_000_000 / greatest_common_granularity;
-    info!(
+    println!(
         "Greatest common granularity: {}, Coordinate scaling factor: {}",
         greatest_common_granularity, coord_scale
     );
@@ -99,7 +101,7 @@ pub fn convert(manifest: &Manifest) -> Result<osmflat::Osm, Error> {
             BlockType::Relations => pbf_relations = blocks.collect(),
         }
     }
-    info!("PBF block index built.");
+    println!("PBF block index built.");
 
     // Serialize header
     if pbf_header.len() != 1 {
@@ -112,7 +114,7 @@ pub fn convert(manifest: &Manifest) -> Result<osmflat::Osm, Error> {
     let idx = &pbf_header[0];
     let pbf_header: osmpbf::HeaderBlock = read_block(&input_data, idx)?;
     serialize_header(&pbf_header, coord_scale, &builder, &mut stringtable)?;
-    info!("Header written.");
+    println!("Header written.");
 
     let mut stats = Stats::default();
 
@@ -168,7 +170,7 @@ pub fn convert(manifest: &Manifest) -> Result<osmflat::Osm, Error> {
     // Finalize data structures
     tags.close(); // drop the reference to stringtable
 
-    info!("Writing stringtable to disk...");
+    println!("Writing stringtable to disk...");
     builder.set_stringtable(&stringtable.into_bytes())?;
 
     std::mem::drop(builder);
@@ -624,10 +626,10 @@ fn serialize_dense_node_blocks(
 
     hilbert_node_pairs.close()?;
 
-    info!("Dense nodes converted in {} secs.", t.elapsed().as_secs());
-    info!("Building dense nodes index...");
+    println!("Dense nodes converted in {} secs.", t.elapsed().as_secs());
+    println!("Building dense nodes index...");
     let nodes_id_to_idx = nodes_id_to_idx.build();
-    info!("Dense nodes index built.");
+    println!("Dense nodes index built.");
     Ok(nodes_id_to_idx)
 }
 
@@ -687,10 +689,10 @@ fn serialize_way_blocks(
     }
     nodes_index.close()?;
 
-    info!("Ways converted in {} secs", t.elapsed().as_secs());
-    info!("Building ways index...");
+    println!("Ways converted in {} secs", t.elapsed().as_secs());
+    println!("Building ways index...");
     let ways_id_to_idx = ways_id_to_idx.build();
-    info!("Way index built.");
+    println!("Way index built.");
     Ok(ways_id_to_idx)
 }
 
@@ -749,7 +751,7 @@ fn serialize_relation_blocks(
     }
     relation_members.close()?;
 
-    info!("Relations converted in {} secs.", t.elapsed().as_secs());
+    println!("Relations converted in {} secs.", t.elapsed().as_secs());
 
     Ok(())
 }

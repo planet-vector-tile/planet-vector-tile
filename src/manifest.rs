@@ -12,6 +12,8 @@ pub struct Manifest {
     pub render: Render,
     pub layers: Layers,
     pub rules: Rules,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub report_options: Vec<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
@@ -19,12 +21,15 @@ pub struct Data {
     pub source: PathBuf,
     pub planet: PathBuf,
     pub archive: PathBuf,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub include_leaves: Vec<u64>, // these are the hilbert values for the leaves we want to include in the build
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 pub struct Render {
     pub leaf_zoom: u8,
     pub layer_order: Vec<String>,
+    pub include_tags: Option<IncludeTags>,
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
@@ -38,6 +43,13 @@ pub struct Rule {
     pub values: Vec<String>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub tags: Vec<(String, String)>,
+}
+
+#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
+pub enum IncludeTags {
+    None,
+    All,
+    Keys(Vec<String>),
 }
 
 pub fn parse(path_str: &str) -> Result<Manifest> {
@@ -117,7 +129,7 @@ pub fn parse(path_str: &str) -> Result<Manifest> {
     manifest.data.planet = planet.canonicalize().unwrap_or(planet);
     manifest.data.archive = archive.canonicalize().unwrap_or(archive);
 
-    println!("planet dir: {:?}", manifest.data.planet);
+    println!("Planet Dir: {}", manifest.data.planet.display());
 
     Ok(manifest)
 }
@@ -146,7 +158,6 @@ mod tests {
                     ("key0".to_string(), "value0".to_string()).into(),
                     ("key1".to_string(), "value1".to_string()).into(),
                 ],
-
             },
         );
 
@@ -155,13 +166,19 @@ mod tests {
                 source: PathBuf::from("source"),
                 planet: PathBuf::from("planet"),
                 archive: PathBuf::from("archive"),
+                include_leaves: vec![],
             },
             render: Render {
                 leaf_zoom: 12,
                 layer_order: vec!["layer0".to_string()],
+                include_tags: Some(IncludeTags::Keys(vec![
+                    "key0".to_string(),
+                    "key1".to_string(),
+                ])),
             },
             layers,
             rules,
+            report_options: vec![],
         };
 
         let s = serde_yaml::to_string(&m).unwrap();
@@ -172,7 +189,7 @@ mod tests {
 
     #[test]
     fn test_reading_manifest() {
-        let s = std::fs::read_to_string("manifests/basic.yaml").unwrap();
+        let s = std::fs::read_to_string("manifests/santa_cruz.yaml").unwrap();
         let m: Manifest = serde_yaml::from_str(&s).unwrap();
         let s2 = serde_yaml::to_string(&m).unwrap();
 
