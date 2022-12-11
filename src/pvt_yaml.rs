@@ -77,11 +77,16 @@ impl PVTYaml for PVTTile<'_> {
                                         if let Some(points) = geometry.points() {
                                             let mut points_arr = yaml::Array::with_capacity(points.len());
                                             for point in points.iter() {
-                                                let point_tuple = vec![
+                                                let mut point_hash = yaml::Hash::with_capacity(2);
+                                                point_hash.insert(
+                                                    Yaml::String("x".to_string()),
                                                     Yaml::Integer(point.x() as i64),
+                                                );
+                                                point_hash.insert(
+                                                    Yaml::String("y".to_string()),
                                                     Yaml::Integer(point.y() as i64),
-                                                ];
-                                                points_arr.push(Yaml::Array(point_tuple));
+                                                );
+                                                points_arr.push(Yaml::Hash(point_hash));
                                             }
                                             geometries_arr.push(Yaml::Array(points_arr));
                                         }
