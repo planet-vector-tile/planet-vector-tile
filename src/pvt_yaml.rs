@@ -1,5 +1,5 @@
 use crate::report::ReportOptions;
-use crate::tile::planet_vector_tile_generated::PVTTile;
+use crate::tile::planet_vector_tile_generated::{PVTTile,PVTValue, PVTValueType};
 use crate::tile::Tile;
 
 use yaml_rust::yaml;
@@ -12,6 +12,9 @@ pub trait PVTYaml {
 
 impl PVTYaml for PVTTile<'_> {
     fn to_yaml_report(&self, tile: &Tile, size: usize, options: ReportOptions) -> String {
+        let strings_lookup = StringsLookup::new(self.strings());
+        let values_lookup = ValuesLookup::new(self.values(), &strings_lookup);
+
         let mut yaml_string = String::new();
         let mut emitter = YamlEmitter::new(&mut yaml_string);
         emitter.compact(true);
@@ -21,7 +24,7 @@ impl PVTYaml for PVTTile<'_> {
             Yaml::String("tile".to_string()),
             Yaml::String(tile.to_string()),
         );
-        
+
         let size_str = if size > 1024 * 1024 {
             format!("{:.2} MB", size as f64 / 1024.0 / 1024.0)
         } else {
@@ -33,9 +36,15 @@ impl PVTYaml for PVTTile<'_> {
             let mut layers_arr = yaml::Array::with_capacity(layers.len());
             for layer in layers.iter() {
                 let mut layer_hash = yaml::Hash::with_capacity(2);
+                
+                let name = if options.lookup_strings_and_values {
+                    strings_lookup.get(layer.name())
+                } else {
+                    Yaml::Integer(layer.name() as i64)
+                };
                 layer_hash.insert(
                     Yaml::String("name".to_string()),
-                    Yaml::Integer(layer.name() as i64),
+                    name,
                 );
 
                 if options.include_features {
@@ -52,7 +61,12 @@ impl PVTYaml for PVTTile<'_> {
                             if let Some(keys) = feature.keys() {
                                 let mut keys_arr = yaml::Array::with_capacity(keys.len());
                                 for key in keys.iter() {
-                                    keys_arr.push(Yaml::Integer(key as i64));
+                                    let k = if options.lookup_strings_and_values {
+                                        strings_lookup.get(key)
+                                    } else {
+                                        Yaml::Integer(key as i64)
+                                    };
+                                    keys_arr.push(k);
                                 }
                                 feature_hash.insert(
                                     Yaml::String("keys".to_string()),
@@ -62,7 +76,12 @@ impl PVTYaml for PVTTile<'_> {
                             if let Some(values) = feature.values() {
                                 let mut values_arr = yaml::Array::with_capacity(values.len());
                                 for value in values.iter() {
-                                    values_arr.push(Yaml::Integer(value as i64));
+                                    let v = if options.lookup_strings_and_values {
+                                        values_lookup.get(value)
+                                    } else {
+                                        Yaml::Integer(value as i64)
+                                    };
+                                    values_arr.push(v);
                                 }
                                 feature_hash.insert(
                                     Yaml::String("values".to_string()),
@@ -72,10 +91,12 @@ impl PVTYaml for PVTTile<'_> {
 
                             if options.include_geometries {
                                 if let Some(geometries) = feature.geometries() {
-                                    let mut geometries_arr = yaml::Array::with_capacity(geometries.len());
+                                    let mut geometries_arr =
+                                        yaml::Array::with_capacity(geometries.len());
                                     for geometry in geometries.iter() {
                                         if let Some(points) = geometry.points() {
-                                            let mut points_arr = yaml::Array::with_capacity(points.len());
+                                            let mut points_arr =
+                                                yaml::Array::with_capacity(points.len());
                                             for point in points.iter() {
                                                 let mut point_hash = yaml::Hash::with_capacity(2);
                                                 point_hash.insert(
@@ -147,5 +168,57 @@ impl PVTYaml for PVTTile<'_> {
 
         yaml_string.push('\n');
         yaml_string
+    }
+}
+
+struct StringsLookup<'a> {
+    strings: Vec<&'a str>,
+}
+
+impl<'a> StringsLookup<'a> {
+    pub fn new(
+        fb_strings: Option<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<&'a str>>>,
+    ) -> Self {
+        let strings = match fb_strings {
+            Some(strings) => strings.iter().collect(),
+            None => Vec::new(),
+        };
+        Self { strings }
+    }
+
+    pub fn get(&self, i: u32) -> Yaml {
+        let s = self.strings[i as usize];
+        Yaml::String(s.to_string())
+    }
+}
+
+struct ValuesLookup<'a> {
+    values: Vec<&'a PVTValue>,
+    strings_lookup: &'a StringsLookup<'a>,
+}
+
+impl<'a> ValuesLookup<'a> {
+    pub fn new(
+        fb_values: Option<flatbuffers::Vector<'a, PVTValue>>,
+        strings_lookup: &'a StringsLookup,
+    ) -> Self {
+        let values = match fb_values {
+            Some(values) => values.iter().collect(),
+            None => Vec::new(),
+        };
+        Self {
+            values,
+            strings_lookup,
+        }
+    }
+
+    pub fn get(&self, i: u32) -> Yaml {
+        let v = self.values[i as usize];
+        match v.t() {
+            PVTValueType::String => self.strings_lookup.get(v.v() as u32),
+            PVTValueType::Number => Yaml::Real(v.v().to_string()),
+            PVTValueType::Boolean => Yaml::Boolean(if v.v() == 0.0 { false } else { true }),
+            _ => Yaml::Real(v.v().to_string()),
+        }
     }
 }

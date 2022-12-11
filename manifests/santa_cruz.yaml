@@ -8,12 +8,12 @@ render:
     layer_order: [Administrative, Water, Major Roads, Minor Roads, Places, Buildings]
 
 report_options:
-    - lookup_strings
-    - include_strings
-    - include_values
+    - lookup_strings_and_values
+    # - include_strings
+    # - include_values
     - include_layers
     - include_features
-    - include_geometries
+    # - include_geometries
 
 layers:
     Administrative: [admin_country, admin_state, admin_county, admin_city, admihn_other, boundary]

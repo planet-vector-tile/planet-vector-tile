@@ -14,7 +14,7 @@ use crate::manifest::Manifest;
 
 #[derive(Debug, Clone)]
 pub struct ReportOptions {
-    pub lookup_strings: bool,
+    pub lookup_strings_and_values: bool,
     pub include_strings: bool,
     pub include_values: bool,
     pub include_layers: bool,
@@ -84,7 +84,7 @@ pub fn generate(manifest: &Manifest) -> Result<(), Box<dyn std::error::Error>> {
 
 fn parse_options(strs: &Vec<String>) -> ReportOptions {
     let mut options = ReportOptions {
-        lookup_strings: false,
+        lookup_strings_and_values: false,
         include_strings: false,
         include_values: false,
         include_layers: false,
@@ -94,7 +94,7 @@ fn parse_options(strs: &Vec<String>) -> ReportOptions {
 
     for s in strs {
         match s.as_str() {
-            "lookup_strings" => options.lookup_strings = true,
+            "lookup_strings_and_values" => options.lookup_strings_and_values = true,
             "include_strings" => options.include_strings = true,
             "include_values" => options.include_values = true,
             "include_layers" => options.include_layers = true,
