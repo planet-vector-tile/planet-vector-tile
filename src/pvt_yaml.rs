@@ -48,14 +48,62 @@ impl PVTYaml for PVTTile<'_> {
                                 Yaml::String(format!("{}", feature.id())),
                             );
 
-                            if options.include_geometries {
-                                
+                            if let Some(keys) = feature.keys() {
+                                let mut keys_arr = yaml::Array::with_capacity(keys.len());
+                                for key in keys.iter() {
+                                    keys_arr.push(Yaml::Integer(key as i64));
+                                }
+                                feature_hash.insert(
+                                    Yaml::String("keys".to_string()),
+                                    Yaml::Array(keys_arr),
+                                );
+                            }
+                            if let Some(values) = feature.values() {
+                                let mut values_arr = yaml::Array::with_capacity(values.len());
+                                for value in values.iter() {
+                                    values_arr.push(Yaml::Integer(value as i64));
+                                }
+                                feature_hash.insert(
+                                    Yaml::String("values".to_string()),
+                                    Yaml::Array(values_arr),
+                                );
                             }
 
-                            if options.include_values {
-                             
+                            if options.include_geometries {
+                                let mut str = String::new();
+                                if let Some(geoms) = feature.geometries() {
+                                    let mut emitter = YamlEmitter::new(&mut str);
+                                    emitter.compact(true);
+                                    let outer = yaml::Array::with_capacity(geoms.len());
+                                    for g in geoms.iter() {
+                                        let points = g.points().unwrap();
+                                        let mut inner = yaml::Array::with_capacity(points.len());
+                                        for p in points.iter() {
+                                            let mut tuple = yaml::Array::with_capacity(2);
+                                            tuple.push(Yaml::Integer(p.x() as i64));
+                                            tuple.push(Yaml::Integer(p.y() as i64));
+                                            inner.push(Yaml::Array(tuple));
+                                        }
+                                        outer.push(Yaml::Array(inner));
+                                    }
+                                    
+                                    match emitter.dump(&Yaml::String(outer.to_string())) {
+                                        Ok(_) => {}
+                                        Err(e) => {
+                                            println!(
+                                                "Error writing YAML geometries for tile {} Err: {}",
+                                                tile, e
+                                            );
+                                        }
+                                    }
+                                }
                             }
+
                         }
+                        layer_hash.insert(
+                            Yaml::String("features".to_string()),
+                            Yaml::Array(features_arr),
+                        );
                     }
                 }
             }
