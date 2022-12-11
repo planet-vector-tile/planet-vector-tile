@@ -166,14 +166,16 @@ mod tests {
                 source: PathBuf::from("source"),
                 planet: PathBuf::from("planet"),
                 archive: PathBuf::from("archive"),
+                include_leaves: vec![],
             },
             render: Render {
                 leaf_zoom: 12,
                 layer_order: vec!["layer0".to_string()],
-                include_tags: IncludeTags::Keys(vec!["key0".to_string(), "key1".to_string()]),
+                include_tags: Some(IncludeTags::Keys(vec!["key0".to_string(), "key1".to_string()])),
             },
             layers,
             rules,
+            report_options: vec![],
         };
 
         let s = serde_yaml::to_string(&m).unwrap();
@@ -184,7 +186,7 @@ mod tests {
 
     #[test]
     fn test_reading_manifest() {
-        let s = std::fs::read_to_string("manifests/basic.yaml").unwrap();
+        let s = std::fs::read_to_string("manifests/santa_cruz.yaml").unwrap();
         let m: Manifest = serde_yaml::from_str(&s).unwrap();
         let s2 = serde_yaml::to_string(&m).unwrap();
 
