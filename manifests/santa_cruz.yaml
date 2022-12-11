@@ -8,6 +8,7 @@ render:
     layer_order: [Administrative, Water, Major Roads, Minor Roads, Places, Buildings]
 
 report_options:
+    - write_fb_tiles
     - lookup_strings_and_values
     # - include_strings
     # - include_values

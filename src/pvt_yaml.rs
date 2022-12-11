@@ -26,9 +26,9 @@ impl PVTYaml for PVTTile<'_> {
         );
 
         let size_str = if size > 1024 * 1024 {
-            format!("{:.2} MB", size as f64 / 1024.0 / 1024.0)
+            format!("{:.2} M", size as f64 / 1024.0 / 1024.0)
         } else {
-            format!("{:.2} KB", size as f64 / 1024.0)
+            format!("{:.2} K", size as f64 / 1024.0)
         };
         doc.insert(Yaml::String("size".to_string()), Yaml::String(size_str));
 

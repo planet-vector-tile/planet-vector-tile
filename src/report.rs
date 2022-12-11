@@ -1,5 +1,8 @@
+use std::fs;
+use std::fs::File;
 use std::io::BufWriter;
 use std::io::Write;
+use std::path::Path;
 
 use chrono::Local;
 use crate::tile::Tile;
@@ -12,8 +15,11 @@ use crate::tile::planet_vector_tile_generated::root_as_pvttile;
 use crate::hilbert::tree::HilbertTree;
 use crate::manifest::Manifest;
 
+type Error = Box<dyn std::error::Error>;
+
 #[derive(Debug, Clone)]
 pub struct ReportOptions {
+    pub write_fb_tiles: bool,
     pub lookup_strings_and_values: bool,
     pub include_strings: bool,
     pub include_values: bool,
@@ -22,7 +28,7 @@ pub struct ReportOptions {
     pub include_geometries: bool,
 }
 
-pub fn generate(manifest: &Manifest) -> Result<(), Box<dyn std::error::Error>> {
+pub fn generate(manifest: &Manifest) -> Result<(), Error> {
     let options = parse_options(&manifest.report_options);
     let date = Local::now();
     let date_fmt = date.format("%Y-%m-%d_%H:%M:%S");
@@ -30,7 +36,15 @@ pub fn generate(manifest: &Manifest) -> Result<(), Box<dyn std::error::Error>> {
     let report_path = manifest.data.planet.join(file_name);
     println!("Generating report at: {}", report_path.display());
 
-    let file = std::fs::File::create(report_path)?;
+    let tiles_dir = manifest.data.planet.join("tiles");
+    if options.write_fb_tiles {
+        let _ = fs::remove_dir_all(&tiles_dir);
+        if let Err(e) = fs::create_dir(&tiles_dir) {
+            eprintln!("Unable to create tiles dir: {}", e);
+        }
+    }
+
+    let file = File::create(report_path)?;
     let mut buf_writer = BufWriter::with_capacity(1024 * 1024 * 32, file);
 
     let tree = HilbertTree::open(manifest)?;
@@ -39,18 +53,7 @@ pub fn generate(manifest: &Manifest) -> Result<(), Box<dyn std::error::Error>> {
     if manifest.data.include_leaves.is_empty() {
         let leaf_it = tree.pvt_leaf_iterator();
         for (tile, buffer) in leaf_it {
-            let size = buffer.len();
-
-            let pvt = match root_as_pvttile(&buffer) {
-                Ok(pvt) => pvt,
-                Err(e) => {
-                    eprintln!("{} Error: {:?}", tile, e);
-                    continue;
-                }
-            };
-
-            let yaml_string = pvt.to_yaml_report(&tile, size, options.clone());
-            buf_writer.write_all(yaml_string.as_bytes())?;
+            visit_tile(&tile, &buffer, &mut buf_writer, &tiles_dir, &options)?;
         }
     }
     // Just iterate the included leaves and their parents
@@ -64,26 +67,34 @@ pub fn generate(manifest: &Manifest) -> Result<(), Box<dyn std::error::Error>> {
             let mut builder = PVTBuilder::new();
             tree.compose_tile(&tile, &mut builder);
             let buffer = builder.build();
-            let size = buffer.len();
 
-            let pvt = match root_as_pvttile(&buffer) {
-                Ok(pvt) => pvt,
-                Err(e) => {
-                    eprintln!("{} Error: {:?}", tile, e);
-                    continue;
-                }
-            };
-
-            let yaml_string = pvt.to_yaml_report(&tile, size, options.clone());
-            buf_writer.write_all(yaml_string.as_bytes())?;
+            visit_tile(&tile, &buffer, &mut buf_writer, &tiles_dir, &options)?;
         }
     }
+
+    buf_writer.flush()?;
+    Ok(())
+}
+
+fn visit_tile(tile: &Tile, buffer: &Vec<u8>, buf_writer: &mut BufWriter<File>, tiles_dir: &Path, options: &ReportOptions) -> Result<(), Error> {
+    if options.write_fb_tiles {
+        let file_name = format!("{}_{}.pvt", tile.z, tile.h);
+        let mut file = File::create(tiles_dir.join(file_name))?;
+        file.write_all(&buffer)?;
+    }
+
+    let size = buffer.len();
+    let pvt = root_as_pvttile(&buffer)?;
+
+    let yaml_string = pvt.to_yaml_report(&tile, size, options.clone());
+    buf_writer.write_all(yaml_string.as_bytes())?;
 
     Ok(())
 }
 
 fn parse_options(strs: &Vec<String>) -> ReportOptions {
     let mut options = ReportOptions {
+        write_fb_tiles: false,
         lookup_strings_and_values: false,
         include_strings: false,
         include_values: false,
@@ -94,6 +105,7 @@ fn parse_options(strs: &Vec<String>) -> ReportOptions {
 
     for s in strs {
         match s.as_str() {
+            "write_fb_tiles" => options.write_fb_tiles = true,
             "lookup_strings_and_values" => options.lookup_strings_and_values = true,
             "include_strings" => options.include_strings = true,
             "include_values" => options.include_values = true,
