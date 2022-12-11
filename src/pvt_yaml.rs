@@ -30,6 +30,7 @@ impl PVTYaml for PVTTile<'_> {
         doc.insert(Yaml::String("size".to_string()), Yaml::String(size_str));
 
         if let Some(layers) = self.layers() {
+            let mut layers_arr = yaml::Array::with_capacity(layers.len());
             for layer in layers.iter() {
                 let mut layer_hash = yaml::Hash::with_capacity(2);
                 layer_hash.insert(
@@ -41,10 +42,10 @@ impl PVTYaml for PVTTile<'_> {
                     if let Some(features) = layer.features() {
                         let mut features_arr = yaml::Array::with_capacity(features.len());
                         for feature in features.iter() {
-                            let mut feature_hash = yaml::Hash::with_capacity(3);
+                            let mut feature_hash = yaml::Hash::with_capacity(4);
                             feature_hash.insert(
                                 Yaml::String("id".to_string()),
-                                // Coerching to string because serializer doesnt support u64
+                                // Coercing to string because serializer doesnt support u64
                                 Yaml::String(format!("{}", feature.id())),
                             );
 
@@ -70,35 +71,28 @@ impl PVTYaml for PVTTile<'_> {
                             }
 
                             if options.include_geometries {
-                                let mut str = String::new();
-                                if let Some(geoms) = feature.geometries() {
-                                    let mut emitter = YamlEmitter::new(&mut str);
-                                    emitter.compact(true);
-                                    let outer = yaml::Array::with_capacity(geoms.len());
-                                    for g in geoms.iter() {
-                                        let points = g.points().unwrap();
-                                        let mut inner = yaml::Array::with_capacity(points.len());
-                                        for p in points.iter() {
-                                            let mut tuple = yaml::Array::with_capacity(2);
-                                            tuple.push(Yaml::Integer(p.x() as i64));
-                                            tuple.push(Yaml::Integer(p.y() as i64));
-                                            inner.push(Yaml::Array(tuple));
-                                        }
-                                        outer.push(Yaml::Array(inner));
-                                    }
-                                    
-                                    match emitter.dump(&Yaml::String(outer.to_string())) {
-                                        Ok(_) => {}
-                                        Err(e) => {
-                                            println!(
-                                                "Error writing YAML geometries for tile {} Err: {}",
-                                                tile, e
-                                            );
+                                if let Some(geometries) = feature.geometries() {
+                                    let mut geometries_arr = yaml::Array::with_capacity(geometries.len());
+                                    for geometry in geometries.iter() {
+                                        if let Some(points) = geometry.points() {
+                                            let mut points_arr = yaml::Array::with_capacity(points.len());
+                                            for point in points.iter() {
+                                                let point_tuple = vec![
+                                                    Yaml::Integer(point.x() as i64),
+                                                    Yaml::Integer(point.y() as i64),
+                                                ];
+                                                points_arr.push(Yaml::Array(point_tuple));
+                                            }
+                                            geometries_arr.push(Yaml::Array(points_arr));
                                         }
                                     }
+                                    feature_hash.insert(
+                                        Yaml::String("geometries".to_string()),
+                                        Yaml::Array(geometries_arr),
+                                    );
                                 }
                             }
-
+                            features_arr.push(Yaml::Hash(feature_hash));
                         }
                         layer_hash.insert(
                             Yaml::String("features".to_string()),
@@ -106,7 +100,9 @@ impl PVTYaml for PVTTile<'_> {
                         );
                     }
                 }
+                layers_arr.push(Yaml::Hash(layer_hash));
             }
+            doc.insert(Yaml::String("layers".to_string()), Yaml::Array(layers_arr));
         }
 
         if options.include_strings {

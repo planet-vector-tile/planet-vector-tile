@@ -103,6 +103,6 @@ fn parse_options(strs: &Vec<String>) -> ReportOptions {
             _ => eprintln!("Unknown report option: {}", s),
         }
     }
-
+    println!("{:?}", options);
     options
 }

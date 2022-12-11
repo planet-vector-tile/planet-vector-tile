@@ -28,7 +28,7 @@
                     "kind": "bin"
                 }
             },
-            "args": ["convert", "./manifests/hello_world.yaml", "-o"],
+            "args": ["convert", "./manifests/santa_cruz.yaml", "-o"],
             "cwd": "${workspaceFolder}"
         },
         {
@@ -42,7 +42,7 @@
                     "kind": "bin"
                 }
             },
-            "args": ["render", "./manifests/hello_world.yaml"],
+            "args": ["render", "./manifests/santa_cruz.yaml"],
             "cwd": "${workspaceFolder}"
         },
         {
@@ -56,7 +56,7 @@
                     "kind": "bin"
                 }
             },
-            "args": ["report", "./manifests/hello_world.yaml"],
+            "args": ["report", "./manifests/santa_cruz.yaml"],
             "cwd": "${workspaceFolder}"
         },
         {

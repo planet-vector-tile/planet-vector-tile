@@ -83,7 +83,6 @@ impl HilbertTree {
 
     pub fn open(manifest: &Manifest) -> Result<Self, Box<dyn std::error::Error>> {
         let dir = &manifest.data.planet;
-        println!("Opening hilbert tree from {}", dir.display());
         let flatdata = Osm::open(FileResourceStorage::new(dir))?;
 
         let m_way_pairs = Mutant::<HilbertWayPair>::open(dir, "hilbert_way_pairs", true)?;
