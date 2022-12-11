@@ -1,5 +1,5 @@
 use crate::report::ReportOptions;
-use crate::tile::planet_vector_tile_generated::{PVTTile,PVTValue, PVTValueType};
+use crate::tile::planet_vector_tile_generated::{PVTTile, PVTValue, PVTValueType};
 use crate::tile::Tile;
 
 use yaml_rust::yaml;
@@ -36,16 +36,13 @@ impl PVTYaml for PVTTile<'_> {
             let mut layers_arr = yaml::Array::with_capacity(layers.len());
             for layer in layers.iter() {
                 let mut layer_hash = yaml::Hash::with_capacity(2);
-                
+
                 let name = if options.lookup_strings_and_values {
                     strings_lookup.get(layer.name())
                 } else {
                     Yaml::Integer(layer.name() as i64)
                 };
-                layer_hash.insert(
-                    Yaml::String("name".to_string()),
-                    name,
-                );
+                layer_hash.insert(Yaml::String("name".to_string()), name);
 
                 if options.include_features {
                     if let Some(features) = layer.features() {

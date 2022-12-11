@@ -1,6 +1,5 @@
 #![allow(dead_code)]
 
-pub mod util;
 mod filter;
 mod hilbert;
 pub mod info;
@@ -15,6 +14,7 @@ mod sort;
 mod source;
 pub mod tile;
 pub mod tile_attributes;
+pub mod util;
 
 #[macro_use]
 extern crate napi_derive;

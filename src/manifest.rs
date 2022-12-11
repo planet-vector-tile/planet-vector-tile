@@ -129,7 +129,7 @@ pub fn parse(path_str: &str) -> Result<Manifest> {
     manifest.data.planet = planet.canonicalize().unwrap_or(planet);
     manifest.data.archive = archive.canonicalize().unwrap_or(archive);
 
-    println!("planet dir: {:?}", manifest.data.planet);
+    println!("Planet Dir: {}", manifest.data.planet.display());
 
     Ok(manifest)
 }
@@ -171,7 +171,10 @@ mod tests {
             render: Render {
                 leaf_zoom: 12,
                 layer_order: vec!["layer0".to_string()],
-                include_tags: Some(IncludeTags::Keys(vec!["key0".to_string(), "key1".to_string()])),
+                include_tags: Some(IncludeTags::Keys(vec![
+                    "key0".to_string(),
+                    "key1".to_string(),
+                ])),
             },
             layers,
             rules,

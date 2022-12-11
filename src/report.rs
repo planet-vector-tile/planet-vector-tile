@@ -4,12 +4,12 @@ use std::io::BufWriter;
 use std::io::Write;
 use std::path::Path;
 
-use chrono::Local;
-use crate::tile::Tile;
 use crate::source::Source;
+use crate::tile::Tile;
+use chrono::Local;
 
-use crate::pvt_yaml::PVTYaml;
 use crate::pvt_builder::PVTBuilder;
+use crate::pvt_yaml::PVTYaml;
 use crate::tile::planet_vector_tile_generated::root_as_pvttile;
 
 use crate::hilbert::tree::HilbertTree;
@@ -76,7 +76,13 @@ pub fn generate(manifest: &Manifest) -> Result<(), Error> {
     Ok(())
 }
 
-fn visit_tile(tile: &Tile, buffer: &Vec<u8>, buf_writer: &mut BufWriter<File>, tiles_dir: &Path, options: &ReportOptions) -> Result<(), Error> {
+fn visit_tile(
+    tile: &Tile,
+    buffer: &Vec<u8>,
+    buf_writer: &mut BufWriter<File>,
+    tiles_dir: &Path,
+    options: &ReportOptions,
+) -> Result<(), Error> {
     if options.write_fb_tiles {
         let file_name = format!("{}_{}.pvt", tile.z, tile.h);
         let mut file = File::create(tiles_dir.join(file_name))?;

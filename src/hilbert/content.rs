@@ -5,7 +5,6 @@ use super::{hilbert_tile::HilbertTile, leaf::Leaf};
 use crate::{
     filter::Filter, manifest::Manifest, mutant::Mutant, osmflat::osmflat_generated::osm::Osm, util,
 };
-use std::time::Instant;
 
 type Err = Box<dyn std::error::Error>;
 

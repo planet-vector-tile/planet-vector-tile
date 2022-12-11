@@ -1,6 +1,9 @@
 use crate::{pvt_builder::PVTBuilder, tile::Tile};
 
-use super::{tree::{HilbertTree, ResultPair}, leaf::Leaf};
+use super::{
+    leaf::Leaf,
+    tree::{HilbertTree, ResultPair},
+};
 
 impl HilbertTree {
     pub fn pvt_leaf_iterator(&self) -> PVTLeafIterator {
