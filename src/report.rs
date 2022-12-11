@@ -95,11 +95,11 @@ fn parse_options(strs: &Vec<String>) -> ReportOptions {
     for s in strs {
         match s.as_str() {
             "lookup_strings" => options.lookup_strings = true,
-            "strings" => options.include_strings = true,
-            "values" => options.include_values = true,
-            "layers" => options.include_layers = true,
-            "features" => options.include_features = true,
-            "geometries" => options.include_geometries = true,
+            "include_strings" => options.include_strings = true,
+            "include_values" => options.include_values = true,
+            "include_layers" => options.include_layers = true,
+            "include_features" => options.include_features = true,
+            "include_geometries" => options.include_geometries = true,
             _ => eprintln!("Unknown report option: {}", s),
         }
     }
