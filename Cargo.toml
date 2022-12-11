@@ -19,6 +19,7 @@ path = "src/fixtures.rs"
 [dependencies]
 ahash = "0.8.0"
 byteorder = "1.4.3"
+chrono = "0.4.23"
 clap = { version = "4.0.18", features = ["derive"] }
 crossbeam = "0.8.2"
 dashmap = "5.4.0"

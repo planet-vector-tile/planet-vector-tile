@@ -7,6 +7,7 @@ mod mutant;
 mod osmflat;
 mod parallel;
 pub mod pvt_builder;
+mod pvt_yaml;
 mod report;
 mod rules;
 mod sort;

@@ -12,6 +12,8 @@ pub struct Manifest {
     pub render: Render,
     pub layers: Layers,
     pub rules: Rules,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub report_options: Vec<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
@@ -19,6 +21,8 @@ pub struct Data {
     pub source: PathBuf,
     pub planet: PathBuf,
     pub archive: PathBuf,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub include_leaves: Vec<u64>,
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
