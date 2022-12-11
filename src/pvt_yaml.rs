@@ -44,9 +44,9 @@ impl PVTYaml for PVTTile<'_> {
                             let mut feature_hash = yaml::Hash::with_capacity(3);
                             feature_hash.insert(
                                 Yaml::String("id".to_string()),
-                                Yaml::Integer(feature.id().unwrap() as i64),
+                                // Coerching to string because serializer doesnt support u64
+                                Yaml::String(format!("{}", feature.id())),
                             );
-                    
 
                             if options.include_geometries {
                                 

@@ -7,8 +7,13 @@ render:
     leaf_zoom: 12
     layer_order: [Administrative, Water, Major Roads, Minor Roads, Places, Buildings]
 
-report:
-    path: ../report.yml
+report_options:
+    - lookup_strings
+    - include_strings
+    - include_values
+    - include_layers
+    - include_features
+    - include_geometries
 
 layers:
     Administrative: [admin_country, admin_state, admin_county, admin_city, admihn_other, boundary]

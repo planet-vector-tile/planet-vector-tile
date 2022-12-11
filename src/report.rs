@@ -30,7 +30,7 @@ pub fn generate(manifest: &Manifest) -> Result<(), Box<dyn std::error::Error>> {
     let report_path = manifest.data.planet.join(file_name);
     println!("Generating report at: {}", report_path.display());
 
-    let mut file = std::fs::File::create(report_path)?;
+    let file = std::fs::File::create(report_path)?;
     let mut buf_writer = BufWriter::with_capacity(1024 * 1024 * 32, file);
 
     let tree = HilbertTree::open(manifest)?;
@@ -61,7 +61,7 @@ pub fn generate(manifest: &Manifest) -> Result<(), Box<dyn std::error::Error>> {
 
         for h in leaves {
             let tile = Tile::from_zh(manifest.render.leaf_zoom, h);
-            let builder = PVTBuilder::new();
+            let mut builder = PVTBuilder::new();
             tree.compose_tile(&tile, &mut builder);
             let buffer = builder.build();
             let size = buffer.len();
@@ -74,7 +74,7 @@ pub fn generate(manifest: &Manifest) -> Result<(), Box<dyn std::error::Error>> {
                 }
             };
 
-            let yaml_string = pvt.to_yaml_report(&tile, options.clone());
+            let yaml_string = pvt.to_yaml_report(&tile, size, options.clone());
             buf_writer.write_all(yaml_string.as_bytes())?;
         }
     }

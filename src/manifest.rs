@@ -22,7 +22,7 @@ pub struct Data {
     pub planet: PathBuf,
     pub archive: PathBuf,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub include_leaves: Vec<u64>,
+    pub include_leaves: Vec<u64>, // these are the hilbert values for the leaves we want to include in the build
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
