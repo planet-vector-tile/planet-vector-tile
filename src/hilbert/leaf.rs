@@ -13,7 +13,6 @@ use crate::{
 use dashmap::mapref::entry::Entry::{Occupied, Vacant};
 use dashmap::DashMap;
 use humantime::format_duration;
-use log::info;
 use rayon::prelude::*;
 use std::collections::BTreeSet;
 
@@ -77,7 +76,7 @@ pub fn build_leaves(
 
     // First leaf Hilbert tile has the lowest hilbert location.
     let mut tile_h = location::h_to_zoom_h(lowest_h, leaf_zoom) as u32;
-    info!(
+    println!(
         "Lowest tile_h for leaves in hilbert tree: {}, leaf_zoom: {}",
         lowest_h, leaf_zoom
     );
@@ -91,8 +90,6 @@ pub fn build_leaves(
     let node_pairs_len = node_pairs.len();
     let way_pairs = m_way_pairs.slice();
     let way_pairs_len = way_pairs.len();
-
-    println!("LEAVES zoom {}", leaf_zoom);
 
     // First leaf tile
     let first_leaf = Leaf {

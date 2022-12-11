@@ -50,6 +50,12 @@ cargo test
 npm test
 ```
 
+If you are debugging tests and you want to see full output, run:
+
+```
+cargo test -- --nocapture
+```
+
 ## Modify the schema.
 
 If you want to modify the flatdata or flatbuffer schema, you will need to install the corresponding schema compilers.

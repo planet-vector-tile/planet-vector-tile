@@ -3,7 +3,7 @@ use rayon::prelude::{IntoParallelIterator, IntoParallelRefIterator, ParallelIter
 
 use super::{hilbert_tile::HilbertTile, leaf::Leaf};
 use crate::{
-    filter::Filter, manifest::Manifest, mutant::Mutant, osmflat::osmflat_generated::osm::Osm,
+    filter::Filter, manifest::Manifest, mutant::Mutant, osmflat::osmflat_generated::osm::Osm, util,
 };
 use std::time::Instant;
 
@@ -42,8 +42,7 @@ pub fn render_tile_content(
     let mut total_children = leaves.len() as u32;
     let mut children = 0;
 
-    let t = Instant::now();
-    println!("Rendering tile content...");
+    let t = util::timer("Rendering tile content...");
 
     for i in 0..tiles.len() {
         let tile = &tiles[i];
@@ -159,14 +158,14 @@ pub fn render_tile_content(
             next_tile.w = m_w.len as u32;
         }
 
-        println!(
-            "z {} children {} total_children {} nodes {} ways {}",
-            z,
-            children,
-            total_children,
-            nodes.len(),
-            ways.len(),
-        );
+        // println!(
+        //     "z {} children {} total_children {} nodes {} ways {}",
+        //     z,
+        //     children,
+        //     total_children,
+        //     nodes.len(),
+        //     ways.len(),
+        // );
 
         level_tile_count += 1;
         // If we are done with the level, decrement z to the next zoom.

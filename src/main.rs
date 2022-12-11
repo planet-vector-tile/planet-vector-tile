@@ -14,22 +14,16 @@ mod sort;
 mod source;
 mod tile;
 mod tile_attributes;
+mod util;
 
 use clap::ArgMatches;
 use hilbert::tree::HilbertTree;
 use humantime::format_duration;
 use manifest::Manifest;
-use std::{error::Error, fs, time::Instant};
+use std::{error::Error, fs};
 
 fn main() {
-    let time = Instant::now();
-
-    env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info"))
-        .format_level(false)
-        .format_module_path(false)
-        .format_timestamp_nanos()
-        .init();
-
+    let time = util::timer("pvt");
     let matches = commands::cli().get_matches();
 
     let sub = match matches.subcommand() {

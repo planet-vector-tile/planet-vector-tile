@@ -242,9 +242,9 @@ mod tests {
     }
 
     #[test]
-    fn test_get_strs_santacruz() {
+    fn test_get_strs_santa_cruz() {
         let flatdata =
-            Osm::open(FileResourceStorage::new("tests/fixtures/santacruz/sort")).unwrap();
+            Osm::open(FileResourceStorage::new("tests/fixtures/santa_cruz/sort")).unwrap();
         let strings: RawData = flatdata.stringtable();
         let delimeters = get_str_null_delimeters(strings);
         let d1 = delimeters[0];
@@ -298,10 +298,10 @@ mod tests {
     }
 
     #[test]
-    fn test_build_rules_santacruz() {
-        let manifest = manifest::parse("tests/fixtures/santacruz_sort.yaml").unwrap();
+    fn test_build_rules_santa_cruz() {
+        let manifest = manifest::parse("tests/fixtures/santa_cruz_sort.yaml").unwrap();
         let flatdata =
-            Osm::open(FileResourceStorage::new("tests/fixtures/santacruz/sort")).unwrap();
+            Osm::open(FileResourceStorage::new("tests/fixtures/santa_cruz/sort")).unwrap();
         let rules = Rules::new(&manifest, &flatdata);
 
         // boundary = administrative

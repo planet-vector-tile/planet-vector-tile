@@ -1,7 +1,7 @@
 data:
-    source: ../tests/fixtures/santacruz.osm.pbf
-    planet: ../planets/santacruz
-    archive: ../archives/santacruz.pvt
+    source: ../tests/fixtures/santa_cruz.osm.pbf
+    planet: ../planets/santa_cruz
+    archive: ../archives/santa_cruz.pvt
 
 render:
     leaf_zoom: 12

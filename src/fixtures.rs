@@ -11,6 +11,7 @@ mod sort;
 mod source;
 mod tile;
 mod tile_attributes;
+mod util;
 
 use fs_extra::dir::{copy, CopyOptions};
 use hilbert::tree::HilbertTree;
@@ -20,22 +21,16 @@ use std::{error::Error, fs, time::Instant};
 fn main() {
     let time = Instant::now();
 
-    env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info"))
-        .format_level(false)
-        .format_module_path(false)
-        .format_timestamp_nanos()
-        .init();
-
     let _ = fs::remove_dir_all("tests/fixtures/nodes4");
-    let _ = fs::remove_dir_all("tests/fixtures/santacruz");
+    let _ = fs::remove_dir_all("tests/fixtures/santa_cruz");
 
     build(
         "./tests/fixtures/nodes4_convert.yaml",
         "tests/fixtures/nodes4_sort.yaml",
     );
     build(
-        "./tests/fixtures/santacruz_convert.yaml",
-        "tests/fixtures/santacruz_sort.yaml",
+        "./tests/fixtures/santa_cruz_convert.yaml",
+        "tests/fixtures/santa_cruz_sort.yaml",
     );
 
     println!("Total Time: {}", format_duration(time.elapsed()));

@@ -4,12 +4,12 @@ use crate::{
     osmflat::osmflat_generated::osm::{
         HilbertNodePair, HilbertWayPair, Node, NodeIndex, Osm, TagIndex, Way,
     },
+    util,
 };
 use geo::algorithm::interior_point::InteriorPoint;
 use geo::geometry::LineString;
 use geo::Coord;
 use geo::{coord, Polygon};
-use log::info;
 use pbr::ProgressBar;
 use rayon::prelude::*;
 use std::{
@@ -17,7 +17,6 @@ use std::{
     io::{Error, ErrorKind, Stdout},
     panic,
     path::PathBuf,
-    time::Instant,
 };
 
 pub fn sort_flatdata(flatdata: Osm, dir: &PathBuf) -> Result<(), Box<dyn std::error::Error>> {
@@ -39,19 +38,17 @@ pub fn sort_flatdata(flatdata: Osm, dir: &PathBuf) -> Result<(), Box<dyn std::er
     build_hilbert_way_pairs(way_pairs, &flatdata)?;
 
     // Sort hilbert way pairs.
-    info!("Sorting hilbert way pairs.");
-    let t = Instant::now();
+    let t = util::timer("Sorting hilbert way pairs.");
     way_pairs.par_sort_unstable_by_key(|idx| idx.h());
-    info!("Finished in {} secs.", t.elapsed().as_secs());
+    println!("Finished in {} secs.", t.elapsed().as_secs());
 
     // Sort hilbert node pairs.
-    info!("Sorting hilbert node pairs.");
-    let t = Instant::now();
+    let t = util::timer("Sorting hilbert node pairs.");
     let nodes_len = flatdata.nodes().len();
     let node_pairs_mut = Mutant::<HilbertNodePair>::open(dir, "hilbert_node_pairs", true)?;
     let node_pairs = node_pairs_mut.mutable_slice();
     node_pairs.par_sort_unstable_by_key(|idx| idx.h());
-    info!("Finished in {} secs.", t.elapsed().as_secs());
+    println!("Finished in {} secs.", t.elapsed().as_secs());
 
     // Reorder nodes to sorted hilbert node pairs.
     let mut pb = Prog::new("Reordering nodes. ", nodes_len);
@@ -148,13 +145,13 @@ pub fn sort_flatdata(flatdata: Osm, dir: &PathBuf) -> Result<(), Box<dyn std::er
 
     // std::mem::drop(flatdata);
     m_sorted_nodes.mv("nodes")?;
-    info!("Moved sorted_nodes to nodes");
+    println!("Moved sorted_nodes to nodes");
     sorted_ways_mut.mv("ways")?;
-    info!("Moved sorted_ways to ways");
+    println!("Moved sorted_ways to ways");
     sorted_nodes_index_mut.mv("nodes_index")?;
-    info!("Moved sorted_nodes_index to nodes_index");
+    println!("Moved sorted_nodes_index to nodes_index");
     sorted_tags_index_mut.mv("tags_index")?;
-    info!("Moved sorted_tags_index to tags_index");
+    println!("Moved sorted_tags_index to tags_index");
 
     Ok(())
 }
@@ -168,7 +165,7 @@ fn build_hilbert_way_pairs(
     let node_pairs = flatdata.hilbert_node_pairs().unwrap();
     let ways = flatdata.ways();
 
-    info!("Building hilbert way pairs.");
+    println!("Building hilbert way pairs.");
     let t = Instant::now();
 
     way_pairs.par_iter_mut().enumerate().for_each(|(i, pair)| {
@@ -294,7 +291,7 @@ fn build_hilbert_way_pairs(
         }
     });
 
-    info!("Finished in {} secs.", t.elapsed().as_secs());
+    println!("Finished in {} secs.", t.elapsed().as_secs());
     Ok(())
 }
 
@@ -323,7 +320,7 @@ impl Prog {
         }
     }
     fn finish(&self) {
-        info!("Finished in {} secs.", self.t.elapsed().as_secs());
+        println!("Finished in {} secs.", self.t.elapsed().as_secs());
     }
 }
 

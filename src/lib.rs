@@ -1,5 +1,6 @@
 #![allow(dead_code)]
 
+pub mod util;
 mod filter;
 mod hilbert;
 pub mod info;
