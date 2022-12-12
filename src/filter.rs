@@ -80,71 +80,13 @@ impl<'a> Filter<'a> {
     }
 
     fn evaluate_tags(&self, tags_idx_range: Range<usize>, zoom: u8) -> bool {
-        let tags_index = self.flatdata.tags_index();
-        let mut winning_match = RuleMatch::None;
+        let rule_match = self.rules.evaluate_tags(self.flatdata, tags_idx_range);
 
-        for i in &tags_index[tags_idx_range] {
-            let rule_match = self.rules.evaluate(self.flatdata, i.value() as usize);
-
-            match winning_match {
-                RuleMatch::None => {
-                    winning_match = rule_match;
-                }
-                RuleMatch::Tag(_) => {
-                    break;
-                }
-                RuleMatch::Value(_) => match rule_match {
-                    RuleMatch::None => (),
-                    RuleMatch::Tag(_) => {
-                        winning_match = rule_match;
-                        break;
-                    }
-                    RuleMatch::Value(_) => (),
-                    RuleMatch::Key(_) => (),
-                },
-                RuleMatch::Key(_) => match rule_match {
-                    RuleMatch::None => (),
-                    RuleMatch::Tag(_) => {
-                        winning_match = rule_match;
-                        break;
-                    }
-                    RuleMatch::Value(_) => {
-                        winning_match = rule_match;
-                    }
-                    RuleMatch::Key(_) => (),
-                },
-            }
-        }
-
-        let mut minzoom = self.leaf_zoom;
-        let mut maxzoom = self.leaf_zoom;
-
-        match winning_match {
-            RuleMatch::None => {}
-            RuleMatch::Tag(r) => {
-                minzoom = r.minzoom;
-                if let Some(max) = r.maxzoom {
-                    maxzoom = max
-                };
-            }
-            RuleMatch::Value(r) => {
-                minzoom = r.minzoom;
-                if let Some(max) = r.maxzoom {
-                    maxzoom = max
-                };
-            },
-            RuleMatch::Key(r) => {
-                minzoom = r.minzoom;
-                if let Some(max) = r.maxzoom {
-                    maxzoom = max
-                };
-            },
-        };
-
-        if zoom >= minzoom && zoom <= maxzoom {
-            true
-        } else {
-            false
+        match rule_match {
+            RuleMatch::None => zoom == self.leaf_zoom,
+            RuleMatch::Tag(r) => r.minzoom <= zoom && r.maxzoom >= zoom,
+            RuleMatch::Value(r) => r.minzoom <= zoom && r.maxzoom >= zoom,
+            RuleMatch::Key(r) => r.minzoom <= zoom && r.maxzoom >= zoom,
         }
     }
 }
