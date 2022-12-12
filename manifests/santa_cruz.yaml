@@ -123,5 +123,3 @@ rules:
     highway:
         minzoom: 12
         keys: [highway]
-# info:
-#     entities_by_rule: [admin_country, admin_state, admin_county, admin_other]

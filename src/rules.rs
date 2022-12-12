@@ -17,14 +17,14 @@ pub struct Rules {
     pub tags: BTreeMap<usize, RuleEval>,
     pub values: BTreeMap<usize, RuleEval>,
     pub keys: BTreeMap<usize, RuleEval>,
-    // These maps are here only for serde
-    pub tag_to_idx: BTreeMap<(String, String), usize>,
-    pub str_to_idx: BTreeMap<String, usize>,
+
+    // Uncomment for debugging.
+    // pub tag_to_idx: BTreeMap<(String, String), usize>,
+    // pub str_to_idx: BTreeMap<String, usize>,
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 pub struct RuleEval {
-    pub idx: usize,
     pub name: String,
     pub minzoom: u8,
     pub maxzoom: u8,
@@ -119,39 +119,39 @@ impl Rules {
         let leaf_zoom = manifest.render.leaf_zoom;
 
         for (rule_name, rule) in &manifest.rules {
-            for (idx, (k, v)) in rule.tags.iter().enumerate() {
+            for (k, v) in &rule.tags {
                 if let Some(t_idx) = tag_to_idx.get(&(k, v)) {
-                    tags.insert(*t_idx, RuleEval::new(rule, idx, rule_name, leaf_zoom));
+                    tags.insert(*t_idx, RuleEval::new(rule, rule_name, leaf_zoom));
                 }
             }
-            for (idx, v) in rule.values.iter().enumerate() {
+            for v in &rule.values {
                 if let Some(v_idx) = str_to_idx.get(v.as_str()) {
-                    values.insert(*v_idx, RuleEval::new(rule, idx, rule_name, leaf_zoom));
+                    values.insert(*v_idx, RuleEval::new(rule, rule_name, leaf_zoom));
                 }
             }
-            for (idx, k) in rule.keys.iter().enumerate() {
+            for k in &rule.keys {
                 if let Some(k_idx) = str_to_idx.get(k.as_str()) {
-                    keys.insert(*k_idx, RuleEval::new(rule, idx, rule_name, leaf_zoom));
+                    keys.insert(*k_idx, RuleEval::new(rule, rule_name, leaf_zoom));
                 }
             }
         }
 
-        let mut btree_tag_to_idx = BTreeMap::<(String, String), usize>::new();
-        for ((k, v), i) in tag_to_idx.into_iter() {
-            btree_tag_to_idx.insert((k.to_string(), v.to_string()), i);
-        }
+        // let mut btree_tag_to_idx = BTreeMap::<(String, String), usize>::new();
+        // for ((k, v), i) in tag_to_idx.into_iter() {
+        //     btree_tag_to_idx.insert((k.to_string(), v.to_string()), i);
+        // }
 
-        let mut btree_str_to_idx = BTreeMap::<String, usize>::new();
-        for (s, i) in str_to_idx.into_iter() {
-            btree_str_to_idx.insert(s.to_string(), i);
-        }
+        // let mut btree_str_to_idx = BTreeMap::<String, usize>::new();
+        // for (s, i) in str_to_idx.into_iter() {
+        //     btree_str_to_idx.insert(s.to_string(), i);
+        // }
 
         let rules = Rules {
             tags,
             values,
             keys,
-            tag_to_idx: btree_tag_to_idx,
-            str_to_idx: btree_str_to_idx,
+            // tag_to_idx: btree_tag_to_idx,
+            // str_to_idx: btree_str_to_idx,
         };
 
         let rules_path = manifest.data.planet.join("rules.yaml");
@@ -229,9 +229,8 @@ impl Rules {
 }
 
 impl RuleEval {
-    pub fn new(rule: &Rule, idx: usize, rule_name: &String, leaf_zoom: u8) -> Self {
+    pub fn new(rule: &Rule, rule_name: &String, leaf_zoom: u8) -> Self {
         Self {
-            idx,
             name: rule_name.clone(),
             minzoom: rule.minzoom,
             maxzoom: match rule.maxzoom {
