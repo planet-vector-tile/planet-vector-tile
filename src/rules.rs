@@ -1,6 +1,7 @@
 use dashmap::{DashMap, DashSet};
 use flatdata::RawData;
 use humantime::format_duration;
+use itertools::Itertools;
 use rayon::prelude::{IndexedParallelIterator, IntoParallelRefIterator, ParallelIterator};
 use serde_derive::{Deserialize, Serialize};
 use std::{collections::BTreeMap, fs, ops::Range};
@@ -44,6 +45,7 @@ impl Rules {
             for (k, v) in &rule.tags {
                 strs.insert(k);
                 strs.insert(v);
+                kvs.insert((k, v));
             }
             for v in &rule.values {
                 strs.insert(v);
@@ -91,15 +93,19 @@ impl Rules {
                 tag_to_idx.insert(t, *i);
                 kvs.remove(&t);
             }
-            true
+            if kvs.is_empty() {
+                true
+            } else {
+                false
+            }
         });
         println!("Finished in {}", format_duration(t.elapsed()));
 
         if strs.len() > 0 {
-            println!("NOTICE: Not all rules and include_tags were matched to a string in the stringtable. Unmatched strings:\n{:?}", strs);
+            println!("NOTICE: Not all rules and include_tags were matched to a string in the stringtable. Unmatched strings:\n{:?}", strs.iter().map(|k| *k ).collect_vec());
         }
         if kvs.len() > 0 {
-            println!("NOTICE: Not all tag kv rules were matched to an existing tag. Unmatched tags:\n{:?}", kvs);
+            println!("NOTICE: Not all tag kv rules were matched to an existing tag. Unmatched tags:\n{:?}", kvs.iter().map(|tpl| *tpl).collect_vec());
         }
         println!(
             "Built pointers to strings from rules and include_tags in: {}",
@@ -150,7 +156,8 @@ impl Rules {
 
         let rules_path = manifest.data.planet.join("rules.yaml");
         let manifest_str = serde_yaml::to_string(&rules).expect("Rules should serialize");
-        fs::write(&rules_path, manifest_str).expect("Rules should be able to be written to planet dir");
+        fs::write(&rules_path, manifest_str)
+            .expect("Rules should be able to be written to planet dir");
 
         println!("Serialized rules to {}", rules_path.display());
 
@@ -195,7 +202,7 @@ impl Rules {
                 },
                 // Shouldn't get here
                 RuleMatch::Tag(_) => {
-                    eprintln!("Error: evaluate_tags logic error.");
+                    // eprintln!("Error: evaluate_tags logic error.");
                     break;
                 }
             }
