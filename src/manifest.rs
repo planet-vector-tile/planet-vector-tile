@@ -38,11 +38,11 @@ pub struct Rule {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub maxzoom: Option<u8>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub tags: Vec<(String, String)>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub keys: Vec<String>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub values: Vec<String>,
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub tags: Vec<(String, String)>,
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]

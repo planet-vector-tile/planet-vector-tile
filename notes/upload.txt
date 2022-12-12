@@ -1,0 +1,14 @@
+Upload large file
+https://stackoverflow.com/questions/70252995/how-to-monitor-reqwest-client-upload-progress
+
+S3
+https://github.com/rusoto/rusoto
+https://github.com/rusoto/rusoto/tree/master/rusoto/services/s3
+
+Presign url
+https://cloud.google.com/storage/docs/access-control/signed-urls
+
+https://cloud.google.com/storage/docs/resumable-uploads
+https://cloud.google.com/storage/docs/streaming-uploads
+
+

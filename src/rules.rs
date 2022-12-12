@@ -1,27 +1,45 @@
-use std::{fs, ops::Range, time::Instant};
-
 use ahash::AHashMap;
 use dashmap::{DashMap, DashSet};
 use flatdata::RawData;
 use humantime::format_duration;
+use itertools::Itertools;
 use rayon::prelude::{IndexedParallelIterator, IntoParallelRefIterator, ParallelIterator};
+use serde_derive::{Deserialize, Serialize};
+use std::{collections::BTreeMap, fs, ops::Range, time::Instant};
 use yaml_rust::{yaml, YamlEmitter};
 
 use crate::{
     manifest::{IncludeTags, Manifest},
     osmflat::osmflat_generated::osm::{Osm, Tag},
+    util,
 };
 
+#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 pub struct Rules {
-    tag_to_zoom_range: AHashMap<(usize, usize), Range<u8>>,
-    value_to_zoom_range: AHashMap<usize, Range<u8>>,
-    key_to_zoom_range: AHashMap<usize, Range<u8>>,
+    pub tags: BTreeMap<usize, RuleEval>,
+    pub values: BTreeMap<usize, RuleEval>,
+    pub keys: BTreeMap<usize, RuleEval>,
+}
+
+#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
+pub struct RuleEval {
+    pub idx: usize,
+    pub name: String,
+    pub minzoom: u8,
+    pub maxzoom: Option<u8>,
+}
+
+pub enum RuleMatch {
+    None,
+    Tag(RuleEval),
+    Value(RuleEval),
+    Key(RuleEval),
 }
 
 impl Rules {
-    // NOTE: This is expensive to construct due to get_strs. Don't construct in a loop.
-    pub fn new(manifest: &Manifest, flatdata: &Osm) -> Self {
+    pub fn build(manifest: &Manifest, flatdata: &Osm) -> Self {
         let strs: DashSet<&str> = DashSet::new();
+        let kvs: DashSet<(&str, &str)> = DashSet::new();
         for (_, rule) in &manifest.rules {
             for (k, v) in &rule.tags {
                 strs.insert(k);
@@ -42,9 +60,8 @@ impl Rules {
 
         let str_to_idx: DashMap<&str, usize> = DashMap::new();
         let strings = flatdata.stringtable();
-        println!("Scanning stringtable for rule strings...");
-        let t = Instant::now();
 
+        let t = util::timer("Scanning stringtable for rule strings...");
         // Note: This is expensive, but better than constantly strcmp against rules during the build.
         let str_ranges = get_str_ranges(strings);
 
@@ -61,6 +78,20 @@ impl Rules {
             } else {
                 false
             }
+        });
+        println!("Finished in {}", format_duration(t.elapsed()));
+
+        let t = util::timer("Scanning tags table for matching tag rules...");
+        let tag_to_idx: DashMap<(&str, &str), usize> = DashMap::new();
+        let _ = flatdata.tags().par_iter().enumerate().find_any(|(i, tag)| {
+            let k = unsafe { strings.substring_unchecked(tag.key_idx() as usize) };
+            let v = unsafe { strings.substring_unchecked(tag.value_idx() as usize) };
+            let t = (k, v);
+            if kvs.contains(&t) {
+                tag_to_idx.insert(t, *i);
+                kvs.remove(&t);
+            }
+            true
         });
 
         if strs.len() > 0 {
@@ -98,81 +129,150 @@ impl Rules {
             }
         }
 
-        let mut tag_to_zoom_range: AHashMap<(usize, usize), Range<u8>> = AHashMap::new();
-        let mut value_to_zoom_range: AHashMap<usize, Range<u8>> = AHashMap::new();
-        let mut key_to_zoom_range: AHashMap<usize, Range<u8>> = AHashMap::new();
+        let mut tags = BTreeMap::<usize, RuleEval>::new();
+        let mut values = BTreeMap::<usize, RuleEval>::new();
+        let mut keys = BTreeMap::<usize, RuleEval>::new();
 
-        for (_, rule) in &manifest.rules {
+        for (rule_name, rule) in &manifest.rules {
             let zoom_range = if let Some(maxzoom) = rule.maxzoom {
                 rule.minzoom..maxzoom
             } else {
                 rule.minzoom..manifest.render.leaf_zoom
             };
 
-            for (k, v) in &rule.tags {
-                let k_idx = match str_to_idx.get(k.as_str()) {
+            for (idx, (k, v)) in rule.tags.iter().enumerate() {
+                let t_idx = match tag_to_idx.get(&(k, v)) {
                     Some(idx) => *idx,
-                    None => {
-                        break;
-                    }
+                    None => break,
                 };
+                let r = RuleEval {
+                    idx,
+                    name: rule_name.clone(),
+                    minzoom: rule.minzoom,
+                    maxzoom: rule.maxzoom,
+                };
+                tags.insert(t_idx, r);
+            }
+            for (idx, v) in rule.values.iter().enumerate() {
                 let v_idx = match str_to_idx.get(v.as_str()) {
                     Some(idx) => *idx,
                     None => {
                         break;
                     }
                 };
-                tag_to_zoom_range.insert((k_idx, v_idx), zoom_range.clone());
-            }
-            for v in &rule.values {
-                let v_idx = match str_to_idx.get(v.as_str()) {
-                    Some(idx) => *idx,
-                    None => {
-                        break;
-                    }
+                let r = RuleEval {
+                    idx,
+                    name: rule_name.clone(),
+                    minzoom: rule.minzoom,
+                    maxzoom: rule.maxzoom,
                 };
-                value_to_zoom_range.insert(v_idx, zoom_range.clone());
+                values.insert(v_idx, r);
             }
-            for k in &rule.keys {
+            for (idx, k) in rule.keys.iter().enumerate() {
                 let k_idx = match str_to_idx.get(k.as_str()) {
                     Some(idx) => *idx,
                     None => {
                         break;
                     }
                 };
-                key_to_zoom_range.insert(k_idx, zoom_range.clone());
+                let r = RuleEval {
+                    idx,
+                    name: rule_name.clone(),
+                    minzoom: rule.minzoom,
+                    maxzoom: rule.maxzoom,
+                };
+                keys.insert(k_idx, r);
             }
         }
 
-        Rules {
-            tag_to_zoom_range,
-            value_to_zoom_range,
-            key_to_zoom_range,
-        }
+        Rules { tags, values, keys }
     }
 
-    pub fn get_zoom_range(&self, tag: &Tag) -> ZoomRangeRuleEval {
+    pub fn evaluate(&self, flatdata: &Osm, tag_i: usize) -> RuleMatch {
+        if let Some(r) = self.tags.get(&tag_i) {
+            return RuleMatch::Tag(r.clone());
+        }
+
+        let tag = flatdata.tags()[tag_i];
         let key = tag.key_idx() as usize;
         let value = tag.value_idx() as usize;
-        if let Some(zoom_range) = self.tag_to_zoom_range.get(&(key, value)) {
-            return ZoomRangeRuleEval::Tag(zoom_range);
+        if let Some(r) = self.values.get(&value) {
+            return RuleMatch::Value(r.clone());
         }
-        if let Some(zoom_range) = self.value_to_zoom_range.get(&value) {
-            return ZoomRangeRuleEval::Value(zoom_range);
+        if let Some(r) = self.keys.get(&key) {
+            return RuleMatch::Key(r.clone());
         }
-        if let Some(zoom_range) = self.key_to_zoom_range.get(&key) {
-            return ZoomRangeRuleEval::Key(zoom_range);
-        }
-        ZoomRangeRuleEval::None
+        RuleMatch::None
     }
-}
 
-#[derive(Debug, PartialEq, Eq, Clone)]
-pub enum ZoomRangeRuleEval<'a> {
-    None,
-    Tag(&'a Range<u8>),
-    Value(&'a Range<u8>),
-    Key(&'a Range<u8>),
+    pub fn evaluate_tags(&self, flatdata: &Osm, tags_idx_range: Range<usize>, zoom: u8) -> bool {
+        let tags_index = flatdata.tags_index();
+        let mut winning_match = RuleMatch::None;
+
+        for i in &tags_index[tags_idx_range] {
+            let rule_match = self.evaluate(flatdata, i.value() as usize);
+
+            match winning_match {
+                RuleMatch::None => {
+                    winning_match = rule_match;
+                }
+                RuleMatch::Tag(_) => {
+                    break;
+                }
+                RuleMatch::Value(_) => match rule_match {
+                    RuleMatch::None => (),
+                    RuleMatch::Tag(_) => {
+                        winning_match = rule_match;
+                        break;
+                    }
+                    RuleMatch::Value(_) => (),
+                    RuleMatch::Key(_) => (),
+                },
+                RuleMatch::Key(_) => match rule_match {
+                    RuleMatch::None => (),
+                    RuleMatch::Tag(_) => {
+                        winning_match = rule_match;
+                        break;
+                    }
+                    RuleMatch::Value(_) => {
+                        winning_match = rule_match;
+                    }
+                    RuleMatch::Key(_) => (),
+                },
+            }
+        }
+
+        let mut minzoom = self.leaf_zoom;
+        let mut maxzoom = self.leaf_zoom;
+
+        match winning_match {
+            RuleMatch::None => {}
+            RuleMatch::Tag(r) => {
+                minzoom = r.minzoom;
+                if let Some(max) = r.maxzoom {
+                    maxzoom = max
+                };
+            }
+            RuleMatch::Value(r) => {
+                minzoom = r.minzoom;
+                if let Some(max) = r.maxzoom {
+                    maxzoom = max
+                };
+            },
+            RuleMatch::Key(r) => {
+                minzoom = r.minzoom;
+                if let Some(max) = r.maxzoom {
+                    maxzoom = max
+                };
+            },
+        };
+
+        if zoom >= minzoom && zoom <= maxzoom {
+            true
+        } else {
+            false
+        }
+    }
 }
 
 fn get_str_null_delimeters(strings: RawData) -> Vec<usize> {
@@ -302,7 +402,7 @@ mod tests {
         let manifest = manifest::parse("tests/fixtures/santa_cruz_sort.yaml").unwrap();
         let flatdata =
             Osm::open(FileResourceStorage::new("tests/fixtures/santa_cruz/sort")).unwrap();
-        let rules = Rules::new(&manifest, &flatdata);
+        let rules = Rules::build(&manifest, &flatdata);
 
         // boundary = administrative
         let mut tag = Tag::new();
@@ -311,7 +411,7 @@ mod tests {
 
         let zr = 0..12;
         let zoom_range = rules.get_zoom_range(&tag);
-        assert_eq!(zoom_range, ZoomRangeRuleEval::Value(&zr));
+        assert_eq!(zoom_range, RuleMatch::Value(&zr));
 
         // key of building
         let mut tag2 = Tag::new();
@@ -320,7 +420,7 @@ mod tests {
 
         let zr2 = 10..12;
         let zoom_range2 = rules.get_zoom_range(&tag2);
-        assert_eq!(zoom_range2, ZoomRangeRuleEval::Key(&zr2));
+        assert_eq!(zoom_range2, RuleMatch::Key(&zr2));
     }
 
     #[test]

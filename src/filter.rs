@@ -5,7 +5,7 @@ use dashmap::DashSet;
 use crate::{
     manifest::Manifest,
     osmflat::osmflat_generated::osm::{Node, Osm, Way},
-    rules::{Rules, ZoomRangeRuleEval},
+    rules::{RuleMatch, Rules},
 };
 
 pub struct Filter<'a> {
@@ -18,7 +18,7 @@ impl<'a> Filter<'a> {
     pub fn new(manifest: &'a Manifest, flatdata: &'a Osm) -> Filter<'a> {
         Filter {
             flatdata,
-            rules: Rules::new(manifest, flatdata),
+            rules: Rules::build(manifest, flatdata),
             leaf_zoom: manifest.render.leaf_zoom,
         }
     }
@@ -81,54 +81,67 @@ impl<'a> Filter<'a> {
 
     fn evaluate_tags(&self, tags_idx_range: Range<usize>, zoom: u8) -> bool {
         let tags_index = self.flatdata.tags_index();
-        let tags = self.flatdata.tags();
-        let mut winning_eval = ZoomRangeRuleEval::None;
+        let mut winning_match = RuleMatch::None;
 
         for i in &tags_index[tags_idx_range] {
-            let tag = &tags[i.value() as usize];
+            let rule_match = self.rules.evaluate(self.flatdata, i.value() as usize);
 
-            let eval = self.rules.get_zoom_range(tag);
-
-            match winning_eval {
-                ZoomRangeRuleEval::None => {
-                    winning_eval = eval;
+            match winning_match {
+                RuleMatch::None => {
+                    winning_match = rule_match;
                 }
-                ZoomRangeRuleEval::Tag(_) => {
+                RuleMatch::Tag(_) => {
                     break;
                 }
-                ZoomRangeRuleEval::Value(_) => match eval {
-                    ZoomRangeRuleEval::None => (),
-                    ZoomRangeRuleEval::Tag(_) => {
-                        winning_eval = eval;
+                RuleMatch::Value(_) => match rule_match {
+                    RuleMatch::None => (),
+                    RuleMatch::Tag(_) => {
+                        winning_match = rule_match;
                         break;
                     }
-                    ZoomRangeRuleEval::Value(_) => (),
-                    ZoomRangeRuleEval::Key(_) => (),
+                    RuleMatch::Value(_) => (),
+                    RuleMatch::Key(_) => (),
                 },
-                ZoomRangeRuleEval::Key(_) => match eval {
-                    ZoomRangeRuleEval::None => (),
-                    ZoomRangeRuleEval::Tag(_) => {
-                        winning_eval = eval;
+                RuleMatch::Key(_) => match rule_match {
+                    RuleMatch::None => (),
+                    RuleMatch::Tag(_) => {
+                        winning_match = rule_match;
                         break;
                     }
-                    ZoomRangeRuleEval::Value(_) => {
-                        winning_eval = eval;
+                    RuleMatch::Value(_) => {
+                        winning_match = rule_match;
                     }
-                    ZoomRangeRuleEval::Key(_) => (),
+                    RuleMatch::Key(_) => (),
                 },
             }
         }
 
-        let default_range = self.leaf_zoom..self.leaf_zoom;
+        let mut minzoom = self.leaf_zoom;
+        let mut maxzoom = self.leaf_zoom;
 
-        let range = match winning_eval {
-            ZoomRangeRuleEval::None => &default_range,
-            ZoomRangeRuleEval::Tag(r) => r,
-            ZoomRangeRuleEval::Value(r) => r,
-            ZoomRangeRuleEval::Key(r) => r,
+        match winning_match {
+            RuleMatch::None => {}
+            RuleMatch::Tag(r) => {
+                minzoom = r.minzoom;
+                if let Some(max) = r.maxzoom {
+                    maxzoom = max
+                };
+            }
+            RuleMatch::Value(r) => {
+                minzoom = r.minzoom;
+                if let Some(max) = r.maxzoom {
+                    maxzoom = max
+                };
+            },
+            RuleMatch::Key(r) => {
+                minzoom = r.minzoom;
+                if let Some(max) = r.maxzoom {
+                    maxzoom = max
+                };
+            },
         };
 
-        if zoom >= range.start && zoom <= range.end {
+        if zoom >= minzoom && zoom <= maxzoom {
             true
         } else {
             false
