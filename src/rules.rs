@@ -12,12 +12,13 @@ use crate::{
     util,
 };
 
+type Err = Box<dyn std::error::Error>;
+
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 pub struct Rules {
     pub tags: BTreeMap<usize, RuleEval>,
     pub values: BTreeMap<usize, RuleEval>,
     pub keys: BTreeMap<usize, RuleEval>,
-
     // Uncomment for debugging.
     // pub tag_to_idx: BTreeMap<(String, String), usize>,
     // pub str_to_idx: BTreeMap<String, usize>,
@@ -38,6 +39,13 @@ pub enum RuleMatch {
 }
 
 impl Rules {
+    pub fn open(manifest: &Manifest) -> Result<Self, Err> {
+        let path = manifest.data.planet.join("rules.yaml");
+        let s = fs::read_to_string(path)?;
+        let rules: Rules = serde_yaml::from_str(&s)?;
+        Ok(rules)
+    }
+
     pub fn build(manifest: &Manifest, flatdata: &Osm) -> Self {
         let strs: DashSet<&str> = DashSet::new();
         let kvs: DashSet<(&str, &str)> = DashSet::new();

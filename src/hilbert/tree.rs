@@ -7,6 +7,7 @@ use crate::{
     manifest::Manifest,
     mutant::Mutant,
     osmflat::osmflat_generated::osm::{HilbertNodePair, HilbertWayPair, Osm},
+    rules::Rules,
     tile::Tile,
 };
 use flatdata::FileResourceStorage;
@@ -24,6 +25,7 @@ pub struct HilbertTree {
     pub r: Mutant<u32>,
     pub flatdata: Osm,
     pub way_pairs: Mutant<HilbertWayPair>,
+    pub rules: Option<Rules>,
 }
 
 impl HilbertTree {
@@ -64,11 +66,12 @@ impl HilbertTree {
             r: Mutant::<u32>::new(&dir, "r", 0)?,
             flatdata,
             way_pairs: m_way_pairs,
+            rules: None,
         })
     }
 
     pub fn render_tile_content(&mut self) -> Result<&Self, Err> {
-        let (n, w, r) = render_tile_content(
+        let (n, w, r, new_rules) = render_tile_content(
             &self.leaves,
             &self.tiles,
             &self.leaves_external,
@@ -78,6 +81,7 @@ impl HilbertTree {
         self.n = n;
         self.w = w;
         self.r = r;
+        self.rules = Some(new_rules);
         Ok(self)
     }
 
@@ -93,6 +97,14 @@ impl HilbertTree {
         let m_w = Mutant::<u32>::open(dir, "w", false)?;
         let m_r = Mutant::<u32>::open(dir, "r", false)?;
 
+        let rules = match Rules::open(manifest) {
+            Ok(rules) => Some(rules),
+            Err(e) => {
+                eprintln!("Could not open rules. This is normal if you haven't yet rendered tiles. Err: {}", e);
+                None
+            }
+        };
+
         Ok(Self {
             manifest: manifest.clone(),
             tiles: m_tiles,
@@ -103,6 +115,7 @@ impl HilbertTree {
             r: m_r,
             flatdata,
             way_pairs: m_way_pairs,
+            rules,
         })
     }
 
@@ -189,7 +202,7 @@ mod tests {
         // z 12 x 659 y 1593
         let t = Tile::from_zh(12, 3329134);
 
-        let manifest = manifest::parse("tests/fixtures/santacruz_sort.yaml").unwrap();
+        let manifest = manifest::parse("tests/fixtures/santa_cruz_sort.yaml").unwrap();
         let tree = HilbertTree::open(&manifest).unwrap();
 
         match tree.find(&t) {

@@ -307,7 +307,7 @@ mod tests {
         // 9, 659, 1593
         let t = Tile::from_zh(12, 3329134);
 
-        let manifest = manifest::parse("tests/fixtures/santacruz_sort.yaml").unwrap();
+        let manifest = manifest::parse("tests/fixtures/santa_cruz_sort.yaml").unwrap();
         let tree = HilbertTree::open(&manifest).unwrap();
 
         let mut builder = PVTBuilder::new();
@@ -365,7 +365,7 @@ mod tests {
 
     #[test]
     fn test_tags_index() {
-        let manifest = manifest::parse("tests/fixtures/santacruz_sort.yaml").unwrap();
+        let manifest = manifest::parse("tests/fixtures/santa_cruz_sort.yaml").unwrap();
         let tree = HilbertTree::open(&manifest).unwrap();
         let nodes = tree.flatdata.nodes();
         for n in nodes {
@@ -376,7 +376,7 @@ mod tests {
 
     #[test]
     fn test_h_tile() {
-        let manifest = manifest::parse("tests/fixtures/santacruz_sort.yaml").unwrap();
+        let manifest = manifest::parse("tests/fixtures/santa_cruz_sort.yaml").unwrap();
         let tree = HilbertTree::open(&manifest).unwrap();
 
         let mut builder = PVTBuilder::new();

@@ -15,10 +15,10 @@ pub struct Filter<'a> {
 }
 
 impl<'a> Filter<'a> {
-    pub fn new(manifest: &'a Manifest, flatdata: &'a Osm) -> Filter<'a> {
+    pub fn new(manifest: &'a Manifest, flatdata: &'a Osm, rules: Rules) -> Filter<'a> {
         Filter {
             flatdata,
-            rules: Rules::build(manifest, flatdata),
+            rules,
             leaf_zoom: manifest.render.leaf_zoom,
         }
     }
