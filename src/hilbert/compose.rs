@@ -1,11 +1,13 @@
-use std::ops::Range;
+use std::{collections::BTreeSet, ops::Range};
 
 use super::{
     leaf::Leaf,
     tree::{FindResult, ResultPair},
 };
-use crate::tile::planet_vector_tile_generated::*;
+use crate::{manifest::Manifest, tile::planet_vector_tile_generated::*};
 use flatdata::RawData;
+
+use crate::manifest::IncludeTags;
 
 use crate::{
     hilbert::hilbert_tile::HilbertTile,
@@ -143,6 +145,7 @@ impl HilbertTree {
                 tags,
                 strings,
                 builder,
+                &self.manifest,
             );
             let keys_vec = builder.fbb.create_vector(&keys);
             let vals_vec = builder.fbb.create_vector(&vals);
@@ -206,6 +209,7 @@ impl HilbertTree {
                 tags,
                 strings,
                 builder,
+                &self,
             );
             let keys_vec = builder.fbb.create_vector(&keys);
             let vals_vec = builder.fbb.create_vector(&vals);
@@ -272,27 +276,73 @@ fn build_tags(
     tags: &[Tag],
     strings: RawData,
     builder: &mut PVTBuilder,
+    manifest: &Manifest,
+    tree: &HilbertTree,
 ) -> (Vec<u32>, Vec<u32>) {
-    let len = tags_index_range.end - tags_index_range.start + 1;
-    let mut keys: Vec<u32> = Vec::with_capacity(len);
-    let mut vals: Vec<u32> = Vec::with_capacity(len);
+    let mut include_tags_rule = if let Some(include_tags) = manifest.render.include_tags {
+        include_tags
+    } else {
+        IncludeTags::None
+    };
 
-    let osm_id_key = builder.attributes.upsert_string("osm_id");
-    let osm_id_val = builder.attributes.upsert_number_value(osm_id as f64);
-    keys.push(osm_id_key);
-    vals.push(osm_id_val);
+    match include_tags_rule {
+        IncludeTags::None => {
+            let mut keys: Vec<u32> = Vec::with_capacity(1);
+            let mut vals: Vec<u32> = Vec::with_capacity(1);
 
-    for tag_idx in &tags_index[tags_index_range] {
-        let tag_i = tag_idx.value() as usize;
-        debug_assert!(tag_i < tags.len());
-        let tag = &tags[tag_i];
-        let k = unsafe { strings.substring_unchecked(tag.key_idx() as usize) };
-        let v = unsafe { strings.substring_unchecked(tag.value_idx() as usize) };
-        keys.push(builder.attributes.upsert_string(k));
-        vals.push(builder.attributes.upsert_string_value(v));
+            (keys, vals)
+        }
+        IncludeTags::All => {
+            let len = tags_index_range.end - tags_index_range.start + 2; // osm_id and rule
+            let mut keys: Vec<u32> = Vec::with_capacity(len);
+            let mut vals: Vec<u32> = Vec::with_capacity(len);
+
+            let osm_id_key = builder.attributes.upsert_string("osm_id");
+            let osm_id_val = builder.attributes.upsert_number_value(osm_id as f64);
+            keys.push(osm_id_key);
+            vals.push(osm_id_val);
+
+            for tag_idx in &tags_index[tags_index_range] {
+                let tag_i = tag_idx.value() as usize;
+                debug_assert!(tag_i < tags.len());
+                let tag = &tags[tag_i];
+                let k = unsafe { strings.substring_unchecked(tag.key_idx() as usize) };
+                let v = unsafe { strings.substring_unchecked(tag.value_idx() as usize) };
+                keys.push(builder.attributes.upsert_string(k));
+                vals.push(builder.attributes.upsert_string_value(v));
+            }
+            (keys, vals)
+        }
+        IncludeTags::Keys(key_strs) => {
+            let include_keys = match tree.rules {
+                Some(rules) => &rules.include_keys,
+                None => &BTreeSet::new(),
+            };
+
+            let mut keys: Vec<u32> = Vec::with_capacity(key_strs.len());
+            let mut vals: Vec<u32> = Vec::with_capacity(key_strs.len());
+
+            if key_strs.contains("osm_id") {
+                let osm_id_key = builder.attributes.upsert_string("osm_id");
+                let osm_id_val = builder.attributes.upsert_number_value(osm_id as f64);
+                keys.push(osm_id_key);
+                vals.push(osm_id_val);
+            }
+
+            for tag_idx in &tags_index[tags_index_range] {
+                let tag_i = tag_idx.value() as usize;
+                let tag = &tags[tag_i];
+                let key_idx = tag.key_idx() as usize;
+                if include_keys.contains(&key_idx) {
+                    let k = unsafe { strings.substring_unchecked(tag.key_idx() as usize) };
+                    let v = unsafe { strings.substring_unchecked(tag.value_idx() as usize) };
+                    keys.push(builder.attributes.upsert_string(k));
+                    vals.push(builder.attributes.upsert_string_value(v));
+                }
+            }
+            (keys, vals)
+        }
     }
-
-    (keys, vals)
 }
 
 #[cfg(test)]

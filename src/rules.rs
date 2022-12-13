@@ -4,7 +4,7 @@ use humantime::format_duration;
 use itertools::Itertools;
 use rayon::prelude::{IndexedParallelIterator, IntoParallelRefIterator, ParallelIterator};
 use serde_derive::{Deserialize, Serialize};
-use std::{collections::BTreeMap, fs, ops::Range};
+use std::{collections::{BTreeMap, BTreeSet}, fs, ops::Range};
 
 use crate::{
     manifest::{IncludeTags, Manifest, Rule},
@@ -19,9 +19,7 @@ pub struct Rules {
     pub tags: BTreeMap<usize, RuleEval>,
     pub values: BTreeMap<usize, RuleEval>,
     pub keys: BTreeMap<usize, RuleEval>,
-    // Uncomment for debugging.
-    // pub tag_to_idx: BTreeMap<(String, String), usize>,
-    // pub str_to_idx: BTreeMap<String, usize>,
+    pub include_keys: BTreeSet<usize>,
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
@@ -107,6 +105,16 @@ impl Rules {
                 false
             }
         });
+
+        let mut include_keys = BTreeSet::<usize>::new();
+        if let Some(IncludeTags::Keys(keys)) = &manifest.render.include_tags {
+            for k in keys {
+                if let Some(idx) = str_to_idx.get(k.as_str()) {
+                    include_keys.insert(*idx);
+                }
+            }
+        }
+        
         println!("Finished in {}", format_duration(t.elapsed()));
 
         if strs.len() > 0 {
@@ -144,22 +152,11 @@ impl Rules {
             }
         }
 
-        // let mut btree_tag_to_idx = BTreeMap::<(String, String), usize>::new();
-        // for ((k, v), i) in tag_to_idx.into_iter() {
-        //     btree_tag_to_idx.insert((k.to_string(), v.to_string()), i);
-        // }
-
-        // let mut btree_str_to_idx = BTreeMap::<String, usize>::new();
-        // for (s, i) in str_to_idx.into_iter() {
-        //     btree_str_to_idx.insert(s.to_string(), i);
-        // }
-
         let rules = Rules {
             tags,
             values,
             keys,
-            // tag_to_idx: btree_tag_to_idx,
-            // str_to_idx: btree_str_to_idx,
+            include_keys,
         };
 
         let rules_path = manifest.data.planet.join("rules.yaml");

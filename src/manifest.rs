@@ -1,4 +1,5 @@
 use serde_derive::{Deserialize, Serialize};
+use std::collections::BTreeSet;
 use std::fs;
 use std::io::{Error, ErrorKind, Result};
 use std::{collections::BTreeMap, path::PathBuf};
@@ -29,6 +30,7 @@ pub struct Data {
 pub struct Render {
     pub leaf_zoom: u8,
     pub layer_order: Vec<String>,
+    // NHTODO: Would be more flexible if this lived with the rule only.
     pub include_tags: Option<IncludeTags>,
 }
 
@@ -43,13 +45,15 @@ pub struct Rule {
     pub keys: Vec<String>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub values: Vec<String>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub include: Option<IncludeTags>,
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 pub enum IncludeTags {
     None,
     All,
-    Keys(Vec<String>),
+    Keys(BTreeSet<String>),
 }
 
 pub fn parse(path_str: &str) -> Result<Manifest> {
