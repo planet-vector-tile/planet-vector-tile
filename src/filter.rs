@@ -45,7 +45,6 @@ impl<'a> Filter<'a> {
             } else {
                 tags_index.len()
             };
-
             self.evaluate_tags(tags_index_start..tags_index_end, zoom)
         };
 
@@ -72,7 +71,6 @@ impl<'a> Filter<'a> {
             } else {
                 tags_index.len()
             };
-
             self.evaluate_tags(tags_index_start..tags_index_end, zoom)
         };
 

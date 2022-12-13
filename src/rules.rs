@@ -1,10 +1,11 @@
+use ahash::{AHashSet, AHashMap};
 use dashmap::{DashMap, DashSet};
 use flatdata::RawData;
 use humantime::format_duration;
 use itertools::Itertools;
 use rayon::prelude::{IndexedParallelIterator, IntoParallelRefIterator, ParallelIterator};
 use serde_derive::{Deserialize, Serialize};
-use std::{collections::{BTreeMap, BTreeSet}, fs, ops::Range};
+use std::{fs, ops::Range};
 
 use crate::{
     manifest::{IncludeTags, Manifest, Rule},
@@ -16,9 +17,9 @@ type Err = Box<dyn std::error::Error>;
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 pub struct Rules {
-    pub tags: BTreeMap<usize, RuleEval>,
-    pub values: BTreeMap<usize, RuleEval>,
-    pub keys: BTreeMap<usize, RuleEval>,
+    pub tags: AHashMap<usize, RuleEval>,
+    pub values: AHashMap<usize, RuleEval>,
+    pub keys: AHashMap<usize, RuleEval>,
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
@@ -33,7 +34,7 @@ pub struct RuleEval {
 pub enum IncludeTagIdxs {
     None,
     All,
-    Keys(BTreeSet<usize>),
+    Keys(AHashSet<usize>),
 }
 
 pub enum RuleMatch {
@@ -112,15 +113,6 @@ impl Rules {
                 false
             }
         });
-
-        let mut include_keys = BTreeSet::<usize>::new();
-        if let Some(IncludeTags::Keys(keys)) = &manifest.render.include_tags {
-            for k in keys {
-                if let Some(idx) = str_to_idx.get(k.as_str()) {
-                    include_keys.insert(*idx);
-                }
-            }
-        }
         
         println!("Finished in {}", format_duration(t.elapsed()));
 
@@ -135,21 +127,21 @@ impl Rules {
             format_duration(t.elapsed())
         );
 
-        let mut tags = BTreeMap::<usize, RuleEval>::new();
-        let mut values = BTreeMap::<usize, RuleEval>::new();
-        let mut keys = BTreeMap::<usize, RuleEval>::new();
+        let mut tags = AHashMap::<usize, RuleEval>::new();
+        let mut values = AHashMap::<usize, RuleEval>::new();
+        let mut keys = AHashMap::<usize, RuleEval>::new();
 
         let leaf_zoom = manifest.render.leaf_zoom;
 
         for (rule_name, rule) in &manifest.rules {
             
-            let include_idxs = if let Some(include) = rule.include {
+            let include_idxs = if let Some(include) = &rule.include {
                 match include {
                     IncludeTags::None => IncludeTagIdxs::None,
                     IncludeTags::All => IncludeTagIdxs::All,
                     IncludeTags::Keys(key_strs) => {
-                        let mut include_keys = BTreeSet::<usize>::new();
-                        for k in &key_strs {
+                        let mut include_keys = AHashSet::<usize>::new();
+                        for k in key_strs {
                             if let Some(idx) = str_to_idx.get(k.as_str()) {
                                 include_keys.insert(*idx);
                             }
@@ -163,17 +155,17 @@ impl Rules {
 
             for (k, v) in &rule.tags {
                 if let Some(t_idx) = tag_to_idx.get(&(k, v)) {
-                    tags.insert(*t_idx, RuleEval::new(rule, rule_name, leaf_zoom, include_idxs));
+                    tags.insert(*t_idx, RuleEval::new(rule, rule_name, leaf_zoom, include_idxs.clone()));
                 }
             }
             for v in &rule.values {
                 if let Some(v_idx) = str_to_idx.get(v.as_str()) {
-                    values.insert(*v_idx, RuleEval::new(rule, rule_name, leaf_zoom, include_idxs));
+                    values.insert(*v_idx, RuleEval::new(rule, rule_name, leaf_zoom, include_idxs.clone()));
                 }
             }
             for k in &rule.keys {
                 if let Some(k_idx) = str_to_idx.get(k.as_str()) {
-                    keys.insert(*k_idx, RuleEval::new(rule, rule_name, leaf_zoom, include_idxs));
+                    keys.insert(*k_idx, RuleEval::new(rule, rule_name, leaf_zoom, include_idxs.clone()));
                 }
             }
 

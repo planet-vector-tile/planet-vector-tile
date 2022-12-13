@@ -4,7 +4,11 @@ use super::{
     leaf::Leaf,
     tree::{FindResult, ResultPair},
 };
-use crate::{manifest::Manifest, tile::planet_vector_tile_generated::*, rules::{RuleMatch, IncludeTagIdxs}};
+use crate::{
+    manifest::Manifest,
+    rules::{IncludeTagIdxs, RuleMatch},
+    tile::planet_vector_tile_generated::*,
+};
 use flatdata::RawData;
 
 use crate::manifest::IncludeTags;
@@ -137,6 +141,12 @@ impl HilbertTree {
                 continue;
             }
 
+            let rule = if let Some(rules) = &self.rules {
+                rules.evaluate_tags(&self.flatdata, tags_index_range.clone())
+            } else {
+                RuleMatch::None
+            };
+
             // Tags
             let (keys, vals) = build_tags(
                 tags_index_range,
@@ -145,7 +155,7 @@ impl HilbertTree {
                 tags,
                 strings,
                 builder,
-                &self.manifest,
+                &rule,
             );
             let keys_vec = builder.fbb.create_vector(&keys);
             let vals_vec = builder.fbb.create_vector(&vals);
@@ -201,7 +211,12 @@ impl HilbertTree {
             };
             let tags_index_range = tags_index_start..tags_index_end;
 
-            // Tags
+            let rule = if let Some(rules) = &self.rules {
+                rules.evaluate_tags(&self.flatdata, tags_index_range.clone())
+            } else {
+                RuleMatch::None
+            };
+
             let (keys, vals) = build_tags(
                 tags_index_range,
                 way.osm_id(),
@@ -209,7 +224,7 @@ impl HilbertTree {
                 tags,
                 strings,
                 builder,
-                &self,
+                &rule
             );
             let keys_vec = builder.fbb.create_vector(&keys);
             let vals_vec = builder.fbb.create_vector(&vals);
@@ -276,47 +291,20 @@ fn build_tags(
     tags: &[Tag],
     strings: RawData,
     builder: &mut PVTBuilder,
-    manifest: &Manifest,
-    tree: &HilbertTree,
+    rule: &RuleMatch,
 ) -> (Vec<u32>, Vec<u32>) {
-
-    let rule = if let Some(rules) = tree.rules {
-        rules.evaluate_tags(&tree.flatdata, tags_index_range)
-    } else {
-        RuleMatch::None
-    };
-
-    let include = if manifest.render.all_tags {
-        IncludeTagIdxs::All
-    } else {
-        match rule {
-            RuleMatch::Tag(eval) => eval.include,
-            RuleMatch::Value(eval) => eval.include,
-            RuleMatch::Key(eval) => eval.include,
-            RuleMatch::None => IncludeTagIdxs::None,
-        }
-    };
-
-    let rule_name = match rule {
-        RuleMatch::Tag(eval) => &eval.name,
-        RuleMatch::Value(eval) => &eval.name,
-        RuleMatch::Key(eval) => &eval.name,
-        RuleMatch::None => "None",
+    let rule_eval = match rule {
+        RuleMatch::Tag(eval) => eval,
+        RuleMatch::Value(eval) => eval,
+        RuleMatch::Key(eval) => eval,
+        RuleMatch::None => return (vec![], vec![]),
     };
 
     let rule_key = builder.attributes.upsert_string("rule");
-    let rule_val = builder.attributes.upsert_string_value(rule_name);
+    let rule_val = builder.attributes.upsert_string_value(&rule_eval.name);
 
-    match include {
-        IncludeTagIdxs::None => {
-            let mut keys: Vec<u32> = Vec::with_capacity(1);
-            let mut vals: Vec<u32> = Vec::with_capacity(1);
-            
-            keys.push(rule_key);
-            vals.push(rule_val);
-
-            (keys, vals)
-        },
+    match &rule_eval.include {
+        IncludeTagIdxs::None => (Vec::from([rule_key]), Vec::from([rule_val])),
         IncludeTagIdxs::All => {
             let len = tags_index_range.end - tags_index_range.start + 2; // osm_id and rule
             let mut keys: Vec<u32> = Vec::with_capacity(len);
@@ -337,28 +325,16 @@ fn build_tags(
                 vals.push(builder.attributes.upsert_string_value(v));
             }
             (keys, vals)
-        },
-        IncludeTagIdxs::Keys(_) => {
-            let include_keys = match tree.rules {
-                Some(rules) => &rules.include_keys,
-                None => &BTreeSet::new(),
-            };
-
-            let mut keys: Vec<u32> = Vec::with_capacity(key_strs.len());
-            let mut vals: Vec<u32> = Vec::with_capacity(key_strs.len());
-
-            if key_strs.contains("osm_id") {
-                let osm_id_key = builder.attributes.upsert_string("osm_id");
-                let osm_id_val = builder.attributes.upsert_number_value(osm_id as f64);
-                keys.push(osm_id_key);
-                vals.push(osm_id_val);
-            }
+        }
+        IncludeTagIdxs::Keys(key_str_idxs) => {
+            let mut keys: Vec<u32> = Vec::with_capacity(key_str_idxs.len());
+            let mut vals: Vec<u32> = Vec::with_capacity(key_str_idxs.len());
 
             for tag_idx in &tags_index[tags_index_range] {
                 let tag_i = tag_idx.value() as usize;
                 let tag = &tags[tag_i];
                 let key_idx = tag.key_idx() as usize;
-                if include_keys.contains(&key_idx) {
+                if key_str_idxs.contains(&key_idx) {
                     let k = unsafe { strings.substring_unchecked(tag.key_idx() as usize) };
                     let v = unsafe { strings.substring_unchecked(tag.value_idx() as usize) };
                     keys.push(builder.attributes.upsert_string(k));
@@ -366,9 +342,8 @@ fn build_tags(
                 }
             }
             (keys, vals)
-        },
+        }
     }
-
 }
 
 #[cfg(test)]
