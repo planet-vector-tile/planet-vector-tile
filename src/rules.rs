@@ -19,7 +19,6 @@ pub struct Rules {
     pub tags: BTreeMap<usize, RuleEval>,
     pub values: BTreeMap<usize, RuleEval>,
     pub keys: BTreeMap<usize, RuleEval>,
-    pub include_keys: BTreeSet<usize>,
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
@@ -27,6 +26,14 @@ pub struct RuleEval {
     pub name: String,
     pub minzoom: u8,
     pub maxzoom: u8,
+    pub include: IncludeTagIdxs,
+}
+
+#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
+pub enum IncludeTagIdxs {
+    None,
+    All,
+    Keys(BTreeSet<usize>),
 }
 
 pub enum RuleMatch {
@@ -59,10 +66,10 @@ impl Rules {
             for k in &rule.keys {
                 strs.insert(k);
             }
-        }
-        if let Some(IncludeTags::Keys(keys)) = &manifest.render.include_tags {
-            for k in keys {
-                strs.insert(k);
+            if let Some(IncludeTags::Keys(keys)) = &rule.include {
+                for k in keys {
+                    strs.insert(k);
+                }
             }
         }
 
@@ -135,28 +142,47 @@ impl Rules {
         let leaf_zoom = manifest.render.leaf_zoom;
 
         for (rule_name, rule) in &manifest.rules {
+            
+            let include_idxs = if let Some(include) = rule.include {
+                match include {
+                    IncludeTags::None => IncludeTagIdxs::None,
+                    IncludeTags::All => IncludeTagIdxs::All,
+                    IncludeTags::Keys(key_strs) => {
+                        let mut include_keys = BTreeSet::<usize>::new();
+                        for k in &key_strs {
+                            if let Some(idx) = str_to_idx.get(k.as_str()) {
+                                include_keys.insert(*idx);
+                            }
+                        }
+                        IncludeTagIdxs::Keys(include_keys)
+                    },
+                }
+            } else {
+                IncludeTagIdxs::None
+            };
+
             for (k, v) in &rule.tags {
                 if let Some(t_idx) = tag_to_idx.get(&(k, v)) {
-                    tags.insert(*t_idx, RuleEval::new(rule, rule_name, leaf_zoom));
+                    tags.insert(*t_idx, RuleEval::new(rule, rule_name, leaf_zoom, include_idxs));
                 }
             }
             for v in &rule.values {
                 if let Some(v_idx) = str_to_idx.get(v.as_str()) {
-                    values.insert(*v_idx, RuleEval::new(rule, rule_name, leaf_zoom));
+                    values.insert(*v_idx, RuleEval::new(rule, rule_name, leaf_zoom, include_idxs));
                 }
             }
             for k in &rule.keys {
                 if let Some(k_idx) = str_to_idx.get(k.as_str()) {
-                    keys.insert(*k_idx, RuleEval::new(rule, rule_name, leaf_zoom));
+                    keys.insert(*k_idx, RuleEval::new(rule, rule_name, leaf_zoom, include_idxs));
                 }
             }
+
         }
 
         let rules = Rules {
             tags,
             values,
             keys,
-            include_keys,
         };
 
         let rules_path = manifest.data.planet.join("rules.yaml");
@@ -234,7 +260,7 @@ impl Rules {
 }
 
 impl RuleEval {
-    pub fn new(rule: &Rule, rule_name: &String, leaf_zoom: u8) -> Self {
+    pub fn new(rule: &Rule, rule_name: &String, leaf_zoom: u8, include: IncludeTagIdxs) -> Self {
         Self {
             name: rule_name.clone(),
             minzoom: rule.minzoom,
@@ -242,6 +268,7 @@ impl RuleEval {
                 Some(max) => max,
                 None => leaf_zoom,
             },
+            include,
         }
     }
 }

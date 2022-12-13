@@ -4,7 +4,7 @@ use super::{
     leaf::Leaf,
     tree::{FindResult, ResultPair},
 };
-use crate::{manifest::Manifest, tile::planet_vector_tile_generated::*};
+use crate::{manifest::Manifest, tile::planet_vector_tile_generated::*, rules::{RuleMatch, IncludeTagIdxs}};
 use flatdata::RawData;
 
 use crate::manifest::IncludeTags;
@@ -279,20 +279,45 @@ fn build_tags(
     manifest: &Manifest,
     tree: &HilbertTree,
 ) -> (Vec<u32>, Vec<u32>) {
-    let mut include_tags_rule = if let Some(include_tags) = manifest.render.include_tags {
-        include_tags
+
+    let rule = if let Some(rules) = tree.rules {
+        rules.evaluate_tags(&tree.flatdata, tags_index_range)
     } else {
-        IncludeTags::None
+        RuleMatch::None
     };
 
-    match include_tags_rule {
-        IncludeTags::None => {
+    let include = if manifest.render.all_tags {
+        IncludeTagIdxs::All
+    } else {
+        match rule {
+            RuleMatch::Tag(eval) => eval.include,
+            RuleMatch::Value(eval) => eval.include,
+            RuleMatch::Key(eval) => eval.include,
+            RuleMatch::None => IncludeTagIdxs::None,
+        }
+    };
+
+    let rule_name = match rule {
+        RuleMatch::Tag(eval) => &eval.name,
+        RuleMatch::Value(eval) => &eval.name,
+        RuleMatch::Key(eval) => &eval.name,
+        RuleMatch::None => "None",
+    };
+
+    let rule_key = builder.attributes.upsert_string("rule");
+    let rule_val = builder.attributes.upsert_string_value(rule_name);
+
+    match include {
+        IncludeTagIdxs::None => {
             let mut keys: Vec<u32> = Vec::with_capacity(1);
             let mut vals: Vec<u32> = Vec::with_capacity(1);
+            
+            keys.push(rule_key);
+            vals.push(rule_val);
 
             (keys, vals)
-        }
-        IncludeTags::All => {
+        },
+        IncludeTagIdxs::All => {
             let len = tags_index_range.end - tags_index_range.start + 2; // osm_id and rule
             let mut keys: Vec<u32> = Vec::with_capacity(len);
             let mut vals: Vec<u32> = Vec::with_capacity(len);
@@ -312,8 +337,8 @@ fn build_tags(
                 vals.push(builder.attributes.upsert_string_value(v));
             }
             (keys, vals)
-        }
-        IncludeTags::Keys(key_strs) => {
+        },
+        IncludeTagIdxs::Keys(_) => {
             let include_keys = match tree.rules {
                 Some(rules) => &rules.include_keys,
                 None => &BTreeSet::new(),
@@ -341,8 +366,9 @@ fn build_tags(
                 }
             }
             (keys, vals)
-        }
+        },
     }
+
 }
 
 #[cfg(test)]

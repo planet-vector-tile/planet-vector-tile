@@ -30,8 +30,10 @@ pub struct Data {
 pub struct Render {
     pub leaf_zoom: u8,
     pub layer_order: Vec<String>,
-    // NHTODO: Would be more flexible if this lived with the rule only.
-    pub include_tags: Option<IncludeTags>,
+    // Overrides IncludeTags for rules and includes all tags always.
+    // Helpful for debugging and figuring out style rules.
+    #[serde(default = "bool::default")]
+    pub all_tags: bool,
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
@@ -45,7 +47,7 @@ pub struct Rule {
     pub keys: Vec<String>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub values: Vec<String>,
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub include: Option<IncludeTags>,
 }
 
