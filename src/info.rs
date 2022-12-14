@@ -8,24 +8,26 @@ use crate::tile::{HilbertBearing, Tile};
 
 pub struct Info {
     grandchild_levels: u8,
+    max_zoom: u8,
 }
 
 impl Info {
     pub fn new() -> Self {
         Info {
-            grandchild_levels: 4,
+            grandchild_levels: 2,
+            max_zoom: 14,
         }
     }
 }
 
 impl Source for Info {
     fn compose_tile(&self, tile: &Tile, builder: &mut PVTBuilder) {
-        info(tile, builder, self.grandchild_levels)
+        info(tile, builder, self.grandchild_levels, self.max_zoom)
     }
 }
 
-fn info(render_tile: &Tile, builder: &mut PVTBuilder, grandchild_levels: u8) {
-    let pyramid = render_tile.pyramid(grandchild_levels);
+fn info(render_tile: &Tile, builder: &mut PVTBuilder, grandchild_levels: u8, max_zoom: u8) {
+    let pyramid = render_tile.pyramid(grandchild_levels, max_zoom);
 
     let mut boundary_vec = Vec::<WIPOffset<PVTFeature>>::new();
     let mut center_vec = Vec::<WIPOffset<PVTFeature>>::new();
@@ -374,9 +376,9 @@ mod tests {
 
     #[test]
     fn test_basic_info_tile() {
-        let tile = Tile::from_zxy(9, 82, 199);
+        let tile = Tile::from_zxy(8, 41, 99);
         let mut builder = PVTBuilder::new();
-        info(&tile, &mut builder, 4);
+        info(&tile, &mut builder, 2, 14);
         let vec_u8 = builder.build();
 
         assert!(vec_u8.len() > 100000);
@@ -386,7 +388,7 @@ mod tests {
     fn test_zero_info_tile() {
         let tile = Tile::from_zxy(0, 0, 0);
         let mut builder = PVTBuilder::new();
-        info(&tile, &mut builder, 4);
+        info(&tile, &mut builder, 4, 14);
         let vec_u8 = builder.build();
 
         assert!(vec_u8.len() > 100000);
