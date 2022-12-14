@@ -25,7 +25,7 @@ pub struct HilbertTree {
     pub r: Mutant<u32>,
     pub flatdata: Osm,
     pub way_pairs: Mutant<HilbertWayPair>,
-    pub rules: Option<Rules>,
+    pub rules: Rules,
 }
 
 impl HilbertTree {
@@ -66,7 +66,7 @@ impl HilbertTree {
             r: Mutant::<u32>::new(&dir, "r", 0)?,
             flatdata,
             way_pairs: m_way_pairs,
-            rules: None,
+            rules: Rules::default(manifest),
         })
     }
 
@@ -81,7 +81,7 @@ impl HilbertTree {
         self.n = n;
         self.w = w;
         self.r = r;
-        self.rules = Some(new_rules);
+        self.rules = new_rules;
         Ok(self)
     }
 
@@ -97,13 +97,7 @@ impl HilbertTree {
         let m_w = Mutant::<u32>::open(dir, "w", false)?;
         let m_r = Mutant::<u32>::open(dir, "r", false)?;
 
-        let rules = match Rules::open(manifest) {
-            Ok(rules) => Some(rules),
-            Err(e) => {
-                eprintln!("Could not open rules. This is normal if you haven't yet rendered tiles. Err: {}", e);
-                None
-            }
-        };
+        let rules = Rules::open(manifest);
 
         Ok(Self {
             manifest: manifest.clone(),

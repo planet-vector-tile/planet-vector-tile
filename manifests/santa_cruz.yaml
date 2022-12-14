@@ -2,7 +2,7 @@ data:
     source: ../tests/fixtures/santa_cruz.osm.pbf
     planet: ../planets/santa_cruz
     archive: ../archives/santa_cruz.pvt
-    include_leaves: [3329139]
+    # include_leaves: [3329139]
 
 render:
     leaf_zoom: 12

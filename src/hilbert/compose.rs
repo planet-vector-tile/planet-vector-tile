@@ -1,17 +1,14 @@
-use std::{collections::BTreeSet, ops::Range};
+use std::ops::Range;
 
 use super::{
     leaf::Leaf,
     tree::{FindResult, ResultPair},
 };
 use crate::{
-    manifest::Manifest,
-    rules::{IncludeTagIdxs, RuleMatch},
+    rules::{IncludeTagIdxs, RuleEval},
     tile::planet_vector_tile_generated::*,
 };
 use flatdata::RawData;
-
-use crate::manifest::IncludeTags;
 
 use crate::{
     hilbert::hilbert_tile::HilbertTile,
@@ -141,11 +138,9 @@ impl HilbertTree {
                 continue;
             }
 
-            let rule = if let Some(rules) = &self.rules {
-                rules.evaluate_tags(&self.flatdata, tags_index_range.clone())
-            } else {
-                RuleMatch::None
-            };
+            let rule_eval = self
+                .rules
+                .evaluate_tags(&self.flatdata, tags_index_range.clone());
 
             // Tags
             let (keys, vals) = build_tags(
@@ -155,7 +150,7 @@ impl HilbertTree {
                 tags,
                 strings,
                 builder,
-                &rule,
+                &rule_eval,
             );
             let keys_vec = builder.fbb.create_vector(&keys);
             let vals_vec = builder.fbb.create_vector(&vals);
@@ -211,11 +206,9 @@ impl HilbertTree {
             };
             let tags_index_range = tags_index_start..tags_index_end;
 
-            let rule = if let Some(rules) = &self.rules {
-                rules.evaluate_tags(&self.flatdata, tags_index_range.clone())
-            } else {
-                RuleMatch::None
-            };
+            let rule_eval = self
+                .rules
+                .evaluate_tags(&self.flatdata, tags_index_range.clone());
 
             let (keys, vals) = build_tags(
                 tags_index_range,
@@ -224,7 +217,7 @@ impl HilbertTree {
                 tags,
                 strings,
                 builder,
-                &rule
+                rule_eval,
             );
             let keys_vec = builder.fbb.create_vector(&keys);
             let vals_vec = builder.fbb.create_vector(&vals);
@@ -291,15 +284,8 @@ fn build_tags(
     tags: &[Tag],
     strings: RawData,
     builder: &mut PVTBuilder,
-    rule: &RuleMatch,
+    rule_eval: &RuleEval,
 ) -> (Vec<u32>, Vec<u32>) {
-    let rule_eval = match rule {
-        RuleMatch::Tag(eval) => eval,
-        RuleMatch::Value(eval) => eval,
-        RuleMatch::Key(eval) => eval,
-        RuleMatch::None => return (vec![], vec![]),
-    };
-
     let rule_key = builder.attributes.upsert_string("rule");
     let rule_val = builder.attributes.upsert_string_value(&rule_eval.name);
 

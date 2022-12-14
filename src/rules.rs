@@ -1,14 +1,15 @@
-use ahash::{AHashSet, AHashMap};
+use ahash::{AHashMap, AHashSet};
 use dashmap::{DashMap, DashSet};
 use flatdata::RawData;
 use humantime::format_duration;
 use itertools::Itertools;
 use rayon::prelude::{IndexedParallelIterator, IntoParallelRefIterator, ParallelIterator};
 use serde_derive::{Deserialize, Serialize};
+use std::collections::hash_map::Entry::{Occupied, Vacant};
 use std::{fs, ops::Range};
 
 use crate::{
-    manifest::{IncludeTags, Manifest, Rule},
+    manifest::{IncludeTags, Manifest},
     osmflat::osmflat_generated::osm::Osm,
     util,
 };
@@ -17,14 +18,18 @@ type Err = Box<dyn std::error::Error>;
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 pub struct Rules {
-    pub tags: AHashMap<usize, RuleEval>,
-    pub values: AHashMap<usize, RuleEval>,
-    pub keys: AHashMap<usize, RuleEval>,
+    pub evals: Vec<RuleEval>,
+    pub layers: Vec<String>,
+    pub tags: AHashMap<usize, usize>,
+    pub values: AHashMap<usize, usize>,
+    pub keys: AHashMap<usize, usize>,
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 pub struct RuleEval {
     pub name: String,
+    // index in Rules layers
+    pub layers: Vec<usize>,
     pub minzoom: u8,
     pub maxzoom: u8,
     pub include: IncludeTagIdxs,
@@ -37,19 +42,41 @@ pub enum IncludeTagIdxs {
     Keys(AHashSet<usize>),
 }
 
-pub enum RuleMatch {
+enum RuleMatch {
     None,
-    Tag(RuleEval),
-    Value(RuleEval),
-    Key(RuleEval),
+    Tag,
+    Value,
+    Key,
 }
 
 impl Rules {
-    pub fn open(manifest: &Manifest) -> Result<Self, Err> {
+    pub fn open(manifest: &Manifest) -> Self {
         let path = manifest.data.planet.join("rules.yaml");
-        let s = fs::read_to_string(path)?;
-        let rules: Rules = serde_yaml::from_str(&s)?;
-        Ok(rules)
+        let Ok(s) = fs::read_to_string(&path) else {
+            println!("Unable to read rules file at {}. Using default. This is normal if you haven't yet written any tiles.", path.display());
+            return Rules::default(manifest);
+        };
+        let Ok(rules) = serde_yaml::from_str(&s) else {
+            println!("Unable to parse rules at {}. Using default.", path.display());
+            return Rules::default(manifest);
+        };
+        rules
+    }
+
+    pub fn default(manifest: &Manifest) -> Self {
+        Rules {
+            evals: vec![RuleEval {
+                name: "no_rule".to_string(),
+                layers: vec![0],
+                minzoom: 0,
+                maxzoom: manifest.render.leaf_zoom,
+                include: IncludeTagIdxs::All,
+            }],
+            layers: vec!["no_rule".to_string()],
+            tags: AHashMap::new(),
+            values: AHashMap::new(),
+            keys: AHashMap::new(),
+        }
     }
 
     pub fn build(manifest: &Manifest, flatdata: &Osm) -> Self {
@@ -113,7 +140,6 @@ impl Rules {
                 false
             }
         });
-        
         println!("Finished in {}", format_duration(t.elapsed()));
 
         if strs.len() > 0 {
@@ -127,14 +153,49 @@ impl Rules {
             format_duration(t.elapsed())
         );
 
-        let mut tags = AHashMap::<usize, RuleEval>::new();
-        let mut values = AHashMap::<usize, RuleEval>::new();
-        let mut keys = AHashMap::<usize, RuleEval>::new();
+        let mut layers: Vec<String> = Vec::with_capacity(manifest.render.layer_order.len());
+        let mut layer_name_to_layer: AHashMap<&str, usize> = AHashMap::new();
+        layers.push("no_rule".to_string());
+        for layer_name in &manifest.render.layer_order {
+            layers.push(layer_name.clone());
+            layer_name_to_layer.insert(layer_name, layers.len() - 1);
+        }
 
-        let leaf_zoom = manifest.render.leaf_zoom;
+        let mut rule_name_to_layers: AHashMap<&str, AHashSet<usize>> = AHashMap::new();
+        for (layer_name, rule_names) in &manifest.layers {
+            for rule_name in rule_names {
+                let layer_i = match layer_name_to_layer.get(layer_name.as_str()) {
+                    Some(layer_i) => *layer_i,
+                    None => {
+                        eprintln!("WARNING: {} is not included in layer_order", layer_name);
+                        continue;
+                    }
+                };
+                match rule_name_to_layers.entry(rule_name.as_str()) {
+                    Occupied(mut o) => {
+                        o.get_mut().insert(layer_i);
+                    }
+                    Vacant(v) => {
+                        v.insert(AHashSet::from([layer_i]));
+                    }
+                }
+            }
+        }
+
+        let mut evals: Vec<RuleEval> = Vec::with_capacity(manifest.rules.len());
+        let mut tags = AHashMap::<usize, usize>::new();
+        let mut values = AHashMap::<usize, usize>::new();
+        let mut keys = AHashMap::<usize, usize>::new();
+
+        let no_rule_match_eval = RuleEval {
+            name: "no_rule".to_string(),
+            layers: vec![0],
+            minzoom: 0,
+            maxzoom: manifest.render.leaf_zoom,
+            include: IncludeTagIdxs::All,
+        };
 
         for (rule_name, rule) in &manifest.rules {
-            
             let include_idxs = if let Some(include) = &rule.include {
                 match include {
                     IncludeTags::None => IncludeTagIdxs::None,
@@ -147,31 +208,49 @@ impl Rules {
                             }
                         }
                         IncludeTagIdxs::Keys(include_keys)
-                    },
+                    }
                 }
             } else {
                 IncludeTagIdxs::None
             };
 
+            let eval = RuleEval {
+                name: rule_name.to_string(),
+                layers: match rule_name_to_layers.entry(rule_name) {
+                    Occupied(o) => o.get().iter().map(|i| *i).collect_vec(),
+                    Vacant(_) => vec![],
+                },
+                minzoom: rule.minzoom,
+                maxzoom: if let Some(maxzoom) = rule.maxzoom {
+                    maxzoom
+                } else {
+                    manifest.render.leaf_zoom
+                },
+                include: include_idxs,
+            };
+            evals.push(eval);
+            let eval_i = evals.len() - 1;
+
             for (k, v) in &rule.tags {
-                if let Some(t_idx) = tag_to_idx.get(&(k, v)) {
-                    tags.insert(*t_idx, RuleEval::new(rule, rule_name, leaf_zoom, include_idxs.clone()));
+                if let Some(t_i) = tag_to_idx.get(&(k, v)) {
+                    tags.insert(*t_i, eval_i);
                 }
             }
             for v in &rule.values {
-                if let Some(v_idx) = str_to_idx.get(v.as_str()) {
-                    values.insert(*v_idx, RuleEval::new(rule, rule_name, leaf_zoom, include_idxs.clone()));
+                if let Some(v_i) = str_to_idx.get(v.as_str()) {
+                    values.insert(*v_i, eval_i);
                 }
             }
             for k in &rule.keys {
-                if let Some(k_idx) = str_to_idx.get(k.as_str()) {
-                    keys.insert(*k_idx, RuleEval::new(rule, rule_name, leaf_zoom, include_idxs.clone()));
+                if let Some(k_i) = str_to_idx.get(k.as_str()) {
+                    keys.insert(*k_i, eval_i);
                 }
             }
-
         }
 
         let rules = Rules {
+            evals,
+            layers,
             tags,
             values,
             keys,
@@ -187,81 +266,52 @@ impl Rules {
         rules
     }
 
-    pub fn evaluate_tags(&self, flatdata: &Osm, tags_idx_range: Range<usize>) -> RuleMatch {
+    pub fn evaluate_tags(&self, flatdata: &Osm, tags_idx_range: Range<usize>) -> &RuleEval {
         let tags_index = flatdata.tags_index();
+
         let mut winning_match = RuleMatch::None;
+        let mut winning_eval_i = 0;
 
         for i in &tags_index[tags_idx_range] {
-            let rule_match = self.evaluate_tag(flatdata, i.value() as usize);
+            let (rule_match, eval_i) = self.evaluate_tag(flatdata, i.value() as usize);
 
-            match winning_match {
-                // Any match is better than none.
-                RuleMatch::None => {
-                    winning_match = rule_match;
-                }
-                // Only a tag match trumps a value match.
-                RuleMatch::Value(_) => match rule_match {
-                    RuleMatch::Tag(_) => {
+            match rule_match {
+                RuleMatch::None => (),
+                RuleMatch::Tag => return &self.evals[eval_i],
+                RuleMatch::Value => match winning_match {
+                    RuleMatch::None | RuleMatch::Key => {
                         winning_match = rule_match;
-                        break; // The best match, we're done.
+                        winning_eval_i = eval_i;
                     }
-                    // First value wins
-                    RuleMatch::Value(_) => (),
-                    RuleMatch::Key(_) => (),
-                    RuleMatch::None => (),
+                    _ => (),
                 },
-                // A tag match or a value match trumps a key match
-                RuleMatch::Key(_) => match rule_match {
-                    RuleMatch::Tag(_) => {
+                RuleMatch::Key => match winning_match {
+                    RuleMatch::None => {
                         winning_match = rule_match;
-                        break;
+                        winning_eval_i = eval_i;
                     }
-                    RuleMatch::Value(_) => {
-                        winning_match = rule_match;
-                    }
-                    // First key wins
-                    RuleMatch::Key(_) => (),
-                    RuleMatch::None => (),
+                    _ => (),
                 },
-                // Shouldn't get here
-                RuleMatch::Tag(_) => {
-                    // eprintln!("Error: evaluate_tags logic error.");
-                    break;
-                }
             }
         }
-        winning_match
+        &self.evals[winning_eval_i]
     }
 
-    pub fn evaluate_tag(&self, flatdata: &Osm, tag_i: usize) -> RuleMatch {
-        if let Some(r) = self.tags.get(&tag_i) {
-            return RuleMatch::Tag(r.clone());
+    pub fn evaluate_tag(&self, flatdata: &Osm, tag_i: usize) -> (RuleMatch, usize) {
+        if let Some(eval_i) = self.tags.get(&tag_i) {
+            return (RuleMatch::Tag, *eval_i);
         }
 
         let tag = &flatdata.tags()[tag_i];
         let value = tag.value_idx() as usize;
-        if let Some(r) = self.values.get(&value) {
-            return RuleMatch::Value(r.clone());
+        if let Some(eval_i) = self.values.get(&value) {
+            return (RuleMatch::Value, *eval_i);
         }
         let key = tag.key_idx() as usize;
-        if let Some(r) = self.keys.get(&key) {
-            return RuleMatch::Key(r.clone());
+        if let Some(eval_i) = self.keys.get(&key) {
+            return (RuleMatch::Key, *eval_i);
         }
-        RuleMatch::None
-    }
-}
-
-impl RuleEval {
-    pub fn new(rule: &Rule, rule_name: &String, leaf_zoom: u8, include: IncludeTagIdxs) -> Self {
-        Self {
-            name: rule_name.clone(),
-            minzoom: rule.minzoom,
-            maxzoom: match rule.maxzoom {
-                Some(max) => max,
-                None => leaf_zoom,
-            },
-            include,
-        }
+        (RuleMatch::None, 0)
     }
 }
 

@@ -15,6 +15,7 @@ mod source;
 mod tile;
 mod tile_attributes;
 mod util;
+mod u40;
 
 use clap::ArgMatches;
 use hilbert::tree::HilbertTree;

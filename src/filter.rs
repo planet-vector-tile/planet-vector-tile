@@ -5,7 +5,7 @@ use dashmap::DashSet;
 use crate::{
     manifest::Manifest,
     osmflat::osmflat_generated::osm::{Node, Osm, Way},
-    rules::{RuleMatch, Rules},
+    rules::{Rules},
 };
 
 pub struct Filter<'a> {
@@ -78,13 +78,8 @@ impl<'a> Filter<'a> {
     }
 
     fn evaluate_tags(&self, tags_idx_range: Range<usize>, zoom: u8) -> bool {
-        let rule_match = self.rules.evaluate_tags(self.flatdata, tags_idx_range);
+        let rule_eval = self.rules.evaluate_tags(self.flatdata, tags_idx_range);
 
-        match rule_match {
-            RuleMatch::None => zoom == self.leaf_zoom,
-            RuleMatch::Tag(r) => r.minzoom <= zoom && r.maxzoom >= zoom,
-            RuleMatch::Value(r) => r.minzoom <= zoom && r.maxzoom >= zoom,
-            RuleMatch::Key(r) => r.minzoom <= zoom && r.maxzoom >= zoom,
-        }
+        rule_eval.minzoom <= zoom && rule_eval.maxzoom >= zoom
     }
 }
