@@ -4,7 +4,11 @@ use super::{
     leaf::Leaf,
     tree::{FindResult, ResultPair},
 };
-use crate::tile::planet_vector_tile_generated::*;
+use crate::{
+    rules::{IncludeTagIdxs, RuleEval},
+    tile::planet_vector_tile_generated::*,
+};
+use flatbuffers::WIPOffset;
 use flatdata::RawData;
 
 use crate::{
@@ -112,8 +116,7 @@ impl HilbertTree {
         let tags_index_len = tags_index.len();
         let strings = self.flatdata.stringtable();
 
-        // We reuse this for nodes, ways, relations.
-        let mut features = Vec::new();
+        let mut layers: Vec<Vec<WIPOffset<PVTFeature>>> = vec![vec![]; self.rules.layers.len()];
 
         for i in nodes_it {
             let node = &nodes[i];
@@ -135,6 +138,10 @@ impl HilbertTree {
                 continue;
             }
 
+            let rule_eval = self
+                .rules
+                .evaluate_tags(&self.flatdata, tags_index_range.clone());
+
             // Tags
             let (keys, vals) = build_tags(
                 tags_index_range,
@@ -143,6 +150,7 @@ impl HilbertTree {
                 tags,
                 strings,
                 builder,
+                &rule_eval,
             );
             let keys_vec = builder.fbb.create_vector(&keys);
             let vals_vec = builder.fbb.create_vector(&vals);
@@ -167,20 +175,11 @@ impl HilbertTree {
                     geometries: Some(geoms),
                 },
             );
-            features.push(feature);
-        }
 
-        let features_vec = builder.fbb.create_vector(&features);
-        let name = builder.attributes.upsert_string("nodes");
-        let layer = PVTLayer::create(
-            &mut builder.fbb,
-            &PVTLayerArgs {
-                name,
-                features: Some(features_vec),
-            },
-        );
-        builder.add_layer(layer);
-        features.clear();
+            for layer_i in &rule_eval.layers {
+                layers[*layer_i].push(feature)
+            }
+        }
 
         for i in ways_it {
             let way = &ways[i];
@@ -198,7 +197,10 @@ impl HilbertTree {
             };
             let tags_index_range = tags_index_start..tags_index_end;
 
-            // Tags
+            let rule_eval = self
+                .rules
+                .evaluate_tags(&self.flatdata, tags_index_range.clone());
+
             let (keys, vals) = build_tags(
                 tags_index_range,
                 way.osm_id(),
@@ -206,6 +208,7 @@ impl HilbertTree {
                 tags,
                 strings,
                 builder,
+                rule_eval,
             );
             let keys_vec = builder.fbb.create_vector(&keys);
             let vals_vec = builder.fbb.create_vector(&vals);
@@ -248,20 +251,25 @@ impl HilbertTree {
                     geometries: Some(geoms),
                 },
             );
-            features.push(feature);
+
+            for layer_i in &rule_eval.layers {
+                layers[*layer_i].push(feature)
+            }
         }
 
-        let features_vec = builder.fbb.create_vector(&features);
-
-        let name = builder.attributes.upsert_string("ways");
-        let layer = PVTLayer::create(
-            &mut builder.fbb,
-            &PVTLayerArgs {
-                name,
-                features: Some(features_vec),
-            },
-        );
-        builder.add_layer(layer);
+        for (i, features) in layers.iter().enumerate() {
+            let features_vec = builder.fbb.create_vector(features);
+            let name_str = self.rules.layers[i].as_str();
+            let name = builder.attributes.upsert_string(name_str);
+            let layer = PVTLayer::create(
+                &mut builder.fbb,
+                &PVTLayerArgs {
+                    name,
+                    features: Some(features_vec),
+                },
+            );
+            builder.add_layer(layer);
+        }
     }
 }
 
@@ -272,27 +280,52 @@ fn build_tags(
     tags: &[Tag],
     strings: RawData,
     builder: &mut PVTBuilder,
+    rule_eval: &RuleEval,
 ) -> (Vec<u32>, Vec<u32>) {
-    let len = tags_index_range.end - tags_index_range.start + 1;
-    let mut keys: Vec<u32> = Vec::with_capacity(len);
-    let mut vals: Vec<u32> = Vec::with_capacity(len);
+    let rule_key = builder.attributes.upsert_string("rule");
+    let rule_val = builder.attributes.upsert_string_value(&rule_eval.name);
 
-    let osm_id_key = builder.attributes.upsert_string("osm_id");
-    let osm_id_val = builder.attributes.upsert_number_value(osm_id as f64);
-    keys.push(osm_id_key);
-    vals.push(osm_id_val);
+    match &rule_eval.include {
+        IncludeTagIdxs::None => (Vec::from([rule_key]), Vec::from([rule_val])),
+        IncludeTagIdxs::All => {
+            let len = tags_index_range.end - tags_index_range.start + 2; // osm_id and rule
+            let mut keys: Vec<u32> = Vec::with_capacity(len);
+            let mut vals: Vec<u32> = Vec::with_capacity(len);
 
-    for tag_idx in &tags_index[tags_index_range] {
-        let tag_i = tag_idx.value() as usize;
-        debug_assert!(tag_i < tags.len());
-        let tag = &tags[tag_i];
-        let k = unsafe { strings.substring_unchecked(tag.key_idx() as usize) };
-        let v = unsafe { strings.substring_unchecked(tag.value_idx() as usize) };
-        keys.push(builder.attributes.upsert_string(k));
-        vals.push(builder.attributes.upsert_string_value(v));
+            let osm_id_key = builder.attributes.upsert_string("osm_id");
+            let osm_id_val = builder.attributes.upsert_number_value(osm_id as f64);
+            keys.push(osm_id_key);
+            vals.push(osm_id_val);
+
+            for tag_idx in &tags_index[tags_index_range] {
+                let tag_i = tag_idx.value() as usize;
+                debug_assert!(tag_i < tags.len());
+                let tag = &tags[tag_i];
+                let k = unsafe { strings.substring_unchecked(tag.key_idx() as usize) };
+                let v = unsafe { strings.substring_unchecked(tag.value_idx() as usize) };
+                keys.push(builder.attributes.upsert_string(k));
+                vals.push(builder.attributes.upsert_string_value(v));
+            }
+            (keys, vals)
+        }
+        IncludeTagIdxs::Keys(key_str_idxs) => {
+            let mut keys: Vec<u32> = Vec::with_capacity(key_str_idxs.len());
+            let mut vals: Vec<u32> = Vec::with_capacity(key_str_idxs.len());
+
+            for tag_idx in &tags_index[tags_index_range] {
+                let tag_i = tag_idx.value() as usize;
+                let tag = &tags[tag_i];
+                let key_idx = tag.key_idx() as usize;
+                if key_str_idxs.contains(&key_idx) {
+                    let k = unsafe { strings.substring_unchecked(tag.key_idx() as usize) };
+                    let v = unsafe { strings.substring_unchecked(tag.value_idx() as usize) };
+                    keys.push(builder.attributes.upsert_string(k));
+                    vals.push(builder.attributes.upsert_string_value(v));
+                }
+            }
+            (keys, vals)
+        }
     }
-
-    (keys, vals)
 }
 
 #[cfg(test)]
@@ -307,27 +340,37 @@ mod tests {
         // 9, 659, 1593
         let t = Tile::from_zh(12, 3329134);
 
-        let manifest = manifest::parse("tests/fixtures/santacruz_sort.yaml").unwrap();
+        let manifest = manifest::parse("tests/fixtures/santa_cruz_sort.yaml").unwrap();
         let tree = HilbertTree::open(&manifest).unwrap();
 
         let mut builder = PVTBuilder::new();
         tree.compose_tile(&t, &mut builder);
 
-        assert_eq!(builder.layers.len(), 2);
+        assert_eq!(builder.layers.len(), 8);
 
         let vec_u8 = builder.build();
 
         let pvt = root_as_pvttile(&vec_u8).unwrap();
         let layers = pvt.layers().unwrap();
-        assert_eq!(layers.len(), 2);
+        let strings = pvt.strings().unwrap();
+
+        for (i, layer) in layers.iter().enumerate() {
+            let name_i = layer.name();
+            let name = strings.get(name_i as usize);
+            assert_eq!(tree.rules.layers[i], name);
+            // println!("{}", name);
+        }
+
+        assert_eq!(layers.len(), 8);
 
         let layer_str_idx = layers.get(0).name();
         let strings = pvt.strings().unwrap();
         let layer_name = strings.get(layer_str_idx as usize);
-        assert_eq!(layer_name, "nodes");
+        assert_eq!(layer_name, "no_rule");
 
         let features = layers.get(0).features().unwrap();
-        assert_eq!(features.len(), 2748);
+        // println!("{}", features.len());
+        assert_eq!(features.len(), 3265);
 
         let feature = features.get(0);
 
@@ -365,7 +408,7 @@ mod tests {
 
     #[test]
     fn test_tags_index() {
-        let manifest = manifest::parse("tests/fixtures/santacruz_sort.yaml").unwrap();
+        let manifest = manifest::parse("tests/fixtures/santa_cruz_sort.yaml").unwrap();
         let tree = HilbertTree::open(&manifest).unwrap();
         let nodes = tree.flatdata.nodes();
         for n in nodes {
@@ -376,7 +419,7 @@ mod tests {
 
     #[test]
     fn test_h_tile() {
-        let manifest = manifest::parse("tests/fixtures/santacruz_sort.yaml").unwrap();
+        let manifest = manifest::parse("tests/fixtures/santa_cruz_sort.yaml").unwrap();
         let tree = HilbertTree::open(&manifest).unwrap();
 
         let mut builder = PVTBuilder::new();

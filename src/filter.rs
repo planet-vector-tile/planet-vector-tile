@@ -3,24 +3,18 @@ use std::ops::Range;
 use dashmap::DashSet;
 
 use crate::{
-    manifest::Manifest,
     osmflat::osmflat_generated::osm::{Node, Osm, Way},
-    rules::{Rules, ZoomRangeRuleEval},
+    rules::Rules,
 };
 
 pub struct Filter<'a> {
     flatdata: &'a Osm,
     rules: Rules,
-    leaf_zoom: u8,
 }
 
 impl<'a> Filter<'a> {
-    pub fn new(manifest: &'a Manifest, flatdata: &'a Osm) -> Filter<'a> {
-        Filter {
-            flatdata,
-            rules: Rules::new(manifest, flatdata),
-            leaf_zoom: manifest.render.leaf_zoom,
-        }
+    pub fn new(flatdata: &'a Osm, rules: Rules) -> Filter<'a> {
+        Filter { flatdata, rules }
     }
 
     // https://stackoverflow.com/questions/25445761/returning-a-closure-from-a-function
@@ -45,7 +39,6 @@ impl<'a> Filter<'a> {
             } else {
                 tags_index.len()
             };
-
             self.evaluate_tags(tags_index_start..tags_index_end, zoom)
         };
 
@@ -72,7 +65,6 @@ impl<'a> Filter<'a> {
             } else {
                 tags_index.len()
             };
-
             self.evaluate_tags(tags_index_start..tags_index_end, zoom)
         };
 
@@ -80,58 +72,8 @@ impl<'a> Filter<'a> {
     }
 
     fn evaluate_tags(&self, tags_idx_range: Range<usize>, zoom: u8) -> bool {
-        let tags_index = self.flatdata.tags_index();
-        let tags = self.flatdata.tags();
-        let mut winning_eval = ZoomRangeRuleEval::None;
+        let rule_eval = self.rules.evaluate_tags(self.flatdata, tags_idx_range);
 
-        for i in &tags_index[tags_idx_range] {
-            let tag = &tags[i.value() as usize];
-
-            let eval = self.rules.get_zoom_range(tag);
-
-            match winning_eval {
-                ZoomRangeRuleEval::None => {
-                    winning_eval = eval;
-                }
-                ZoomRangeRuleEval::Tag(_) => {
-                    break;
-                }
-                ZoomRangeRuleEval::Value(_) => match eval {
-                    ZoomRangeRuleEval::None => (),
-                    ZoomRangeRuleEval::Tag(_) => {
-                        winning_eval = eval;
-                        break;
-                    }
-                    ZoomRangeRuleEval::Value(_) => (),
-                    ZoomRangeRuleEval::Key(_) => (),
-                },
-                ZoomRangeRuleEval::Key(_) => match eval {
-                    ZoomRangeRuleEval::None => (),
-                    ZoomRangeRuleEval::Tag(_) => {
-                        winning_eval = eval;
-                        break;
-                    }
-                    ZoomRangeRuleEval::Value(_) => {
-                        winning_eval = eval;
-                    }
-                    ZoomRangeRuleEval::Key(_) => (),
-                },
-            }
-        }
-
-        let default_range = self.leaf_zoom..self.leaf_zoom;
-
-        let range = match winning_eval {
-            ZoomRangeRuleEval::None => &default_range,
-            ZoomRangeRuleEval::Tag(r) => r,
-            ZoomRangeRuleEval::Value(r) => r,
-            ZoomRangeRuleEval::Key(r) => r,
-        };
-
-        if zoom >= range.start && zoom <= range.end {
-            true
-        } else {
-            false
-        }
+        rule_eval.minzoom <= zoom && rule_eval.maxzoom >= zoom
     }
 }

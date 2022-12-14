@@ -14,6 +14,7 @@ mod sort;
 mod source;
 mod tile;
 mod tile_attributes;
+mod u40;
 mod util;
 
 use clap::ArgMatches;
@@ -48,6 +49,19 @@ fn main() {
 
             let flatdata = osmflat::convert(&manifest).unwrap_or_else(quit);
             sort::sort_flatdata(flatdata, &manifest.data.planet).unwrap_or_else(quit);
+
+            match HilbertTree::new(&manifest) {
+                Ok(_) => (),
+                Err(e) => {
+                    eprintln!(
+                        "Unable to open planet dir: {} Error: {:?}",
+                        manifest.data.planet.display(),
+                        e
+                    );
+                    eprintln!("Are you pointing to the right source, planet, and archive in your manifest?");
+                    std::process::exit(1);
+                }
+            };
         }
         ("render", matches) => {
             let manifest = get_manifest(matches);

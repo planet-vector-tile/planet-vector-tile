@@ -3,7 +3,8 @@ use rayon::prelude::{IntoParallelIterator, IntoParallelRefIterator, ParallelIter
 
 use super::{hilbert_tile::HilbertTile, leaf::Leaf};
 use crate::{
-    filter::Filter, manifest::Manifest, mutant::Mutant, osmflat::osmflat_generated::osm::Osm, util,
+    filter::Filter, manifest::Manifest, mutant::Mutant, osmflat::osmflat_generated::osm::Osm,
+    rules::Rules, util,
 };
 
 type Err = Box<dyn std::error::Error>;
@@ -16,9 +17,10 @@ pub fn render_tile_content(
     m_leaves_external: &Mutant<u32>,
     flatdata: &Osm,
     manifest: &Manifest,
-) -> Result<(Mutant<u64>, Mutant<u32>, Mutant<u32>), Err> {
+) -> Result<(Mutant<u64>, Mutant<u32>, Mutant<u32>, Rules), Err> {
     let dir = &manifest.data.planet;
-    let filter = Filter::new(manifest, flatdata);
+    let new_rules = Rules::build(&manifest, flatdata);
+    let filter = Filter::new(flatdata, new_rules.clone());
     let leaf_zoom = manifest.render.leaf_zoom;
     let leaves = m_leaves.slice();
     let tiles = m_tiles.slice();
@@ -185,7 +187,7 @@ pub fn render_tile_content(
         format_duration(t.elapsed())
     );
 
-    Ok((m_n, m_w, m_r))
+    Ok((m_n, m_w, m_r, new_rules))
 }
 
 fn count_children(mask: u16) -> u32 {
@@ -229,7 +231,7 @@ mod tests {
 
     #[test]
     fn test_build_content() {
-        let dir = PathBuf::from("tests/fixtures/santacruz/sort");
+        let dir = PathBuf::from("tests/fixtures/santa_cruz/sort");
         let flatdata = Osm::open(FileResourceStorage::new(&dir)).unwrap();
         let m_leaves = Mutant::<Leaf>::open(&dir, "hilbert_leaves", false).unwrap();
         let m_tiles = Mutant::<HilbertTile>::open(&dir, "hilbert_tiles", false).unwrap();
@@ -240,7 +242,7 @@ mod tests {
             &m_tiles,
             &m_leaves_external,
             &flatdata,
-            &manifest::parse("tests/fixtures/santacruz_sort.yaml").unwrap(),
+            &manifest::parse("tests/fixtures/santa_cruz_sort.yaml").unwrap(),
         )
         .unwrap();
     }
@@ -259,7 +261,7 @@ mod tests {
             &m_tiles,
             &m_leaves_external,
             &flatdata,
-            &manifest::parse("tests/fixtures/santacruz_sort.yaml").unwrap(),
+            &manifest::parse("tests/fixtures/santa_cruz_sort.yaml").unwrap(),
         )
         .unwrap();
     }

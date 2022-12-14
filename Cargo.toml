@@ -17,7 +17,7 @@ name = "fixtures"
 path = "src/fixtures.rs"
 
 [dependencies]
-ahash = "0.8.0"
+ahash = { version = "0.8.0", features = ["serde"] }
 byteorder = "1.4.3"
 chrono = "0.4.23"
 clap = { version = "4.0.18", features = ["derive"] }

@@ -2,9 +2,10 @@ data:
     source: ../tests/fixtures/santa_cruz.osm.pbf
     planet: ../planets/santa_cruz
     archive: ../archives/santa_cruz.pvt
+    # include_leaves: [3329139]
 
 render:
-    leaf_zoom: 12
+    leaf_zoom: 14
     layer_order: [Administrative, Water, Major Roads, Minor Roads, Places, Buildings]
 
 report_options:
@@ -38,7 +39,7 @@ layers:
 rules:
     admin_country:
         minzoom: 0
-        tags: []
+        tags: [[admin_level, 2], [admin_level, 3]]
     admin_state:
         minzoom: 4
         tags: [[admin_level, 4], [admin_level, 5]]
@@ -122,5 +123,3 @@ rules:
     highway:
         minzoom: 12
         keys: [highway]
-# info:
-#     entities_by_rule: [admin_country, admin_state, admin_county, admin_other]

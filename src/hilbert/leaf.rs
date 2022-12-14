@@ -257,7 +257,7 @@ mod tests {
 
     #[test]
     fn test_populate_hilbert_leaves_external() {
-        let dir = PathBuf::from("tests/fixtures/santacruz/sort");
+        let dir = PathBuf::from("tests/fixtures/santa_cruz/sort");
         let flatdata = Osm::open(FileResourceStorage::new(&dir)).unwrap();
         let m_node_pairs =
             Mutant::<HilbertNodePair>::open(&dir, "hilbert_node_pairs", true).unwrap();

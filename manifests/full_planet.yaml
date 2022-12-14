@@ -8,7 +8,7 @@ render:
     layer_order: [Administrative, Water, Landuse, Major Roads, Minor Roads, Places, Buildings]
 
 layers:
-    Administrative: [admin_country, admin_state, admin_county, admin_city, admihn_other, boundary]
+    Administrative: [admin_country, admin_state, admin_county, admin_city, admin_other, boundary]
     Water: [water, water_lake, water_river, waterway, waterway_intermittent]
     Landuse: [landuse]
     Major Roads: [highway_primary, highway_secondary]

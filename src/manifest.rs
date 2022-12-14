@@ -1,4 +1,5 @@
 use serde_derive::{Deserialize, Serialize};
+use std::collections::BTreeSet;
 use std::fs;
 use std::io::{Error, ErrorKind, Result};
 use std::{collections::BTreeMap, path::PathBuf};
@@ -29,7 +30,10 @@ pub struct Data {
 pub struct Render {
     pub leaf_zoom: u8,
     pub layer_order: Vec<String>,
-    pub include_tags: Option<IncludeTags>,
+    // Overrides IncludeTags for rules and includes all tags always.
+    // Helpful for debugging and figuring out style rules.
+    #[serde(default = "bool::default")]
+    pub all_tags: bool,
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
@@ -38,18 +42,20 @@ pub struct Rule {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub maxzoom: Option<u8>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub tags: Vec<(String, String)>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub keys: Vec<String>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub values: Vec<String>,
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub tags: Vec<(String, String)>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub include: Option<IncludeTags>,
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 pub enum IncludeTags {
     None,
     All,
-    Keys(Vec<String>),
+    Keys(BTreeSet<String>),
 }
 
 pub fn parse(path_str: &str) -> Result<Manifest> {
@@ -147,6 +153,8 @@ mod tests {
         );
 
         let mut rules = Rules::new();
+        let mut keys = BTreeSet::new();
+        keys.insert("highway".to_string());
         rules.insert(
             "rule0".to_string(),
             Rule {
@@ -158,6 +166,7 @@ mod tests {
                     ("key0".to_string(), "value0".to_string()).into(),
                     ("key1".to_string(), "value1".to_string()).into(),
                 ],
+                include: Some(IncludeTags::Keys(keys)),
             },
         );
 
@@ -171,10 +180,7 @@ mod tests {
             render: Render {
                 leaf_zoom: 12,
                 layer_order: vec!["layer0".to_string()],
-                include_tags: Some(IncludeTags::Keys(vec![
-                    "key0".to_string(),
-                    "key1".to_string(),
-                ])),
+                all_tags: true,
             },
             layers,
             rules,

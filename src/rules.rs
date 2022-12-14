@@ -1,31 +1,90 @@
-use std::{fs, ops::Range, time::Instant};
-
-use ahash::AHashMap;
+use ahash::{AHashMap, AHashSet};
 use dashmap::{DashMap, DashSet};
 use flatdata::RawData;
 use humantime::format_duration;
+use itertools::Itertools;
 use rayon::prelude::{IndexedParallelIterator, IntoParallelRefIterator, ParallelIterator};
-use yaml_rust::{yaml, YamlEmitter};
+use serde_derive::{Deserialize, Serialize};
+use std::collections::hash_map::Entry::{Occupied, Vacant};
+use std::{fs, ops::Range};
 
 use crate::{
     manifest::{IncludeTags, Manifest},
-    osmflat::osmflat_generated::osm::{Osm, Tag},
+    osmflat::osmflat_generated::osm::Osm,
+    util,
 };
 
+#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 pub struct Rules {
-    tag_to_zoom_range: AHashMap<(usize, usize), Range<u8>>,
-    value_to_zoom_range: AHashMap<usize, Range<u8>>,
-    key_to_zoom_range: AHashMap<usize, Range<u8>>,
+    pub evals: Vec<RuleEval>,
+    pub layers: Vec<String>,
+    pub tags: AHashMap<usize, usize>,
+    pub values: AHashMap<usize, usize>,
+    pub keys: AHashMap<usize, usize>,
+}
+
+#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
+pub struct RuleEval {
+    pub name: String,
+    // index in Rules layers
+    pub layers: Vec<usize>,
+    pub minzoom: u8,
+    pub maxzoom: u8,
+    pub include: IncludeTagIdxs,
+}
+
+#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
+pub enum IncludeTagIdxs {
+    None,
+    All,
+    Keys(AHashSet<usize>),
+}
+
+enum RuleMatch {
+    None,
+    Tag,
+    Value,
+    Key,
 }
 
 impl Rules {
-    // NOTE: This is expensive to construct due to get_strs. Don't construct in a loop.
-    pub fn new(manifest: &Manifest, flatdata: &Osm) -> Self {
+    pub fn open(manifest: &Manifest) -> Self {
+        let path = manifest.data.planet.join("rules.yaml");
+        let Ok(s) = fs::read_to_string(&path) else {
+            println!("Unable to read rules file at {}. Using default. This is normal if you haven't yet written any tiles.", path.display());
+            return Rules::default(manifest);
+        };
+        let Ok(rules) = serde_yaml::from_str(&s) else {
+            println!("Unable to parse rules at {}. Using default.", path.display());
+            return Rules::default(manifest);
+        };
+        rules
+    }
+
+    pub fn default(manifest: &Manifest) -> Self {
+        Rules {
+            evals: vec![RuleEval {
+                name: "no_rule".to_string(),
+                layers: vec![0],
+                minzoom: 0,
+                maxzoom: manifest.render.leaf_zoom,
+                include: IncludeTagIdxs::All,
+            }],
+            layers: vec!["no_rule".to_string()],
+            tags: AHashMap::new(),
+            values: AHashMap::new(),
+            keys: AHashMap::new(),
+        }
+    }
+
+    pub fn build(manifest: &Manifest, flatdata: &Osm) -> Self {
         let strs: DashSet<&str> = DashSet::new();
+        let kvs: DashSet<(&str, &str)> = DashSet::new();
         for (_, rule) in &manifest.rules {
             for (k, v) in &rule.tags {
                 strs.insert(k);
                 strs.insert(v);
+                kvs.insert((k, v));
             }
             for v in &rule.values {
                 strs.insert(v);
@@ -33,18 +92,17 @@ impl Rules {
             for k in &rule.keys {
                 strs.insert(k);
             }
-        }
-        if let Some(IncludeTags::Keys(keys)) = &manifest.render.include_tags {
-            for k in keys {
-                strs.insert(k);
+            if let Some(IncludeTags::Keys(keys)) = &rule.include {
+                for k in keys {
+                    strs.insert(k);
+                }
             }
         }
 
         let str_to_idx: DashMap<&str, usize> = DashMap::new();
         let strings = flatdata.stringtable();
-        println!("Scanning stringtable for rule strings...");
-        let t = Instant::now();
 
+        let t = util::timer("Scanning stringtable for rule and include_tags strings...");
         // Note: This is expensive, but better than constantly strcmp against rules during the build.
         let str_ranges = get_str_ranges(strings);
 
@@ -62,117 +120,198 @@ impl Rules {
                 false
             }
         });
+        println!("Finished in {}", format_duration(t.elapsed()));
+
+        let t = util::timer("Scanning tags for matching tag rules...");
+        let tag_to_idx: DashMap<(&str, &str), usize> = DashMap::new();
+        let _ = flatdata.tags().par_iter().enumerate().find_any(|(i, tag)| {
+            let k = unsafe { strings.substring_unchecked(tag.key_idx() as usize) };
+            let v = unsafe { strings.substring_unchecked(tag.value_idx() as usize) };
+            let t = (k, v);
+            if kvs.contains(&t) {
+                tag_to_idx.insert(t, *i);
+                kvs.remove(&t);
+            }
+            if kvs.is_empty() {
+                true
+            } else {
+                false
+            }
+        });
+        println!("Finished in {}", format_duration(t.elapsed()));
 
         if strs.len() > 0 {
-            println!("NOTICE: Not all rules and include_tags were matched to a string in the stringtable. Unmatched strings:\n{:?}", strs);
+            println!("NOTICE: Not all rules and include_tags were matched to a string in the stringtable. Unmatched strings:\n{:?}", strs.iter().map(|k| *k ).collect_vec());
+        }
+        if kvs.len() > 0 {
+            println!("NOTICE: Not all tag kv rules were matched to an existing tag. Unmatched tags:\n{:?}", kvs.iter().map(|tpl| *tpl).collect_vec());
         }
         println!(
             "Built pointers to strings from rules and include_tags in: {}",
             format_duration(t.elapsed())
         );
 
-        let str_to_idx_path = manifest.data.planet.join("str_to_idx.yaml");
-        println!("Saving string index to {}", str_to_idx_path.display());
-        let mut yaml_hash = yaml::Hash::new();
-        for ref_multi in str_to_idx.iter() {
-            let (k, v) = ref_multi.pair();
-            yaml_hash.insert(
-                yaml::Yaml::String(k.to_string()),
-                yaml::Yaml::Integer(*v as i64),
-            );
+        let mut layers: Vec<String> = Vec::with_capacity(manifest.render.layer_order.len() + 1);
+        let mut layer_name_to_layer: AHashMap<&str, usize> = AHashMap::new();
+        layers.push("no_rule".to_string());
+        for layer_name in &manifest.render.layer_order {
+            layers.push(layer_name.clone());
+            layer_name_to_layer.insert(layer_name, layers.len() - 1);
         }
-        let mut str_to_idx_yaml_str = String::new();
-        let mut emitter = YamlEmitter::new(&mut str_to_idx_yaml_str);
-        match emitter.dump(&yaml::Yaml::Hash(yaml_hash)) {
-            Ok(_) => {
-                if let Err(err) = fs::write(&str_to_idx_path, str_to_idx_yaml_str) {
-                    eprintln!(
-                        "Failed to write string index to file {} Err: {}",
-                        str_to_idx_path.display(),
-                        err
-                    );
+
+        let mut rule_name_to_layers: AHashMap<&str, AHashSet<usize>> = AHashMap::new();
+        for (layer_name, rule_names) in &manifest.layers {
+            for rule_name in rule_names {
+                let layer_i = match layer_name_to_layer.get(layer_name.as_str()) {
+                    Some(layer_i) => *layer_i,
+                    None => {
+                        eprintln!("WARNING: {} is not included in layer_order", layer_name);
+                        continue;
+                    }
+                };
+                match rule_name_to_layers.entry(rule_name.as_str()) {
+                    Occupied(mut o) => {
+                        o.get_mut().insert(layer_i);
+                    }
+                    Vacant(v) => {
+                        v.insert(AHashSet::from([layer_i]));
+                    }
                 }
             }
-            Err(e) => {
-                eprintln!("Failed to write string index. Err: {}", e);
-            }
         }
 
-        let mut tag_to_zoom_range: AHashMap<(usize, usize), Range<u8>> = AHashMap::new();
-        let mut value_to_zoom_range: AHashMap<usize, Range<u8>> = AHashMap::new();
-        let mut key_to_zoom_range: AHashMap<usize, Range<u8>> = AHashMap::new();
+        let mut evals: Vec<RuleEval> = Vec::with_capacity(manifest.rules.len() + 1);
+        let mut tags = AHashMap::<usize, usize>::new();
+        let mut values = AHashMap::<usize, usize>::new();
+        let mut keys = AHashMap::<usize, usize>::new();
 
-        for (_, rule) in &manifest.rules {
-            let zoom_range = if let Some(maxzoom) = rule.maxzoom {
-                rule.minzoom..maxzoom
+        let no_rule_match_eval = RuleEval {
+            name: "no_rule".to_string(),
+            layers: vec![0],
+            minzoom: 0,
+            maxzoom: manifest.render.leaf_zoom,
+            include: IncludeTagIdxs::All,
+        };
+        evals.push(no_rule_match_eval);
+
+        for (rule_name, rule) in &manifest.rules {
+            let include_idxs = if let Some(include) = &rule.include {
+                match include {
+                    IncludeTags::None => IncludeTagIdxs::None,
+                    IncludeTags::All => IncludeTagIdxs::All,
+                    IncludeTags::Keys(key_strs) => {
+                        let mut include_keys = AHashSet::<usize>::new();
+                        for k in key_strs {
+                            if let Some(idx) = str_to_idx.get(k.as_str()) {
+                                include_keys.insert(*idx);
+                            }
+                        }
+                        IncludeTagIdxs::Keys(include_keys)
+                    }
+                }
             } else {
-                rule.minzoom..manifest.render.leaf_zoom
+                IncludeTagIdxs::None
             };
 
+            let eval = RuleEval {
+                name: rule_name.to_string(),
+                layers: match rule_name_to_layers.entry(rule_name) {
+                    Occupied(o) => o.get().iter().map(|i| *i).collect_vec(),
+                    Vacant(_) => vec![],
+                },
+                minzoom: rule.minzoom,
+                maxzoom: if let Some(maxzoom) = rule.maxzoom {
+                    maxzoom
+                } else {
+                    manifest.render.leaf_zoom
+                },
+                include: include_idxs,
+            };
+            evals.push(eval);
+            let eval_i = evals.len() - 1;
+
             for (k, v) in &rule.tags {
-                let k_idx = match str_to_idx.get(k.as_str()) {
-                    Some(idx) => *idx,
-                    None => {
-                        break;
-                    }
-                };
-                let v_idx = match str_to_idx.get(v.as_str()) {
-                    Some(idx) => *idx,
-                    None => {
-                        break;
-                    }
-                };
-                tag_to_zoom_range.insert((k_idx, v_idx), zoom_range.clone());
+                if let Some(t_i) = tag_to_idx.get(&(k, v)) {
+                    tags.insert(*t_i, eval_i);
+                }
             }
             for v in &rule.values {
-                let v_idx = match str_to_idx.get(v.as_str()) {
-                    Some(idx) => *idx,
-                    None => {
-                        break;
-                    }
-                };
-                value_to_zoom_range.insert(v_idx, zoom_range.clone());
+                if let Some(v_i) = str_to_idx.get(v.as_str()) {
+                    values.insert(*v_i, eval_i);
+                }
             }
             for k in &rule.keys {
-                let k_idx = match str_to_idx.get(k.as_str()) {
-                    Some(idx) => *idx,
-                    None => {
-                        break;
-                    }
-                };
-                key_to_zoom_range.insert(k_idx, zoom_range.clone());
+                if let Some(k_i) = str_to_idx.get(k.as_str()) {
+                    keys.insert(*k_i, eval_i);
+                }
             }
         }
 
-        Rules {
-            tag_to_zoom_range,
-            value_to_zoom_range,
-            key_to_zoom_range,
-        }
+        let rules = Rules {
+            evals,
+            layers,
+            tags,
+            values,
+            keys,
+        };
+
+        let rules_path = manifest.data.planet.join("rules.yaml");
+        let manifest_str = serde_yaml::to_string(&rules).expect("Rules should serialize");
+        fs::write(&rules_path, manifest_str)
+            .expect("Rules should be able to be written to planet dir");
+
+        println!("Serialized rules to {}", rules_path.display());
+
+        rules
     }
 
-    pub fn get_zoom_range(&self, tag: &Tag) -> ZoomRangeRuleEval {
-        let key = tag.key_idx() as usize;
+    pub fn evaluate_tags(&self, flatdata: &Osm, tags_idx_range: Range<usize>) -> &RuleEval {
+        let tags_index = flatdata.tags_index();
+
+        let mut winning_match = RuleMatch::None;
+        let mut winning_eval_i = 0;
+
+        for i in &tags_index[tags_idx_range] {
+            let (rule_match, eval_i) = self.evaluate_tag(flatdata, i.value() as usize);
+
+            match rule_match {
+                RuleMatch::None => (),
+                RuleMatch::Tag => return &self.evals[eval_i],
+                RuleMatch::Value => match winning_match {
+                    RuleMatch::None | RuleMatch::Key => {
+                        winning_match = rule_match;
+                        winning_eval_i = eval_i;
+                    }
+                    _ => (),
+                },
+                RuleMatch::Key => match winning_match {
+                    RuleMatch::None => {
+                        winning_match = rule_match;
+                        winning_eval_i = eval_i;
+                    }
+                    _ => (),
+                },
+            }
+        }
+        &self.evals[winning_eval_i]
+    }
+
+    fn evaluate_tag(&self, flatdata: &Osm, tag_i: usize) -> (RuleMatch, usize) {
+        if let Some(eval_i) = self.tags.get(&tag_i) {
+            return (RuleMatch::Tag, *eval_i);
+        }
+
+        let tag = &flatdata.tags()[tag_i];
         let value = tag.value_idx() as usize;
-        if let Some(zoom_range) = self.tag_to_zoom_range.get(&(key, value)) {
-            return ZoomRangeRuleEval::Tag(zoom_range);
+        if let Some(eval_i) = self.values.get(&value) {
+            return (RuleMatch::Value, *eval_i);
         }
-        if let Some(zoom_range) = self.value_to_zoom_range.get(&value) {
-            return ZoomRangeRuleEval::Value(zoom_range);
+        let key = tag.key_idx() as usize;
+        if let Some(eval_i) = self.keys.get(&key) {
+            return (RuleMatch::Key, *eval_i);
         }
-        if let Some(zoom_range) = self.key_to_zoom_range.get(&key) {
-            return ZoomRangeRuleEval::Key(zoom_range);
-        }
-        ZoomRangeRuleEval::None
+        (RuleMatch::None, 0)
     }
-}
-
-#[derive(Debug, PartialEq, Eq, Clone)]
-pub enum ZoomRangeRuleEval<'a> {
-    None,
-    Tag(&'a Range<u8>),
-    Value(&'a Range<u8>),
-    Key(&'a Range<u8>),
 }
 
 fn get_str_null_delimeters(strings: RawData) -> Vec<usize> {
@@ -207,8 +346,6 @@ mod tests {
 
     use flatdata::FileResourceStorage;
     use humantime::format_duration;
-
-    use crate::manifest;
 
     use super::*;
 
@@ -295,32 +432,6 @@ mod tests {
                 "Approximated, quite synthetic"
             ]
         );
-    }
-
-    #[test]
-    fn test_build_rules_santa_cruz() {
-        let manifest = manifest::parse("tests/fixtures/santa_cruz_sort.yaml").unwrap();
-        let flatdata =
-            Osm::open(FileResourceStorage::new("tests/fixtures/santa_cruz/sort")).unwrap();
-        let rules = Rules::new(&manifest, &flatdata);
-
-        // boundary = administrative
-        let mut tag = Tag::new();
-        tag.set_key_idx(406551);
-        tag.set_value_idx(90476);
-
-        let zr = 0..12;
-        let zoom_range = rules.get_zoom_range(&tag);
-        assert_eq!(zoom_range, ZoomRangeRuleEval::Value(&zr));
-
-        // key of building
-        let mut tag2 = Tag::new();
-        tag2.set_key_idx(32840);
-        tag2.set_value_idx(1);
-
-        let zr2 = 10..12;
-        let zoom_range2 = rules.get_zoom_range(&tag2);
-        assert_eq!(zoom_range2, ZoomRangeRuleEval::Key(&zr2));
     }
 
     #[test]

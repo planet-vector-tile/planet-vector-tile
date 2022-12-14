@@ -19,6 +19,7 @@ table PVTFeature {
     // index of the value in Tile
     values: [uint32];
     geometries: [PVTGeometry];
+    rule: uint16;
 }
 
 table PVTGeometry {
