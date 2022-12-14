@@ -3,7 +3,6 @@ use std::ops::Range;
 use dashmap::DashSet;
 
 use crate::{
-    manifest::Manifest,
     osmflat::osmflat_generated::osm::{Node, Osm, Way},
     rules::{Rules},
 };

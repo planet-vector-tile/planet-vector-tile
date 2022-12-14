@@ -16,7 +16,7 @@ impl U40 {
     }
 
     pub fn v(&self) -> u64 {
-        (self.high as u64) << 10 | self.low as u64
+        (self.high as u64) << 32 | self.low as u64
     }
 }
 
@@ -36,7 +36,7 @@ mod tests {
         assert_eq!(l, 0xFFFFFFFF);
         // println!("high {:x} low {:x}", h, l);
         let b = u40.v();
-        // println!("{}", b);
+        // println!("{:x}", b);
         assert_eq!(a, b);
     }
 }

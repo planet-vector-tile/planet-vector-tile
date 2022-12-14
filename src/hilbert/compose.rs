@@ -356,6 +356,14 @@ mod tests {
 
         let pvt = root_as_pvttile(&vec_u8).unwrap();
         let layers = pvt.layers().unwrap();
+        let strings = pvt.strings().unwrap();
+        
+        for layer in layers.iter() {
+            let name_i = layer.name();
+            let name = strings.get(name_i as usize);
+            println!("{}", name);
+        }
+
         assert_eq!(layers.len(), 2);
 
         let layer_str_idx = layers.get(0).name();
@@ -364,6 +372,7 @@ mod tests {
         assert_eq!(layer_name, "nodes");
 
         let features = layers.get(0).features().unwrap();
+        // println!("{}", features.len());
         assert_eq!(features.len(), 2748);
 
         let feature = features.get(0);
