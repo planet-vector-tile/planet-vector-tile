@@ -8,6 +8,7 @@ use crate::{
     rules::{IncludeTagIdxs, RuleEval},
     tile::planet_vector_tile_generated::*,
 };
+use flatbuffers::WIPOffset;
 use flatdata::RawData;
 
 use crate::{
@@ -115,8 +116,7 @@ impl HilbertTree {
         let tags_index_len = tags_index.len();
         let strings = self.flatdata.stringtable();
 
-        // We reuse this for nodes, ways, relations.
-        let mut features = Vec::new();
+        let mut layers: Vec<Vec<WIPOffset<PVTFeature>>> = vec![vec![]; self.rules.layers.len()];
 
         for i in nodes_it {
             let node = &nodes[i];
@@ -175,20 +175,11 @@ impl HilbertTree {
                     geometries: Some(geoms),
                 },
             );
-            features.push(feature);
-        }
 
-        let features_vec = builder.fbb.create_vector(&features);
-        let name = builder.attributes.upsert_string("nodes");
-        let layer = PVTLayer::create(
-            &mut builder.fbb,
-            &PVTLayerArgs {
-                name,
-                features: Some(features_vec),
-            },
-        );
-        builder.add_layer(layer);
-        features.clear();
+            for layer_i in &rule_eval.layers {
+                layers[*layer_i].push(feature)
+            }
+        }
 
         for i in ways_it {
             let way = &ways[i];
@@ -260,20 +251,25 @@ impl HilbertTree {
                     geometries: Some(geoms),
                 },
             );
-            features.push(feature);
+
+            for layer_i in &rule_eval.layers {
+                layers[*layer_i].push(feature)
+            }
         }
 
-        let features_vec = builder.fbb.create_vector(&features);
-
-        let name = builder.attributes.upsert_string("ways");
-        let layer = PVTLayer::create(
-            &mut builder.fbb,
-            &PVTLayerArgs {
-                name,
-                features: Some(features_vec),
-            },
-        );
-        builder.add_layer(layer);
+        for (i, features) in layers.iter().enumerate() {
+            let features_vec = builder.fbb.create_vector(features);
+            let name_str = self.rules.layers[i].as_str();
+            let name = builder.attributes.upsert_string(name_str);
+            let layer = PVTLayer::create(
+                &mut builder.fbb,
+                &PVTLayerArgs {
+                    name,
+                    features: Some(features_vec),
+                },
+            );
+            builder.add_layer(layer);
+        }
     }
 }
 
@@ -350,30 +346,30 @@ mod tests {
         let mut builder = PVTBuilder::new();
         tree.compose_tile(&t, &mut builder);
 
-        assert_eq!(builder.layers.len(), 2);
+        assert_eq!(builder.layers.len(), 8);
 
         let vec_u8 = builder.build();
 
         let pvt = root_as_pvttile(&vec_u8).unwrap();
         let layers = pvt.layers().unwrap();
         let strings = pvt.strings().unwrap();
-        
-        for layer in layers.iter() {
+
+        for (i, layer) in layers.iter().enumerate() {
             let name_i = layer.name();
             let name = strings.get(name_i as usize);
-            println!("{}", name);
+            assert_eq!(tree.rules.layers[i], name);
         }
 
-        assert_eq!(layers.len(), 2);
+        assert_eq!(layers.len(), 8);
 
         let layer_str_idx = layers.get(0).name();
         let strings = pvt.strings().unwrap();
         let layer_name = strings.get(layer_str_idx as usize);
-        assert_eq!(layer_name, "nodes");
+        assert_eq!(layer_name, "no_rule");
 
         let features = layers.get(0).features().unwrap();
         // println!("{}", features.len());
-        assert_eq!(features.len(), 2748);
+        assert_eq!(features.len(), 3265);
 
         let feature = features.get(0);
 
