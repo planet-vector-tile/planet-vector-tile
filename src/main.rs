@@ -14,8 +14,8 @@ mod sort;
 mod source;
 mod tile;
 mod tile_attributes;
-mod util;
 mod u40;
+mod util;
 
 use clap::ArgMatches;
 use hilbert::tree::HilbertTree;

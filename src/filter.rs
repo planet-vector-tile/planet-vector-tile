@@ -4,7 +4,7 @@ use dashmap::DashSet;
 
 use crate::{
     osmflat::osmflat_generated::osm::{Node, Osm, Way},
-    rules::{Rules},
+    rules::Rules,
 };
 
 pub struct Filter<'a> {
@@ -14,10 +14,7 @@ pub struct Filter<'a> {
 
 impl<'a> Filter<'a> {
     pub fn new(flatdata: &'a Osm, rules: Rules) -> Filter<'a> {
-        Filter {
-            flatdata,
-            rules,
-        }
+        Filter { flatdata, rules }
     }
 
     // https://stackoverflow.com/questions/25445761/returning-a-closure-from-a-function
