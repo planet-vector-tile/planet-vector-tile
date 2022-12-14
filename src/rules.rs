@@ -14,8 +14,6 @@ use crate::{
     util,
 };
 
-type Err = Box<dyn std::error::Error>;
-
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 pub struct Rules {
     pub evals: Vec<RuleEval>,
@@ -153,7 +151,7 @@ impl Rules {
             format_duration(t.elapsed())
         );
 
-        let mut layers: Vec<String> = Vec::with_capacity(manifest.render.layer_order.len());
+        let mut layers: Vec<String> = Vec::with_capacity(manifest.render.layer_order.len() + 1);
         let mut layer_name_to_layer: AHashMap<&str, usize> = AHashMap::new();
         layers.push("no_rule".to_string());
         for layer_name in &manifest.render.layer_order {
@@ -182,7 +180,7 @@ impl Rules {
             }
         }
 
-        let mut evals: Vec<RuleEval> = Vec::with_capacity(manifest.rules.len());
+        let mut evals: Vec<RuleEval> = Vec::with_capacity(manifest.rules.len() + 1);
         let mut tags = AHashMap::<usize, usize>::new();
         let mut values = AHashMap::<usize, usize>::new();
         let mut keys = AHashMap::<usize, usize>::new();
@@ -194,6 +192,7 @@ impl Rules {
             maxzoom: manifest.render.leaf_zoom,
             include: IncludeTagIdxs::All,
         };
+        evals.push(no_rule_match_eval);
 
         for (rule_name, rule) in &manifest.rules {
             let include_idxs = if let Some(include) = &rule.include {
@@ -297,7 +296,7 @@ impl Rules {
         &self.evals[winning_eval_i]
     }
 
-    pub fn evaluate_tag(&self, flatdata: &Osm, tag_i: usize) -> (RuleMatch, usize) {
+    fn evaluate_tag(&self, flatdata: &Osm, tag_i: usize) -> (RuleMatch, usize) {
         if let Some(eval_i) = self.tags.get(&tag_i) {
             return (RuleMatch::Tag, *eval_i);
         }

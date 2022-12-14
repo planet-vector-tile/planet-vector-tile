@@ -11,15 +11,13 @@ use crate::{
 pub struct Filter<'a> {
     flatdata: &'a Osm,
     rules: Rules,
-    leaf_zoom: u8,
 }
 
 impl<'a> Filter<'a> {
-    pub fn new(manifest: &'a Manifest, flatdata: &'a Osm, rules: Rules) -> Filter<'a> {
+    pub fn new(flatdata: &'a Osm, rules: Rules) -> Filter<'a> {
         Filter {
             flatdata,
             rules,
-            leaf_zoom: manifest.render.leaf_zoom,
         }
     }
 

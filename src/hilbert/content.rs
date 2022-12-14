@@ -20,7 +20,7 @@ pub fn render_tile_content(
 ) -> Result<(Mutant<u64>, Mutant<u32>, Mutant<u32>, Rules), Err> {
     let dir = &manifest.data.planet;
     let new_rules = Rules::build(&manifest, flatdata);
-    let filter = Filter::new(manifest, flatdata, new_rules.clone());
+    let filter = Filter::new(flatdata, new_rules.clone());
     let leaf_zoom = manifest.render.leaf_zoom;
     let leaves = m_leaves.slice();
     let tiles = m_tiles.slice();

@@ -153,6 +153,8 @@ mod tests {
         );
 
         let mut rules = Rules::new();
+        let mut keys = BTreeSet::new();
+        keys.insert("highway".to_string());
         rules.insert(
             "rule0".to_string(),
             Rule {
@@ -164,6 +166,7 @@ mod tests {
                     ("key0".to_string(), "value0".to_string()).into(),
                     ("key1".to_string(), "value1".to_string()).into(),
                 ],
+                include: Some(IncludeTags::Keys(keys)),
             },
         );
 
