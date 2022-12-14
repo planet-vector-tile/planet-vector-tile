@@ -73,6 +73,8 @@ test('check scotts valley tile with nodes', async t => {
     const tile = await planet.tile(12, 659, 1593);
     const pvt = new PVT(tile);
 
+    console.log('pvt', pvt);
+
     const len = Object.keys(pvt.layers).length;
     t.is(len, 5);
 

@@ -358,6 +358,7 @@ mod tests {
             let name_i = layer.name();
             let name = strings.get(name_i as usize);
             assert_eq!(tree.rules.layers[i], name);
+            // println!("{}", name);
         }
 
         assert_eq!(layers.len(), 8);

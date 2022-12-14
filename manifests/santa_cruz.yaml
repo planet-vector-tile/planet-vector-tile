@@ -5,7 +5,7 @@ data:
     # include_leaves: [3329139]
 
 render:
-    leaf_zoom: 12
+    leaf_zoom: 14
     layer_order: [Administrative, Water, Major Roads, Minor Roads, Places, Buildings]
 
 report_options:
