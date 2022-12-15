@@ -65,7 +65,19 @@ satSlider.addEventListener('change', e => {
     const opacity = parseFloat(satSlider.value);
     console.log('sat opacity', opacity);
     map.setPaintProperty('sat', 'raster-opacity', opacity);
+    localStorage.setItem('opacity', opacity);
 });
+
+map.on('load', () => {
+    const opacityStr = localStorage.getItem('opacity');
+    if (opacityStr !== null) {
+        const opacity = parseFloat(opacityStr);
+        map.setPaintProperty('sat', 'raster-opacity', opacity);
+        satSlider.value = opacity;
+    }
+    map.setPaintProperty('sat', 'raster-opacity', opacity);
+});
+
 document.getElementById('close-panel').onclick = () =>
     (document.getElementById('features-panel').style.display = 'none');
 
