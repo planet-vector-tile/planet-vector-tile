@@ -186,8 +186,9 @@
             "maxzoom": 23,
             "source": "planet",
             "source-layer": "no_rule",
+            "filter": ["match", ["geometry-type"], ["Point", "MultiPoint"], true, false],
             "paint": {
-                "circle-radius": 2,
+                "circle-radius": 4,
                 "circle-color": "red"
             }
         },
@@ -198,8 +199,9 @@
             "maxzoom": 23,
             "source": "planet",
             "source-layer": "no_rule",
+            "filter": ["==", ["geometry-type"], "LineString"],
             "paint": {
-                "line-color": "red",
+                "line-color": "rgb(255, 135, 116)",
                 "line-width": 1
             }
         },
@@ -213,6 +215,19 @@
             "paint": {
                 "line-color": "#7570b3",
                 "line-width": 2
+            }
+        },
+        {
+            "id": "water_fill",
+            "type": "line",
+            "minzoom": 0,
+            "maxzoom": 23,
+            "source": "planet",
+            "source-layer": "Water",
+            "filter": ["match", ["geometry-type"], ["Polygon", "MultiPolygon"], true, false],
+            "paint": {
+                "line-color": "#80b1d3",
+                "line-width": 3
             }
         },
         {
