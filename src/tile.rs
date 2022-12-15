@@ -258,7 +258,6 @@ impl Tile {
         while !q.is_empty() {
             let t = q.dequeue().unwrap();
             if t.z < top_z {
-                println!("t: {:?}", t);
                 for c in t.grandchildren() {
                     q.queue(c).unwrap();
                 }

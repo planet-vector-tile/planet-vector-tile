@@ -16,7 +16,7 @@
         },
         "planet": {
             "type": "planet",
-            "tiles": ["info", "../manifests/santa_cruz.yaml"],
+            "tiles": ["info", "../manifests/full_planet.yaml"],
             "sprite": "https://storage.googleapis.com/hellopvt3/sprites",
             "minzoom": 0,
             "maxzoom": 14

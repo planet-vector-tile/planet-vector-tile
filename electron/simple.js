@@ -110,3 +110,23 @@ function select(id) {
     map.setFilter('tile_bearing_arrow', ['==', 'z', feature.properties.z]);
     map.setFilter('tile_center_label', ['==', 'z', feature.properties.z]);
 }
+
+let bCount = 0;
+
+document.addEventListener('keypress', event => {
+    console.log('key', event.key);
+    if (event.key === 'b') {
+        switch (bCount % 3) {
+            case 0:
+                console.log('sat');
+                break;
+            case 1:
+                console.log('none');
+                break;
+            case 2:
+                console.log('osm');
+                break;
+        }
+        ++bCount;
+    }
+});

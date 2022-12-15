@@ -66,7 +66,7 @@ impl Rules {
             evals: vec![RuleEval {
                 name: "no_rule".to_string(),
                 layers: vec![0],
-                minzoom: 0,
+                minzoom: manifest.render.leaf_zoom,
                 maxzoom: manifest.render.leaf_zoom,
                 include: IncludeTagIdxs::All,
             }],
