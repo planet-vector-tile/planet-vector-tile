@@ -1,5 +1,6 @@
 const api = require('../index');
-const style = require('../styles/default.json');
+// const style = require('../styles/default.json');
+const style = require('../styles/data.json');
 
 const maplibre = window.maplibregl;
 
@@ -65,6 +66,7 @@ satSlider.addEventListener('change', e => {
     const opacity = parseFloat(satSlider.value);
     console.log('sat opacity', opacity);
     map.setPaintProperty('sat', 'raster-opacity', opacity);
+    map.setPaintProperty('osm', 'raster-opacity', opacity);
     localStorage.setItem('opacity', opacity);
 });
 
@@ -73,6 +75,7 @@ map.on('load', () => {
     if (opacityStr !== null) {
         const opacity = parseFloat(opacityStr);
         map.setPaintProperty('sat', 'raster-opacity', opacity);
+        map.setPaintProperty('osm', 'raster-opacity', opacity);
         satSlider.value = opacity;
     }
     map.setPaintProperty('sat', 'raster-opacity', opacity);
@@ -119,12 +122,18 @@ document.addEventListener('keypress', event => {
         switch (bCount % 3) {
             case 0:
                 console.log('sat');
+                map.setLayoutProperty('sat', 'visibility', 'visible');
+                map.setLayoutProperty('osm', 'visibility', 'none');
                 break;
             case 1:
                 console.log('none');
+                map.setLayoutProperty('sat', 'visibility', 'none');
+                map.setLayoutProperty('osm', 'visibility', 'none');
                 break;
             case 2:
                 console.log('osm');
+                map.setLayoutProperty('sat', 'visibility', 'none');
+                map.setLayoutProperty('osm', 'visibility', 'visible');
                 break;
         }
         ++bCount;
