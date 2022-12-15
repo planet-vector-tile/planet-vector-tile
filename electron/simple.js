@@ -5,9 +5,18 @@ const maplibre = window.maplibregl;
 
 maplibre.setPlanetVectorTilePlugin(api);
 
+let bbox = null;
+try {
+    const bboxStr = localStorage.getItem('bbox');
+    bbox = JSON.parse(bboxStr);
+} catch (e) {
+    console.log('No stored bbox.', e);
+}
+
 const map = (window.map = new window.maplibregl.Map({
     container: 'map',
     style: style,
+    bounds: bbox,
 }));
 
 map.getCanvas().style.cursor = 'crosshair';
@@ -20,6 +29,11 @@ let pvt = (window.pvt = {
 map.on('zoom', () => {
     const zoom = map.getZoom();
     document.getElementById('zoom').innerHTML = zoom;
+});
+
+map.on('moveend', function () {
+    const bbox = JSON.stringify(map.getBounds().toArray());
+    localStorage.setItem('bbox', bbox);
 });
 
 map.on('mouseup', e => {
@@ -51,7 +65,19 @@ satSlider.addEventListener('change', e => {
     const opacity = parseFloat(satSlider.value);
     console.log('sat opacity', opacity);
     map.setPaintProperty('sat', 'raster-opacity', opacity);
+    localStorage.setItem('opacity', opacity);
 });
+
+map.on('load', () => {
+    const opacityStr = localStorage.getItem('opacity');
+    if (opacityStr !== null) {
+        const opacity = parseFloat(opacityStr);
+        map.setPaintProperty('sat', 'raster-opacity', opacity);
+        satSlider.value = opacity;
+    }
+    map.setPaintProperty('sat', 'raster-opacity', opacity);
+});
+
 document.getElementById('close-panel').onclick = () =>
     (document.getElementById('features-panel').style.display = 'none');
 
@@ -84,3 +110,23 @@ function select(id) {
     map.setFilter('tile_bearing_arrow', ['==', 'z', feature.properties.z]);
     map.setFilter('tile_center_label', ['==', 'z', feature.properties.z]);
 }
+
+let bCount = 0;
+
+document.addEventListener('keypress', event => {
+    console.log('key', event.key);
+    if (event.key === 'b') {
+        switch (bCount % 3) {
+            case 0:
+                console.log('sat');
+                break;
+            case 1:
+                console.log('none');
+                break;
+            case 2:
+                console.log('osm');
+                break;
+        }
+        ++bCount;
+    }
+});

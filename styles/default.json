@@ -16,10 +16,10 @@
         },
         "planet": {
             "type": "planet",
-            "tiles": ["info", "../manifests/santa_cruz.yaml"],
+            "tiles": ["info", "../manifests/full_planet.yaml"],
             "sprite": "https://storage.googleapis.com/hellopvt3/sprites",
             "minzoom": 0,
-            "maxzoom": 12
+            "maxzoom": 14
         }
     },
     "layers": [
@@ -28,7 +28,7 @@
             "type": "background",
             "maxzoom": 24,
             "paint": {
-                "background-color": "#6C3102"
+                "background-color": "#FEFFF6"
             }
         },
         {
@@ -73,7 +73,7 @@
             "filter": ["==", "is_render_tile", true],
             "paint": {
                 "line-color": "rgba(255, 255, 255, 0.4)",
-                "line-width": 1
+                "line-width": 2
             }
         },
         {
@@ -186,6 +186,7 @@
             "maxzoom": 23,
             "source": "planet",
             "source-layer": "no_rule",
+            "filter": ["match", ["geometry-type"], ["Point", "MultiPoint"], true, false],
             "paint": {
                 "circle-radius": 4,
                 "circle-color": "red"
@@ -198,9 +199,10 @@
             "maxzoom": 23,
             "source": "planet",
             "source-layer": "no_rule",
+            "filter": ["==", ["geometry-type"], "LineString"],
             "paint": {
-                "line-color": "red",
-                "line-width": 3
+                "line-color": "rgb(255, 135, 116)",
+                "line-width": 1
             }
         },
         {
@@ -216,6 +218,19 @@
             }
         },
         {
+            "id": "water_fill",
+            "type": "line",
+            "minzoom": 0,
+            "maxzoom": 23,
+            "source": "planet",
+            "source-layer": "Water",
+            "filter": ["match", ["geometry-type"], ["Polygon", "MultiPolygon"], true, false],
+            "paint": {
+                "line-color": "#80b1d3",
+                "line-width": 3
+            }
+        },
+        {
             "id": "water_line",
             "type": "line",
             "minzoom": 0,
@@ -227,30 +242,572 @@
                 "line-width": 3
             }
         },
+
         {
-            "id": "major_roads",
+            "id": "service_road-case",
             "type": "line",
-            "minzoom": 0,
-            "maxzoom": 23,
-            "source": "planet",
-            "source-layer": "Major Roads",
-            "paint": {
-                "line-color": "#d95f02",
-                "line-width": 3
-            }
-        },
-        {
-            "id": "minor_roads",
-            "type": "line",
-            "minzoom": 0,
-            "maxzoom": 23,
             "source": "planet",
             "source-layer": "Minor Roads",
+            "minzoom": 14,
+            "filter": ["all", ["==", "highway", "service"]],
+            "layout": {
+                "line-cap": {
+                    "stops": [
+                        [9, "butt"],
+                        [10, "round"]
+                    ]
+                },
+                "line-join": "round",
+                "visibility": "visible"
+            },
             "paint": {
-                "line-color": "#e6ab02",
-                "line-width": 2
+                "line-color": "rgba(192, 192, 192, 1)",
+                "line-width": {
+                    "stops": [
+                        [11, 0.5],
+                        [12, 3],
+                        [13.99, 3],
+                        [14, 3],
+                        [15, 5],
+                        [16, 6],
+                        [18, 11]
+                    ]
+                },
+                "line-opacity": {
+                    "stops": [
+                        [14, 0],
+                        [14.2, 1]
+                    ]
+                }
             }
         },
+        {
+            "id": "track_road-case",
+            "type": "line",
+            "source": "planet",
+            "source-layer": "Minor Roads",
+            "minzoom": 0,
+            "maxzoom": 24,
+            "filter": ["all", ["==", "type", "track"]],
+            "layout": {
+                "line-cap": "butt",
+                "line-join": "round",
+                "visibility": "visible"
+            },
+            "paint": {
+                "line-color": {
+                    "stops": [
+                        [11, "rgba(182, 182, 182, 1)"],
+                        [12, "rgba(116, 116, 116, 1)"],
+                        [13, "rgba(127, 127, 127, 1)"],
+                        [14, "rgba(135, 135, 135, 1)"],
+                        [16, "rgba(160, 160, 160, 1)"],
+                        [17, "rgba(195, 195, 195, 1)"]
+                    ]
+                },
+                "line-width": {
+                    "stops": [
+                        [11, 1],
+                        [12, 1.3],
+                        [13, 1.5],
+                        [14, 1.5],
+                        [15, 2],
+                        [16, 2],
+                        [17, 3],
+                        [18, 3.8]
+                    ]
+                },
+                "line-gap-width": {
+                    "stops": [
+                        [11, 0.5],
+                        [13, 1],
+                        [15.5, 2],
+                        [16, 3],
+                        [17, 6],
+                        [18, 7]
+                    ]
+                },
+                "line-dasharray": {
+                    "stops": [
+                        [10, [3, 1.8]],
+                        [13, [3, 1.8]],
+                        [14, [4, 2]]
+                    ]
+                },
+                "line-opacity": 1
+            }
+        },
+        {
+            "id": "major_road-case-highzoom",
+            "type": "line",
+            "source": "planet",
+            "source-layer": "Major Roads",
+            "minzoom": 13,
+            "maxzoom": 24,
+            "layout": {
+                "line-cap": "round",
+                "line-join": "round",
+                "visibility": "visible"
+            },
+            "paint": {
+                "line-color": {
+                    "stops": [
+                        [10, "rgba(199, 199, 199, 1)"],
+                        [11, "rgba(182, 182, 182, 1)"],
+                        [12, "rgba(151, 151, 151, 1)"]
+                    ]
+                },
+                "line-width": {
+                    "stops": [
+                        [10, 3],
+                        [11, 3.5],
+                        [12, 5.5],
+                        [13, 6],
+                        [14, 7],
+                        [15, 8],
+                        [16, 13],
+                        [17, 17],
+                        [18, 26]
+                    ]
+                },
+                "line-opacity": {
+                    "stops": [
+                        [9.7, 0],
+                        [10, 1]
+                    ]
+                },
+                "line-blur": 0
+            }
+        },
+        {
+            "id": "service_road",
+            "type": "line",
+            "source": "planet",
+            "source-layer": "Minor Roads",
+            "minzoom": 0,
+            "filter": ["all", ["==", "kind", "service_road"]],
+            "layout": {
+                "line-cap": {
+                    "stops": [
+                        [9, "butt"],
+                        [10, "round"]
+                    ]
+                },
+                "line-join": "round",
+                "visibility": "visible"
+            },
+            "paint": {
+                "line-color": "rgba(255, 255, 255, 1)",
+                "line-width": {
+                    "stops": [
+                        [14, 1],
+                        [15, 3],
+                        [16, 4],
+                        [18, 9]
+                    ]
+                },
+                "line-opacity": 1
+            }
+        },
+        {
+            "id": "road-highway-case-highzoom",
+            "type": "line",
+            "source": "planet",
+            "source-layer": "Major Roads",
+            "minzoom": 12,
+            "maxzoom": 24,
+            "layout": {
+                "line-cap": "butt",
+                "line-join": "round",
+                "visibility": "visible"
+            },
+            "paint": {
+                "line-color": {
+                    "stops": [
+                        [10, "rgba(199, 199, 199, 1)"],
+                        [11, "rgba(182, 182, 182, 1)"],
+                        [12, "rgba(151, 151, 151, 1)"]
+                    ]
+                },
+                "line-width": {
+                    "stops": [
+                        [10, 3.5],
+                        [11, 5.5],
+                        [12, 6.5],
+                        [13, 8],
+                        [14, 9],
+                        [16, 14],
+                        [17, 22],
+                        [18, 30]
+                    ]
+                },
+                "line-opacity": {
+                    "stops": [
+                        [9.7, 0],
+                        [10, 1]
+                    ]
+                }
+            }
+        },
+        {
+            "id": "major_road-case-lowzoom",
+            "type": "line",
+            "source": "planet",
+            "source-layer": "Major Roads",
+            "minzoom": 9,
+            "maxzoom": 14,
+            "layout": {
+                "line-cap": {
+                    "stops": [
+                        [6, "butt"],
+                        [10, "round"]
+                    ]
+                },
+                "line-join": "round",
+                "visibility": "visible"
+            },
+            "paint": {
+                "line-color": {
+                    "stops": [
+                        [10, "rgba(199, 199, 199, 1)"],
+                        [11, "rgba(182, 182, 182, 1)"],
+                        [12, "rgba(151, 151, 151, 1)"]
+                    ]
+                },
+                "line-width": {
+                    "stops": [
+                        [10, 3.5],
+                        [11, 4.5],
+                        [12, 5.5],
+                        [13, 6],
+                        [14, 7],
+                        [15, 10.5],
+                        [16, 13],
+                        [17, 17],
+                        [18, 26]
+                    ]
+                },
+                "line-opacity": {
+                    "stops": [
+                        [9.7, 0],
+                        [10, 1]
+                    ]
+                },
+                "line-blur": 0
+            }
+        },
+        {
+            "id": "major_road",
+            "type": "line",
+            "source": "planet",
+            "source-layer": "Major Roads",
+            "minzoom": 0,
+            "maxzoom": 24,
+            "layout": {
+                "line-cap": {
+                    "stops": [
+                        [6, "butt"],
+                        [7, "round"]
+                    ]
+                },
+                "line-join": {
+                    "stops": [
+                        [6, "bevel"],
+                        [7, "round"]
+                    ]
+                }
+            },
+            "paint": {
+                "line-color": {
+                    "stops": [
+                        [9.99, "rgba(255, 255, 255, 1)"],
+                        [10, "rgba(255, 255, 255, 1)"]
+                    ]
+                },
+                "line-width": {
+                    "stops": [
+                        [6.9, 1],
+                        [7, 1],
+                        [8, 1.5],
+                        [9, 1.5],
+                        [10, 2.5],
+                        [11, 3],
+                        [12, 3.5],
+                        [13, 4],
+                        [14, 4.5],
+                        [15, 5],
+                        [16, 12],
+                        [17, 16],
+                        [18, 24]
+                    ]
+                },
+                "line-opacity": 1
+            }
+        },
+        {
+            "id": "road-label-major-road",
+            "type": "symbol",
+            "source": "planet",
+            "source-layer": "Major Roads",
+            "minzoom": 10,
+            "maxzoom": 24,
+            "layout": {
+                "text-field": "{name}",
+                "symbol-placement": "line",
+                "text-padding": 5,
+                "text-max-width": 10,
+                "text-size": {
+                    "stops": [
+                        [10, 10],
+                        [11, 11],
+                        [14, 13],
+                        [15, 13]
+                    ]
+                },
+                "text-font": {
+                    "stops": [
+                        [14, ["Open_Sans-Italic"]],
+                        [15, ["Open_Sans-SemiBoldItalic"]]
+                    ]
+                },
+                "symbol-spacing": {
+                    "stops": [
+                        [11, 150],
+                        [13, 200],
+                        [14, 350],
+                        [18, 600]
+                    ]
+                },
+                "text-max-angle": 45
+            },
+            "paint": {
+                "text-color": {
+                    "stops": [
+                        [11, "rgba(129, 129, 129, 1)"],
+                        [12, "rgba(110, 110, 110, 1)"],
+                        [14.99, "rgba(89, 90, 89, 1)"],
+                        [15, "rgba(119, 119, 119, 1)"]
+                    ]
+                },
+                "text-halo-width": 1.5,
+                "text-halo-color": {
+                    "stops": [
+                        [11, "rgba(240, 236, 226, 0.7)"],
+                        [12, "rgba(242, 240, 236, 0.7)"],
+                        [16, "rgba(255, 254, 252, 1)"]
+                    ]
+                }
+            }
+        },
+
+        {
+            "id": "minor_road-case-highzoom",
+            "type": "line",
+            "source": "planet",
+            "source-layer": "Minor Roads",
+            "minzoom": 12.5,
+            "layout": {
+                "line-cap": "round",
+                "line-join": "round",
+                "visibility": "visible"
+            },
+            "paint": {
+                "line-color": {
+                    "stops": [
+                        [10, "rgba(211, 211, 211, 1)"],
+                        [11, "rgba(211, 211, 211, 1)"],
+                        [12, "rgba(161, 161, 161, 1)"],
+                        [13, "rgba(161, 161, 161, 1)"],
+                        [15, "rgba(155, 155, 155, 1)"],
+                        [17, "rgba(205, 205, 205, 1)"]
+                    ]
+                },
+                "line-width": {
+                    "stops": [
+                        [10, 2.5],
+                        [11, 2.5],
+                        [12, 3],
+                        [13, 5.5],
+                        [14, 5.5],
+                        [15, 6.5],
+                        [16, 8],
+                        [17, 12],
+                        [18, 20]
+                    ]
+                },
+                "line-opacity": {
+                    "stops": [
+                        [9.7, 0],
+                        [10, 1]
+                    ]
+                }
+            }
+        },
+        {
+            "id": "minor_road-case-lowzoom",
+            "type": "line",
+            "source": "planet",
+            "source-layer": "Minor Roads",
+            "minzoom": 11,
+            "maxzoom": 12.5,
+            "layout": {
+                "line-cap": "round",
+                "line-join": "round",
+                "visibility": "visible"
+            },
+            "paint": {
+                "line-color": {
+                    "stops": [
+                        [10, "rgba(211, 211, 211, 1)"],
+                        [11, "rgba(190, 190, 190, 1)"],
+                        [12, "rgba(161, 161, 161, 1)"],
+                        [13, "rgba(161, 161, 161, 1)"],
+                        [15, "rgba(155, 155, 155, 1)"],
+                        [17, "rgba(205, 205, 205, 1)"]
+                    ]
+                },
+                "line-width": {
+                    "stops": [
+                        [10, 2.5],
+                        [11, 3.2],
+                        [12, 4.2],
+                        [13, 5.5],
+                        [14, 5.5],
+                        [15, 6.5],
+                        [16, 10],
+                        [17, 14],
+                        [18, 22]
+                    ]
+                },
+                "line-opacity": {
+                    "stops": [
+                        [9.7, 0],
+                        [10, 1]
+                    ]
+                }
+            }
+        },
+        {
+            "id": "minor_road",
+            "type": "line",
+            "source": "planet",
+            "source-layer": "Minor Roads",
+            "minzoom": 11,
+            "layout": {
+                "line-cap": "round",
+                "line-join": "round",
+                "visibility": "visible"
+            },
+            "paint": {
+                "line-color": "rgba(255, 255, 255, 1)",
+                "line-width": {
+                    "stops": [
+                        [10, 1.5],
+                        [11, 2],
+                        [12, 2],
+                        [13, 3.5],
+                        [14, 3.5],
+                        [15, 4.5],
+                        [16, 6],
+                        [17, 10],
+                        [18, 18]
+                    ]
+                },
+                "line-opacity": {
+                    "stops": [
+                        [7.99, 0],
+                        [8, 0.7],
+                        [9, 1]
+                    ]
+                }
+            }
+        },
+        {
+            "id": "roads-one-way",
+            "type": "symbol",
+            "source": "planet",
+            "source-layer": "Minor Roads",
+            "minzoom": 15,
+            "maxzoom": 24,
+            "filter": ["all", ["==", "oneway", true]],
+            "layout": {
+                "icon-image": "dark-trail-direction",
+                "icon-size": {
+                    "stops": [
+                        [15, 0.7],
+                        [18, 0.9]
+                    ]
+                },
+                "icon-allow-overlap": false,
+                "symbol-placement": "line",
+                "symbol-spacing": 100,
+                "icon-keep-upright": false,
+                "icon-ignore-placement": false
+            },
+            "paint": { "icon-opacity": 0.3 }
+        },
+        {
+            "id": "road-label-minor-road",
+            "type": "symbol",
+            "source": "planet",
+            "source-layer": "Minor Roads",
+            "minzoom": 12,
+            "maxzoom": 24,
+            "layout": {
+                "text-field": "{name}",
+                "symbol-placement": "line",
+                "text-padding": 5,
+                "text-max-width": 130,
+                "text-size": {
+                    "stops": [
+                        [12, 10],
+                        [13, 11],
+                        [14, 12]
+                    ]
+                },
+                "text-offset": [0, 0],
+                "text-font": {
+                    "stops": [
+                        [14, ["Open_Sans-Italic"]],
+                        [15, ["Open_Sans-SemiBoldItalic"]]
+                    ]
+                },
+                "symbol-spacing": {
+                    "stops": [
+                        [11, 100],
+                        [13, 150],
+                        [14, 350],
+                        [18, 600]
+                    ]
+                }
+            },
+            "paint": {
+                "text-color": {
+                    "stops": [
+                        [12, "rgba(116, 116, 116, 1)"],
+                        [13, "rgba(102, 102, 102, 1)"],
+                        [14.99, "rgba(96, 96, 96, 1)"],
+                        [15, "rgba(131, 131, 131, 1)"]
+                    ]
+                },
+                "text-halo-width": {
+                    "stops": [
+                        [13, 1.5],
+                        [14, 1.5],
+                        [15.5, 1.5],
+                        [16, 1]
+                    ]
+                },
+                "text-halo-color": {
+                    "stops": [
+                        [11, "rgba(240, 236, 226, 0.5)"],
+                        [12, "rgba(242, 240, 236, 0.7)"],
+                        [16, "rgba(255, 255, 255, 1)"]
+                    ]
+                }
+            }
+        },
+
         {
             "id": "places_circle",
             "type": "circle",
@@ -275,15 +832,67 @@
                 "line-width": 2
             }
         },
+
         {
-            "id": "buildings_fill",
+            "id": "building-lowzoom",
             "type": "fill",
-            "minzoom": 0,
-            "maxzoom": 23,
             "source": "planet",
             "source-layer": "Buildings",
+            "minzoom": 12,
+            "maxzoom": 14,
             "paint": {
-                "fill-color": "#ffffb3"
+                "fill-color": "rgba(222, 219, 205, 1)",
+                "fill-antialias": true,
+                "fill-opacity": {
+                    "stops": [
+                        [12.5, 0],
+                        [13, 1]
+                    ]
+                }
+            }
+        },
+        {
+            "id": "building-stroke-lowzoom",
+            "type": "line",
+            "source": "planet",
+            "source-layer": "Buildings",
+            "minzoom": 12,
+            "maxzoom": 14,
+            "paint": {
+                "line-color": "rgba(208, 200, 196, 1)",
+                "line-opacity": {
+                    "stops": [
+                        [12.5, 0],
+                        [13, 1]
+                    ]
+                },
+                "line-width": 0.5
+            }
+        },
+        {
+            "id": "building",
+            "type": "fill",
+            "source": "planet",
+            "source-layer": "Buildings",
+            "minzoom": 14,
+            "maxzoom": 24,
+            "paint": {
+                "fill-color": "rgba(222, 219, 205, 1)",
+                "fill-antialias": true,
+                "fill-opacity": 1
+            }
+        },
+        {
+            "id": "building-stroke",
+            "type": "line",
+            "source": "planet",
+            "source-layer": "Buildings",
+            "minzoom": 14,
+            "maxzoom": 24,
+            "paint": {
+                "line-color": "rgba(203, 197, 194, 1)",
+                "line-opacity": 1,
+                "line-width": 0.5
             }
         }
     ]

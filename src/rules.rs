@@ -66,7 +66,7 @@ impl Rules {
             evals: vec![RuleEval {
                 name: "no_rule".to_string(),
                 layers: vec![0],
-                minzoom: 0,
+                minzoom: manifest.render.leaf_zoom,
                 maxzoom: manifest.render.leaf_zoom,
                 include: IncludeTagIdxs::All,
             }],
@@ -146,10 +146,6 @@ impl Rules {
         if kvs.len() > 0 {
             println!("NOTICE: Not all tag kv rules were matched to an existing tag. Unmatched tags:\n{:?}", kvs.iter().map(|tpl| *tpl).collect_vec());
         }
-        println!(
-            "Built pointers to strings from rules and include_tags in: {}",
-            format_duration(t.elapsed())
-        );
 
         let mut layers: Vec<String> = Vec::with_capacity(manifest.render.layer_order.len() + 1);
         let mut layer_name_to_layer: AHashMap<&str, usize> = AHashMap::new();
@@ -188,7 +184,7 @@ impl Rules {
         let no_rule_match_eval = RuleEval {
             name: "no_rule".to_string(),
             layers: vec![0],
-            minzoom: 0,
+            minzoom: manifest.render.leaf_zoom,
             maxzoom: manifest.render.leaf_zoom,
             include: IncludeTagIdxs::All,
         };
