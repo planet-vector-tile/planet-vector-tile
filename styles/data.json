@@ -1,0 +1,334 @@
+{
+    "version": 8,
+    "name": "Default",
+    "center": [0, 0],
+    "zoom": 0,
+    "bearing": 0,
+    "pitch": 0,
+    "glyphs": "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
+    "sprite": "https://storage.googleapis.com/hellopvt3/sprites",
+    "sources": {
+        "sat": {
+            "type": "raster",
+            "tiles": ["https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"],
+            "minzoom": 0,
+            "maxzoom": 23
+        },
+        "osm": {
+            "type": "raster",
+            "tiles": ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
+            "minzoom": 0,
+            "maxzoom": 23
+        },
+        "planet": {
+            "type": "planet",
+            "tiles": ["info", "../manifests/full_planet.yaml"],
+            "sprite": "https://storage.googleapis.com/hellopvt3/sprites",
+            "minzoom": 0,
+            "maxzoom": 14
+        }
+    },
+    "layers": [
+        {
+            "id": "background",
+            "type": "background",
+            "maxzoom": 24,
+            "paint": {
+                "background-color": "black"
+            }
+        },
+        {
+            "id": "sat",
+            "type": "raster",
+            "source": "sat",
+            "paint": {
+                "raster-opacity": 1
+            }
+        },
+        {
+            "id": "osm",
+            "type": "raster",
+            "source": "osm",
+            "paint": {
+                "raster-opacity": 1
+            },
+            "layout": {
+                "visibility": "none"
+            }
+        },
+        {
+            "id": "tile_boundary_fill",
+            "type": "fill",
+            "minzoom": 0,
+            "maxzoom": 23,
+            "source": "planet",
+            "source-layer": "tile_boundary",
+            "paint": {
+                "fill-color": "rgba(255, 105, 180, 0.001)"
+            }
+        },
+        {
+            "id": "tile_boundary",
+            "type": "line",
+            "minzoom": 0,
+            "maxzoom": 23,
+            "source": "planet",
+            "source-layer": "tile_boundary",
+            "paint": {
+                "line-color": "rgba(255, 255, 255, 0.1)",
+                "line-width": 1
+            },
+            "filter": ["==", "highest_zoom", true]
+        },
+        {
+            "id": "render_tile_boundary",
+            "type": "line",
+            "minzoom": 0,
+            "maxzoom": 23,
+            "source": "planet",
+            "source-layer": "tile_boundary",
+            "filter": ["==", "is_render_tile", true],
+            "paint": {
+                "line-color": "rgba(255, 255, 255, 0.4)",
+                "line-width": 2
+            }
+        },
+        {
+            "id": "selected_tile_boundary",
+            "type": "line",
+            "minzoom": 0,
+            "maxzoom": 23,
+            "source": "planet",
+            "source-layer": "tile_boundary",
+            "paint": {
+                "line-color": "#FFC000",
+                "line-width": 3,
+                "line-opacity": ["case", ["boolean", ["feature-state", "selected"], false], 1, 0]
+            }
+        },
+        {
+            "id": "tile_bearing",
+            "type": "line",
+            "minzoom": 0,
+            "maxzoom": 23,
+            "source": "planet",
+            "source-layer": "tile_bearing",
+            "filter": ["==", "z", -1],
+            "paint": {
+                "line-color": "#ff69b4",
+                "line-width": 3
+            }
+        },
+        {
+            "id": "tile_bearing_arrow",
+            "type": "symbol",
+            "source": "planet",
+            "minzoom": 0,
+            "maxzoom": 23,
+            "source-layer": "tile_bearing",
+            "filter": ["==", "z", -1],
+            "layout": {
+                "icon-image": "dark-trail-direction",
+                "symbol-placement": "line"
+            }
+        },
+        {
+            "id": "render_tile_bearing",
+            "type": "line",
+            "minzoom": 0,
+            "maxzoom": 23,
+            "source": "planet",
+            "source-layer": "tile_bearing",
+            "filter": ["==", "is_render_tile", true],
+            "layout": { "visibility": "none" },
+            "paint": {
+                "line-color": "rgba(255, 105, 180, 0.5)",
+                "line-width": 2
+            }
+        },
+        {
+            "id": "render_tile_bearing_arrow",
+            "type": "symbol",
+            "source": "planet",
+            "minzoom": 0,
+            "maxzoom": 23,
+            "source-layer": "tile_bearing",
+            "filter": ["==", "is_render_tile", true],
+            "layout": {
+                "icon-image": "dark-trail-direction",
+                "symbol-placement": "line",
+                "visibility": "none"
+            }
+        },
+        {
+            "id": "tile_center_label",
+            "type": "symbol",
+            "minzoom": 0,
+            "maxzoom": 23,
+            "source": "planet",
+            "source-layer": "tile_center",
+            "filter": ["==", "z", -1],
+            "layout": {
+                "text-font": ["Open Sans Semibold"],
+                "text-field": "{h}",
+                "text-size": 14
+            },
+            "paint": {
+                "text-color": "white"
+            }
+        },
+        {
+            "id": "render_tile_center_label",
+            "type": "symbol",
+            "minzoom": 0,
+            "maxzoom": 23,
+            "source": "planet",
+            "source-layer": "tile_center",
+            "filter": ["==", "is_render_tile", true],
+            "layout": {
+                "text-font": ["Open Sans Semibold"],
+                "text-field": "{tile}",
+                "text-size": 32,
+                "visibility": "none"
+            },
+            "paint": {
+                "text-color": "rgba(255, 255, 255, 0.3)"
+            }
+        },
+
+        
+        {
+            "id": "no_rule_line",
+            "type": "line",
+            "minzoom": 0,
+            "maxzoom": 23,
+            "source": "planet",
+            "source-layer": "no_rule",
+            "paint": {
+                "line-color": "red",
+                "line-width": 1
+            }
+        },
+        {
+            "id": "no_rule_circle",
+            "type": "circle",
+            "minzoom": 0,
+            "maxzoom": 23,
+            "source": "planet",
+            "source-layer": "nodes",
+            "paint": {
+                "circle-radius": 4,
+                "circle-color": "red"
+            }
+        },
+
+        {
+            "id": "Administrative",
+            "type": "line",
+            "minzoom": 0,
+            "maxzoom": 23,
+            "source": "planet",
+            "source-layer": "Administrative",
+            "paint": {
+                "line-color": "#F2E291",
+                "line-width": 1
+            }
+        },
+        {
+            "id": "Water",
+            "type": "line",
+            "minzoom": 0,
+            "maxzoom": 23,
+            "source": "planet",
+            "source-layer": "Water",
+            "paint": {
+                "line-color": "#6FA8BF",
+                "line-width": 1
+            }
+        },
+        {
+            "id": "Landuse",
+            "type": "line",
+            "minzoom": 0,
+            "maxzoom": 23,
+            "source": "planet",
+            "source-layer": "Landuse",
+            "paint": {
+                "line-color": "#4C797B",
+                "line-width": 1
+            }
+        },
+        {
+            "id": "major_roads",
+            "type": "line",
+            "minzoom": 0,
+            "maxzoom": 23,
+            "source": "planet",
+            "source-layer": "Major Roads",
+            "paint": {
+                "line-color": "#CB544B",
+                "line-width": 1
+            }
+        },
+        {
+            "id": "minor_roads",
+            "type": "line",
+            "minzoom": 0,
+            "maxzoom": 23,
+            "source": "planet",
+            "source-layer": "Minor Roads",
+            "paint": {
+                "line-color": "#9DBCAC",
+                "line-width": 1
+            }
+        },
+        {
+            "id": "Places",
+            "type": "line",
+            "minzoom": 0,
+            "maxzoom": 23,
+            "source": "planet",
+            "source-layer": "Places",
+            "paint": {
+                "line-color": "#F2E291",
+                "line-width": 1
+            }
+        },
+        {
+            "id": "Buildings",
+            "type": "line",
+            "minzoom": 0,
+            "maxzoom": 23,
+            "source": "planet",
+            "source-layer": "Buildings",
+            "paint": {
+                "line-color": "#FFEC5C",
+                "line-width": 1
+            }
+        },
+        {
+            "id": "buildings_fill",
+            "type": "fill",
+            "minzoom": 0,
+            "maxzoom": 23,
+            "source": "planet",
+            "source-layer": "Buildings",
+            "paint": {
+                "fill-color": "#FFEC5C"
+            }
+        },
+        {
+            "id": "places_circle",
+            "type": "circle",
+            "minzoom": 0,
+            "maxzoom": 23,
+            "source": "planet",
+            "source-layer": "Places",
+            "paint": {
+                "circle-radius": 4,
+                "circle-color": "#F28705"
+            }
+        }
+        
+    ]
+}
