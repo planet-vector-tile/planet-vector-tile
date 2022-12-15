@@ -73,7 +73,7 @@
             "filter": ["==", "is_render_tile", true],
             "paint": {
                 "line-color": "rgba(255, 255, 255, 0.4)",
-                "line-width": 1
+                "line-width": 2
             }
         },
         {
