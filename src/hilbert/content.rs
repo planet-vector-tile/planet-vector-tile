@@ -1,4 +1,7 @@
+use std::time::Duration;
+
 use humantime::format_duration;
+use pbr::ProgressBar;
 use rayon::prelude::{IntoParallelIterator, IntoParallelRefIterator, ParallelIterator};
 
 use super::{hilbert_tile::HilbertTile, leaf::Leaf};
@@ -43,9 +46,13 @@ pub fn render_tile_content(
     let mut total_children = leaves.len() as u32;
     let mut children = 0;
 
-    let t = util::timer("Rendering tile content...");
+    let tiles_len = tiles.len();
 
-    for i in 0..tiles.len() {
+    let t = util::timer("Rendering tile content...");
+    let mut pb = ProgressBar::new(tiles_len as u64);
+    pb.set_max_refresh_rate(Some(Duration::from_millis(300)));
+
+    for i in 0..tiles_len {
         let tile = &tiles[i];
 
         children += count_children(tile.mask);
@@ -169,6 +176,10 @@ pub fn render_tile_content(
         // );
 
         level_tile_count += 1;
+
+        pb.message(&format!("Zoom {}  ", z));
+        pb.inc();
+
         // If we are done with the level, decrement z to the next zoom.
         if children >= total_children && z > 0 {
             total_children = level_tile_count;
