@@ -1,5 +1,6 @@
 {
     "name": "@planet-vector-tile/desktop",
+    "productName": "PlanetVectorTile",
     "version": "0.1.0",
     "main": "src/main.js",
     "description": "The desktop ElectronJS app for PlanetVectorTile.",
@@ -8,7 +9,7 @@
     "scripts": {
         "start": "npm run build && npm run electron:start",
         "dev": "concurrently -k \"vite\" \"npm run electron:dev\"",
-        "build": "vite build",
+        "build": "vite build && electron-forge make",
         "preview": "vite preview",
         "electron:start": "electron-forge start",
         "electron:dev": "cross-env IS_DEV=true electron-forge start",
