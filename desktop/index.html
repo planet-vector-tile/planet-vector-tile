@@ -1,13 +1,33 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
+    <title>PlanetVectorTile</title>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite + React</title>
+    <link rel="stylesheet" href="root/maplibre-gl-js/dist/maplibre-gl.css" />
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        width: 100%;
+      }
+      #map {
+        height: 100%;
+        width: 100%;
+      }
+    </style>
   </head>
   <body>
+    <div id="map"></div>
     <div id="root"></div>
+    <!-- We have to pull in these scripts directly in the HTML, -->
+    <!-- because vite doesn't understand what to do with the NodeJS requires. -->
+    <script src="root/maplibre-gl-js/dist/maplibre-gl-dev.js"></script>
+    <script src="src/map.js"></script>
+    <!-- This is the entry point for the vite / app part of the code. -->
     <script type="module" src="/src/index.jsx"></script>
   </body>
 </html>

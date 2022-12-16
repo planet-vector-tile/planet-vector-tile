@@ -9,22 +9,24 @@ if (require('electron-squirrel-startup')) {
 const isDev = process.env.IS_DEV === 'true';
 
 function createWindow() {
-    // Create the browser window.
-    const mainWindow = new BrowserWindow({
-        width: 800,
-        height: 600,
+    const win = new BrowserWindow({
+        width: 1100,
+        height: 800,
         webPreferences: {
             nodeIntegration: true,
+            nodeIntegrationInWorker: true,
+            contextIsolation: false,
         },
+        titleBarStyle: 'hidden',
     });
 
     // Open the DevTools.
     if (isDev) {
-        mainWindow.loadURL('http://localhost:5173');
-        // mainWindow.webContents.openDevTools();
+        win.loadURL('http://localhost:5173');
+        // win.webContents.openDevTools();
     } else {
-        // mainWindow.removeMenu();
-        mainWindow.loadFile(path.join(__dirname, '../dist', 'index.html'));
+        // win.removeMenu();
+        win.loadFile(path.join(__dirname, '../dist', 'index.html'));
     }
 }
 
