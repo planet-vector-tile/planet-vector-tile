@@ -207,7 +207,7 @@ const directory = {
 
 export default function Features() {
     return (
-        <nav className='absolute right-0 top-10 bottom-0 overflow-y-auto' aria-label='Directory'>
+        <nav className='fixed right-0 top-10 bottom-0 overflow-y-auto z-10' aria-label='Directory'>
             {/* <span className="fixed top-10 right-0 z-50">hello</span> */}
             <div className='fixed top-11 right-3 z-50'>
                 <button
