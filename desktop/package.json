@@ -34,6 +34,7 @@
         "concurrently": "^7.6.0",
         "cross-env": "^7.0.3",
         "electron": "20.3.2",
+        "glob": "^8.0.3",
         "postcss": "^8.4.20",
         "tailwindcss": "^3.2.4",
         "vite": "^4.0.0"

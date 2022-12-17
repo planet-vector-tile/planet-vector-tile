@@ -1,4 +1,3 @@
-
 ### Clues I took to get ElectronJS + Vite + React + TailwindCSS working together:
 
 https://www.electronforge.io/cli#Init
