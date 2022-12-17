@@ -17,11 +17,16 @@ try {
     console.log('No stored bbox.', e);
 }
 
-window.addEventListener('DOMContentLoaded', () => {
-    const map = new window.maplibregl.Map({
+function initMap() {
+    window.map = new maplibre.Map({
         container: 'map',
         style: style,
         bounds: bbox,
     });
-    window.map = map;
-});
+}
+
+if (document.readyState !== 'loading') {
+    initMap();
+} else {
+    window.addEventListener('DOMContentLoaded', () => initMap());
+}
