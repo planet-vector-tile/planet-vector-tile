@@ -7,7 +7,6 @@ if (require('electron-squirrel-startup')) {
 }
 
 const isDev = process.env.IS_DEV === 'true';
-
 if (!isDev) {
     process.env.PVT_PLUGIN_PATH = path.join(__dirname, '../deps/index');
 }

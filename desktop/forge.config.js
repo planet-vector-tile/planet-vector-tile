@@ -28,7 +28,7 @@ module.exports = {
         // with our project structure.
         generateAssets: async (forgeConfig, platform, arch) => {
             try {
-                fs.rmdirSync('deps', { recursive: true });
+                fs.rmSync('deps', { recursive: true });
             } catch (e) {
                 console.log('deps does not exist');
             }
