@@ -19,7 +19,11 @@
     "format": "prettier --write \"{src,styles}/**/*.{js,jsx,ts,tsx,css,scss,md}\" styles/*.json package.json"
   },
   "dependencies": {
+    "@headlessui/react": "^1.7.7",
+    "@heroicons/react": "^2.0.13",
     "electron-squirrel-startup": "^1.0.0",
+    "install": "^0.13.0",
+    "npm": "^9.2.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },

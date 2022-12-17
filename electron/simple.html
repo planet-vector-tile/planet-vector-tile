@@ -1,24 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <title>Planet Vector Tile</title>
-        <meta charset="utf-8" />
-        <link rel="stylesheet" href="../../maplibre-gl-js/dist/maplibre-gl.css" />
-        <link rel="stylesheet" href="simple.css" />
-    </head>
-    <body>
-        <div id="map"></div>
-        <input id="sat-slider" type="range" name="satellite" min="0" max="1" step="0.01" value="1" orient="vertical" />
+  <head>
+    <title>Planet Vector Tile</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../../maplibre-gl-js/dist/maplibre-gl.css" />
+    <link rel="stylesheet" href="simple.css" />
+  </head>
+  <body>
+    <div id="map"></div>
+    <input id="sat-slider" type="range" name="satellite" min="0" max="1" step="0.01" value="1" orient="vertical" />
 
-        <div id="bottom-info">Zoom: <span id="zoom"></span></div>
+    <div id="bottom-info">Zoom: <span id="zoom"></span></div>
 
-        <aside id="features-panel">
-            <button id="close-panel">✕</button>
-            <h3>Features</h3>
-            <div id="features"></div>
-        </aside>
-        <div class="app-drag"></div>
-        <script src="../maplibre-gl-js/dist/maplibre-gl-dev.js"></script>
-        <script src="simple.js"></script>
-    </body>
+    <aside id="features-panel">
+      <button id="close-panel">✕</button>
+      <h3>Features</h3>
+      <div id="features"></div>
+    </aside>
+    <div class="app-drag"></div>
+    <script src="../maplibre-gl-js/dist/maplibre-gl-dev.js"></script>
+    <script src="simple.js"></script>
+  </body>
 </html>
