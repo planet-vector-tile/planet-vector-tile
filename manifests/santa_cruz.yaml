@@ -1,125 +1,125 @@
 data:
-    source: ../tests/fixtures/santa_cruz.osm.pbf
-    planet: ../planets/santa_cruz
-    archive: ../archives/santa_cruz.pvt
-    # include_leaves: [3329139]
+  source: ../tests/fixtures/santa_cruz.osm.pbf
+  planet: ../planets/santa_cruz
+  archive: ../archives/santa_cruz.pvt
+  # include_leaves: [3329139]
 
 render:
-    leaf_zoom: 14
-    layer_order: [Administrative, Water, Major Roads, Minor Roads, Places, Buildings]
+  leaf_zoom: 14
+  layer_order: [Administrative, Water, Major Roads, Minor Roads, Places, Buildings]
 
 report_options:
-    - write_fb_tiles
-    - lookup_strings_and_values
-    # - include_strings
-    # - include_values
-    - include_layers
-    - include_features
-    # - include_geometries
+  - write_fb_tiles
+  - lookup_strings_and_values
+  # - include_strings
+  # - include_values
+  - include_layers
+  - include_features
+  # - include_geometries
 
 layers:
-    Administrative: [admin_country, admin_state, admin_county, admin_city, admihn_other, boundary]
-    Water: [water, water_lake, water_river, waterway, waterway_intermittent]
-    Major Roads: [highway_primary, highway_secondary]
-    Minor Roads: [highway_tertiary, highway]
-    Places:
-        - place_ocean
-        - place_sea
-        - place_country
-        - place_state
-        - place_region
-        - place_county
-        - place_city
-        - place_town
-        - place_continent
-        - place_archipelago
-        - place
-    Buildings: [building]
+  Administrative: [admin_country, admin_state, admin_county, admin_city, admihn_other, boundary]
+  Water: [water, water_lake, water_river, waterway, waterway_intermittent]
+  Major Roads: [highway_primary, highway_secondary]
+  Minor Roads: [highway_tertiary, highway]
+  Places:
+    - place_ocean
+    - place_sea
+    - place_country
+    - place_state
+    - place_region
+    - place_county
+    - place_city
+    - place_town
+    - place_continent
+    - place_archipelago
+    - place
+  Buildings: [building]
 
 rules:
-    admin_country:
-        minzoom: 0
-        tags: [[admin_level, 2], [admin_level, 3]]
-    admin_state:
-        minzoom: 4
-        tags: [[admin_level, 4], [admin_level, 5]]
-    admin_county:
-        minzoom: 8
-        tags: [[admin_level, 5], [admin_level, 6]]
-    admin_city:
-        minzoom: 10
-        tags: [[admin_level, 7], [admin_level, 8]]
-    admin_other:
-        minzoom: 12
-        keys: [admin_level]
-        tags: [[boundary, administrative]]
+  admin_country:
+    minzoom: 0
+    tags: [[admin_level, 2], [admin_level, 3]]
+  admin_state:
+    minzoom: 4
+    tags: [[admin_level, 4], [admin_level, 5]]
+  admin_county:
+    minzoom: 8
+    tags: [[admin_level, 5], [admin_level, 6]]
+  admin_city:
+    minzoom: 10
+    tags: [[admin_level, 7], [admin_level, 8]]
+  admin_other:
+    minzoom: 12
+    keys: [admin_level]
+    tags: [[boundary, administrative]]
 
-    boundary:
-        minzoom: 10
-        keys: [boundary]
+  boundary:
+    minzoom: 10
+    keys: [boundary]
 
-    building:
-        minzoom: 12
-        keys: [building]
+  building:
+    minzoom: 12
+    keys: [building]
 
-    place:
-        minzoom: 10
-        keys: [place]
-    place_ocean:
-        minzoom: 2
-        tags: [[place, ocean]]
-    place_sea:
-        minzoom: 6
-        tags: [[place, sea]]
-    place_country:
-        minzoom: 0
-        tags: [[place, country]]
-    place_state:
-        minzoom: 4
-        tags: [[place, state], [place, province]]
-    place_region:
-        minzoom: 6
-        tags: [[place, region]]
-    place_county:
-        minzoom: 8
-        tags: [[place, county]]
-    place_city:
-        minzoom: 8
-        tags: [[place, city]]
-    place_town:
-        minzoom: 10
-        tags: [[place, town]]
-    place_continent:
-        minzoom: 0
-        tags: [[place, continent]]
-    place_archipelago:
-        minzoom: 6
-        tags: [[place, archipelago]]
+  place:
+    minzoom: 10
+    keys: [place]
+  place_ocean:
+    minzoom: 2
+    tags: [[place, ocean]]
+  place_sea:
+    minzoom: 6
+    tags: [[place, sea]]
+  place_country:
+    minzoom: 0
+    tags: [[place, country]]
+  place_state:
+    minzoom: 4
+    tags: [[place, state], [place, province]]
+  place_region:
+    minzoom: 6
+    tags: [[place, region]]
+  place_county:
+    minzoom: 8
+    tags: [[place, county]]
+  place_city:
+    minzoom: 8
+    tags: [[place, city]]
+  place_town:
+    minzoom: 10
+    tags: [[place, town]]
+  place_continent:
+    minzoom: 0
+    tags: [[place, continent]]
+  place_archipelago:
+    minzoom: 6
+    tags: [[place, archipelago]]
 
-    water:
-        minzoom: 10
-        keys: [water]
-    waterway:
-        minzoom: 8
-    waterway_intermittent:
-        minzoom: 12
-        tags: [[intermittent, 'yes']]
-    water_lake:
-        minzoom: 6
-        tags: [[water, lake]]
-    water_river:
-        minzoom: 8
-        tags: [[water, river]]
+  water:
+    minzoom: 10
+    keys: [water]
+  waterway:
+    minzoom: 8
+  waterway_intermittent:
+    minzoom: 12
+    tags: [[intermittent, 'yes']]
+  water_lake:
+    minzoom: 6
+    tags: [[water, lake]]
+  water_river:
+    minzoom: 8
+    tags: [[water, river]]
 
-    highway_primary:
-        minzoom: 6
-        tags: [[highway, motorway], [highway, trunk]]
-    highway_secondary:
-        minzoom: 8
-        tags: [[highway, primary], [highway, secondary], [highway, motorway_link], [highway, trunk_link]]
-    highway_tertiary:
-        minzoom: 10
-        tags: [[highway, tertiary], [highway, unclassified], [highway, primary_link], [highway, secondary_link]]
-    highway:
-        minzoom: 12
-        keys: [highway]
+  highway_primary:
+    minzoom: 6
+    tags: [[highway, motorway], [highway, trunk]]
+  highway_secondary:
+    minzoom: 8
+    tags: [[highway, primary], [highway, secondary], [highway, motorway_link], [highway, trunk_link]]
+  highway_tertiary:
+    minzoom: 10
+    tags: [[highway, tertiary], [highway, unclassified], [highway, primary_link], [highway, secondary_link]]
+  highway:
+    minzoom: 12
+    keys: [highway]

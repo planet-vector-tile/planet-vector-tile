@@ -15,7 +15,7 @@
     "devDependencies": {
         "@napi-rs/cli": "^2.11.4",
         "ava": "^4.3.0",
-        "prettier": "2.7.1",
+        "prettier": "2.8.1",
         "rollup": "^3.2.3",
         "typescript": "^4.8.4"
     },
@@ -28,16 +28,16 @@
         "bench": "cd electron && npm i && npm run bench",
         "build": "npm i && napi build --platform --release && npm run build:ts",
         "build:debug": "npm i && napi build --platform --js && npm run build:ts",
-        "build:ts": "tsc -p tsconfig.json && prettier --write . && npm run rollup",
+        "build:ts": "tsc -p tsconfig.json && npm run format && npm run rollup",
         "generate:schema": "flatdata-generator -s schema/osm.flatdata -g rust -O src/generated/osmflat_generated.rs && flatc --rust -o src/generated/ schema/*.fbs & flatc --ts -o src/typescript/fbs/ schema/*.fbs && npm run format && cargo fmt",
-        "clean": "rm -rf index* node_modules package-lock.json dist/* && cargo clean",
+        "clean": "rm -rf index* node_modules package-lock.json dist/* *.node && cargo clean",
         "artifacts": "napi artifacts",
         "prepublishOnly": "napi prepublish -t npm",
         "rollup": "rollup --config rollup.config.mjs",
         "test": "ava",
         "t": "npm run build && npm run test",
         "version": "napi version",
-        "format": "prettier --write ."
+        "format": "prettier --write \"src/typescript/*.{js,jsx,ts,tsx,css,scss,md}\" \"tests/*.{mjs,js,jsx,ts,tsx,css,scss,md}\" manifests/*.yaml"
     },
     "ava": {
         "files": [

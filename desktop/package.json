@@ -15,7 +15,8 @@
         "electron:start": "electron-forge start",
         "electron:dev": "cross-env IS_DEV=true electron-forge start",
         "electron:build": "electron-forge make",
-        "electron:package": "electron-forge package"
+        "electron:package": "electron-forge package",
+        "format": "prettier --write \"{src,styles}/**/*.{js,jsx,ts,tsx,css,scss,md}\" styles/*.json"
     },
     "dependencies": {
         "electron-squirrel-startup": "^1.0.0",
@@ -37,6 +38,7 @@
         "electron": "20.3.2",
         "glob": "^8.0.3",
         "postcss": "^8.4.20",
+        "prettier": "^2.8.1",
         "tailwindcss": "^3.2.4",
         "vite": "^4.0.0"
     }
