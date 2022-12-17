@@ -8,8 +8,8 @@ https://github.com/planet-vector-tile/maplibre-gl-js
 
 ## Dependencies
 
--   Rust >= v1.65
--   NodeJS >= v16.17
+- Rust >= v1.65
+- NodeJS >= v16.17
 
 Install Rust
 

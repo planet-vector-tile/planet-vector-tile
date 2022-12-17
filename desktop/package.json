@@ -1,45 +1,45 @@
 {
-    "name": "@planet-vector-tile/desktop",
-    "productName": "PlanetVectorTile",
-    "version": "0.1.0",
-    "main": "src/main.js",
-    "description": "The desktop ElectronJS app for PlanetVectorTile.",
-    "license": "MIT",
-    "author": "Nick Hallahan",
-    "scripts": {
-        "clean": "rm -rf deps dist node_modules out",
-        "start": "npm run build && npm run electron:start",
-        "dev": "concurrently -k \"vite\" \"npm run electron:dev\"",
-        "build": "vite build && electron-forge make",
-        "preview": "vite preview",
-        "electron:start": "electron-forge start",
-        "electron:dev": "cross-env IS_DEV=true electron-forge start",
-        "electron:build": "electron-forge make",
-        "electron:package": "electron-forge package",
-        "format": "prettier --write \"{src,styles}/**/*.{js,jsx,ts,tsx,css,scss,md}\" styles/*.json"
-    },
-    "dependencies": {
-        "electron-squirrel-startup": "^1.0.0",
-        "react": "^18.2.0",
-        "react-dom": "^18.2.0"
-    },
-    "devDependencies": {
-        "@electron-forge/cli": "^6.0.4",
-        "@electron-forge/maker-deb": "^6.0.4",
-        "@electron-forge/maker-rpm": "^6.0.4",
-        "@electron-forge/maker-squirrel": "^6.0.4",
-        "@electron-forge/maker-zip": "^6.0.4",
-        "@types/react": "^18.0.26",
-        "@types/react-dom": "^18.0.9",
-        "@vitejs/plugin-react": "^3.0.0",
-        "autoprefixer": "^10.4.13",
-        "concurrently": "^7.6.0",
-        "cross-env": "^7.0.3",
-        "electron": "20.3.2",
-        "glob": "^8.0.3",
-        "postcss": "^8.4.20",
-        "prettier": "^2.8.1",
-        "tailwindcss": "^3.2.4",
-        "vite": "^4.0.0"
-    }
+  "name": "@planet-vector-tile/desktop",
+  "productName": "PlanetVectorTile",
+  "version": "0.1.0",
+  "main": "src/main.js",
+  "description": "The desktop ElectronJS app for PlanetVectorTile.",
+  "license": "MIT",
+  "author": "Nick Hallahan",
+  "scripts": {
+    "clean": "rm -rf deps dist node_modules out",
+    "start": "npm run build && npm run electron:start",
+    "dev": "concurrently -k \"vite\" \"npm run electron:dev\"",
+    "build": "vite build && electron-forge make",
+    "preview": "vite preview",
+    "electron:start": "electron-forge start",
+    "electron:dev": "cross-env IS_DEV=true electron-forge start",
+    "electron:build": "electron-forge make",
+    "electron:package": "electron-forge package",
+    "format": "prettier --write \"{src,styles}/**/*.{js,jsx,ts,tsx,css,scss,md}\" styles/*.json package.json"
+  },
+  "dependencies": {
+    "electron-squirrel-startup": "^1.0.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@electron-forge/cli": "^6.0.4",
+    "@electron-forge/maker-deb": "^6.0.4",
+    "@electron-forge/maker-rpm": "^6.0.4",
+    "@electron-forge/maker-squirrel": "^6.0.4",
+    "@electron-forge/maker-zip": "^6.0.4",
+    "@types/react": "^18.0.26",
+    "@types/react-dom": "^18.0.9",
+    "@vitejs/plugin-react": "^3.0.0",
+    "autoprefixer": "^10.4.13",
+    "concurrently": "^7.6.0",
+    "cross-env": "^7.0.3",
+    "electron": "20.3.2",
+    "glob": "^8.0.3",
+    "postcss": "^8.4.20",
+    "prettier": "^2.8.1",
+    "tailwindcss": "^3.2.4",
+    "vite": "^4.0.0"
+  }
 }
