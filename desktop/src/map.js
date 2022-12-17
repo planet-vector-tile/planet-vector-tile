@@ -1,7 +1,11 @@
-const api = require('../index');
-const style = require('../styles/data.json');
 const maplibre = window.maplibregl;
-
+let api;
+if (process.env.IS_DEV) {
+    api = require('../index');
+} else {
+    api = require('../deps/index');
+}
+const style = require('../styles/data.json');
 maplibre.setPlanetVectorTilePlugin(api);
 window.maplibre = maplibre;
 
@@ -13,9 +17,11 @@ try {
     console.log('No stored bbox.', e);
 }
 
-const map = new window.maplibregl.Map({
-    container: 'map',
-    style: style,
-    bounds: bbox,
+window.addEventListener('DOMContentLoaded', () => {
+    const map = new window.maplibregl.Map({
+        container: 'map',
+        style: style,
+        bounds: bbox,
+    });
+    window.map = map;
 });
-window.map = map;

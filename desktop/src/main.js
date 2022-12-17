@@ -23,10 +23,8 @@ function createWindow() {
     // Open the DevTools.
     if (isDev) {
         win.loadURL('http://localhost:5173');
-        // win.webContents.openDevTools();
     } else {
-        // win.removeMenu();
-        win.loadFile(path.join(__dirname, '../dist', 'index.html'));
+        win.loadFile(path.join(__dirname, '../dist/prod.html'));
     }
 }
 
