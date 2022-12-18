@@ -55,7 +55,7 @@ function Background() {
                 onClick={() => setBackground(bg.id)}
                 className={classNames(
                   bg.id === background ? 'text-white' : 'text-gray-400',
-                  'ml-3 block text-medium font-light'
+                  'ml-3 block text-medium font-light cursor-pointer'
                 )}
               >
                 {bg.title}
@@ -92,7 +92,7 @@ function SourceLayers() {
           />
         </Switch>
         <Switch.Label as='span' className='ml-3'>
-          <span className='text-md font-light text-gray-400'>Buildings</span>
+          <span className='text-md font-light text-gray-400 cursor-pointer'>Buildings</span>
         </Switch.Label>
       </Switch.Group>
     </>
