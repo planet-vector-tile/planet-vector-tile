@@ -8,7 +8,7 @@ function classNames(...classes) {
 
 export default function Nav() {
   return (
-    <Disclosure as='nav' className='bg-gray-800'>
+    <Disclosure as='nav' className='bg-gray-800/90 border-b border-gray-900 backdrop-blur-md'>
       {({ open }) => (
         <>
           <div className='mx-auto px-20'>
@@ -47,16 +47,16 @@ export default function Nav() {
               </div>
 
               <div className='hidden sm:ml-6 sm:block'>
-                <span className='isolate inline-flex rounded-md shadow-sm'>
+                <span className='inline-flex rounded-md shadow-sm'>
                   <button
                     type='button'
-                    className='relative inline-flex items-center border border-gray-700 rounded-l-md px-2 py-1 text-sm font-medium bg-gray-900 text-white'
+                    className='relative inline-flex items-center border border-gray-600 rounded-l-md px-2 py-1 text-sm font-medium bg-gray-900 text-white'
                   >
                     Layers
                   </button>
                   <button
                     type='button'
-                    className='relative inline-flex items-center border border-gray-700 rounded-r-md px-2 py-1 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white'
+                    className='relative inline-flex items-center border border-gray-600 rounded-r-md px-2 py-1 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white'
                   >
                     Features
                   </button>
