@@ -18,10 +18,15 @@ try {
 }
 
 function initMap() {
-  window.map = new maplibre.Map({
+  const map = (window.map = new maplibre.Map({
     container: 'map',
     style: style,
     bounds: bbox,
+  }))
+
+  map.on('moveend', function () {
+    const bbox = JSON.stringify(map.getBounds().toArray())
+    localStorage.setItem('bbox', bbox)
   })
 }
 

@@ -126,9 +126,9 @@ export default function Nav({ nav, setNav }) {
 
 function PlanetsMapData({ page, setPage }) {
   const inactive =
-    'rounded-md px-3 py-1 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white cursor-default focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-fuchsia-700 focus:ring-fuchsia-700'
+    'rounded-md px-3 py-1 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white cursor-default focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-offset-fuchsia-700 focus:ring-fuchsia-700'
   const active =
-    'rounded-md bg-gray-900 px-3 py-1 text-sm font-medium text-white cursor-default focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-fuchsia-700 focus:ring-fuchsia-700'
+    'rounded-md bg-gray-900 px-3 py-1 text-sm font-medium text-white cursor-default focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-offset-fuchsia-700 focus:ring-fuchsia-700'
   return (
     <div className='hidden sm:block'>
       <div className='flex space-x-4'>
