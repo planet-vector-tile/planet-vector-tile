@@ -133,9 +133,9 @@ export default function Info({ nav }) {
       </Transition.Root>
 
       {/* Static sidebar for desktop */}
-      <div className='hidden md:fixed md:right-0 md:flex md:w-80 md:flex-col md:mt-2 md: mr-2'>
+      <div className='hidden md:fixed md:right-0 md:flex md:w-80 md:flex-col md:h-full'>
         {/* Sidebar component, swap this element with another sidebar if you like */}
-        <div className='flex min-h-0 flex-1 flex-col bg-gray-800'>
+        <div className='flex min-h-0 flex-1 flex-col bg-slate-700/80 border-l border-gray-900 backdrop-blur-md'>
           <Layers />
         </div>
       </div>
