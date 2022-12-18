@@ -5,15 +5,16 @@ import { XMarkIcon } from '@heroicons/react/20/solid'
 
 export default function Layers() {
   return (
-    <>
+    <div className='pl-4 pr-2'>
       <CardHead />
+      <Background />
       <fieldset className='space-y-3 ml-2 mr-2 mb-2'>
         <legend className='sr-only'>Layers</legend>
         <Layer />
         <Layer />
         <Layer />
       </fieldset>
-    </>
+    </div>
   )
 }
 
@@ -52,7 +53,7 @@ function Layer() {
 
 function CardHead() {
   return (
-    <div className='pl-4 pr-2 py-2'>
+    <div className='py-2'>
       <div className='-ml-4 -mt-2 flex flex-wrap items-center justify-between sm:flex-nowrap'>
         <div className='ml-4 mt-2'>
           <h3 className='text-md font-medium text-gray-300'>Layers</h3>
@@ -68,5 +69,40 @@ function CardHead() {
         </div>
       </div>
     </div>
+  )
+}
+
+const notificationMethods = [
+  { id: 'sat', title: 'Satellite' },
+  { id: 'none', title: 'None' },
+  { id: 'osm', title: 'OpenStreetMap' },
+]
+
+function Background() {
+  return (
+    <>
+      <label className='text-base font-medium text-gray-300'>
+        Background <span className='text-xs'>⌘B</span>
+      </label>
+      <fieldset className='mt-4'>
+        <legend className='sr-only'>Background</legend>
+        <div className='space-y-4'>
+          {notificationMethods.map(notificationMethod => (
+            <div key={notificationMethod.id} className='flex items-center'>
+              <input
+                id={notificationMethod.id}
+                name='notification-method'
+                type='radio'
+                defaultChecked={notificationMethod.id === 'email'}
+                className='h-4 w-4 border-gray-300 text-fuchsia-700 focus:ring-fuchsia-700'
+              />
+              <label htmlFor={notificationMethod.id} className='ml-3 block text-sm font-medium text-white'>
+                {notificationMethod.title}
+              </label>
+            </div>
+          ))}
+        </div>
+      </fieldset>
+    </>
   )
 }
