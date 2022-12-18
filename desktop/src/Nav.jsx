@@ -26,43 +26,10 @@ export default function Nav() {
                 <span className='text-white px-2 text-xl'>PlanetVectorTile</span>
               </div>
 
-              <div className='hidden sm:block'>
-                <div className='flex space-x-4'>
-                  <a
-                    href='#'
-                    className='rounded-md px-3 py-1 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white'
-                  >
-                    Planets
-                  </a>
-                  <a href='#' className='rounded-md bg-gray-900 px-3 py-1 text-sm font-medium text-white'>
-                    Map
-                  </a>
-                  <a
-                    href='#'
-                    className='rounded-md px-3 py-1 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white'
-                  >
-                    Data
-                  </a>
-                </div>
-              </div>
+              <PlanetsMapData />
+              <LayersFeatures />
 
-              <div className='hidden sm:ml-6 sm:block'>
-                <span className='inline-flex rounded-md shadow-sm'>
-                  <button
-                    type='button'
-                    className='relative inline-flex items-center border border-gray-600 rounded-l-md px-2 py-1 text-sm font-medium bg-gray-900 text-white'
-                  >
-                    Layers
-                  </button>
-                  <button
-                    type='button'
-                    className='relative inline-flex items-center border border-gray-600 rounded-r-md px-2 py-1 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white'
-                  >
-                    Features
-                  </button>
-                </span>
-              </div>
-              <div className='-mr-2 flex sm:hidden'>
+              <div className='mr-2 flex sm:hidden'>
                 {/* Mobile menu button */}
                 <Disclosure.Button className='inline-flex items-center justify-center rounded-md p-2 text-gray-400 hover:bg-gray-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white'>
                   <span className='sr-only'>Open main menu</span>
@@ -157,5 +124,50 @@ export default function Nav() {
         </>
       )}
     </Disclosure>
+  )
+}
+
+function PlanetsMapData() {
+  return (
+    <div className='hidden sm:block'>
+      <div className='flex space-x-4'>
+        <a
+          href='#'
+          className='rounded-md px-3 py-1 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white'
+        >
+          Planets
+        </a>
+        <a href='#' className='rounded-md bg-gray-900 px-3 py-1 text-sm font-medium text-white'>
+          Map
+        </a>
+        <a
+          href='#'
+          className='rounded-md px-3 py-1 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white'
+        >
+          Data
+        </a>
+      </div>
+    </div>
+  )
+}
+
+function LayersFeatures() {
+  return (
+    <div className='hidden sm:ml-6 sm:block'>
+      <span className='inline-flex rounded-md shadow-sm'>
+        <button
+          type='button'
+          className='relative inline-flex items-center border border-gray-600 rounded-l-md px-2 py-1 text-sm font-medium bg-gray-900 text-white'
+        >
+          Layers
+        </button>
+        <button
+          type='button'
+          className='relative inline-flex items-center border border-gray-600 rounded-r-md px-2 py-1 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white'
+        >
+          Features
+        </button>
+      </span>
+    </div>
   )
 }
