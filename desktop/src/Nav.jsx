@@ -6,7 +6,7 @@ function classNames(...classes) {
   return classes.filter(Boolean).join(' ')
 }
 
-export default function Nav() {
+export default function Nav({nav, setNav}) {
   return (
     <Disclosure as='nav' className='drag bg-gray-800/90 border-b border-gray-900 backdrop-blur-md'>
       {({ open }) => (
@@ -16,7 +16,7 @@ export default function Nav() {
               <div className='flex items-center'>
                 <div className='flex-shrink-0'>
                   <svg className='w-8 h-8' strokeWidth='1.5' viewBox='0 0 24 24' fill='none'>
-                    <circle cx='12' cy='12' r='8' stroke='white' stroke-width='1.5'></circle>
+                    <circle cx='12' cy='12' r='8' stroke='white' strokeWidth='1.5'></circle>
                     <path
                       d='M17.5 6.348c2.297-.538 3.945-.476 4.338.312.73 1.466-3.158 4.89-8.687 7.645-5.528 2.757-10.602 3.802-11.333 2.336-.392-.786.544-2.134 2.349-3.64'
                       stroke='white'
@@ -26,8 +26,8 @@ export default function Nav() {
                 <span className='text-white px-2 text-xl'>PlanetVectorTile</span>
               </div>
 
-              <PlanetsMapData />
-              <LayersFeatures />
+              <PlanetsMapData page={nav.page} setPage={page => setNav({...nav, page})} />
+              <InfoButtons info={nav.info} setInfo={info => setNav({...nav, info})} />
 
               <div className='mr-2 flex sm:hidden'>
                 {/* Mobile menu button */}
@@ -127,31 +127,27 @@ export default function Nav() {
   )
 }
 
-function PlanetsMapData() {
+function PlanetsMapData({page, setPage}) {
+  const inactive = 'rounded-md px-3 py-1 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white cursor-default'
+  const active = 'rounded-md bg-gray-900 px-3 py-1 text-sm font-medium text-white cursor-default'
   return (
     <div className='hidden sm:block'>
       <div className='flex space-x-4'>
-        <a
-          href='#'
-          className='rounded-md px-3 py-1 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white'
-        >
+        <button className={page === 'planets' ? active : inactive} onClick={() => setPage('planets')}>
           Planets
-        </a>
-        <a href='#' className='rounded-md bg-gray-900 px-3 py-1 text-sm font-medium text-white'>
+        </button>
+        <button className={page === 'map' ? active : inactive} onClick={() => setPage('map')}>
           Map
-        </a>
-        <a
-          href='#'
-          className='rounded-md px-3 py-1 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white'
-        >
+        </button>
+        <button className={page === 'data' ? active : inactive} onClick={() => setPage('data')}>
           Data
-        </a>
+        </button>
       </div>
     </div>
   )
 }
 
-function LayersFeatures() {
+function InfoButtons() {
   return (
     <div className='hidden sm:ml-6 sm:block'>
       <span className='inline-flex rounded-md shadow-sm'>

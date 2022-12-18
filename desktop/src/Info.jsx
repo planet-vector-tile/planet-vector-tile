@@ -26,9 +26,11 @@ function classNames(...classes) {
   return classes.filter(Boolean).join(' ')
 }
 
-export default function Example() {
+export default function Info({ nav }) {
+  if (!nav.info || nav.info === 'none' || nav.page === 'planets') {
+    return null
+  }
   const [sidebarOpen, setSidebarOpen] = useState(false)
-
   return (
     <>
       <Transition.Root show={sidebarOpen} as={Fragment}>
