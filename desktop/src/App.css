@@ -4,3 +4,8 @@
   width: 100%;
   z-index: 1;
 }
+
+.drag {
+  -webkit-user-select: none;
+  -webkit-app-region: drag;
+}
