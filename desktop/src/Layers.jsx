@@ -4,7 +4,7 @@ import { classNames } from './util'
 
 export default function Layers() {
   return (
-    <div className='pl-3 pt-4'>
+    <div className='px-3 pt-4'>
       <Background />
       <fieldset className='space-y-3 ml-2 mr-2 mb-2'>
         <legend className='sr-only'>Layers</legend>
@@ -56,11 +56,24 @@ const notificationMethods = [
 ]
 
 function Background() {
+  const [opacity, setOpacity] = useState(0.5)
+
   return (
     <>
       <label className='font-medium text-gray-300'>
         Background <span className='text-xs border rounded px-0.5'>B</span>
       </label>
+      <div className='px-4'>
+        <input
+          type='range'
+          min='0'
+          max='1'
+          step='.01'
+          onChange={e => setOpacity(e.target.value)}
+          value={opacity}
+          class='w-full h-1 rounded-lg appearance-none cursor-pointer bg-gray-500 color-fuchsia-700 accent-fuchsia-700'
+        />
+      </div>
       <fieldset className='mt-4'>
         <legend className='sr-only'>Background</legend>
         <div className='space-y-4'>
