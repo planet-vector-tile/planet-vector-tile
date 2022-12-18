@@ -5,7 +5,7 @@ import { classNames } from './util'
 
 export default function Nav({ nav, setNav }) {
   return (
-    <Disclosure as='nav' className='drag z-10 bg-gray-800/90 border-b border-gray-900 backdrop-blur-md'>
+    <Disclosure as='nav' className='drag z-10 bg-gray-800/80 border-b border-gray-900 backdrop-blur-md'>
       {({ open }) => (
         <>
           <div className='mx-auto px-20'>

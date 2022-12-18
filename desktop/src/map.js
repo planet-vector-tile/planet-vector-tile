@@ -24,6 +24,15 @@ function initMap() {
     bounds: bbox,
   }))
 
+  // map.addControl(
+  //   new maplibregl.NavigationControl({
+  //     showCompass: true,
+  //     showZoom: true,
+  //     visualizePitch: true,
+  //   }),
+  //   'bottom-left'
+  // )
+
   map.on('moveend', function () {
     const bbox = JSON.stringify(map.getBounds().toArray())
     localStorage.setItem('bbox', bbox)
