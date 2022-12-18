@@ -3,6 +3,7 @@ import './App.css'
 import Nav from './Nav'
 import Info from './Info'
 import Planets from './Planets'
+import Loc from './Loc'
 
 let storedNav = {
   page: 'map',
@@ -34,6 +35,7 @@ function App() {
       <Planets nav={nav} setNav={setNav} />
       <Nav nav={nav} setNav={setNav} />
       <Info nav={nav} />
+      <Loc />
     </>
   )
 }
