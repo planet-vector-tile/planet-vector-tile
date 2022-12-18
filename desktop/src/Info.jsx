@@ -1,39 +1,17 @@
-import { Fragment, useState } from 'react'
-import { Dialog, Transition } from '@headlessui/react'
-import {
-  Bars3Icon,
-  CalendarIcon,
-  ChartBarIcon,
-  FolderIcon,
-  HomeIcon,
-  InboxIcon,
-  UsersIcon,
-  XMarkIcon,
-} from '@heroicons/react/24/outline'
+import { XMarkIcon } from '@heroicons/react/24/outline'
 
 import Layers from './Layers'
+import Features from './Features'
 
-const navigation = [
-  { name: 'Dashboard', href: '#', icon: HomeIcon, current: true },
-  { name: 'Team', href: '#', icon: UsersIcon, current: false },
-  { name: 'Projects', href: '#', icon: FolderIcon, current: false },
-  { name: 'Calendar', href: '#', icon: CalendarIcon, current: false },
-  { name: 'Documents', href: '#', icon: InboxIcon, current: false },
-  { name: 'Reports', href: '#', icon: ChartBarIcon, current: false },
-]
-
-function classNames(...classes) {
-  return classes.filter(Boolean).join(' ')
-}
-
-export default function Info({ nav }) {
+export default function Info({ nav, setNav }) {
   if (!nav.info || nav.info === 'none' || nav.page === 'planets') {
     return null
   }
   return (
     <div className='fixed right-0 w-80 h-full bg-slate-700/80 border-l border-gray-900 backdrop-blur-md'>
-      <Close onClose={() => nav.setInfo('none')} />
-      <Layers />
+      <Close onClose={() => setNav({ ...nav, info: null })} />
+      {nav.info === 'layers' && <Layers />}
+      {nav.info === 'features' && <Features />}
     </div>
   )
 }

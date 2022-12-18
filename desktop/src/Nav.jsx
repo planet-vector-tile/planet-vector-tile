@@ -1,6 +1,3 @@
-import { Disclosure } from '@headlessui/react'
-import { Bars3Icon, BellIcon, XMarkIcon } from '@heroicons/react/24/outline'
-
 import { classNames } from './util'
 
 export default function Nav({ nav, setNav }) {
@@ -21,7 +18,7 @@ export default function Nav({ nav, setNav }) {
       </div>
 
       <PlanetsMapData page={nav.page} setPage={page => setNav({ ...nav, page })} />
-      <InfoButtons page={nav.page} info={nav.info} setInfo={info => setNav({ ...nav, info })} />
+      <InfoButtons nav={nav} setNav={setNav} />
     </nav>
   )
 }
@@ -88,30 +85,37 @@ function PlanetsMapData({ page, setPage }) {
   )
 }
 
-function InfoButtons({ page, info, setInfo }) {
-  const inactive =
-    'text-gray-300 hover:bg-gray-700 hover:text-white focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-offset-fuchsia-700 focus:ring-fuchsia-700'
+function InfoButtons({ nav, setNav }) {
+  function toggleInfo(type) {
+    if (nav.info === type) {
+      setNav({ ...nav, info: null })
+    } else {
+      setNav({ ...nav, info: type })
+    }
+  }
+
+  const inactive = 'text-gray-300 hover:bg-gray-700 hover:text-white'
   const active = 'bg-gray-900 text-white'
   return (
-    <div className={page === 'planets' ? 'invisible' : ''}>
+    <div className={nav.page === 'map' || nav.page === 'data' ? '' : 'invisible'}>
       <span className='inline-flex rounded-md shadow-sm'>
         <button
           type='button'
           className={classNames(
-            info === 'layers' ? active : inactive,
+            nav.info === 'layers' ? active : inactive,
             'relative inline-flex items-center border border-gray-600 rounded-l-md px-2 py-1 text-sm font-medium cursor-default'
           )}
-          onClick={() => setInfo('layers')}
+          onClick={() => toggleInfo('layers')}
         >
           Layers
         </button>
         <button
           type='button'
           className={classNames(
-            info === 'features' ? active : inactive,
+            nav.info === 'features' ? active : inactive,
             'relative inline-flex items-center border border-gray-600 rounded-r-md px-2 py-1 text-sm font-medium cursor-default'
           )}
-          onClick={() => setInfo('features')}
+          onClick={() => toggleInfo('features')}
         >
           Features
         </button>

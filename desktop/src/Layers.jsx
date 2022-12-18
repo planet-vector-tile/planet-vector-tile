@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { Switch } from '@headlessui/react'
 import { classNames } from './util'
-import { XMarkIcon } from '@heroicons/react/20/solid'
 
 export default function Layers() {
   return (

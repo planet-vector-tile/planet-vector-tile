@@ -7,7 +7,7 @@ import Loc from './Loc'
 
 let storedNav = {
   page: 'map',
-  info: 'none',
+  info: null,
 }
 
 try {
