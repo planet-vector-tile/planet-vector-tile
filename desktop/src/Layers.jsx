@@ -6,46 +6,8 @@ export default function Layers() {
   return (
     <div className='px-3 pt-4'>
       <Background />
-      <fieldset className='space-y-3 ml-2 mr-2 mb-2'>
-        <legend className='sr-only'>Layers</legend>
-        <Layer />
-        <Layer />
-        <Layer />
-      </fieldset>
+      <SourceLayers />
     </div>
-  )
-}
-
-function Layer() {
-  const [enabled, setEnabled] = useState(false)
-
-  return (
-    <Switch.Group as='div' className='flex items-center justify-between'>
-      <Switch
-        checked={enabled}
-        onChange={setEnabled}
-        className={classNames(
-          enabled ? 'bg-indigo-600' : 'bg-gray-200',
-          'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2'
-        )}
-      >
-        <span
-          aria-hidden='true'
-          className={classNames(
-            enabled ? 'translate-x-5' : 'translate-x-0',
-            'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out'
-          )}
-        />
-      </Switch>
-      <span className='flex flex-grow flex-col ml-2'>
-        <Switch.Label as='span' className='text-sm font-medium text-gray-900' passive>
-          Satellite
-        </Switch.Label>
-        <Switch.Description as='span' className='text-sm text-gray-500'>
-          Esri World Imagery
-        </Switch.Description>
-      </span>
-    </Switch.Group>
   )
 }
 
@@ -86,12 +48,15 @@ function Background() {
                 type='radio'
                 checked={bg.id === background}
                 onChange={() => setBackground(bg.id)}
-                className='h-4 w-4 border-gray-300 text-fuchsia-700 focus:ring-fuchsia-700'
+                className='h-4 w-4 bg-gray-500 text-fuchsia-700 focus:ring-fuchsia-700'
               />
               <label
                 htmlFor={backgrounds.id}
                 onClick={() => setBackground(bg.id)}
-                className='ml-3 block text-sm font-medium text-white'
+                className={classNames(
+                  bg.id === background ? 'text-white' : 'text-gray-400',
+                  'ml-3 block text-medium font-light'
+                )}
               >
                 {bg.title}
               </label>
@@ -99,6 +64,37 @@ function Background() {
           ))}
         </div>
       </fieldset>
+    </>
+  )
+}
+
+function SourceLayers() {
+  const [enabled, setEnabled] = useState(false)
+
+  return (
+    <>
+      <h3 className='font-medium text-gray-300 mt-6 mb-2'>Layers</h3>
+      <Switch.Group as='div' className='flex items-center'>
+        <Switch
+          checked={enabled}
+          onChange={setEnabled}
+          className={classNames(
+            enabled ? 'bg-fuchsia-700' : 'bg-gray-200',
+            'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-fucshia-700 focus:ring-offset-2 focus:ring-offset-fuchsia-700'
+          )}
+        >
+          <span
+            aria-hidden='true'
+            className={classNames(
+              enabled ? 'translate-x-5' : 'translate-x-0',
+              'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out'
+            )}
+          />
+        </Switch>
+        <Switch.Label as='span' className='ml-3'>
+          <span className='text-md font-light text-gray-400'>Buildings</span>
+        </Switch.Label>
+      </Switch.Group>
     </>
   )
 }
