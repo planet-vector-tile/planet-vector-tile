@@ -21,6 +21,7 @@ function createWindow() {
       contextIsolation: false,
     },
     titleBarStyle: 'hidden',
+    trafficLightPosition: { x: 12, y: 12 }
   })
 
   // Open the DevTools.
