@@ -11,7 +11,7 @@ export default function Nav() {
     <Disclosure as='nav' className='bg-gray-800'>
       {({ open }) => (
         <>
-          <div className='mx-auto pl-20 pr-6'>
+          <div className='mx-auto px-20'>
             <div className='flex h-10 items-center justify-between'>
               <div className='flex items-center'>
                 <div className='flex-shrink-0'>
@@ -23,48 +23,44 @@ export default function Nav() {
                     ></path>
                   </svg>
                 </div>
-                <div className='hidden sm:ml-6 sm:block'>
-                  <div className='flex space-x-4'>
-                    <a href='#' className='rounded-md bg-gray-900 px-3 py-1 text-sm font-medium text-white'>
-                      Dashboard
-                    </a>
-                    <a
-                      href='#'
-                      className='rounded-md px-3 py-1 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white'
-                    >
-                      First part
-                    </a>
-                    <a
-                      href='#'
-                      className='rounded-md px-3 py-1 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white'
-                    >
-                      Projects
-                    </a>
-                    <a
-                      href='#'
-                      className='rounded-md px-3 py-1 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white'
-                    >
-                      Calendar
-                    </a>
-                  </div>
+                <span className='text-white px-2 text-xl'>PlanetVectorTile</span>
+              </div>
+
+              <div className='hidden sm:block'>
+                <div className='flex space-x-4'>
+                  <a
+                    href='#'
+                    className='rounded-md px-3 py-1 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white'
+                  >
+                    Planets
+                  </a>
+                  <a href='#' className='rounded-md bg-gray-900 px-3 py-1 text-sm font-medium text-white'>
+                    Map
+                  </a>
+                  <a
+                    href='#'
+                    className='rounded-md px-3 py-1 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white'
+                  >
+                    Data
+                  </a>
                 </div>
               </div>
 
               <div className='hidden sm:ml-6 sm:block'>
-                  <span className='isolate inline-flex rounded-md shadow-sm'>
-                    <button
-                      type='button'
-                      className='relative inline-flex items-center border border-gray-700 rounded-l-md px-2 py-1 text-sm font-medium bg-gray-900 text-white'
-                    >
-                      Layers
-                    </button>
-                    <button
-                      type='button'
-                      className='relative inline-flex items-center border border-gray-700 rounded-r-md px-2 py-1 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white'
-                    >
-                      Features
-                    </button>
-                  </span>
+                <span className='isolate inline-flex rounded-md shadow-sm'>
+                  <button
+                    type='button'
+                    className='relative inline-flex items-center border border-gray-700 rounded-l-md px-2 py-1 text-sm font-medium bg-gray-900 text-white'
+                  >
+                    Layers
+                  </button>
+                  <button
+                    type='button'
+                    className='relative inline-flex items-center border border-gray-700 rounded-r-md px-2 py-1 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white'
+                  >
+                    Features
+                  </button>
+                </span>
               </div>
               <div className='-mr-2 flex sm:hidden'>
                 {/* Mobile menu button */}
