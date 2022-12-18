@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Switch } from '@headlessui/react'
-import {classNames} from './util'
+import { classNames } from './util'
 import { XMarkIcon } from '@heroicons/react/20/solid'
 
 export default function Layers() {
@@ -52,19 +52,19 @@ function Layer() {
 
 function CardHead() {
   return (
-    <div className="pl-4 pr-2 py-2">
-      <div className="-ml-4 -mt-2 flex flex-wrap items-center justify-between sm:flex-nowrap">
-        <div className="ml-4 mt-2">
-          <h3 className="text-md font-medium text-gray-300">Layers</h3>
+    <div className='pl-4 pr-2 py-2'>
+      <div className='-ml-4 -mt-2 flex flex-wrap items-center justify-between sm:flex-nowrap'>
+        <div className='ml-4 mt-2'>
+          <h3 className='text-md font-medium text-gray-300'>Layers</h3>
         </div>
-        <div className="ml-4 mt-2 flex-shrink-0">
-        <button
-              type="button"
-              className="inline-flex rounded-md text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white"
-            >
-              <span className="sr-only">Dismiss</span>
-              <XMarkIcon className="h-5 w-5" aria-hidden="true" />
-            </button>
+        <div className='ml-4 mt-2 flex-shrink-0'>
+          <button
+            type='button'
+            className='inline-flex rounded-md text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white'
+          >
+            <span className='sr-only'>Dismiss</span>
+            <XMarkIcon className='h-5 w-5' aria-hidden='true' />
+          </button>
         </div>
       </div>
     </div>
