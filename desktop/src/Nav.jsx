@@ -1,14 +1,11 @@
-import { Fragment } from 'react'
-import { Disclosure, Menu, Transition } from '@headlessui/react'
+import { Disclosure } from '@headlessui/react'
 import { Bars3Icon, BellIcon, XMarkIcon } from '@heroicons/react/24/outline'
 
-function classNames(...classes) {
-  return classes.filter(Boolean).join(' ')
-}
+import { classNames } from './util'
 
-export default function Nav({nav, setNav}) {
+export default function Nav({ nav, setNav }) {
   return (
-    <Disclosure as='nav' className='drag bg-gray-800/90 border-b border-gray-900 backdrop-blur-md'>
+    <Disclosure as='nav' className='drag z-10 bg-gray-800/90 border-b border-gray-900 backdrop-blur-md'>
       {({ open }) => (
         <>
           <div className='mx-auto px-20'>
@@ -26,8 +23,8 @@ export default function Nav({nav, setNav}) {
                 <span className='text-white px-2 text-xl'>PlanetVectorTile</span>
               </div>
 
-              <PlanetsMapData page={nav.page} setPage={page => setNav({...nav, page})} />
-              <InfoButtons info={nav.info} setInfo={info => setNav({...nav, info})} />
+              <PlanetsMapData page={nav.page} setPage={page => setNav({ ...nav, page })} />
+              <InfoButtons page={nav.page} info={nav.info} setInfo={info => setNav({ ...nav, info })} />
 
               <div className='mr-2 flex sm:hidden'>
                 {/* Mobile menu button */}
@@ -127,9 +124,11 @@ export default function Nav({nav, setNav}) {
   )
 }
 
-function PlanetsMapData({page, setPage}) {
-  const inactive = 'rounded-md px-3 py-1 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white cursor-default'
-  const active = 'rounded-md bg-gray-900 px-3 py-1 text-sm font-medium text-white cursor-default'
+function PlanetsMapData({ page, setPage }) {
+  const inactive =
+    'rounded-md px-3 py-1 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white cursor-default focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-fuchsia-700 focus:ring-fuchsia-700'
+  const active =
+    'rounded-md bg-gray-900 px-3 py-1 text-sm font-medium text-white cursor-default focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-fuchsia-700 focus:ring-fuchsia-700'
   return (
     <div className='hidden sm:block'>
       <div className='flex space-x-4'>
@@ -147,9 +146,9 @@ function PlanetsMapData({page, setPage}) {
   )
 }
 
-function InfoButtons() {
+function InfoButtons({ page, info, setInfo }) {
   return (
-    <div className='hidden sm:ml-6 sm:block'>
+    <div className={classNames(page === 'planets' ? 'invisible' : '', 'hidden sm:ml-6 sm:block')}>
       <span className='inline-flex rounded-md shadow-sm'>
         <button
           type='button'
