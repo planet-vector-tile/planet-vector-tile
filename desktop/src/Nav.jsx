@@ -128,7 +128,7 @@ function PlanetsMapData({ page, setPage }) {
   const inactive =
     'rounded-md px-3 py-1 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white cursor-default focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-offset-fuchsia-700 focus:ring-fuchsia-700'
   const active =
-    'rounded-md bg-gray-900 px-3 py-1 text-sm font-medium text-white cursor-default focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-offset-fuchsia-700 focus:ring-fuchsia-700'
+    'rounded-md bg-gray-900 px-3 py-1 text-sm font-medium text-white cursor-default focus:outline-none'
   return (
     <div className='hidden sm:block'>
       <div className='flex space-x-4'>
@@ -147,18 +147,22 @@ function PlanetsMapData({ page, setPage }) {
 }
 
 function InfoButtons({ page, info, setInfo }) {
+  const inactive = 'text-gray-300 hover:bg-gray-700 hover:text-white focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-offset-fuchsia-700 focus:ring-fuchsia-700'
+  const active = 'bg-gray-900 text-white'
   return (
     <div className={classNames(page === 'planets' ? 'invisible' : '', 'hidden sm:ml-6 sm:block')}>
       <span className='inline-flex rounded-md shadow-sm'>
         <button
           type='button'
-          className='relative inline-flex items-center border border-gray-600 rounded-l-md px-2 py-1 text-sm font-medium bg-gray-900 text-white'
+          className={classNames(info === 'layers' ? active : inactive, 'relative inline-flex items-center border border-gray-600 rounded-l-md px-2 py-1 text-sm font-medium cursor-default')}
+          onClick={() => setInfo('layers')}
         >
           Layers
         </button>
         <button
           type='button'
-          className='relative inline-flex items-center border border-gray-600 rounded-r-md px-2 py-1 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white'
+          className={classNames(info === 'features' ? active : inactive, 'relative inline-flex items-center border border-gray-600 rounded-r-md px-2 py-1 text-sm font-medium cursor-default')}
+          onClick={() => setInfo('features')}
         >
           Features
         </button>
