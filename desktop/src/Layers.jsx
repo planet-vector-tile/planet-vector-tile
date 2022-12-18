@@ -5,8 +5,7 @@ import { XMarkIcon } from '@heroicons/react/20/solid'
 
 export default function Layers() {
   return (
-    <div className='pl-4 pr-2'>
-      <CardHead />
+    <div className='pl-3 pt-4'>
       <Background />
       <fieldset className='space-y-3 ml-2 mr-2 mb-2'>
         <legend className='sr-only'>Layers</legend>
@@ -51,27 +50,6 @@ function Layer() {
   )
 }
 
-function CardHead() {
-  return (
-    <div className='py-2'>
-      <div className='-ml-4 -mt-2 flex flex-wrap items-center justify-between sm:flex-nowrap'>
-        <div className='ml-4 mt-2'>
-          <h3 className='text-md font-medium text-gray-300'>Layers</h3>
-        </div>
-        <div className='ml-4 mt-2 flex-shrink-0'>
-          <button
-            type='button'
-            className='inline-flex rounded-md text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white'
-          >
-            <span className='sr-only'>Dismiss</span>
-            <XMarkIcon className='h-5 w-5' aria-hidden='true' />
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
 const notificationMethods = [
   { id: 'sat', title: 'Satellite' },
   { id: 'none', title: 'None' },
@@ -81,8 +59,8 @@ const notificationMethods = [
 function Background() {
   return (
     <>
-      <label className='text-base font-medium text-gray-300'>
-        Background <span className='text-xs'>⌘B</span>
+      <label className='font-medium text-gray-300'>
+        Background <span className='text-xs border rounded px-0.5'>B</span>
       </label>
       <fieldset className='mt-4'>
         <legend className='sr-only'>Background</legend>

@@ -34,7 +34,7 @@ function App() {
     <>
       <Planets nav={nav} setNav={setNav} />
       <Nav nav={nav} setNav={setNav} />
-      <Info nav={nav} />
+      <Info nav={nav} setNav={setNav} />
       <Loc />
     </>
   )
