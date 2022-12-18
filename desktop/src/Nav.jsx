@@ -4,8 +4,9 @@ import { Bars3Icon, BellIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import { classNames } from './util'
 
 export default function Nav({ nav, setNav }) {
+  console.log('os', window.navigator)
   return (
-    <nav className='drag z-10 mx-auto bg-gray-800/70 border-b border-gray-900 backdrop-blur-md md:px-20 flex h-10 items-center justify-between'>
+    <nav className='drag z-10 mx-auto bg-gray-800/70 border-b border-gray-900 backdrop-blur-md sm:pl-20 pr-2 md:pr-20 flex h-10 items-center justify-between'>
       <div className='hidden md:flex items-center'>
         <div className='flex-shrink-0'>
           <svg className='w-8 h-8' strokeWidth='1.5' viewBox='0 0 24 24' fill='none'>
@@ -31,60 +32,58 @@ function PlanetsMapData({ page, setPage }) {
   const active =
     'inline-flex items-center rounded-md bg-gray-900 px-3 py-1 text-sm font-medium text-white cursor-default focus:outline-none'
   return (
-    <div className='hidden sm:block'>
-      <div className='flex space-x-4'>
-        <button className={page === 'planets' ? active : inactive} onClick={() => setPage('planets')}>
-          <svg
-            xmlns='http://www.w3.org/2000/svg'
-            fill='none'
-            viewBox='0 0 24 24'
-            strokeWidth={1.5}
-            stroke='currentColor'
-            className='w-4 h-4'
-          >
-            <path
-              strokeLinecap='round'
-              strokeLinejoin='round'
-              d='M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418'
-            />
-          </svg>
-          &nbsp;Planets
-        </button>
-        <button className={page === 'map' ? active : inactive} onClick={() => setPage('map')}>
-          <svg
-            xmlns='http://www.w3.org/2000/svg'
-            fill='none'
-            viewBox='0 0 24 24'
-            strokeWidth={1.5}
-            stroke='currentColor'
-            className='w-4 h-4'
-          >
-            <path
-              strokeLinecap='round'
-              strokeLinejoin='round'
-              d='M9 6.75V15m6-6v8.25m.503 3.498l4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 00-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0z'
-            />
-          </svg>
-          &nbsp;Map
-        </button>
-        <button className={page === 'data' ? active : inactive} onClick={() => setPage('data')}>
-          <svg
-            xmlns='http://www.w3.org/2000/svg'
-            fill='none'
-            viewBox='0 0 24 24'
-            strokeWidth={1.5}
-            stroke='currentColor'
-            className='w-4 h-4'
-          >
-            <path
-              strokeLinecap='round'
-              strokeLinejoin='round'
-              d='M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 0v3.75m-16.5-3.75v3.75m16.5 0v3.75C20.25 16.153 16.556 18 12 18s-8.25-1.847-8.25-4.125v-3.75m16.5 0c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125'
-            />
-          </svg>
-          &nbsp;Data
-        </button>
-      </div>
+    <div className='flex space-x-1 md:space-x-4'>
+      <button className={page === 'planets' ? active : inactive} onClick={() => setPage('planets')}>
+        <svg
+          xmlns='http://www.w3.org/2000/svg'
+          fill='none'
+          viewBox='0 0 24 24'
+          strokeWidth={1.5}
+          stroke='currentColor'
+          className='w-4 h-4'
+        >
+          <path
+            strokeLinecap='round'
+            strokeLinejoin='round'
+            d='M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418'
+          />
+        </svg>
+        &nbsp;Planets
+      </button>
+      <button className={page === 'map' ? active : inactive} onClick={() => setPage('map')}>
+        <svg
+          xmlns='http://www.w3.org/2000/svg'
+          fill='none'
+          viewBox='0 0 24 24'
+          strokeWidth={1.5}
+          stroke='currentColor'
+          className='w-4 h-4'
+        >
+          <path
+            strokeLinecap='round'
+            strokeLinejoin='round'
+            d='M9 6.75V15m6-6v8.25m.503 3.498l4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 00-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0z'
+          />
+        </svg>
+        &nbsp;Map
+      </button>
+      <button className={page === 'data' ? active : inactive} onClick={() => setPage('data')}>
+        <svg
+          xmlns='http://www.w3.org/2000/svg'
+          fill='none'
+          viewBox='0 0 24 24'
+          strokeWidth={1.5}
+          stroke='currentColor'
+          className='w-4 h-4'
+        >
+          <path
+            strokeLinecap='round'
+            strokeLinejoin='round'
+            d='M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 0v3.75m-16.5-3.75v3.75m16.5 0v3.75C20.25 16.153 16.556 18 12 18s-8.25-1.847-8.25-4.125v-3.75m16.5 0c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125'
+          />
+        </svg>
+        &nbsp;Data
+      </button>
     </div>
   )
 }
@@ -94,7 +93,7 @@ function InfoButtons({ page, info, setInfo }) {
     'text-gray-300 hover:bg-gray-700 hover:text-white focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-offset-fuchsia-700 focus:ring-fuchsia-700'
   const active = 'bg-gray-900 text-white'
   return (
-    <div className={classNames(page === 'planets' ? 'invisible' : '', 'hidden sm:ml-6 sm:block')}>
+    <div className={page === 'planets' ? 'invisible' : ''}>
       <span className='inline-flex rounded-md shadow-sm'>
         <button
           type='button'
