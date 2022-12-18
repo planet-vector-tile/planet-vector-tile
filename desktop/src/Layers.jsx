@@ -49,14 +49,15 @@ function Layer() {
   )
 }
 
-const notificationMethods = [
-  { id: 'sat', title: 'Satellite' },
+const backgrounds = [
   { id: 'none', title: 'None' },
+  { id: 'sat', title: 'Satellite' },
   { id: 'osm', title: 'OpenStreetMap' },
 ]
 
 function Background() {
   const [opacity, setOpacity] = useState(0.5)
+  const [background, setBackground] = useState('sat')
 
   return (
     <>
@@ -77,17 +78,22 @@ function Background() {
       <fieldset className='mt-4'>
         <legend className='sr-only'>Background</legend>
         <div className='space-y-4'>
-          {notificationMethods.map(notificationMethod => (
-            <div key={notificationMethod.id} className='flex items-center'>
+          {backgrounds.map(bg => (
+            <div key={bg.id} className='flex items-center'>
               <input
-                id={notificationMethod.id}
+                id={bg.id}
                 name='notification-method'
                 type='radio'
-                defaultChecked={notificationMethod.id === 'email'}
+                checked={bg.id === background}
+                onChange={() => setBackground(bg.id)}
                 className='h-4 w-4 border-gray-300 text-fuchsia-700 focus:ring-fuchsia-700'
               />
-              <label htmlFor={notificationMethod.id} className='ml-3 block text-sm font-medium text-white'>
-                {notificationMethod.title}
+              <label
+                htmlFor={backgrounds.id}
+                onClick={() => setBackground(bg.id)}
+                className='ml-3 block text-sm font-medium text-white'
+              >
+                {bg.title}
               </label>
             </div>
           ))}
