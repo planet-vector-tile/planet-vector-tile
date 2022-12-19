@@ -26,7 +26,7 @@ export default function Info({ nav, setNav }) {
       maxWidth='100%'
       enable={enable}
       style={{ position: 'fixed' }}
-      className='right-0 bg-slate-700/80 border-l border-gray-900 backdrop-blur-md'
+      className='right-0 bg-slate-700/80 border-l border-gray-900 backdrop-blur-md overflow-y-auto'
     >
       <Close onClose={() => setNav({ ...nav, info: null })} />
       {nav.info === 'layers' && <Layers />}
@@ -39,7 +39,7 @@ function Close({ onClose }) {
   return (
     <button
       type='button'
-      className='absolute top-1 right-2 rounded-md text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white focus:ring-1 focus:ring-offset-1 focus:ring-offset-fuchsia-700 focus:ring-fuchsia-700'
+      className='absolute top-1 z-20 right-2 rounded-md text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white focus:ring-1 focus:ring-offset-1 focus:ring-offset-fuchsia-700 focus:ring-fuchsia-700'
       onClick={() => onClose()}
     >
       <span className='sr-only'>Dismiss</span>
