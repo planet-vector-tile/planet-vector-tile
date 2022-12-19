@@ -5,28 +5,13 @@ import Info from './Info'
 import Planets from './Planets'
 import Loc from './Loc'
 
-let storedNav = {
-  page: 'map',
-  info: null,
-}
-
-try {
-  const navStr = localStorage.getItem('nav')
-  storedNav = JSON.parse(navStr)
-} catch (e) {
-  console.log('no stored nav state')
-}
+const store = window.store
 
 function App() {
-  const [nav, _setNav] = useState(storedNav)
+  const [nav, _setNav] = useState(store.nav)
 
   function setNav(nav) {
-    console.log('setNav', nav)
-    try {
-      localStorage.setItem('nav', JSON.stringify(nav))
-    } catch (e) {
-      console.error('cannot store nav state in local storage')
-    }
+    store.nav = nav
     _setNav(nav)
   }
 

@@ -1,5 +1,7 @@
 import { classNames } from './util'
 
+const store = window.store
+
 export default function Nav({ nav, setNav }) {
   return (
     <nav className='drag z-10 mx-auto bg-gray-800/70 border-b border-gray-900 backdrop-blur-md sm:pl-20 pr-2 sm:pr-20 flex h-10 items-center justify-between'>
@@ -23,13 +25,23 @@ export default function Nav({ nav, setNav }) {
 }
 
 function PlanetsMapData({ page, setPage }) {
+  function togglePage(page) {
+    setPage(page)
+    if (page === 'map') {
+      window.map.setStyle(store.mapStyle)
+    }
+    if (page === 'data') {
+      window.map.setStyle(store.dataStyle)
+    }
+  }
+
   const inactive =
     'inline-flex items-center rounded-md px-3 py-1 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white cursor-default focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-offset-fuchsia-700 focus:ring-fuchsia-700'
   const active =
     'inline-flex items-center rounded-md bg-gray-900 px-1 sm:px-3 py-1 text-sm font-medium text-white cursor-default focus:outline-none'
   return (
     <div className='flex space-x-1 md:space-x-4'>
-      <button className={page === 'planets' ? active : inactive} onClick={() => setPage('planets')}>
+      <button className={page === 'planets' ? active : inactive} onClick={() => togglePage('planets')}>
         <svg
           xmlns='http://www.w3.org/2000/svg'
           fill='none'
@@ -46,7 +58,7 @@ function PlanetsMapData({ page, setPage }) {
         </svg>
         &nbsp;Planets
       </button>
-      <button className={page === 'map' ? active : inactive} onClick={() => setPage('map')}>
+      <button className={page === 'map' ? active : inactive} onClick={() => togglePage('map')}>
         <svg
           xmlns='http://www.w3.org/2000/svg'
           fill='none'
@@ -63,7 +75,7 @@ function PlanetsMapData({ page, setPage }) {
         </svg>
         &nbsp;Map
       </button>
-      <button className={page === 'data' ? active : inactive} onClick={() => setPage('data')}>
+      <button className={page === 'data' ? active : inactive} onClick={() => togglePage('data')}>
         <svg
           xmlns='http://www.w3.org/2000/svg'
           fill='none'

@@ -1,6 +1,12 @@
 const { Menu, dialog, shell } = require('electron')
 const fs = require('fs')
 
+let window = null
+
+function attachWindow(win) {
+  window = win
+}
+
 const isMac = process.platform === 'darwin'
 
 const template = [
@@ -64,13 +70,24 @@ function onOpen(result) {
       return
     }
 
+    const ext = filePath.split('.').pop()
+
     // Style
-    if (filePath.split('.').pop() === 'json') {
+    if (ext === 'json') {
+      const style = JSON.parse(data)
+      if (window) {
+        window.webContents.send('open-style', style)
+      }
     }
     // Manifest
-    else if (filePath.split('.').pop() === 'yaml') {
+    else if (ext === 'yaml') {
+      console.log('NHTODO: load manifest')
     } else {
       alert('File type not supported')
     }
   })
+}
+
+module.exports = {
+  attachWindow,
 }

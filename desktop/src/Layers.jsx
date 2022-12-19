@@ -33,7 +33,7 @@ function Background() {
         step='.01'
         onChange={e => setOpacity(e.target.value)}
         value={opacity}
-        class='w-full h-1 rounded-lg appearance-none cursor-pointer bg-gray-500 color-fuchsia-700 accent-fuchsia-700'
+        className='w-full h-1 rounded-lg appearance-none cursor-pointer bg-gray-500 color-fuchsia-700 accent-fuchsia-700'
       />
       <fieldset className='mt-4'>
         <legend className='sr-only'>Background</legend>

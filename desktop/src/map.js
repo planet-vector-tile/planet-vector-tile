@@ -1,3 +1,6 @@
+// map.js is not part of the app bundle, so here we pull in NodeJS modules with require.
+const { ipcRenderer } = require('electron')
+
 const maplibre = window.maplibregl
 let api
 if (process.env.IS_DEV) {
@@ -5,37 +8,30 @@ if (process.env.IS_DEV) {
 } else {
   api = require('../deps/index')
 }
-const style = require('../styles/data.json')
-maplibre.setPlanetVectorTilePlugin(api)
-window.maplibre = maplibre
 
-let bbox = null
-try {
-  const bboxStr = localStorage.getItem('bbox')
-  bbox = JSON.parse(bboxStr)
-} catch (e) {
-  console.log('No stored bbox.', e)
-}
+maplibre.setPlanetVectorTilePlugin(api)
+
+ipcRenderer.on('open-style', (_event, style) => {
+  window.map.setStyle(style)
+  store.mapStyle = style
+  // NHTODO also pull out business logic to derive a new data style and update that in the store
+})
 
 function initMap() {
-  const map = (window.map = new maplibre.Map({
+  let style = store.mapStyle
+  if (store.nav.page === 'data') {
+    style = dataStyle
+  }
+
+  map = window.map = new maplibre.Map({
     container: 'map',
     style: style,
-    bounds: bbox,
-  }))
-
-  // map.addControl(
-  //   new maplibregl.NavigationControl({
-  //     showCompass: true,
-  //     showZoom: true,
-  //     visualizePitch: true,
-  //   }),
-  //   'bottom-left'
-  // )
+    bounds: store.bbox,
+  })
 
   map.on('moveend', function () {
     const bbox = JSON.stringify(map.getBounds().toArray())
-    localStorage.setItem('bbox', bbox)
+    store.bbox = bbox
   })
 
   map.on('mouseup', e => {
