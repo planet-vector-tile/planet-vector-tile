@@ -1,18 +1,37 @@
 import { XMarkIcon } from '@heroicons/react/24/outline'
+import { Resizable } from 're-resizable'
 
 import Layers from './Layers'
 import Features from './Features'
+
+const enable = {
+  top: false,
+  right: false,
+  bottom: false,
+  left: true,
+  topRight: false,
+  bottomRight: false,
+  bottomLeft: false,
+  topLeft: false,
+}
 
 export default function Info({ nav, setNav }) {
   if (!nav.info || nav.info === 'none' || nav.page === 'planets') {
     return null
   }
   return (
-    <div className='fixed right-0 w-80 h-full bg-slate-700/80 border-l border-gray-900 backdrop-blur-md'>
+    <Resizable
+      defaultSize={{ width: 314, height: '100vh' }}
+      minWidth={200}
+      maxWidth='100%'
+      enable={enable}
+      style={{ position: 'fixed' }}
+      className='right-0 bg-slate-700/80 border-l border-gray-900 backdrop-blur-md'
+    >
       <Close onClose={() => setNav({ ...nav, info: null })} />
       {nav.info === 'layers' && <Layers />}
       {nav.info === 'features' && <Features />}
-    </div>
+    </Resizable>
   )
 }
 

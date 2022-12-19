@@ -1,9 +1,8 @@
 import { classNames } from './util'
 
 export default function Nav({ nav, setNav }) {
-  console.log('os', window.navigator)
   return (
-    <nav className='drag z-10 mx-auto bg-gray-800/70 border-b border-gray-900 backdrop-blur-md sm:pl-20 pr-2 md:pr-20 flex h-10 items-center justify-between'>
+    <nav className='drag z-10 mx-auto bg-gray-800/70 border-b border-gray-900 backdrop-blur-md sm:pl-20 pr-2 sm:pr-20 flex h-10 items-center justify-between'>
       <div className='hidden md:flex items-center'>
         <div className='flex-shrink-0'>
           <svg className='w-8 h-8' strokeWidth='1.5' viewBox='0 0 24 24' fill='none'>
@@ -27,7 +26,7 @@ function PlanetsMapData({ page, setPage }) {
   const inactive =
     'inline-flex items-center rounded-md px-3 py-1 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white cursor-default focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-offset-fuchsia-700 focus:ring-fuchsia-700'
   const active =
-    'inline-flex items-center rounded-md bg-gray-900 px-3 py-1 text-sm font-medium text-white cursor-default focus:outline-none'
+    'inline-flex items-center rounded-md bg-gray-900 px-1 sm:px-3 py-1 text-sm font-medium text-white cursor-default focus:outline-none'
   return (
     <div className='flex space-x-1 md:space-x-4'>
       <button className={page === 'planets' ? active : inactive} onClick={() => setPage('planets')}>
