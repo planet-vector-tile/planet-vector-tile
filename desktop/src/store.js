@@ -17,18 +17,13 @@ const initialState = {
 }
 
 const properties = ['nav', 'bbox', 'mapStyle', 'dataStyle']
-let initialized = false
 function init() {
-  if (init) {
-    return
-  }
   for (const prop of properties) {
     const val = localStorage.getItem(prop)
     if (val) {
       initialState[prop] = JSON.parse(val)
     }
   }
-  initialized = true
 }
 init()
 
@@ -41,6 +36,13 @@ const handler = {
     localStorage.setItem(prop, JSON.stringify(value))
     return true
   },
+}
+
+window.resetStore = () => {
+  for (const prop of properties) {
+    localStorage.removeItem(prop)
+  }
+  init()
 }
 
 const store = new Proxy(initialState, handler)

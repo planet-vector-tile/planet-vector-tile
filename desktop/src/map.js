@@ -30,8 +30,7 @@ function initMap() {
   })
 
   map.on('moveend', function () {
-    const bbox = JSON.stringify(map.getBounds().toArray())
-    store.bbox = bbox
+    store.bbox = map.getBounds().toArray()
   })
 
   map.on('mouseup', e => {
