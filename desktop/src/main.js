@@ -1,6 +1,8 @@
 const path = require('path')
 const { app, BrowserWindow } = require('electron')
 
+require('./menu')
+
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) {
   app.quit()

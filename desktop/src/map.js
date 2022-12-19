@@ -37,6 +37,17 @@ function initMap() {
     const bbox = JSON.stringify(map.getBounds().toArray())
     localStorage.setItem('bbox', bbox)
   })
+
+  map.on('mouseup', e => {
+    // give a little bit of space so we are more likely to select what we want
+    const bbox = [
+      [e.point.x - 5, e.point.y - 5],
+      [e.point.x + 5, e.point.y + 5],
+    ]
+
+    const features = map.queryRenderedFeatures(bbox)
+    console.log('features', features)
+  })
 }
 
 if (document.readyState !== 'loading') {
