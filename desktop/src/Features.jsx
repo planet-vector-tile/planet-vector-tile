@@ -1,5 +1,5 @@
 const directory = {
-  A: [
+  Water: [
     {
       id: 1,
       name: 'Leslie Abbott',
@@ -29,7 +29,7 @@ const directory = {
         'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
     },
   ],
-  B: [
+  Buildings: [
     {
       id: 5,
       name: 'Angela Beaver',
@@ -52,7 +52,7 @@ const directory = {
         'https://images.unsplash.com/photo-1513910367299-bce8d8a0ebf6?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
     },
   ],
-  C: [
+  Roads: [
     {
       id: 8,
       name: 'Jeffrey Clark',
@@ -68,7 +68,7 @@ const directory = {
         'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
     },
   ],
-  E: [
+  Places: [
     {
       id: 10,
       name: 'Alicia Edwards',
@@ -208,13 +208,13 @@ export default function Features() {
     <nav aria-label="Features">
       {Object.keys(directory).map((letter) => (
         <div key={letter} className="relative">
-          <div className="sticky top-0 z-10 border-t border-b border-gray-600 bg-gray-700 px-6 py-1 text-sm font-medium text-gray-500">
+          <div className="sticky top-0 z-10 border-t border-b border-gray-600 bg-gray-700 px-6 py-1 text-sm font-medium text-gray-400">
             <h3>{letter}</h3>
           </div>
-          <ul role="list" className="relative z-0 divide-y divide-gray-200">
+          <ul role="list" className="relative z-0 divide-y divide-gray-600">
             {directory[letter].map((person) => (
               <li key={person.id}>
-                <div className="relative flex items-center space-x-3 px-6 py-5 focus-within:ring-2 focus-within:ring-inset focus-within:ring-fuchsia-700 hover:bg-gray-50">
+                <div className="relative flex items-center space-x-3 px-6 py-5 focus-within:ring-2 focus-within:ring-inset focus-within:ring-fuchsia-700 hover:bg-slate-600/50">
                   <div className="flex-shrink-0">
                     <img className="h-10 w-10 rounded-full" src={person.imageUrl} alt="" />
                   </div>
