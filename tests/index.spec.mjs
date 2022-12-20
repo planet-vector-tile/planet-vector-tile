@@ -69,29 +69,14 @@ test('check info tile 0/0/0', async t => {
 })
 
 test('check scotts valley tile with nodes', async t => {
-  const planet = loadPlanet(['info', 'tests/fixtures/santacruz/sort'])
+  const planet = loadPlanet(['info', 'tests/fixtures/santa_cruz/sort/manifest.yaml'])
   const tile = await planet.tile(12, 659, 1593)
   const pvt = new PVT(tile)
 
-  console.log('pvt', pvt)
+  // console.log('pvt', pvt)
 
   const len = Object.keys(pvt.layers).length
-  t.is(len, 5)
+  t.is(len, 11)
 
-  t.is(pvt.layers.nodes.length, 2748)
-
-  let nodes = pvt.layers.nodes
-  let firstFeature = nodes.feature(0)
-  let props = firstFeature.properties
-  t.is(props.osm_id, 5680698655)
-  t.is(props.power, 'pole')
-
-  let geom = firstFeature.loadGeometry()
-  let point = geom[0][0]
-  t.is(point.x, 162)
-  t.is(point.y, 58)
-
-  // NHTODO Fixme: geojson result is not correct.
-  // let geojson = firstFeature.toGeoJSON(12, 659, 1593);
-  // console.log('geojson', JSON.stringify(geojson, null, 2));
+  t.is(pvt.layers.Boundaries.length, 7)
 })

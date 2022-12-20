@@ -1,6 +1,5 @@
 const defaultMapStyle = require('../styles/default.json')
 const defaultDataStyle = require('../styles/data.json')
-const { createModuleResolutionCache } = require('typescript')
 
 // Updating values in the state automatically persists to localStorage via a Proxy.
 // https://benborgers.com/posts/js-object-changes
