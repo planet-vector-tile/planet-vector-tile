@@ -20,7 +20,7 @@ ipcRenderer.on('open-style', (_event, style) => {
 function initMap() {
   let style = store.mapStyle
   if (store.nav.page === 'data') {
-    style = dataStyle
+    style = store.dataStyle
   }
 
   map = window.map = new maplibre.Map({
