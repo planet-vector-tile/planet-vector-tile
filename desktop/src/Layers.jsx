@@ -38,6 +38,7 @@ export default function Layers() {
     <div className='px-3 pt-4'>
       <Background layers={backgroundLayers} />
       <VectorLayers layers={vectorLayers} />
+      <div className='h-14' />
     </div>
   )
 }
@@ -67,9 +68,9 @@ function Background({ layers }) {
         value={opacity}
         className='w-full h-1 rounded-lg appearance-none cursor-pointer bg-gray-500 color-fuchsia-700 accent-fuchsia-700'
       />
-      <fieldset className='mt-4'>
+      <fieldset className='mt-2 '>
         <legend className='sr-only'>Background</legend>
-        <div className='space-y-4'>
+        <div className='space-y-2 '>
           {backgrounds.map(bg => (
             <div key={bg.id} className='flex items-center'>
               <input
@@ -121,7 +122,7 @@ function VectorLayers({ layers }) {
 function VectorLayerGroup({ source, layers }) {
   return (
     <>
-      <h3 className='font-medium text-gray-300 mt-6 mb-2'>{source}</h3>
+      <h3 className='font-medium text-gray-300 mt-4 mb-2'>{source}</h3>
       {layers.map(layer => (
         <VectorLayer key={layer.id} layer={layer} />
       ))}
@@ -138,12 +139,12 @@ function VectorLayer({ layer }) {
   }
 
   return (
-    <Switch.Group as='div' className='flex items-center'>
+    <Switch.Group as='div' className='flex items-center py-1'>
       <Switch
         checked={enabled}
         onChange={setEnabled}
         className={classNames(
-          enabled ? 'bg-fuchsia-700' : 'bg-gray-200',
+          enabled ? 'bg-fuchsia-700/80' : 'bg-gray-200',
           'relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-fucshia-700 focus:ring-offset-2 focus:ring-offset-fuchsia-700'
         )}
       >
