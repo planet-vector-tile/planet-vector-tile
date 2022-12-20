@@ -5,6 +5,8 @@ import Info from './Info'
 import Planets from './Planets'
 import Loc from './Loc'
 
+import hotkeys from './hotkeys'
+
 const store = window.store
 
 function App() {
