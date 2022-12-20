@@ -1,12 +1,43 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Switch } from '@headlessui/react'
 import { classNames } from './util'
 
 export default function Layers() {
+  const [backgroundLayers, setBackgroundLayers] = useState([])
+  const [vectorLayers, setVectorLayers] = useState([])
+
+  useEffect(() => {
+    const map = window.map
+
+    function processLayers(map) {
+      const layers = map.getStyle()?.layers || []
+      const background = []
+      const vector = []
+
+      for (const layer of layers) {
+        switch (layer.type) {
+          case 'background':
+          case 'raster':
+          case 'hillshade':
+            background.push(layer)
+            break
+          default:
+            vector.push(layer)
+        }
+      }
+
+      setBackgroundLayers(background)
+      setVectorLayers(vector)
+    }
+
+    map.on('load', () => processLayers(map))
+    map.on('styledata', () => processLayers(map))
+  }, [])
+
   return (
     <div className='px-3 pt-4'>
-      <Background />
-      <SourceLayers />
+      <Background layers={backgroundLayers} />
+      <VectorLayers layers={vectorLayers} />
     </div>
   )
 }
@@ -17,7 +48,8 @@ const backgrounds = [
   { id: 'osm', title: 'OpenStreetMap' },
 ]
 
-function Background() {
+function Background({ layers }) {
+  // console.log('backgroundLayers', layers)
   const [opacity, setOpacity] = useState(0.5)
   const [background, setBackground] = useState('sat')
 
@@ -66,33 +98,66 @@ function Background() {
   )
 }
 
-function SourceLayers() {
-  const [enabled, setEnabled] = useState(false)
+function VectorLayers({ layers }) {
+  const sources = {}
+  for (const layer of layers) {
+    const source = layer.source
+    if (!sources[source]) {
+      sources[source] = [layer]
+    } else {
+      sources[source].push(layer)
+    }
+  }
 
   return (
     <>
-      <h3 className='font-medium text-gray-300 mt-6 mb-2'>Layers</h3>
-      <Switch.Group as='div' className='flex items-center'>
-        <Switch
-          checked={enabled}
-          onChange={setEnabled}
-          className={classNames(
-            enabled ? 'bg-fuchsia-700' : 'bg-gray-200',
-            'relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-fucshia-700 focus:ring-offset-2 focus:ring-offset-fuchsia-700'
-          )}
-        >
-          <span
-            aria-hidden='true'
-            className={classNames(
-              enabled ? 'translate-x-4' : 'translate-x-0',
-              'pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out'
-            )}
-          />
-        </Switch>
-        <Switch.Label as='span' className='ml-3'>
-          <span className='text-sm font-light text-gray-400 cursor-pointer'>Buildings</span>
-        </Switch.Label>
-      </Switch.Group>
+      {Object.keys(sources).map(source => (
+        <VectorLayerGroup key={source} source={source} layers={sources[source]} />
+      ))}
     </>
+  )
+}
+
+function VectorLayerGroup({ source, layers }) {
+  return (
+    <>
+      <h3 className='font-medium text-gray-300 mt-6 mb-2'>{source}</h3>
+      {layers.map(layer => (
+        <VectorLayer key={layer.id} layer={layer} />
+      ))}
+    </>
+  )
+}
+
+function VectorLayer({ layer }) {
+  const visibility = window.map.getLayoutProperty(layer.id, 'visibility')
+  const enabled = visibility !== 'none'
+
+  function setEnabled() {
+    window.map.setLayoutProperty(layer.id, 'visibility', enabled ? 'none' : 'visible')
+  }
+
+  return (
+    <Switch.Group as='div' className='flex items-center'>
+      <Switch
+        checked={enabled}
+        onChange={setEnabled}
+        className={classNames(
+          enabled ? 'bg-fuchsia-700' : 'bg-gray-200',
+          'relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-fucshia-700 focus:ring-offset-2 focus:ring-offset-fuchsia-700'
+        )}
+      >
+        <span
+          aria-hidden='true'
+          className={classNames(
+            enabled ? 'translate-x-4' : 'translate-x-0',
+            'pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out'
+          )}
+        />
+      </Switch>
+      <Switch.Label as='span' className='ml-3'>
+        <span className='text-sm font-light text-gray-400 cursor-pointer'>{layer.id}</span>
+      </Switch.Label>
+    </Switch.Group>
   )
 }
