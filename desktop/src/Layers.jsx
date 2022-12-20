@@ -30,6 +30,13 @@ export default function Layers() {
       setVectorLayers(vector)
     }
 
+    // At initial load, sometimes the map isn't ready yet and maplibre throws an error,
+    // so we wait for events to try again.
+    try {
+      map.getStyle() // the lib throws an error when serializing the style
+      processLayers(map)
+    } catch (_) {}
+
     map.on('load', () => processLayers(map))
     map.on('styledata', () => processLayers(map))
   }, [])
