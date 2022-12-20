@@ -8,8 +8,8 @@ import { PVTFeature } from './fbs/pvtfeature'
 import { PVTValueType } from './fbs/pvtvalue-type'
 
 // https://github.com/maplibre/maplibre-gl-js/blob/028344137fe1676b50b8da2729f1dcb5c8b65eac/src/data/extent.ts
-type Extent = 8196
-const EXTENT: Extent = 8196
+type Extent = 8192
+const EXTENT: Extent = 8192
 
 export class PVT {
   layers: { [_: string]: VectorTileLayer }
