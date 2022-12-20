@@ -57,9 +57,33 @@ const backgrounds = [
 ]
 
 function Background({ layers }) {
-  // console.log('backgroundLayers', layers)
-  const [opacity, setOpacity] = useState(0.5)
-  const [background, setBackground] = useState('sat')
+  const map = window.map
+
+  const selectedBackground = layers.find(
+    layer => layer.type === 'raster' && map.getLayoutProperty(layer.id, 'visibility') !== 'none'
+  )
+
+  const [opacity, setOpacity] = useState(1)
+
+  function isChecked(id) {
+    if (id === 'none') {
+      return !selectedBackground
+    }
+    return selectedBackground?.id === id
+  }
+
+  function setBackground(id) {
+    for (const bg of backgrounds) {
+      if (bg.id === 'none') {
+        continue
+      }
+      if (bg.id === id) {
+        map.setLayoutProperty(bg.id, 'visibility', 'visible')
+      } else {
+        map.setLayoutProperty(bg.id, 'visibility', 'none')
+      }
+    }
+  }
 
   return (
     <>
@@ -84,7 +108,7 @@ function Background({ layers }) {
                 id={bg.id}
                 name='notification-method'
                 type='radio'
-                checked={bg.id === background}
+                checked={isChecked(bg.id)}
                 onChange={() => setBackground(bg.id)}
                 className='h-4 w-4 bg-gray-500 text-fuchsia-700 focus:ring-fuchsia-700'
               />
@@ -92,7 +116,7 @@ function Background({ layers }) {
                 htmlFor={backgrounds.id}
                 onClick={() => setBackground(bg.id)}
                 className={classNames(
-                  bg.id === background ? 'text-white' : 'text-gray-400',
+                  isChecked(bg.id) ? 'text-white' : 'text-gray-400',
                   'ml-3 block text-sm font-light cursor-pointer'
                 )}
               >

@@ -5,11 +5,11 @@ document.addEventListener('keypress', event => {
   if (event.key === 'b') {
     switch (bCount % 3) {
       case 0:
-        map.setLayoutProperty('sat', 'visibility', 'visible')
+        map.setLayoutProperty('sat', 'visibility', 'none')
         map.setLayoutProperty('osm', 'visibility', 'none')
         break
       case 1:
-        map.setLayoutProperty('sat', 'visibility', 'none')
+        map.setLayoutProperty('sat', 'visibility', 'visible')
         map.setLayoutProperty('osm', 'visibility', 'none')
         break
       case 2:
