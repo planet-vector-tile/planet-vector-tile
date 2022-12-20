@@ -865,10 +865,10 @@
   dependencies:
     "irregular-plurals" "^3.3.0"
 
-"prettier@2.7.1":
-  "integrity" "sha512-ujppO+MkdPqoVINuDFDRLClm7D78qbDt0/NR+wp5FqEZOoTNAjPHWj17QRhu7geIHJfcNhRk1XVQmF8Bp3ye+g=="
-  "resolved" "https://registry.npmjs.org/prettier/-/prettier-2.7.1.tgz"
-  "version" "2.7.1"
+"prettier@2.8.1":
+  "integrity" "sha512-lqGoSJBQNJidqCHE80vqZJHWHRFoNYsSpP9AjFhlhi9ODCJA541svILes/+/1GM3VaL/abZi7cpFzOpdR9UPKg=="
+  "resolved" "https://registry.npmjs.org/prettier/-/prettier-2.8.1.tgz"
+  "version" "2.8.1"
 
 "pretty-ms@^7.0.1":
   "integrity" "sha512-973driJZvxiGOQ5ONsFhOF/DtzPMOMtgC11kCpUrPGMTgqp2q/1gwzCquocrN33is0VZ5GFHXZYMM9l6h67v2Q=="

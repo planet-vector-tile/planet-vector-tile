@@ -1,77 +1,77 @@
 {
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
-    "version": "0.2.0",
-    "configurations": [
-        {
-            "type": "lldb",
-            "request": "launch",
-            "name": "Debug executable 'fixtures'",
-            "cargo": {
-                "args": ["build", "--bin=fixtures", "--package=planet-vector-tile"],
-                "filter": {
-                    "name": "fixtures",
-                    "kind": "bin"
-                }
-            },
-            "cwd": "${workspaceFolder}"
-        },
-        {
-            "type": "lldb",
-            "request": "launch",
-            "name": "convert",
-            "cargo": {
-                "args": ["build", "--bin=pvt", "--package=planet-vector-tile"],
-                "filter": {
-                    "name": "pvt",
-                    "kind": "bin"
-                }
-            },
-            "args": ["convert", "./manifests/santa_cruz.yaml", "-o"],
-            "cwd": "${workspaceFolder}"
-        },
-        {
-            "type": "lldb",
-            "request": "launch",
-            "name": "render",
-            "cargo": {
-                "args": ["build", "--bin=pvt", "--package=planet-vector-tile"],
-                "filter": {
-                    "name": "pvt",
-                    "kind": "bin"
-                }
-            },
-            "args": ["render", "./manifests/santa_cruz.yaml"],
-            "cwd": "${workspaceFolder}"
-        },
-        {
-            "type": "lldb",
-            "request": "launch",
-            "name": "report",
-            "cargo": {
-                "args": ["build", "--bin=pvt", "--package=planet-vector-tile"],
-                "filter": {
-                    "name": "pvt",
-                    "kind": "bin"
-                }
-            },
-            "args": ["report", "./manifests/santa_cruz.yaml"],
-            "cwd": "${workspaceFolder}"
-        },
-        {
-            "type": "lldb",
-            "request": "launch",
-            "name": "Debug unit tests in executable 'pvt'",
-            "cargo": {
-                "args": ["test", "--no-run", "--bin=pvt", "--package=planet-vector-tile"],
-                "filter": {
-                    "name": "pvt",
-                    "kind": "bin"
-                }
-            },
-            "args": [],
-            "cwd": "${workspaceFolder}"
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug executable 'fixtures'",
+      "cargo": {
+        "args": ["build", "--bin=fixtures", "--package=planet-vector-tile"],
+        "filter": {
+          "name": "fixtures",
+          "kind": "bin"
         }
-    ]
+      },
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "convert",
+      "cargo": {
+        "args": ["build", "--bin=pvt", "--package=planet-vector-tile"],
+        "filter": {
+          "name": "pvt",
+          "kind": "bin"
+        }
+      },
+      "args": ["convert", "./manifests/santa_cruz.yaml", "-o"],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "render",
+      "cargo": {
+        "args": ["build", "--bin=pvt", "--package=planet-vector-tile"],
+        "filter": {
+          "name": "pvt",
+          "kind": "bin"
+        }
+      },
+      "args": ["render", "./manifests/santa_cruz.yaml"],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "report",
+      "cargo": {
+        "args": ["build", "--bin=pvt", "--package=planet-vector-tile"],
+        "filter": {
+          "name": "pvt",
+          "kind": "bin"
+        }
+      },
+      "args": ["report", "./manifests/santa_cruz.yaml"],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug unit tests in executable 'pvt'",
+      "cargo": {
+        "args": ["test", "--no-run", "--bin=pvt", "--package=planet-vector-tile"],
+        "filter": {
+          "name": "pvt",
+          "kind": "bin"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    }
+  ]
 }
