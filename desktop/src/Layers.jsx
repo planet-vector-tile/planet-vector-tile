@@ -2,7 +2,9 @@ import { useEffect, useState } from 'react'
 import { Switch } from '@headlessui/react'
 import { classNames } from './util'
 
-export default function Layers() {
+const store = window.store
+
+export default function Layers({page}) {
   const [backgroundLayers, setBackgroundLayers] = useState([])
   const [vectorLayers, setVectorLayers] = useState([])
 
@@ -43,7 +45,7 @@ export default function Layers() {
 
   return (
     <div className='px-3 pt-4'>
-      <Background layers={backgroundLayers} />
+      <Background layers={backgroundLayers} page={page} />
       <VectorLayers layers={vectorLayers} />
       <div className='h-14' />
     </div>
@@ -56,14 +58,27 @@ const backgrounds = [
   { id: 'osm', title: 'OpenStreetMap' },
 ]
 
-function Background({ layers }) {
+function Background({ layers, page }) {
   const map = window.map
 
   const selectedBackground = layers.find(
     layer => layer.type === 'raster' && map.getLayoutProperty(layer.id, 'visibility') !== 'none'
   )
 
-  const [opacity, setOpacity] = useState(1)
+  const opacity = selectedBackground?.paint['raster-opacity'] || 1
+
+  function setOpacity(opacity) {
+    if (selectedBackground) {
+      map.setPaintProperty(selectedBackground.id, 'raster-opacity', opacity)
+      // store.mapStlymap.getStyle()
+      if (page === 'map') {
+        store.mapStyle = window.map.getStyle()
+      }
+      if (page === 'data') {
+        store.dataStyle = window.map.getStyle()
+      }
+    }
+  }
 
   function isChecked(id) {
     if (id === 'none') {
@@ -95,7 +110,7 @@ function Background({ layers }) {
         min='0'
         max='1'
         step='.01'
-        onChange={e => setOpacity(e.target.value)}
+        onChange={e => setOpacity(parseFloat(e.target.value))}
         value={opacity}
         className='w-full h-1 rounded-lg appearance-none cursor-pointer bg-gray-500 color-fuchsia-700 accent-fuchsia-700'
       />

@@ -30,7 +30,7 @@ export default function Info({ nav, setNav }) {
         style={{ position: 'fixed' }}
         className='right-0 bg-slate-700/80 border-l border-gray-900 backdrop-blur-md overflow-y-auto'
       >
-        {nav.info === 'layers' && <Layers />}
+        {nav.info === 'layers' && <Layers page={nav.page} />}
         {nav.info === 'features' && <Features />}
       </Resizable>
     </>
