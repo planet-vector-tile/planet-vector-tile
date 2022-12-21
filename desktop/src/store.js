@@ -1,5 +1,13 @@
-const defaultMapStyle = require('../styles/default.json')
-const defaultDataStyle = require('../styles/data.json')
+// When the app is packaged, the pwd is in the dist dir
+let mapStylePath = '../styles/default.json'
+let dataStylePath = '../styles/data.json'
+// But we are in the desktop dir when running in dev mode
+if (process.env.IS_DEV === 'true') {
+  mapStylePath = './styles/default.json'
+  dataStylePath = './styles/data.json'
+}
+const defaultMapStyle = require(mapStylePath)
+const defaultDataStyle = require(dataStylePath)
 
 // Updating values in the state automatically persists to localStorage via a Proxy.
 // https://benborgers.com/posts/js-object-changes

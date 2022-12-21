@@ -26,6 +26,13 @@
       "sprite": "https://storage.googleapis.com/hellopvt3/sprites",
       "minzoom": 0,
       "maxzoom": 14
+    },
+    "gaia": {
+      "type": "vector",
+      "tiles": ["https://vectortiles.gaiagps.com/osm4/{z}/{x}/{y}.pbf"],
+      "sprite": "https://storage.googleapis.com/hellopvt3/sprites",
+      "minzoom": 0,
+      "maxzoom": 14
     }
   },
   "layers": [
@@ -195,137 +202,16 @@
         "text-color": "rgba(255, 255, 255, 0.3)"
       }
     },
-
     {
-      "id": "no_rule_line",
+      "id": "gaia_default",
       "type": "line",
       "minzoom": 0,
       "maxzoom": 23,
-      "source": "planet",
-      "source-layer": "no_rule",
+      "source": "gaia",
+      "source-layer": "default",
       "paint": {
-        "line-color": "red",
-        "line-width": 1
-      }
-    },
-    {
-      "id": "no_rule_circle",
-      "type": "circle",
-      "minzoom": 0,
-      "maxzoom": 23,
-      "source": "planet",
-      "source-layer": "nodes",
-      "paint": {
-        "circle-radius": 4,
-        "circle-color": "red"
-      }
-    },
-
-    {
-      "id": "Administrative",
-      "type": "line",
-      "minzoom": 0,
-      "maxzoom": 23,
-      "source": "planet",
-      "source-layer": "Administrative",
-      "paint": {
-        "line-color": "#F2E291",
-        "line-width": 1
-      }
-    },
-    {
-      "id": "Water",
-      "type": "line",
-      "minzoom": 0,
-      "maxzoom": 23,
-      "source": "planet",
-      "source-layer": "Water",
-      "paint": {
-        "line-color": "#6FA8BF",
-        "line-width": 1
-      }
-    },
-    {
-      "id": "Landuse",
-      "type": "line",
-      "minzoom": 0,
-      "maxzoom": 23,
-      "source": "planet",
-      "source-layer": "Landuse",
-      "paint": {
-        "line-color": "#4C797B",
-        "line-width": 1
-      }
-    },
-    {
-      "id": "major_roads",
-      "type": "line",
-      "minzoom": 0,
-      "maxzoom": 23,
-      "source": "planet",
-      "source-layer": "Major Roads",
-      "paint": {
-        "line-color": "#CB544B",
-        "line-width": 1
-      }
-    },
-    {
-      "id": "minor_roads",
-      "type": "line",
-      "minzoom": 0,
-      "maxzoom": 23,
-      "source": "planet",
-      "source-layer": "Minor Roads",
-      "paint": {
-        "line-color": "#9DBCAC",
-        "line-width": 1
-      }
-    },
-    {
-      "id": "Places",
-      "type": "line",
-      "minzoom": 0,
-      "maxzoom": 23,
-      "source": "planet",
-      "source-layer": "Places",
-      "paint": {
-        "line-color": "#F2E291",
-        "line-width": 1
-      }
-    },
-    {
-      "id": "Buildings",
-      "type": "line",
-      "minzoom": 0,
-      "maxzoom": 23,
-      "source": "planet",
-      "source-layer": "Buildings",
-      "paint": {
-        "line-color": "#FFEC5C",
-        "line-width": 1
-      }
-    },
-    {
-      "id": "buildings_fill",
-      "type": "fill",
-      "minzoom": 0,
-      "maxzoom": 23,
-      "source": "planet",
-      "source-layer": "Buildings",
-      "paint": {
-        "fill-color": "#FFEC5C"
-      }
-    },
-    {
-      "id": "places_circle",
-      "type": "circle",
-      "minzoom": 0,
-      "maxzoom": 23,
-      "source": "planet",
-      "source-layer": "Places",
-      "paint": {
-        "circle-radius": 4,
-        "circle-color": "#F28705"
+        "line-color": "rgba(255, 105, 180, 1)",
+        "line-width": 2
       }
     }
   ]
