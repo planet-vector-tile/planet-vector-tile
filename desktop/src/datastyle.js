@@ -88,8 +88,10 @@ function updateStyle(map, sourceId, newLayers) {
     style.layers.push(circleLayer)
     style.layers.push(fillLayer)
 
-    map.addLayer(lineLayer)
-    map.addLayer(circleLayer)
-    map.addLayer(fillLayer)
+    if (map.getStyle().name === 'Data') {
+      map.addLayer(lineLayer)
+      map.addLayer(circleLayer)
+      map.addLayer(fillLayer)
+    }
   }
 }
