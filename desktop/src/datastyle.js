@@ -70,10 +70,26 @@ function updateStyle(map, sourceId, newLayers) {
       },
     }
 
+    const fillLayer = {
+      id: `${layerId}_fill`,
+      type: 'fill',
+      minzoom: 0,
+      maxzoom: 23,
+      source: sourceId,
+      'source-layer': layerId,
+      layout: { visibility: 'none' },
+      paint: {
+        'fill-color': 'pink',
+        'fill-opacity': 0.5,
+      },
+    }
+
     style.layers.push(lineLayer)
     style.layers.push(circleLayer)
+    style.layers.push(fillLayer)
 
     map.addLayer(lineLayer)
     map.addLayer(circleLayer)
+    map.addLayer(fillLayer)
   }
 }
