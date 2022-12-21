@@ -1,11 +1,11 @@
-const store = window.store
+import store from './store.js'
 
 const sources = {}
 
 // just for debugging
 window.datastyle = sources
 
-export default function initFromMap(map) {
+export function setupDataStyleWithMap(map) {
   map.on('sourcedata', function (e) {
     const newLayers = new Set()
     const layerIds = e?.tile?.latestFeatureIndex?.layerIds
@@ -101,3 +101,57 @@ function updateStyle(map, sourceId, newLayers) {
 function removeSuffix(layerId) {
   return layerId.replace(/ (Line|Circle|Fill)$/, '')
 }
+
+const colors = [
+  '#f94144',
+  '#f3722c',
+  '#f8961e',
+  '#f9844a',
+  '#f9c74f',
+  '#90be6d',
+  '#43aa8b',
+  '#4d908e',
+  '#577590',
+  '#277da1',
+  '#5e60ce',
+  '#9d4edd',
+  '#f3722c',
+  '#f8961e',
+  '#f9844a',
+  '#f9c74f',
+  '#90be6d',
+  '#43aa8b',
+  '#4d908e',
+  '#577590',
+  '#277da1',
+  '#5e60ce',
+  '#9d4edd',
+  '#f3722c',
+  '#f8961e',
+  '#f9844a',
+  '#f9c74f',
+  '#90be6d',
+  '#43aa8b',
+  '#4d908e',
+  '#577590',
+  '#277da1',
+  '#5e60ce',
+  '#9d4edd',
+  '#f3722c',
+  '#f8961e',
+  '#f9844a',
+]
+
+const pastelColors = [
+  '#fbf8cc',
+  '#fde4cf',
+  '#ffcfd2',
+  '#f1c0e8',
+  '#cfbaf0',
+  '#a3c4f3',
+  '#90dbf4',
+  '#8eecf5',
+  '#8eecf5',
+  '#8eecf5',
+  '#9w',
+]

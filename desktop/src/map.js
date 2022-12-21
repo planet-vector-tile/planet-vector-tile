@@ -1,29 +1,31 @@
 // map.js is not part of the app bundle, so here we pull in NodeJS modules with require.
 const { ipcRenderer } = require('electron')
 
-const maplibre = window.maplibregl
-let api
-if (process.env.IS_DEV) {
-  api = require('../index')
-} else {
-  api = require('../deps/index')
-}
+import store from './store'
 
-maplibre.setPlanetVectorTilePlugin(api)
+// To prevent a mess of top-level promise calls for the map, we just expose the main map here
+// and make sure we initialize the map before initializing React (in index.jsx).
+export let map = null
 
-ipcRenderer.on('open-style', (_event, style) => {
-  window.map.setStyle(style)
-  store.mapStyle = style
-  // NHTODO also pull out business logic to derive a new data style and update that in the store
-})
+function initialize() {
+  // We bring in MapLibre from a script tag so that we
+  // don't have the massive library in the app bundle.
+  const maplibre = window.maplibregl
+  let api
+  if (process.env.IS_DEV) {
+    api = require('../index')
+  } else {
+    api = require('../deps/index')
+  }
 
-function initMap() {
+  maplibre.setPlanetVectorTilePlugin(api)
+
   let style = store.mapStyle
   if (store.nav.page === 'data') {
     style = store.dataStyle
   }
 
-  map = window.map = new maplibre.Map({
+  map = new maplibre.Map({
     container: 'map',
     style: style,
     bounds: store.bbox,
@@ -43,10 +45,24 @@ function initMap() {
     const features = map.queryRenderedFeatures(bbox)
     console.log('features', features)
   })
+
+  ipcRenderer.on('open-style', (_event, style) => {
+    map.setStyle(style)
+    store.mapStyle = style
+  })
+
+  // for debugging
+  window.map = map
+
+  return map
 }
 
-if (document.readyState !== 'loading') {
-  initMap()
-} else {
-  window.addEventListener('DOMContentLoaded', () => initMap())
+export function setupMainMap() {
+  return new Promise((resolve, _) => {
+    if (document.readyState !== 'loading') {
+      resolve(initialize())
+    } else {
+      window.addEventListener('DOMContentLoaded', () => resolve(initialize()))
+    }
+  })
 }

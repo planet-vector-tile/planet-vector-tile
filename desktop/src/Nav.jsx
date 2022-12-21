@@ -1,6 +1,5 @@
+import store from './store'
 import { classNames } from './util'
-
-const store = window.store
 
 export default function Nav({ nav, setNav }) {
   return (
@@ -28,10 +27,10 @@ function PlanetsMapData({ page, setPage }) {
   function togglePage(page) {
     setPage(page)
     if (page === 'map') {
-      window.map.setStyle(store.mapStyle)
+      map.setStyle(store.mapStyle)
     }
     if (page === 'data') {
-      window.map.setStyle(store.dataStyle)
+      map.setStyle(store.dataStyle)
     }
   }
 

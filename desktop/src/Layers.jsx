@@ -1,16 +1,14 @@
 import { useEffect, useState } from 'react'
 import { Switch } from '@headlessui/react'
 import { classNames } from './util'
+import store from './store'
+import { map } from './map'
 
-const store = window.store
-
-export default function Layers({page}) {
+export default function Layers({ page }) {
   const [backgroundLayers, setBackgroundLayers] = useState([])
   const [vectorLayers, setVectorLayers] = useState([])
 
   useEffect(() => {
-    const map = window.map
-
     function processLayers(map) {
       const layers = map.getStyle()?.layers || []
       const background = []
@@ -59,8 +57,6 @@ const backgrounds = [
 ]
 
 function Background({ layers, page }) {
-  const map = window.map
-
   const selectedBackground = layers.find(
     layer => layer.type === 'raster' && map.getLayoutProperty(layer.id, 'visibility') !== 'none'
   )
@@ -72,10 +68,10 @@ function Background({ layers, page }) {
       map.setPaintProperty(selectedBackground.id, 'raster-opacity', opacity)
       // store.mapStlymap.getStyle()
       if (page === 'map') {
-        store.mapStyle = window.map.getStyle()
+        store.mapStyle = map.getStyle()
       }
       if (page === 'data') {
-        store.dataStyle = window.map.getStyle()
+        store.dataStyle = map.getStyle()
       }
     }
   }
@@ -177,11 +173,11 @@ function VectorLayerGroup({ source, layers }) {
 }
 
 function VectorLayer({ layer }) {
-  const visibility = window.map.getLayoutProperty(layer.id, 'visibility')
+  const visibility = map.getLayoutProperty(layer.id, 'visibility')
   const enabled = visibility !== 'none'
 
   function setEnabled() {
-    window.map.setLayoutProperty(layer.id, 'visibility', enabled ? 'none' : 'visible')
+    map.setLayoutProperty(layer.id, 'visibility', enabled ? 'none' : 'visible')
   }
 
   return (

@@ -53,4 +53,8 @@ window.resetStore = () => {
 }
 
 const store = new Proxy(initialState, handler)
+
+// for debugging
 window.store = store
+
+export default store

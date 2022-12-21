@@ -4,18 +4,9 @@ import Nav from './Nav'
 import Info from './Info'
 import Planets from './Planets'
 import Loc from './Loc'
-
-import hotkeys from './hotkeys'
-import initDatastyle from './datastyle'
-
-const store = window.store
-
-let datastyle = null
+import store from './store'
 
 function App() {
-  if (!datastyle) {
-    datastyle = initDatastyle(window.map)
-  }
   const [nav, _setNav] = useState(store.nav)
 
   function setNav(nav) {
