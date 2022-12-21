@@ -203,15 +203,15 @@
       }
     },
     {
-      "id": "gaia_default",
+      "id": "gaia_fake",
       "type": "line",
       "minzoom": 0,
       "maxzoom": 23,
       "source": "gaia",
-      "source-layer": "default",
+      "source-layer": "fake",
       "paint": {
         "line-color": "rgba(255, 105, 180, 1)",
-        "line-width": 2
+        "line-width": 1
       }
     }
   ]
