@@ -7,7 +7,7 @@ window.datastyle = sources
 
 export default function initFromMap(map) {
   map.on('sourcedata', function (e) {
-    const newLayers = []
+    const newLayers = new Set()
     const layerIds = e?.tile?.latestFeatureIndex?.layerIds
     if (!Array.isArray(layerIds) || layerIds.length === 0) {
       return
@@ -19,10 +19,10 @@ export default function initFromMap(map) {
       sources[e.sourceId] = sourceLayerIds
     }
 
-    for (const name of layerIds) {
-      if (!sourceLayerIds.has(name)) {
-        sourceLayerIds.add(name)
-        newLayers.push(name)
+    for (const sourceLayerId of layerIds) {
+      if (!sourceLayerIds.has(sourceLayerId)) {
+        sourceLayerIds.add(sourceLayerId)
+        newLayers.add(sourceLayerId)
       }
     }
 
@@ -31,13 +31,15 @@ export default function initFromMap(map) {
 }
 
 function findExistingLayerIdsFromStyle(sourceId, style) {
-  const layerIds = new Set()
+  const sourceLayerIds = new Set()
   for (const layer of style.layers) {
-    if (layer.source === sourceId) {
-      layerIds.add(layer.id)
+    if (layer.source !== sourceId) {
+      continue
     }
+    const sourceLayerId = removeSuffix(layer.id)
+    sourceLayerIds.add(sourceLayerId)
   }
-  return layerIds
+  return sourceLayerIds
 }
 
 function updateStyle(map, sourceId, newLayers) {
@@ -45,7 +47,7 @@ function updateStyle(map, sourceId, newLayers) {
 
   for (const layerId of newLayers) {
     const lineLayer = {
-      id: `${layerId}_line`,
+      id: `${layerId} Line`,
       type: 'line',
       minzoom: 0,
       maxzoom: 23,
@@ -58,7 +60,7 @@ function updateStyle(map, sourceId, newLayers) {
     }
 
     const circleLayer = {
-      id: `${layerId}_circle`,
+      id: `${layerId} Circle`,
       type: 'circle',
       minzoom: 0,
       maxzoom: 23,
@@ -71,7 +73,7 @@ function updateStyle(map, sourceId, newLayers) {
     }
 
     const fillLayer = {
-      id: `${layerId}_fill`,
+      id: `${layerId} Fill`,
       type: 'fill',
       minzoom: 0,
       maxzoom: 23,
@@ -94,4 +96,8 @@ function updateStyle(map, sourceId, newLayers) {
       map.addLayer(fillLayer)
     }
   }
+}
+
+function removeSuffix(layerId) {
+  return layerId.replace(/ (Line|Circle|Fill)$/, '')
 }
