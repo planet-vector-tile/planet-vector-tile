@@ -16,7 +16,7 @@ function initialize() {
     // In dev mode, we are working from planet-vector-tile/desktop
     api = require('../index')
   } else {
-    // In production, we are in the Resources directory of the app bundle, 
+    // In production, we are in the Resources directory of the app bundle,
     // and the NAPI module is in deps, which you can see pulled in by forge.config.json'
     // This require is relative to Resources/dist/index.html
     api = require('../deps/index')

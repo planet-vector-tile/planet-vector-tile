@@ -2,7 +2,7 @@ import store from './store.js'
 
 const sources = {}
 
-// just for debugging
+// for debugging
 window.datastyle = sources
 
 export function setupDataStyleWithMap(map) {
@@ -46,6 +46,8 @@ function updateStyle(map, sourceId, newLayers) {
   const style = store.dataStyle
 
   for (const layerId of newLayers) {
+    const color = pickColor()
+
     const lineLayer = {
       id: `${layerId} Line`,
       type: 'line',
@@ -54,8 +56,9 @@ function updateStyle(map, sourceId, newLayers) {
       source: sourceId,
       'source-layer': layerId,
       paint: {
-        'line-color': 'pink',
+        'line-color': color,
         'line-width': 2,
+        'line-opacity': 0.8,
       },
     }
 
@@ -67,8 +70,11 @@ function updateStyle(map, sourceId, newLayers) {
       source: sourceId,
       'source-layer': layerId,
       paint: {
-        'circle-radius': 4,
-        'circle-color': 'pink',
+        'circle-radius': 3,
+        'circle-color': color,
+        'circle-opacity': 1,
+        'circle-stroke-width': 1,
+        'circle-stroke-color': '#334155',
       },
     }
 
@@ -81,7 +87,7 @@ function updateStyle(map, sourceId, newLayers) {
       'source-layer': layerId,
       layout: { visibility: 'none' },
       paint: {
-        'fill-color': 'pink',
+        'fill-color': color,
         'fill-opacity': 0.5,
       },
     }
@@ -102,56 +108,47 @@ function removeSuffix(layerId) {
   return layerId.replace(/ (Line|Circle|Fill)$/, '')
 }
 
+let color_idx = 0
+// 35 colors
 const colors = [
-  '#f94144',
-  '#f3722c',
-  '#f8961e',
-  '#f9844a',
-  '#f9c74f',
-  '#90be6d',
-  '#43aa8b',
-  '#4d908e',
-  '#577590',
-  '#277da1',
-  '#5e60ce',
-  '#9d4edd',
-  '#f3722c',
-  '#f8961e',
-  '#f9844a',
-  '#f9c74f',
-  '#90be6d',
-  '#43aa8b',
-  '#4d908e',
-  '#577590',
-  '#277da1',
-  '#5e60ce',
-  '#9d4edd',
-  '#f3722c',
-  '#f8961e',
-  '#f9844a',
-  '#f9c74f',
-  '#90be6d',
-  '#43aa8b',
-  '#4d908e',
-  '#577590',
-  '#277da1',
-  '#5e60ce',
-  '#9d4edd',
-  '#f3722c',
-  '#f8961e',
-  '#f9844a',
+  '#79ADDC',
+  '#caffbf',
+  '#ffadad',
+  '#ffd6a5',
+  '#fdffb6',
+  '#bdb2ff',
+  '#ffc6ff',
+  '#9bf6ff',
+  '#c5dedd',
+  '#fad2e1',
+  '#cdeac0',
+  '#ede7b1',
+  '#ffd972',
+  '#e0e1e9',
+  '#e4b4c2',
+  '#ddfdfe',
+  '#fcefef',
+  '#e8ffb7',
+  '#e7c8a0',
+  '#68b6ef',
+  '#fefdf8',
+  '#a7d3a6',
+  '#eae4e9',
+  '#fff1e6',
+  '#cfe795',
+  '#fde2e4',
+  '#becee4',
+  '#fad2e1',
+  '#e2ece9',
+  '#bee1e6',
+  '#f0efeb',
+  '#fae1dd',
+  '#dfe7fd',
+  '#ff7497',
+  '#cddafd',
 ]
 
-const pastelColors = [
-  '#fbf8cc',
-  '#fde4cf',
-  '#ffcfd2',
-  '#f1c0e8',
-  '#cfbaf0',
-  '#a3c4f3',
-  '#90dbf4',
-  '#8eecf5',
-  '#8eecf5',
-  '#8eecf5',
-  '#9w',
-]
+function pickColor() {
+  const i = color_idx++ % colors.length
+  return colors[i]
+}
