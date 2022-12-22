@@ -3,21 +3,29 @@ import store from './store.js'
 const sources = {}
 
 // for debugging
-window.datastyle = sources
+window.dataStyleSources = sources
+
+// NHTODO
+// Handle edge cases where the user removes a source from the main map style or changes style
+// We need to detect this and remove the layers not in sources. Right now we just check during initialization.
 
 export function setupDataStyleWithMap(map) {
+  // The serialized dataStyle might have layers with a source that is not in the currently loaded map style
+  checkForLayersNotInSources()
+
   map.on('sourcedata', function (e) {
+
+    // Check if we are getting a new vector tile source, and add it to the data style
+    checkForNewVectorSource(e)
+
     const newLayers = new Set()
     const layerIds = e?.tile?.latestFeatureIndex?.layerIds
     if (!Array.isArray(layerIds) || layerIds.length === 0) {
       return
     }
 
+    // We know we already have a set object here from checkForNewVectorSource
     let sourceLayerIds = sources[e.sourceId]
-    if (!sourceLayerIds) {
-      sourceLayerIds = findExistingLayerIdsFromStyle(e.sourceId, store.dataStyle)
-      sources[e.sourceId] = sourceLayerIds
-    }
 
     for (const sourceLayerId of layerIds) {
       if (!sourceLayerIds.has(sourceLayerId)) {
@@ -28,6 +36,42 @@ export function setupDataStyleWithMap(map) {
 
     updateStyle(map, e.sourceId, newLayers)
   })
+}
+
+function checkForLayersNotInSources() {
+  const trackedSources = new Set()
+  for (const sourceId in store.mapStyle.sources) {
+    const source = store.mapStyle.sources[sourceId]
+    const type = source.type
+    // only look at vector sources
+    if (type === 'background' || type === 'raster' || type === 'hillshade') {
+      continue
+    }
+    trackedSources.add(sourceId)
+  }
+
+  const validLayers  = []
+  for (const layer of store.dataStyle.layers) {
+    if (trackedSources.has(layer.source)) {
+      validLayers.push(layer)
+    }
+  }
+  store.dataStyle.layers = validLayers
+}
+
+function checkForNewVectorSource(sourceDataEvent) {
+  const type = sourceDataEvent.source.type
+  // If must be a vector source
+  if (type === 'background' || type === 'raster' || type === 'hillshade') {
+    return
+  }
+  // If we already track it, we don't need to do anything
+  if (sources[sourceDataEvent.sourceId]) {
+    return
+  }
+
+  store.dataStyle.sources[sourceDataEvent.sourceId] = sourceDataEvent.source
+  sources[sourceDataEvent.sourceId] = new Set()
 }
 
 function findExistingLayerIdsFromStyle(sourceId, style) {
