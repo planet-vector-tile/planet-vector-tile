@@ -198,7 +198,7 @@ function VectorLayerGroup({ source, layers }) {
 }
 
 const MUTE_AND_SOLO_STYLE =
-  'border border-transparent group-hover:border-gray-500 rounded-md font-light text-sm group-hover:text-gray-300'
+  'border border-gray-600/40 group-hover:border-gray-500 rounded-md font-light text-sm group-hover:text-gray-300'
 
 function VectorLayer({ layer }) {
   const visibility = map.getLayoutProperty(layer.id, 'visibility')
@@ -251,19 +251,19 @@ function VectorLayer({ layer }) {
       <div className='flex-shrink-0 space-y-0.5'>
         <button
           title='Circle'
-          className='rounded-l-md border border-transparent group-hover:border-gray-500 group-hover:shadow-md px-1 font-light text-sm text-gray-500 group-hover:text-gray-300 text-center'
+          className='rounded-l-md border border-gray-600/40 group-hover:border-gray-500 group-hover:shadow-md px-1 font-light text-sm text-gray-500 group-hover:text-gray-300 text-center'
         >
           C
         </button>
         <button
           title='Line'
-          className='border border-transparent group-hover:border-gray-500 group-hover:shadow-md px-1 font-light text-sm text-gray-500 group-hover:text-gray-300 text-center'
+          className='border-t border-b border-gray-600/40 group-hover:border-gray-500 group-hover:shadow-md px-1 font-light text-sm text-gray-500 group-hover:text-gray-300 text-center'
         >
           L
         </button>
         <button
           title='Fill'
-          className='rounded-r-md border border-transparent group-hover:border-gray-500 group-hover:shadow-md px-1 font-light text-sm text-gray-500 group-hover:text-gray-300 text-center'
+          className='rounded-r-md border border-gray-600/40 group-hover:border-gray-500 group-hover:shadow-md px-1 font-light text-sm text-gray-500 group-hover:text-gray-300 text-center'
         >
           F
         </button>
