@@ -66,7 +66,6 @@ function Background({ layers, page }) {
   function setOpacity(opacity) {
     if (selectedBackground) {
       map.setPaintProperty(selectedBackground.id, 'raster-opacity', opacity)
-      // store.mapStlymap.getStyle()
       if (page === 'map') {
         store.mapStyle = map.getStyle()
       }
@@ -97,7 +96,7 @@ function Background({ layers, page }) {
   }
 
   return (
-    <>
+    <section className='px-4 pb-5'>
       <label className='font-medium text-gray-300'>
         Background <span className='text-xs border rounded px-0.5'>B</span>
       </label>
@@ -137,7 +136,7 @@ function Background({ layers, page }) {
           ))}
         </div>
       </fieldset>
-    </>
+    </section>
   )
 }
 
@@ -167,7 +166,7 @@ function VectorLayerGroup({ source, layers }) {
     <div key={source} className='relative'>
       <Switch.Group
         as='div'
-        className='flex items-center sticky top-0 z-10 border-t border-b border-gray-600 bg-gray-700 px-3 py-1 font-medium text-gray-300'
+        className='flex items-center sticky top-0 z-10 border-t border-b border-gray-600 bg-gray-700 px-3 pt-0.5 pb-1 font-medium text-gray-300'
       >
         <Switch
           checked={enabled}
