@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, memo } from 'react'
 import { Switch } from '@headlessui/react'
 import { classNames } from './util'
 import store from './store'
@@ -44,8 +44,8 @@ export default function Layers({ page }) {
   return (
     <div className='pt-4'>
       <Background layers={backgroundLayers} page={page} />
-      <VectorLayers layers={vectorLayers} />
-      <div className='h-14' />
+      <MemoVectorLayers layers={vectorLayers} />
+      <div className='h-10' />
     </div>
   )
 }
@@ -139,6 +139,10 @@ function Background({ layers, page }) {
     </section>
   )
 }
+
+// memo stops React from re-rendering VectorLayers unless the actual vectorLayers prop chages.
+// React tries to re-render layers when the page changes, and MapLibre may not have finished switching up the layers yet.
+const MemoVectorLayers = memo(VectorLayers)
 
 function VectorLayers({ layers }) {
   const sources = {}
