@@ -197,13 +197,19 @@ function VectorLayerGroup({ source, layers }) {
   )
 }
 
+const MUTE_AND_SOLO_STYLE =
+  'border border-transparent group-hover:border-gray-500 rounded-md font-light text-sm group-hover:text-gray-300'
+
 function VectorLayer({ layer }) {
   const visibility = map.getLayoutProperty(layer.id, 'visibility')
-  const enabled = visibility !== 'none'
+  const isMuted = visibility === 'none'
+  const isSolo = false
 
-  function setEnabled() {
-    map.setLayoutProperty(layer.id, 'visibility', enabled ? 'none' : 'visible')
+  function toggleMute() {
+    map.setLayoutProperty(layer.id, 'visibility', isMuted ? 'visible' : 'none')
   }
+
+  function toggleSolo() {}
 
   return (
     <li key={layer.id} className='group relative flex items-center space-x-3 px-1 pb-1 cursor-default'>
@@ -211,7 +217,14 @@ function VectorLayer({ layer }) {
         <div className='text-center'>
           <button
             title='Mute'
-            className='border border-transparent group-hover:border-gray-500 rounded-md group-hover:shadow-md px-1 font-light text-sm text-gray-500 group-hover:text-gray-300'
+            className={classNames(
+              isMuted
+                ? 'text-amber-600 group-hover:bg-amber-600 group-hover:border-amber-600 shadow-inner'
+                : 'text-gray-500',
+              MUTE_AND_SOLO_STYLE,
+              'px-1 group-hover:shadow-md'
+            )}
+            onClick={toggleMute}
           >
             M
           </button>
@@ -220,7 +233,13 @@ function VectorLayer({ layer }) {
         <div className='text-center'>
           <button
             title='Solo'
-            className='border border-transparent group-hover:border-gray-500 rounded-md group-hover:shadow-md px-1.5 font-light text-sm text-gray-500 group-hover:text-gray-300'
+            className={classNames(
+              isSolo
+                ? 'text-lime-600 group-hover:bg-lime-600 group-hover:border-lime-600 shadow-inner'
+                : 'text-gray-500',
+              MUTE_AND_SOLO_STYLE,
+              'px-1.5 group-hover:shadow-md'
+            )}
           >
             S
           </button>
