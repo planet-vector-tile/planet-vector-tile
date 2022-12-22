@@ -52,6 +52,11 @@ function checkForLayersNotInSources() {
 
   const validLayers  = []
   for (const layer of store.dataStyle.layers) {
+    // keep the contextual layers
+    const type = layer.type
+    if (type === 'background' || type === 'raster' || type === 'hillshade') {
+      validLayers.push(layer)
+    }
     if (trackedSources.has(layer.source)) {
       validLayers.push(layer)
     }
