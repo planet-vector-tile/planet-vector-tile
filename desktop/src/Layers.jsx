@@ -42,7 +42,7 @@ export default function Layers({ page }) {
   }, [])
 
   return (
-    <div className='px-3 pt-4'>
+    <div className='pt-4'>
       <Background layers={backgroundLayers} page={page} />
       <VectorLayers layers={vectorLayers} />
       <div className='h-14' />
@@ -162,13 +162,39 @@ function VectorLayers({ layers }) {
 }
 
 function VectorLayerGroup({ source, layers }) {
+  const [enabled, setEnabled] = useState(true)
   return (
-    <>
-      <h3 className='font-medium text-gray-300 mt-4 mb-2'>{source}</h3>
-      {layers.map(layer => (
-        <VectorLayer key={layer.id} layer={layer} />
-      ))}
-    </>
+    <div key={source} className='relative'>
+      <Switch.Group
+        as='div'
+        className='flex items-center sticky top-0 z-10 border-t border-b border-gray-600 bg-gray-700 px-3 py-1 font-medium text-gray-300'
+      >
+        <Switch
+          checked={enabled}
+          onChange={setEnabled}
+          className={classNames(
+            enabled ? 'bg-fuchsia-700/80' : 'bg-gray-200',
+            'relative inline-flex h-3 w-6 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-fucshia-700 focus:ring-offset-2 focus:ring-offset-fuchsia-700'
+          )}
+        >
+          <span
+            aria-hidden='true'
+            className={classNames(
+              enabled ? 'translate-x-3' : 'translate-x-0',
+              'pointer-events-none inline-block h-2 w-2 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out'
+            )}
+          />
+        </Switch>
+        <Switch.Label as='span' className='ml-3'>
+          <span className='cursor-pointer'>{source}</span>
+        </Switch.Label>
+      </Switch.Group>
+      <ul role='list' className='divide-y divide-gray-600'>
+        {layers.map(layer => (
+          <VectorLayer key={layer.id} layer={layer} />
+        ))}
+      </ul>
+    </div>
   )
 }
 
@@ -181,26 +207,49 @@ function VectorLayer({ layer }) {
   }
 
   return (
-    <Switch.Group as='div' className='flex items-center py-1'>
-      <Switch
-        checked={enabled}
-        onChange={setEnabled}
-        className={classNames(
-          enabled ? 'bg-fuchsia-700/80' : 'bg-gray-200',
-          'relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-fucshia-700 focus:ring-offset-2 focus:ring-offset-fuchsia-700'
-        )}
-      >
-        <span
-          aria-hidden='true'
-          className={classNames(
-            enabled ? 'translate-x-4' : 'translate-x-0',
-            'pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out'
-          )}
-        />
-      </Switch>
-      <Switch.Label as='span' className='ml-3'>
-        <span className='text-sm font-light text-gray-400 cursor-pointer'>{layer.id}</span>
-      </Switch.Label>
-    </Switch.Group>
+    <li key={layer.id} className='group relative flex items-center space-x-3 px-1 pb-1 cursor-default'>
+      <div className='flex-shrink-0'>
+        <div className='text-center'>
+          <button
+            title='Mute'
+            className='border border-transparent group-hover:border-gray-500 rounded-md group-hover:shadow-md px-1 font-light text-sm text-gray-500 group-hover:text-gray-300'
+          >
+            M
+          </button>
+        </div>
+
+        <div className='text-center'>
+          <button
+            title='Solo'
+            className='border border-transparent group-hover:border-gray-500 rounded-md group-hover:shadow-md px-1.5 font-light text-sm text-gray-500 group-hover:text-gray-300'
+          >
+            S
+          </button>
+        </div>
+      </div>
+
+      <div className='flex-1 font-light text-sm text-white'>{layer.id}</div>
+
+      <div className='flex-shrink-0 space-y-0.5'>
+        <button
+          title='Circle'
+          className='rounded-l-md border border-transparent group-hover:border-gray-500 group-hover:shadow-md px-1 font-light text-sm text-gray-500 group-hover:text-gray-300 text-center'
+        >
+          C
+        </button>
+        <button
+          title='Line'
+          className='border border-transparent group-hover:border-gray-500 group-hover:shadow-md px-1 font-light text-sm text-gray-500 group-hover:text-gray-300 text-center'
+        >
+          L
+        </button>
+        <button
+          title='Fill'
+          className='rounded-r-md border border-transparent group-hover:border-gray-500 group-hover:shadow-md px-1 font-light text-sm text-gray-500 group-hover:text-gray-300 text-center'
+        >
+          F
+        </button>
+      </div>
+    </li>
   )
 }

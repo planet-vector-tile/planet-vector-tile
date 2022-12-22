@@ -20,14 +20,14 @@
       "minzoom": 0,
       "maxzoom": 23
     },
-    "planet": {
+    "Full Planet": {
       "type": "planet",
       "tiles": ["info", "/Users/n/code/planet-vector-tile/manifests/full_planet.yaml"],
       "sprite": "https://storage.googleapis.com/hellopvt3/sprites",
       "minzoom": 0,
       "maxzoom": 14
     },
-    "gaia": {
+    "GaiaGPS": {
       "type": "vector",
       "tiles": ["https://vectortiles.gaiagps.com/osm4/{z}/{x}/{y}.pbf"],
       "sprite": "https://storage.googleapis.com/hellopvt3/sprites",
@@ -68,7 +68,7 @@
       "type": "fill",
       "minzoom": 0,
       "maxzoom": 23,
-      "source": "planet",
+      "source": "Full Planet",
       "source-layer": "tile_boundary",
       "paint": {
         "fill-color": "rgba(255, 105, 180, 0.001)"
@@ -79,7 +79,7 @@
       "type": "line",
       "minzoom": 0,
       "maxzoom": 23,
-      "source": "planet",
+      "source": "Full Planet",
       "source-layer": "tile_boundary",
       "paint": {
         "line-color": "rgba(255, 255, 255, 0.1)",
@@ -92,7 +92,7 @@
       "type": "line",
       "minzoom": 0,
       "maxzoom": 23,
-      "source": "planet",
+      "source": "Full Planet",
       "source-layer": "tile_boundary",
       "filter": ["==", "is_render_tile", true],
       "paint": {
@@ -105,7 +105,7 @@
       "type": "line",
       "minzoom": 0,
       "maxzoom": 23,
-      "source": "planet",
+      "source": "Full Planet",
       "source-layer": "tile_boundary",
       "paint": {
         "line-color": "#FFC000",
@@ -118,7 +118,7 @@
       "type": "line",
       "minzoom": 0,
       "maxzoom": 23,
-      "source": "planet",
+      "source": "Full Planet",
       "source-layer": "tile_bearing",
       "filter": ["==", "z", -1],
       "paint": {
@@ -129,7 +129,7 @@
     {
       "id": "tile_bearing_arrow",
       "type": "symbol",
-      "source": "planet",
+      "source": "Full Planet",
       "minzoom": 0,
       "maxzoom": 23,
       "source-layer": "tile_bearing",
@@ -144,7 +144,7 @@
       "type": "line",
       "minzoom": 0,
       "maxzoom": 23,
-      "source": "planet",
+      "source": "Full Planet",
       "source-layer": "tile_bearing",
       "filter": ["==", "is_render_tile", true],
       "layout": { "visibility": "none" },
@@ -156,7 +156,7 @@
     {
       "id": "render_tile_bearing_arrow",
       "type": "symbol",
-      "source": "planet",
+      "source": "Full Planet",
       "minzoom": 0,
       "maxzoom": 23,
       "source-layer": "tile_bearing",
@@ -172,7 +172,7 @@
       "type": "symbol",
       "minzoom": 0,
       "maxzoom": 23,
-      "source": "planet",
+      "source": "Full Planet",
       "source-layer": "tile_center",
       "filter": ["==", "z", -1],
       "layout": {
@@ -189,7 +189,7 @@
       "type": "symbol",
       "minzoom": 0,
       "maxzoom": 23,
-      "source": "planet",
+      "source": "Full Planet",
       "source-layer": "tile_center",
       "filter": ["==", "is_render_tile", true],
       "layout": {
@@ -207,7 +207,7 @@
       "type": "line",
       "minzoom": 0,
       "maxzoom": 23,
-      "source": "gaia",
+      "source": "GaiaGPS",
       "source-layer": "fake",
       "paint": {
         "line-color": "rgba(255, 105, 180, 1)",
