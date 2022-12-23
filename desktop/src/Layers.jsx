@@ -3,6 +3,7 @@ import { Switch } from '@headlessui/react'
 import { classNames } from './util'
 import store from './store'
 import { map } from './map'
+import { Page } from './types'
 
 export default function Layers({ page }) {
   const [backgroundLayers, setBackgroundLayers] = useState([])
@@ -44,7 +45,7 @@ export default function Layers({ page }) {
   return (
     <div className='pt-4'>
       <Background layers={backgroundLayers} page={page} />
-      <MemoVectorLayers layers={vectorLayers} />
+      <MemoVectorLayers layers={vectorLayers} page={page} />
       <div className='h-10' />
     </div>
   )
@@ -66,10 +67,10 @@ function Background({ layers, page }) {
   function setOpacity(opacity) {
     if (selectedBackground) {
       map.setPaintProperty(selectedBackground.id, 'raster-opacity', opacity)
-      if (page === 'map') {
+      if (page === Page.Map) {
         store.mapStyle = map.getStyle()
       }
-      if (page === 'data') {
+      if (page === Page.Data) {
         store.dataStyle = map.getStyle()
       }
     }
@@ -144,7 +145,7 @@ function Background({ layers, page }) {
 // React tries to re-render layers when the page changes, and MapLibre may not have finished switching up the layers yet.
 const MemoVectorLayers = memo(VectorLayers)
 
-function VectorLayers({ layers }) {
+function VectorLayers({ layers, page }) {
   const sources = {}
   for (const layer of layers) {
     const source = layer.source
@@ -158,13 +159,13 @@ function VectorLayers({ layers }) {
   return (
     <>
       {Object.keys(sources).map(source => (
-        <VectorLayerGroup key={source} source={source} layers={sources[source]} />
+        <VectorLayerGroup key={source} source={source} layers={sources[source]} page={page} />
       ))}
     </>
   )
 }
 
-function VectorLayerGroup({ source, layers }) {
+function VectorLayerGroup({ source, layers, page }) {
   const [enabled, setEnabled] = useState(true)
   return (
     <div key={source} className='relative'>
@@ -194,7 +195,7 @@ function VectorLayerGroup({ source, layers }) {
       </Switch.Group>
       <ul role='list' className='divide-y divide-gray-600'>
         {layers.map(layer => (
-          <VectorLayer key={layer.id} layer={layer} />
+          <VectorLayer key={layer.id} layer={layer} page={page} />
         ))}
       </ul>
     </div>
@@ -204,7 +205,7 @@ function VectorLayerGroup({ source, layers }) {
 const MUTE_AND_SOLO_STYLE =
   'border border-gray-600/40 group-hover:border-gray-500 rounded-md font-light text-sm group-hover:text-gray-300'
 
-function VectorLayer({ layer }) {
+function VectorLayer({ layer, page }) {
   const visibility = map.getLayoutProperty(layer.id, 'visibility')
   const isMuted = visibility === 'none'
   const isSolo = false
@@ -252,26 +253,32 @@ function VectorLayer({ layer }) {
 
       <div className='flex-1 font-light text-sm text-white'>{layer.id}</div>
 
-      <div className='flex-shrink-0 space-y-0.5'>
-        <button
-          title='Circle'
-          className='rounded-l-md border border-gray-600/40 group-hover:border-gray-500 group-hover:shadow-md px-1 font-light text-sm text-gray-500 group-hover:text-gray-300 text-center'
-        >
-          C
-        </button>
-        <button
-          title='Line'
-          className='border-t border-b border-gray-600/40 group-hover:border-gray-500 group-hover:shadow-md px-1 font-light text-sm text-gray-500 group-hover:text-gray-300 text-center'
-        >
-          L
-        </button>
-        <button
-          title='Fill'
-          className='rounded-r-md border border-gray-600/40 group-hover:border-gray-500 group-hover:shadow-md px-1 font-light text-sm text-gray-500 group-hover:text-gray-300 text-center'
-        >
-          F
-        </button>
-      </div>
+      {page === Page.Data && <CLF />}
     </li>
+  )
+}
+
+function CLF() {
+  return (
+    <div className='flex-shrink-0 space-y-0.5'>
+      <button
+        title='Circle'
+        className='rounded-l-md border border-gray-600/40 group-hover:border-gray-500 group-hover:shadow-md px-1 font-light text-sm text-gray-500 group-hover:text-gray-300 text-center'
+      >
+        C
+      </button>
+      <button
+        title='Line'
+        className='border-t border-b border-gray-600/40 group-hover:border-gray-500 group-hover:shadow-md px-1 font-light text-sm text-gray-500 group-hover:text-gray-300 text-center'
+      >
+        L
+      </button>
+      <button
+        title='Fill'
+        className='rounded-r-md border border-gray-600/40 group-hover:border-gray-500 group-hover:shadow-md px-1 font-light text-sm text-gray-500 group-hover:text-gray-300 text-center'
+      >
+        F
+      </button>
+    </div>
   )
 }

@@ -14,7 +14,6 @@ export function setupDataStyleWithMap(map) {
   checkForLayersNotInSources()
 
   map.on('sourcedata', function (e) {
-
     // Check if we are getting a new vector tile source, and add it to the data style
     checkForNewVectorSource(e)
 
@@ -50,7 +49,7 @@ function checkForLayersNotInSources() {
     trackedSources.add(sourceId)
   }
 
-  const validLayers  = []
+  const validLayers = []
   for (const layer of store.dataStyle.layers) {
     // keep the contextual layers
     const type = layer.type

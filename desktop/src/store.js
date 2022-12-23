@@ -9,14 +9,12 @@ if (process.env.IS_DEV === 'true') {
 const defaultMapStyle = require(mapStylePath)
 const defaultDataStyle = require(dataStylePath)
 
-// Updating values in the state automatically persists to localStorage via a Proxy.
-// https://benborgers.com/posts/js-object-changes
-// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy
+import { Page, Info } from './types'
 
 const initialState = {
   nav: {
-    page: 'map',
-    info: null,
+    page: Page.Map,
+    info: Info.None,
   },
   bbox: null,
   mapStyle: defaultMapStyle,
@@ -52,6 +50,9 @@ window.resetStore = () => {
   init()
 }
 
+// Updating values in the state automatically persists to localStorage via a Proxy.
+// https://benborgers.com/posts/js-object-changes
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy
 const store = new Proxy(initialState, handler)
 
 // for debugging

@@ -3,6 +3,7 @@ import { Resizable } from 're-resizable'
 
 import Layers from './Layers'
 import Features from './Features'
+import { Page, Info } from './types'
 
 const enable = {
   top: false,
@@ -15,8 +16,8 @@ const enable = {
   topLeft: false,
 }
 
-export default function Info({ nav, setNav }) {
-  if (!nav.info || nav.info === 'none' || nav.page === 'planets') {
+export default function InfoPanel({ nav, setNav }) {
+  if (nav.info === Info.none || nav.page === Page.Planets) {
     return null
   }
   return (
