@@ -5,7 +5,7 @@ import store from './store'
 
 // To prevent a mess of top-level promise calls for the map, we just expose the main map here
 // and make sure we initialize the map before initializing React (in index.jsx).
-export let map = null
+export let map: any
 
 function initialize() {
   // We bring in MapLibre from a script tag so that we

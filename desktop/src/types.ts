@@ -25,5 +25,7 @@ declare global {
     interface Window {
         store: Store,
         resetStore: () => void,
+        maplibregl: any,
+        map: any,
     }
 }

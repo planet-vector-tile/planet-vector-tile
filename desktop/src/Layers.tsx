@@ -3,8 +3,9 @@ import { Switch } from '@headlessui/react'
 import { classNames } from './util'
 import store from './store'
 import { map } from './map'
+import { page } from './page'
 
-export default function Layers({ page }) {
+export default function Layers({ page: Page }) {
   const [backgroundLayers, setBackgroundLayers] = useState([])
   const [vectorLayers, setVectorLayers] = useState([])
 
