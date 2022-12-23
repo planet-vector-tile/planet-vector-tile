@@ -96,7 +96,6 @@ function Background({ layers, page }) {
       }
     }
   }
-
   return (
     <section className='px-4 pb-5'>
       <label className='font-medium text-gray-300'>
@@ -109,7 +108,8 @@ function Background({ layers, page }) {
         step='.01'
         onChange={e => setOpacity(parseFloat(e.target.value))}
         value={opacity}
-        className='w-full h-1 rounded-lg appearance-none cursor-pointer bg-gray-500 color-fuchsia-700 accent-fuchsia-700'
+        className='w-full h-1 rounded-lg appearance-none cursor-pointer bg-gray-500 color-fuchsia-700 accent-fuchsia-700 disabled:cursor-auto disabled:opacity-20'
+        disabled={!selectedBackground}
       />
       <fieldset className='mt-2 '>
         <legend className='sr-only'>Background</legend>
@@ -196,8 +196,7 @@ function VectorLayerGroup({ source, layers, page }) {
       </Switch.Group>
       <ul role='list' className='divide-y divide-gray-600'>
         {page === Page.Data
-          ? processDataLayers(layers).map(dataLayer => <DataLayer key={dataLayer.name} dataLayer={dataLayer} />
-            )
+          ? processDataLayers(layers).map(dataLayer => <DataLayer key={dataLayer.name} dataLayer={dataLayer} />)
           : layers.map(layer => <VectorLayer key={layer.id} layer={layer} page={page} />)}
       </ul>
     </div>
@@ -224,9 +223,7 @@ function VectorLayer({ layer, page }) {
           <button
             title='Mute'
             className={classNames(
-              isMuted
-                ? 'text-amber-600 group-hover:bg-amber-600 shadow-inner'
-                : 'text-gray-500',
+              isMuted ? 'text-amber-600 group-hover:bg-amber-600 shadow-inner' : 'text-gray-500',
               MUTE_AND_SOLO_STYLE,
               'px-1 group-hover:shadow-md'
             )}
@@ -240,9 +237,7 @@ function VectorLayer({ layer, page }) {
           <button
             title='Solo'
             className={classNames(
-              isSolo
-                ? 'text-lime-600 group-hover:bg-lime-600 hadow-inner'
-                : 'text-gray-500',
+              isSolo ? 'text-lime-600 group-hover:bg-lime-600 hadow-inner' : 'text-gray-500',
               MUTE_AND_SOLO_STYLE,
               'px-1.5 group-hover:shadow-md'
             )}
@@ -267,7 +262,6 @@ function processDataLayers(layers) {
     if (type !== DataLayerType.Fill && type !== DataLayerType.Line && type !== DataLayerType.Circle) {
       continue
     }
-    console.log(`name: ${name}, type: ${type}`)
     let dataLayer = dataLayers[name]
     if (!dataLayer) {
       dataLayer = {
@@ -292,7 +286,6 @@ function processDataLayers(layers) {
       dataLayer.layers.circle = layer
     }
   }
-  console.log('list', list)
   return list
 }
 
@@ -330,9 +323,7 @@ function DataLayer({ dataLayer }) {
           <button
             title='Mute'
             className={classNames(
-              isMuted
-                ? 'text-amber-600 group-hover:bg-amber-600 shadow-inner'
-                : 'text-gray-500',
+              isMuted ? 'text-amber-600 group-hover:bg-amber-600 shadow-inner' : 'text-gray-500',
               MUTE_AND_SOLO_STYLE,
               'px-1 group-hover:shadow-md'
             )}
@@ -346,9 +337,7 @@ function DataLayer({ dataLayer }) {
           <button
             title='Solo'
             className={classNames(
-              isSolo
-                ? 'text-lime-600 group-hover:bg-lime-600 shadow-inner'
-                : 'text-gray-500',
+              isSolo ? 'text-lime-600 group-hover:bg-lime-600 shadow-inner' : 'text-gray-500',
               MUTE_AND_SOLO_STYLE,
               'px-1.5 group-hover:shadow-md'
             )}
@@ -370,8 +359,7 @@ function FLC({ dataLayer }) {
   const l = dataLayer.layers.line?.layout?.visibility !== 'none'
   const c = dataLayer.layers.circle?.layout?.visibility !== 'none'
 
-  const ON_STYLE =
-    'text-fuchsia-700 group-hover:text-gray-300 group-hover:bg-fuchsia-700/80 shadow-inner'
+  const ON_STYLE = 'text-fuchsia-700 group-hover:text-gray-300 group-hover:bg-fuchsia-700/80 shadow-inner'
   const OFF_STYLE = 'text-gray-500 group-hover:text-gray-300 group-hover:shadow-md'
 
   function toggleF() {
