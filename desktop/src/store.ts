@@ -9,14 +9,12 @@ if (process.env.IS_DEV === 'true') {
 const defaultMapStyle = require(mapStylePath)
 const defaultDataStyle = require(dataStylePath)
 
-// Updating values in the state automatically persists to localStorage via a Proxy.
-// https://benborgers.com/posts/js-object-changes
-// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy
+import { Store, Info, Page } from './types'
 
-const initialState = {
+const initialState: Store = {
   nav: {
-    page: 'map',
-    info: null,
+    page: Page.Map,
+    info: Info.None,
   },
   bbox: null,
   mapStyle: defaultMapStyle,
@@ -28,6 +26,7 @@ function init() {
   for (const prop of properties) {
     const val = localStorage.getItem(prop)
     if (val) {
+      // @ts-ignore
       initialState[prop] = JSON.parse(val)
     }
   }
@@ -35,22 +34,27 @@ function init() {
 init()
 
 const handler = {
-  get: (target, key) => {
+  get: (target: any, key: any) => {
     return target[key]
   },
-  set: (target, prop, value) => {
+  set: (target: any, prop: string, value: any) => {
     target[prop] = value
     localStorage.setItem(prop, JSON.stringify(value))
     return true
   },
 }
 
-window.resetStore = () => {
+function resetStore() {
   for (const prop of properties) {
     localStorage.removeItem(prop)
   }
   init()
 }
+window.resetStore = resetStore
+
+// Updating values in the state automatically persists to localStorage via a Proxy.
+// https://benborgers.com/posts/js-object-changes
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy
 
 const store = new Proxy(initialState, handler)
 

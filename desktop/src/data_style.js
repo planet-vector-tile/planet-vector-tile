@@ -1,4 +1,4 @@
-import store from './store.js'
+import store from './store'
 
 const sources = {}
 
@@ -77,18 +77,6 @@ function checkForNewVectorSource(sourceDataEvent) {
 
   store.dataStyle.sources[sourceDataEvent.sourceId] = sourceDataEvent.source
   sources[sourceDataEvent.sourceId] = new Set()
-}
-
-function findExistingLayerIdsFromStyle(sourceId, style) {
-  const sourceLayerIds = new Set()
-  for (const layer of style.layers) {
-    if (layer.source !== sourceId) {
-      continue
-    }
-    const sourceLayerId = removeSuffix(layer.id)
-    sourceLayerIds.add(sourceLayerId)
-  }
-  return sourceLayerIds
 }
 
 function updateStyle(map, sourceId, newLayers) {

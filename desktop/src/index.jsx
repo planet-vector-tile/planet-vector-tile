@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom/client'
 import App from './App'
 import { setupMainMap } from './map'
 import { setupHotKeys } from './hotkeys'
-import { setupDataStyleWithMap } from './datastyle'
+import { setupDataStyleWithMap } from './data_style'
 
 import './index.css'
 
