@@ -206,8 +206,7 @@ const MUTE_AND_SOLO_STYLE =
   'border border-gray-600/40 group-hover:border-gray-500 rounded-md font-light text-sm group-hover:text-gray-300'
 
 function VectorLayer({ layer, page }) {
-  const visibility = map.getLayoutProperty(layer.id, 'visibility')
-  const isMuted = visibility === 'none'
+  const isMuted = layer.layout?.visibility === 'none'
   const isSolo = false
 
   function toggleMute() {
