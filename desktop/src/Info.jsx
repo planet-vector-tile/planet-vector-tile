@@ -17,12 +17,12 @@ const enable = {
 }
 
 export default function InfoPanel({ nav, setNav }) {
-  if (nav.info === Info.none || nav.page === Page.Planets) {
+  if (nav.info === Info.None || nav.page === Page.Planets) {
     return null
   }
   return (
     <>
-      <Close onClose={() => setNav({ ...nav, info: null })} />
+      <Close onClose={() => setNav({ ...nav, info: Info.None })} />
       <Resizable
         defaultSize={{ width: 314, height: '100vh' }}
         minWidth={200}

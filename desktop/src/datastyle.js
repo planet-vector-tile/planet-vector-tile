@@ -1,4 +1,6 @@
+import { map } from './map.js'
 import store from './store.js'
+import { isVectorType } from './util.js'
 
 const sources = {}
 
@@ -10,10 +12,11 @@ window.dataStyleSources = sources
 // We need to detect this and remove the layers not in sources. Right now we just check during initialization.
 
 export function setupDataStyleWithMap(map) {
-  // The serialized dataStyle might have layers with a source that is not in the currently loaded map style
-  checkForLayersNotInSources()
+  // We add the sources from the map style, and we only add layers from local storage
+  // that use these sources.
+  createDataStyleFromMapStyle()
 
-  map.on('sourcedata', function (e) {
+  map.on('sourcedata', e => {
     // Check if we are getting a new vector tile source, and add it to the data style
     checkForNewVectorSource(e)
 
@@ -37,30 +40,63 @@ export function setupDataStyleWithMap(map) {
   })
 }
 
-function checkForLayersNotInSources() {
-  const trackedSources = new Set()
+export function createDataStyleFromMapStyle() {
+  const vectorSourceIds = new Set()
+  const dataStyle = store.dataStyle
+  const sources = dataStyle.sources
   for (const sourceId in store.mapStyle.sources) {
     const source = store.mapStyle.sources[sourceId]
     const type = source.type
     // only look at vector sources
-    if (type === 'background' || type === 'raster' || type === 'hillshade') {
+    if (!isVectorType(type)) {
       continue
     }
-    trackedSources.add(sourceId)
+    vectorSourceIds.add(sourceId)
+    sources[sourceId] = source
   }
 
-  const validLayers = []
-  for (const layer of store.dataStyle.layers) {
-    // keep the contextual layers
+  const layers = []
+
+  // Add contextual layers from mapLayers
+  for (const layer of store.mapStyle.layers) {
     const type = layer.type
-    if (type === 'background' || type === 'raster' || type === 'hillshade') {
-      validLayers.push(layer)
-    }
-    if (trackedSources.has(layer.source)) {
-      validLayers.push(layer)
+    if (!isVectorType(type)) {
+      layers.push(layer)
     }
   }
-  store.dataStyle.layers = validLayers
+
+  // Add layers from local storage
+  const sourcesWithVectorLayers = new Set()
+  for (const layer of store.dataStyle.layers) {
+    if (isVectorType(layer.type) && vectorSourceIds.has(layer.source)) {
+      layers.push(layer)
+      sourcesWithVectorLayers.add(layer.source)
+    }
+  }
+
+  // Add fake layers corresponding to vector sources that do not yet have layers.
+  // We need this so that Maplibre fetches tiles from the vector source.
+  for (const sourceId of vectorSourceIds) {
+    if (!sourcesWithVectorLayers.has(sourceId)) {
+      layers.push({
+        id: `fake ${sourceId}`,
+        type: 'line',
+        source: sourceId,
+        'source-layer': 'fake not real',
+        layout: {
+          visibility: 'visible',
+        },
+        paint: {
+          'line-color': 'red',
+          'line-width': 1,
+        },
+      })
+    }
+  }
+
+  dataStyle.sources = sources
+  dataStyle.layers = layers
+  store.dataStyle = dataStyle
 }
 
 function checkForNewVectorSource(sourceDataEvent) {

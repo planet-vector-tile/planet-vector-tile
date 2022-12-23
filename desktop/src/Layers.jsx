@@ -297,7 +297,11 @@ function DataLayer({ dataLayer }) {
   const isMuted = mutedDataLayers.has(dataLayer.name)
   const isSolo = false
 
-  const color = dataLayer.layers.fill?.paint?.['fill-color'] || dataLayer.layers.line?.paint?.['line-color'] || dataLayer.layers.circle?.paint?.['circle-color'] || 'white'
+  const color =
+    dataLayer.layers.fill?.paint?.['fill-color'] ||
+    dataLayer.layers.line?.paint?.['line-color'] ||
+    dataLayer.layers.circle?.paint?.['circle-color'] ||
+    'white'
 
   function toggleMute() {
     dataLayer.layers.values().map(layer => {
@@ -349,7 +353,9 @@ function DataLayer({ dataLayer }) {
         </div>
       </div>
 
-      <div className='flex-1 font-light text-sm' style={{color}}>{dataLayer.name}</div>
+      <div className='flex-1 font-light text-sm' style={{ color }}>
+        {dataLayer.name}
+      </div>
 
       <FLC dataLayer={dataLayer} />
     </li>

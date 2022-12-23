@@ -1,6 +1,7 @@
 // map.js is not part of the app bundle, so here we pull in NodeJS modules with require.
 const { ipcRenderer } = require('electron')
 
+import { createDataStyleFromMapStyle } from './datastyle'
 import store from './store'
 
 // To prevent a mess of top-level promise calls for the map, we just expose the main map here
@@ -53,6 +54,7 @@ function initialize() {
   ipcRenderer.on('open-style', (_event, style) => {
     map.setStyle(style)
     store.mapStyle = style
+    createDataStyleFromMapStyle(style)
   })
 
   // for debugging

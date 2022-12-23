@@ -5,7 +5,7 @@ export const Page = {
 }
 
 export const Info = {
-  None: 'none',
+  None: null,
   Layers: 'layers',
   Features: 'features',
 }
