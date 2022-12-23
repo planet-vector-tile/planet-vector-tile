@@ -78,18 +78,6 @@ function checkForNewVectorSource(sourceDataEvent) {
   sources[sourceDataEvent.sourceId] = new Set()
 }
 
-function findExistingLayerIdsFromStyle(sourceId, style) {
-  const sourceLayerIds = new Set()
-  for (const layer of style.layers) {
-    if (layer.source !== sourceId) {
-      continue
-    }
-    const sourceLayerId = removeSuffix(layer.id)
-    sourceLayerIds.add(sourceLayerId)
-  }
-  return sourceLayerIds
-}
-
 function updateStyle(map, sourceId, newLayers) {
   const style = store.dataStyle
 
@@ -152,8 +140,11 @@ function updateStyle(map, sourceId, newLayers) {
   }
 }
 
-function removeSuffix(layerId) {
-  return layerId.replace(/ (Line|Circle|Fill)$/, '')
+export function dataLayerNameAndType(layerId) {
+  const parts = layerId.split(' ')
+  const type = parts.pop()
+  const name = parts.join(' ')
+  return { name, type }
 }
 
 let color_idx = 0

@@ -3,7 +3,8 @@ import { Switch } from '@headlessui/react'
 import { classNames } from './util'
 import store from './store'
 import { map } from './map'
-import { Page } from './types'
+import { DataLayerType, Page } from './types'
+import { dataLayerNameAndType } from './datastyle'
 
 export default function Layers({ page }) {
   const [backgroundLayers, setBackgroundLayers] = useState([])
@@ -194,16 +195,17 @@ function VectorLayerGroup({ source, layers, page }) {
         </Switch.Label>
       </Switch.Group>
       <ul role='list' className='divide-y divide-gray-600'>
-        {layers.map(layer => (
-          <VectorLayer key={layer.id} layer={layer} page={page} />
-        ))}
+        {page === Page.Data
+          ? processDataLayers(layers).map(dataLayer => <DataLayer key={dataLayer.name} dataLayer={dataLayer} />
+            )
+          : layers.map(layer => <VectorLayer key={layer.id} layer={layer} page={page} />)}
       </ul>
     </div>
   )
 }
 
 const MUTE_AND_SOLO_STYLE =
-  'border border-gray-600/40 group-hover:border-gray-500 rounded-md font-light text-sm group-hover:text-gray-300'
+  'border border-gray-600/40 group-hover:border-gray-500 rounded-md font-light text-sm group-hover:text-gray-300 group-hover:border-gray-500'
 
 function VectorLayer({ layer, page }) {
   const isMuted = layer.layout?.visibility === 'none'
@@ -223,7 +225,7 @@ function VectorLayer({ layer, page }) {
             title='Mute'
             className={classNames(
               isMuted
-                ? 'text-amber-600 group-hover:bg-amber-600 group-hover:border-amber-600 shadow-inner'
+                ? 'text-amber-600 group-hover:bg-amber-600 shadow-inner'
                 : 'text-gray-500',
               MUTE_AND_SOLO_STYLE,
               'px-1 group-hover:shadow-md'
@@ -239,7 +241,7 @@ function VectorLayer({ layer, page }) {
             title='Solo'
             className={classNames(
               isSolo
-                ? 'text-lime-600 group-hover:bg-lime-600 group-hover:border-lime-600 shadow-inner'
+                ? 'text-lime-600 group-hover:bg-lime-600 hadow-inner'
                 : 'text-gray-500',
               MUTE_AND_SOLO_STYLE,
               'px-1.5 group-hover:shadow-md'
@@ -250,33 +252,156 @@ function VectorLayer({ layer, page }) {
         </div>
       </div>
 
-      <div className='flex-1 font-light text-sm text-white'>{layer.id}</div>
-
-      {page === Page.Data && <CLF />}
+      <div className='flex-1 font-light text-sm text-white'>{page === Page.Data ? layer.dataLayerName : layer.id}</div>
     </li>
   )
 }
 
-function CLF() {
+function processDataLayers(layers) {
+  const dataLayers = {}
+  const list = [] // preserve layer order
+
+  for (const layer of layers) {
+    const { name, type } = dataLayerNameAndType(layer.id)
+
+    if (type !== DataLayerType.Fill && type !== DataLayerType.Line && type !== DataLayerType.Circle) {
+      continue
+    }
+    console.log(`name: ${name}, type: ${type}`)
+    let dataLayer = dataLayers[name]
+    if (!dataLayer) {
+      dataLayer = {
+        name: name,
+        layers: {
+          fill: null,
+          line: null,
+          circle: null,
+        },
+      }
+      dataLayers[name] = dataLayer
+      list.push(dataLayer)
+    }
+
+    if (type === DataLayerType.Fill) {
+      dataLayer.layers.fill = layer
+    }
+    if (type === DataLayerType.Line) {
+      dataLayer.layers.line = layer
+    }
+    if (type === DataLayerType.Circle) {
+      dataLayer.layers.circle = layer
+    }
+  }
+  console.log('list', list)
+  return list
+}
+
+// layer id to layer
+const beforeMuteLayer = {}
+const mutedDataLayers = new Set()
+
+function DataLayer({ dataLayer }) {
+  const isMuted = mutedDataLayers.has(dataLayer.name)
+  const isSolo = false
+
+  function toggleMute() {
+    dataLayer.layers.values().map(layer => {
+      if (isMuted) {
+        const visibilty = beforeMuteLayer[layer.id]?.layout?.visibility || 'visible'
+        map.setLayoutProperty(layer.id, 'visibility', visibilty)
+      } else {
+        beforeMuteLayer[layer.id] = layer
+        map.setLayoutProperty(layer.id, 'visibility', 'none')
+      }
+    })
+    if (isMuted) {
+      mutedDataLayers.delete(dataLayer.name)
+    } else {
+      mutedDataLayers.add(dataLayer.name)
+    }
+  }
+
+  function toggleSolo() {}
+
+  return (
+    <li key={dataLayer.name} className='group relative flex items-center space-x-3 px-1 pb-1 cursor-default'>
+      <div className='flex-shrink-0'>
+        <div className='text-center'>
+          <button
+            title='Mute'
+            className={classNames(
+              isMuted
+                ? 'text-amber-600 group-hover:bg-amber-600 shadow-inner'
+                : 'text-gray-500',
+              MUTE_AND_SOLO_STYLE,
+              'px-1 group-hover:shadow-md'
+            )}
+            onClick={toggleMute}
+          >
+            M
+          </button>
+        </div>
+
+        <div className='text-center'>
+          <button
+            title='Solo'
+            className={classNames(
+              isSolo
+                ? 'text-lime-600 group-hover:bg-lime-600 shadow-inner'
+                : 'text-gray-500',
+              MUTE_AND_SOLO_STYLE,
+              'px-1.5 group-hover:shadow-md'
+            )}
+          >
+            S
+          </button>
+        </div>
+      </div>
+
+      <div className='flex-1 font-light text-sm text-white'>{dataLayer.name}</div>
+
+      <FLC dataLayer={dataLayer} />
+    </li>
+  )
+}
+
+function FLC({ dataLayer }) {
+  const f = dataLayer.layers.fill?.layout?.visibility !== 'none'
+  const l = dataLayer.layers.line?.layout?.visibility !== 'none'
+  const c = dataLayer.layers.circle?.layout?.visibility !== 'none'
+
+  const ON_STYLE =
+    'text-fuchsia-700 group-hover:text-gray-300 group-hover:bg-fuchsia-700/80 shadow-inner'
+  const OFF_STYLE = 'text-gray-500 group-hover:text-gray-300 group-hover:shadow-md'
+
   return (
     <div className='flex-shrink-0 space-y-0.5'>
       <button
-        title='Circle'
-        className='rounded-l-md border border-gray-600/40 group-hover:border-gray-500 group-hover:shadow-md px-1 font-light text-sm text-gray-500 group-hover:text-gray-300 text-center'
+        title='Fill'
+        className={classNames(
+          f ? ON_STYLE : OFF_STYLE,
+          'rounded-l-md border border-gray-600/40 px-1 font-light text-sm text-center group-hover:border-gray-500 '
+        )}
       >
-        C
+        F
       </button>
       <button
         title='Line'
-        className='border-t border-b border-gray-600/40 group-hover:border-gray-500 group-hover:shadow-md px-1 font-light text-sm text-gray-500 group-hover:text-gray-300 text-center'
+        className={classNames(
+          l ? ON_STYLE : OFF_STYLE,
+          'border-t border-b border-gray-600/40 px-1 font-light text-sm text-center group-hover:border-gray-500 '
+        )}
       >
         L
       </button>
       <button
-        title='Fill'
-        className='rounded-r-md border border-gray-600/40 group-hover:border-gray-500 group-hover:shadow-md px-1 font-light text-sm text-gray-500 group-hover:text-gray-300 text-center'
+        title='Circle'
+        className={classNames(
+          c ? ON_STYLE : OFF_STYLE,
+          'rounded-r-md border border-gray-600/40 px-1 font-light text-sm text-center group-hover:border-gray-500 '
+        )}
       >
-        F
+        C
       </button>
     </div>
   )
