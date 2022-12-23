@@ -324,7 +324,7 @@ function DataLayer({ dataLayer }) {
   function toggleSolo() {}
 
   return (
-    <li key={dataLayer.name} className='group relative flex items-center space-x-3 px-1 pb-1 cursor-default'>
+    <li key={dataLayer.name} className='group relative flex items-center space-x-3 pl-1 pr-2 pb-1 cursor-default'>
       <div className='flex-shrink-0'>
         <div className='text-center'>
           <button
@@ -374,6 +374,27 @@ function FLC({ dataLayer }) {
     'text-fuchsia-700 group-hover:text-gray-300 group-hover:bg-fuchsia-700/80 shadow-inner'
   const OFF_STYLE = 'text-gray-500 group-hover:text-gray-300 group-hover:shadow-md'
 
+  function toggleF() {
+    let fill = dataLayer.layers.fill
+    if (fill) {
+      map.setLayoutProperty(fill.id, 'visibility', f ? 'none' : 'visible')
+    }
+  }
+
+  function toggleL() {
+    let line = dataLayer.layers.line
+    if (line) {
+      map.setLayoutProperty(line.id, 'visibility', l ? 'none' : 'visible')
+    }
+  }
+
+  function toggleC() {
+    let circle = dataLayer.layers.circle
+    if (circle) {
+      map.setLayoutProperty(circle.id, 'visibility', c ? 'none' : 'visible')
+    }
+  }
+
   return (
     <div className='flex-shrink-0 space-y-0.5'>
       <button
@@ -382,6 +403,7 @@ function FLC({ dataLayer }) {
           f ? ON_STYLE : OFF_STYLE,
           'rounded-l-md border border-gray-600/40 px-1 font-light text-sm text-center group-hover:border-gray-500 '
         )}
+        onClick={toggleF}
       >
         F
       </button>
@@ -391,6 +413,7 @@ function FLC({ dataLayer }) {
           l ? ON_STYLE : OFF_STYLE,
           'border-t border-b border-gray-600/40 px-1 font-light text-sm text-center group-hover:border-gray-500 '
         )}
+        onClick={toggleL}
       >
         L
       </button>
@@ -400,6 +423,7 @@ function FLC({ dataLayer }) {
           c ? ON_STYLE : OFF_STYLE,
           'rounded-r-md border border-gray-600/40 px-1 font-light text-sm text-center group-hover:border-gray-500 '
         )}
+        onClick={toggleC}
       >
         C
       </button>
