@@ -6,41 +6,34 @@ import { map } from './map'
 import { Page } from './types'
 
 export default function Layers({ page }) {
-  const [backgroundLayers, setBackgroundLayers] = useState([])
-  const [vectorLayers, setVectorLayers] = useState([])
+  const [reRender, setReRender] = useState(false)
 
-  useEffect(() => {
-    function processLayers(map) {
-      const layers = map.getStyle()?.layers || []
-      const background = []
-      const vector = []
+  function processLayers(map) {
+    const layers = map?.getStyle()?.layers || []
+    const backgroundLayers = []
+    const vectorLayers = []
 
-      for (const layer of layers) {
-        switch (layer.type) {
-          case 'background':
-          case 'raster':
-          case 'hillshade':
-            background.push(layer)
-            break
-          default:
-            vector.push(layer)
-        }
+    for (const layer of layers) {
+      switch (layer.type) {
+        case 'background':
+        case 'raster':
+        case 'hillshade':
+          backgroundLayers.push(layer)
+          break
+        default:
+          vectorLayers.push(layer)
       }
-
-      setBackgroundLayers(background)
-      setVectorLayers(vector)
     }
 
-    // At initial load, sometimes the map isn't ready yet and maplibre throws an error,
-    // so we wait for events to try again.
-    try {
-      map.getStyle() // the lib throws an error when serializing the style
-      processLayers(map)
-    } catch (_) {}
+    return { backgroundLayers, vectorLayers }
+  }
 
-    map.on('load', () => processLayers(map))
-    map.on('styledata', () => processLayers(map))
+  useEffect(() => {
+    // When layers change, we need to re-render
+    map.on('styledata', () => setReRender(!reRender))
   }, [])
+
+  const { backgroundLayers, vectorLayers } = processLayers(map)
 
   return (
     <div className='pt-4'>
