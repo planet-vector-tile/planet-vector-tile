@@ -1,21 +1,52 @@
-const defaultMapStyle = require('../styles/default.json')
-const defaultDataStyle = require('../styles/data.json')
+// The store is the contents of localStorage inflated into JavaScript objects.
+// We are using a Proxy to intercept writes to the store and persist them to localStorage.
+// The removes the need of constantly having to explicitly serde JSON for the local storage key values.
+// Note that the Proxy only applies to the top level items of the store object, so you do need to
+// explicitly assign a value to the store object for the persistenct to occur. e.g.:
+//
+//    store.nav = nav
+//
+// Mutating a sub object will not cause a write.
+//
+//    store.nav.something = 'foo' // no write to localStore
+//
+// But then doing this will cause a write:
+//
+//    store.nav = store.nav
+//
+// Keeping this explicit with one level of Proxy is important, because JSON serde does have a cost.
 
-// Updating values in the state automatically persists to localStorage via a Proxy.
-// https://benborgers.com/posts/js-object-changes
-// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy
+// When the app is packaged, the pwd is in the dist dir
+let mapStylePath = '../styles/default.json'
+let dataStylePath = '../styles/data.json'
+// But we are in the desktop dir when running in dev mode
+if (process.env.IS_DEV === 'true') {
+  mapStylePath = './styles/default.json'
+  dataStylePath = './styles/data.json'
+}
+const defaultMapStyle = require(mapStylePath)
+const defaultDataStyle = require(dataStylePath)
+
+import { Page, Info } from './types'
 
 const initialState = {
   nav: {
-    page: 'map',
-    info: null,
+    page: Page.Map,
+    info: Info.None,
   },
   bbox: null,
   mapStyle: defaultMapStyle,
   dataStyle: defaultDataStyle,
+  layerPanel: {
+    flc: {}, // layer id -> visibility string value
+    dataMute: {}, // source layer id -> array of layers
+    mapSolo: [], // array of layer ids
+    dataSolo: [], // array of source layer ids
+    beforeDataSoloLayers: null, // array of layers
+  },
 }
 
-const properties = ['nav', 'bbox', 'mapStyle', 'dataStyle']
+const properties = Object.keys(initialState)
 function init() {
   for (const prop of properties) {
     const val = localStorage.getItem(prop)
@@ -42,7 +73,20 @@ window.resetStore = () => {
     localStorage.removeItem(prop)
   }
   init()
+  return 'store reset'
 }
 
+window.reset = () => {
+  window.resetStore()
+  window.location.reload()
+}
+
+// Updating values in the state automatically persists to localStorage via a Proxy.
+// https://benborgers.com/posts/js-object-changes
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy
 const store = new Proxy(initialState, handler)
+
+// for debugging
 window.store = store
+
+export default store

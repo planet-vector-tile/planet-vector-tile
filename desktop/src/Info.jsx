@@ -3,6 +3,8 @@ import { Resizable } from 're-resizable'
 
 import Layers from './Layers'
 import Features from './Features'
+import { Page, Info } from './types'
+import { registerCloseInfoPanel } from './hotkeys'
 
 const enable = {
   top: false,
@@ -15,22 +17,28 @@ const enable = {
   topLeft: false,
 }
 
-export default function Info({ nav, setNav }) {
-  if (!nav.info || nav.info === 'none' || nav.page === 'planets') {
+export default function InfoPanel({ nav, setNav }) {
+  if (nav.info === Info.None || nav.page === Page.Planets) {
     return null
   }
+
+  function close() {
+    setNav({ ...nav, info: Info.None })
+  }
+  registerCloseInfoPanel(close)
+
   return (
     <>
-      <Close onClose={() => setNav({ ...nav, info: null })} />
+      <Close onClose={close} />
       <Resizable
         defaultSize={{ width: 314, height: '100vh' }}
         minWidth={200}
         maxWidth='100%'
         enable={enable}
         style={{ position: 'fixed' }}
-        className='right-0 bg-slate-700/80 border-l border-gray-900 backdrop-blur-md overflow-y-auto'
+        className='right-0 bg-slate-700/90 border-l border-gray-900 backdrop-blur-md overflow-y-auto'
       >
-        {nav.info === 'layers' && <Layers />}
+        {nav.info === 'layers' && <Layers page={nav.page} />}
         {nav.info === 'features' && <Features />}
       </Resizable>
     </>

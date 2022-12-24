@@ -48,8 +48,6 @@ module.exports = {
       // replace the script files in index.html with the paths to the deps folder
       let indexHtml = fs.readFileSync('dist/index.html', 'utf8')
       indexHtml = indexHtml.replace('root/maplibre-gl-js/dist/maplibre-gl-dev.js', '../deps/maplibre-gl.js')
-      indexHtml = indexHtml.replace('src/store.js', '../src/storejs')
-      indexHtml = indexHtml.replace('src/map.js', '../src/map.js')
       fs.writeFileSync('dist/prod.html', indexHtml)
     },
   },

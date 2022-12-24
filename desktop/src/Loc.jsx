@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { map } from './map'
 
 export default function Loc() {
   const [z, setZ] = useState(0)
@@ -6,8 +7,6 @@ export default function Loc() {
   const [lon, setLon] = useState(0)
 
   useEffect(() => {
-    const map = window.map
-
     function loc() {
       const z = map.getZoom()
       const c = map.getCenter()
