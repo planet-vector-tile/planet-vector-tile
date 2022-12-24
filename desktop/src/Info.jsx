@@ -4,6 +4,7 @@ import { Resizable } from 're-resizable'
 import Layers from './Layers'
 import Features from './Features'
 import { Page, Info } from './types'
+import { registerCloseInfoPanel } from './hotkeys'
 
 const enable = {
   top: false,
@@ -20,9 +21,15 @@ export default function InfoPanel({ nav, setNav }) {
   if (nav.info === Info.None || nav.page === Page.Planets) {
     return null
   }
+
+  function close() {
+    setNav({ ...nav, info: Info.None })
+  }
+  registerCloseInfoPanel(close)
+
   return (
     <>
-      <Close onClose={() => setNav({ ...nav, info: Info.None })} />
+      <Close onClose={close} />
       <Resizable
         defaultSize={{ width: 314, height: '100vh' }}
         minWidth={200}
