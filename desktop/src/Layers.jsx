@@ -297,9 +297,17 @@ function processDataLayers(layers) {
   return list
 }
 
+function isDataLayerMuted(name) {
+  return !!store.layerPanel.dataMute[name] || false
+}
+
+function isDataLayerSolo(name) {
+  return !!store.layerPanel.dataSolo[name] || false
+}
+
 function DataLayer({ dataLayer }) {
-  const isMuted = !!store.layerPanel.dataMute[dataLayer.name] || false
-  const isSolo = !!store.layerPanel.dataSolo[dataLayer.name] || false
+  const isMuted = isDataLayerMuted(dataLayer.name)
+  const isSolo = isDataLayerSolo(dataLayer.name)
 
   const color =
     dataLayer.layers.fill?.paint?.['fill-color'] ||
@@ -353,13 +361,25 @@ function DataLayer({ dataLayer }) {
   )
 }
 
+const ON_STYLE = 'text-fuchsia-700 group-hover:text-gray-300 group-hover:bg-fuchsia-700/80 shadow-inner'
+const OFF_STYLE = 'text-gray-500 group-hover:text-gray-300 group-hover:shadow-md'
+const DISABLED_STYLE = 'border border-transparent px-1 font-light text-sm text-center text-gray-500'
+
 function FLC({ dataLayer }) {
+  const disabled = isDataLayerMuted(dataLayer.name)
+  if (disabled) {
+    return (
+      <div className='flex-shrink-0 space-y-0.5'>
+        <button className={DISABLED_STYLE}>F</button>
+        <button className={DISABLED_STYLE}>L</button>
+        <button className={DISABLED_STYLE}>C</button>
+      </div>
+    )
+  }
+
   const f = dataLayer.layers.fill?.layout?.visibility !== 'none'
   const l = dataLayer.layers.line?.layout?.visibility !== 'none'
   const c = dataLayer.layers.circle?.layout?.visibility !== 'none'
-
-  const ON_STYLE = 'text-fuchsia-700 group-hover:text-gray-300 group-hover:bg-fuchsia-700/80 shadow-inner'
-  const OFF_STYLE = 'text-gray-500 group-hover:text-gray-300 group-hover:shadow-md'
 
   function toggleF() {
     let fill = dataLayer.layers.fill
@@ -397,7 +417,7 @@ function FLC({ dataLayer }) {
         title='Fill'
         className={classNames(
           f ? ON_STYLE : OFF_STYLE,
-          'rounded-l-md border border-gray-600/40 px-1 font-light text-sm text-center group-hover:border-gray-500 '
+          'rounded-l-md border border-gray-600/40 px-1 font-light text-sm text-center group-hover:border-gray-500'
         )}
         onClick={toggleF}
       >
@@ -407,7 +427,7 @@ function FLC({ dataLayer }) {
         title='Line'
         className={classNames(
           l ? ON_STYLE : OFF_STYLE,
-          'border-t border-b border-gray-600/40 px-1 font-light text-sm text-center group-hover:border-gray-500 '
+          'border-t border-b border-gray-600/40 px-1 font-light text-sm text-center group-hover:border-gray-500'
         )}
         onClick={toggleL}
       >
@@ -417,7 +437,7 @@ function FLC({ dataLayer }) {
         title='Circle'
         className={classNames(
           c ? ON_STYLE : OFF_STYLE,
-          'rounded-r-md border border-gray-600/40 px-1 font-light text-sm text-center group-hover:border-gray-500 '
+          'rounded-r-md border border-gray-600/40 px-1 font-light text-sm text-center group-hover:border-gray-500'
         )}
         onClick={toggleC}
       >
