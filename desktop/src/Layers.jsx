@@ -206,6 +206,40 @@ function VectorLayerGroup({ source, layers, page }) {
 const MUTE_AND_SOLO_STYLE =
   'border border-gray-600/40 group-hover:border-gray-500 rounded-md font-light text-sm group-hover:text-gray-300 group-hover:border-gray-500'
 
+function MuteAndSolo({ isMuted, toggleMute, isSolo, toggleSolo }) {
+  return (
+    <div className='flex-shrink-0'>
+      <div className='text-center'>
+        <button
+          title='Mute'
+          className={classNames(
+            isMuted ? 'text-amber-600 group-hover:bg-amber-600 shadow-inner' : 'text-gray-500',
+            MUTE_AND_SOLO_STYLE,
+            'px-1 group-hover:shadow-md'
+          )}
+          onClick={toggleMute}
+        >
+          M
+        </button>
+      </div>
+
+      <div className='text-center'>
+        <button
+          title='Solo'
+          className={classNames(
+            isSolo ? 'text-lime-600 group-hover:bg-lime-600 hadow-inner' : 'text-gray-500',
+            MUTE_AND_SOLO_STYLE,
+            'px-1.5 group-hover:shadow-md'
+          )}
+          onClick={toggleSolo}
+        >
+          S
+        </button>
+      </div>
+    </div>
+  )
+}
+
 function VectorLayer({ layer, page }) {
   const isMuted = layer.layout?.visibility === 'none'
   const isSolo = false
@@ -214,40 +248,14 @@ function VectorLayer({ layer, page }) {
     map.setLayoutProperty(layer.id, 'visibility', isMuted ? 'visible' : 'none')
   }
 
-  function toggleSolo() {}
+  function toggleSolo() {
+    console.log('toggle solo', layer.id)
+  }
 
   return (
     <li key={layer.id} className='group relative flex items-center space-x-3 px-1 pb-1 cursor-default'>
-      <div className='flex-shrink-0'>
-        <div className='text-center'>
-          <button
-            title='Mute'
-            className={classNames(
-              isMuted ? 'text-amber-600 group-hover:bg-amber-600 shadow-inner' : 'text-gray-500',
-              MUTE_AND_SOLO_STYLE,
-              'px-1 group-hover:shadow-md'
-            )}
-            onClick={toggleMute}
-          >
-            M
-          </button>
-        </div>
-
-        <div className='text-center'>
-          <button
-            title='Solo'
-            className={classNames(
-              isSolo ? 'text-lime-600 group-hover:bg-lime-600 hadow-inner' : 'text-gray-500',
-              MUTE_AND_SOLO_STYLE,
-              'px-1.5 group-hover:shadow-md'
-            )}
-          >
-            S
-          </button>
-        </div>
-      </div>
-
-      <div className='flex-1 font-light text-sm text-white'>{page === Page.Data ? layer.dataLayerName : layer.id}</div>
+      <MuteAndSolo isMuted={isMuted} toggleMute={toggleMute} isSolo={isSolo} toggleSolo={toggleSolo} />
+      <div className='flex-1 font-light text-sm text-white'>{layer.id}</div>
     </li>
   )
 }
@@ -320,43 +328,16 @@ function DataLayer({ dataLayer }) {
     }
   }
 
-  function toggleSolo() {}
+  function toggleSolo() {
+    console.log('toggle solo', dataLayer.name)
+  }
 
   return (
     <li key={dataLayer.name} className='group relative flex items-center space-x-3 pl-1 pr-2 pb-1 cursor-default'>
-      <div className='flex-shrink-0'>
-        <div className='text-center'>
-          <button
-            title='Mute'
-            className={classNames(
-              isMuted ? 'text-amber-600 group-hover:bg-amber-600 shadow-inner' : 'text-gray-500',
-              MUTE_AND_SOLO_STYLE,
-              'px-1 group-hover:shadow-md'
-            )}
-            onClick={toggleMute}
-          >
-            M
-          </button>
-        </div>
-
-        <div className='text-center'>
-          <button
-            title='Solo'
-            className={classNames(
-              isSolo ? 'text-lime-600 group-hover:bg-lime-600 shadow-inner' : 'text-gray-500',
-              MUTE_AND_SOLO_STYLE,
-              'px-1.5 group-hover:shadow-md'
-            )}
-          >
-            S
-          </button>
-        </div>
-      </div>
-
+      <MuteAndSolo isMuted={isMuted} toggleMute={toggleMute} isSolo={isSolo} toggleSolo={toggleSolo} />
       <div className='flex-1 font-light text-sm' style={{ color }}>
         {dataLayer.name}
       </div>
-
       <FLC dataLayer={dataLayer} />
     </li>
   )
