@@ -370,9 +370,9 @@ function FLC({ dataLayer }) {
   if (disabled) {
     return (
       <div className='flex-shrink-0 space-y-0.5'>
-        <button className={DISABLED_STYLE}>F</button>
-        <button className={DISABLED_STYLE}>L</button>
-        <button className={DISABLED_STYLE}>C</button>
+        <button disabled className={DISABLED_STYLE}>F</button>
+        <button disabled className={DISABLED_STYLE}>L</button>
+        <button disabled className={DISABLED_STYLE}>C</button>
       </div>
     )
   }

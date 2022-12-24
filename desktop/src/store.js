@@ -72,6 +72,7 @@ window.resetStore = () => {
     localStorage.removeItem(prop)
   }
   init()
+  return 'store reset'
 }
 
 // Updating values in the state automatically persists to localStorage via a Proxy.
