@@ -39,10 +39,9 @@ const initialState = {
   dataStyle: defaultDataStyle,
   layerPanel: {
     flc: {}, // layer id -> visibility string value
-    mapMute: {}, // layer id -> boolean
-    dataMute: {}, // source layer id -> boolean
-    mapSolo: {}, // layer id -> boolean
-    dataSolo: {}, // source layer id -> boolean
+    dataMute: {},
+    mapSolo: {},
+    dataSolo: {},
   },
 }
 

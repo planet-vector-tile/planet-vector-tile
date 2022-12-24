@@ -297,13 +297,9 @@ function processDataLayers(layers) {
   return list
 }
 
-// layer id to layer
-const beforeMuteLayer = {}
-const mutedDataLayers = new Set()
-
 function DataLayer({ dataLayer }) {
-  const isMuted = mutedDataLayers.has(dataLayer.name)
-  const isSolo = false
+  const isMuted = !!store.layerPanel.dataMute[dataLayer.name] || false
+  const isSolo = !!store.layerPanel.dataSolo[dataLayer.name] || false
 
   const color =
     dataLayer.layers.fill?.paint?.['fill-color'] ||
@@ -312,24 +308,38 @@ function DataLayer({ dataLayer }) {
     'white'
 
   function toggleMute() {
-    dataLayer.layers.values().map(layer => {
-      if (isMuted) {
-        const visibilty = beforeMuteLayer[layer.id]?.layout?.visibility || 'visible'
-        map.setLayoutProperty(layer.id, 'visibility', visibilty)
-      } else {
-        beforeMuteLayer[layer.id] = layer
+    // unmute
+    if (isMuted) {
+      const layers = store.layerPanel.dataMute[dataLayer.name]
+      // assert
+      if (!Array.isArray(layers)) {
+        console.error('store.layerPanel.dataMute[dataLayer.name] should have an array of layers')
+        return
+      }
+
+      for (const layer of layers) {
+        map.setLayoutProperty(layer.id, 'visibility', layer.layout?.visibility || 'visible')
+      }
+
+      store.layerPanel.dataMute[dataLayer.name] = null
+    }
+    // mute
+    else {
+      const layers = []
+      for (const layer of Object.values(dataLayer.layers)) {
+        layers.push(layer)
         map.setLayoutProperty(layer.id, 'visibility', 'none')
       }
-    })
-    if (isMuted) {
-      mutedDataLayers.delete(dataLayer.name)
-    } else {
-      mutedDataLayers.add(dataLayer.name)
+      store.layerPanel.dataMute[dataLayer.name] = layers
     }
+
+    // persist
+    store.layerPanel = store.layerPanel
   }
 
   function toggleSolo() {
-    console.log('toggle solo', dataLayer.name)
+    store.layerPanel.dataSolo[dataLayer.name] = !isSolo
+    store.layerPanel = store.layerPanel
   }
 
   return (
