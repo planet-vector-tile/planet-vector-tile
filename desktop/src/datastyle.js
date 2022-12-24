@@ -183,7 +183,6 @@ function updateStyle(map, sourceId, newLayers) {
         }
       }
     }
-
   }
 }
 

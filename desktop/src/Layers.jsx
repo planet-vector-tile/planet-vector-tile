@@ -347,17 +347,21 @@ function DataLayer({ dataLayer }) {
   }
 
   function toggleSolo() {
+    let beforeDataSoloLayers = store.layerPanel.beforeDataSoloLayers
+
     // un-solo
     if (isSolo) {
       const soloedSourceLayerIds = store.layerPanel.dataSolo.filter(name => name !== dataLayer.name)
       store.layerPanel.dataSolo = soloedSourceLayerIds
       if (soloedSourceLayerIds.length === 0) {
         // assert
-        if (!Array.isArray(store.beforeDataSoloLayers)) {
-          console.error('store.beforeDataSoloLayers should be an array of layers when there are soloed layers')
+        if (!Array.isArray(beforeDataSoloLayers)) {
+          console.error(
+            'store.layerPanel.beforeDataSoloLayers should be an array of layers when there are soloed layers'
+          )
           return
         }
-        for (const layer of store.beforeDataSoloLayers) {
+        for (const layer of beforeDataSoloLayers) {
           map.setLayoutProperty(layer.id, 'visibility', layer.layout?.visibility || 'visible')
         }
         store.layerPanel.beforeDataSoloLayers = null
@@ -366,8 +370,9 @@ function DataLayer({ dataLayer }) {
     // solo
     else {
       store.layerPanel.dataSolo.push(dataLayer.name)
-      if (!Array.isArray(store.beforeDataSoloLayers) || store.beforeDataSoloLayers.length !== 0) {
-        store.layerPanel.beforeDataSoloLayers = map.getStyle().layers
+      if (!Array.isArray(beforeDataSoloLayers) || beforeDataSoloLayers.length !== 0) {
+        beforeDataSoloLayers = map.getStyle().layers
+        store.layerPanel.beforeDataSoloLayers = beforeDataSoloLayers
       }
     }
 
@@ -383,14 +388,13 @@ function DataLayer({ dataLayer }) {
           map.setLayoutProperty(layer.id, 'visibility', 'none')
         }
       }
-    } 
+    }
     // return layers to how they were before solo
     else {
-      for (const layer of store.beforeDataSoloLayers) {
+      for (const layer of beforeDataSoloLayers) {
         map.setLayoutProperty(layer.id, 'visibility', layer.layout?.visibility || 'visible')
       }
     }
-    
   }
 
   return (

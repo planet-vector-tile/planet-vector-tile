@@ -40,9 +40,9 @@ const initialState = {
   layerPanel: {
     flc: {}, // layer id -> visibility string value
     dataMute: {}, // source layer id -> array of layers
-    mapSolo: [],  // array of layer ids
+    mapSolo: [], // array of layer ids
     dataSolo: [], // array of source layer ids
-    beforeDataSoloLayers: null, // array of layers 
+    beforeDataSoloLayers: null, // array of layers
   },
 }
 
