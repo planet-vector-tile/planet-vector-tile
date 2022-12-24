@@ -56,17 +56,14 @@ export function createDataStyleFromMapStyle() {
 
   const layers = []
 
-  // Add layers from local storage
+  // Add contextual layers from local storage so that they have the latest state.
+  // Vector layers get added ad hoc as the tiles come in in updateStyle.
   const sourcesWithVectorLayers = new Set()
   for (const layer of store.dataStyle.layers) {
     const type = layer.type
     // Add contextual layers
     if (!isVectorType(type)) {
       layers.push(layer)
-    }
-    if (isVectorType(type) && vectorSourceIds.has(layer.source) && layer['source-layer'] !== 'fake') {
-      layers.push(layer)
-      sourcesWithVectorLayers.add(layer.source)
     }
   }
 
@@ -155,7 +152,7 @@ function updateStyle(map, sourceId, newLayers) {
       maxzoom: 23,
       source: sourceId,
       'source-layer': sourceLayerId,
-      layout: { visibility: store.layerPanel.flc[circleLayerId] || 'none'},
+      layout: { visibility: store.layerPanel.flc[circleLayerId] || 'none' },
       paint: {
         'circle-radius': 3,
         'circle-color': color,

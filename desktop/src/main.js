@@ -1,6 +1,9 @@
 const path = require('path')
 const { app, BrowserWindow } = require('electron')
 
+const userData = app.getPath('userData')
+console.log('userData path:', userData)
+
 const menu = require('./menu')
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.

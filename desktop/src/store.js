@@ -20,15 +20,15 @@ const initialState = {
   mapStyle: defaultMapStyle,
   dataStyle: defaultDataStyle,
   layerPanel: {
-    flc: {},      // layer id -> visibility string value
-    mapMute: {},  // layer id -> boolean
+    flc: {}, // layer id -> visibility string value
+    mapMute: {}, // layer id -> boolean
     dataMute: {}, // source layer id -> boolean
-    mapSolo: {},  // layer id -> boolean
+    mapSolo: {}, // layer id -> boolean
     dataSolo: {}, // source layer id -> boolean
-  }
+  },
 }
 
-const properties = ['nav', 'bbox', 'mapStyle', 'dataStyle']
+const properties = Object.keys(initialState)
 function init() {
   for (const prop of properties) {
     const val = localStorage.getItem(prop)
