@@ -370,7 +370,7 @@ function DataLayer({ dataLayer }) {
     // solo
     else {
       store.layerPanel.dataSolo.push(dataLayer.name)
-      if (!Array.isArray(beforeDataSoloLayers) || beforeDataSoloLayers.length !== 0) {
+      if (!Array.isArray(beforeDataSoloLayers) || beforeDataSoloLayers.length === 0) {
         beforeDataSoloLayers = map.getStyle().layers
         store.layerPanel.beforeDataSoloLayers = beforeDataSoloLayers
       }
@@ -384,8 +384,16 @@ function DataLayer({ dataLayer }) {
     // mute all other layers
     if (soloedSourceLayerIdSet.size > 0) {
       for (const layer of map.getStyle().layers) {
-        if (!soloedSourceLayerIdSet.has(layer['source-layer']) && isVectorType(layer.type)) {
+        if (!isVectorType(layer.type)) {
+          continue
+        }
+        if (!soloedSourceLayerIdSet.has(layer['source-layer'])) {
           map.setLayoutProperty(layer.id, 'visibility', 'none')
+        } else {
+          // A soloed layer. We want to look at the saved layer state before solo to determine
+          // which of the sublayers to show
+          const beforeDataSoloLayer = beforeDataSoloLayers.find(l => l.id === layer.id)
+          map.setLayoutProperty(layer.id, 'visibility', beforeDataSoloLayer?.layout?.visibility || 'visible')
         }
       }
     }
