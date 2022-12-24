@@ -265,7 +265,7 @@ function processDataLayers(layers) {
     let dataLayer = dataLayers[name]
     if (!dataLayer) {
       dataLayer = {
-        name: name,
+        name,
         layers: {
           fill: null,
           line: null,
@@ -373,21 +373,30 @@ function FLC({ dataLayer }) {
   function toggleF() {
     let fill = dataLayer.layers.fill
     if (fill) {
-      map.setLayoutProperty(fill.id, 'visibility', f ? 'none' : 'visible')
+      const visibility = f ? 'none' : 'visible'
+      map.setLayoutProperty(fill.id, 'visibility', visibility)
+      store.layerPanel.flc[fill.id] = visibility
+      store.layerPanel = store.layerPanel
     }
   }
 
   function toggleL() {
     let line = dataLayer.layers.line
     if (line) {
-      map.setLayoutProperty(line.id, 'visibility', l ? 'none' : 'visible')
+      const visibility = l ? 'none' : 'visible'
+      map.setLayoutProperty(line.id, 'visibility', visibility)
+      store.layerPanel.flc[line.id] = visibility
+      store.layerPanel = store.layerPanel
     }
   }
 
   function toggleC() {
     let circle = dataLayer.layers.circle
     if (circle) {
-      map.setLayoutProperty(circle.id, 'visibility', c ? 'none' : 'visible')
+      const visibility = c ? 'none' : 'visible'
+      map.setLayoutProperty(circle.id, 'visibility', visibility)
+      store.layerPanel.flc[circle.id] = visibility
+      store.layerPanel = store.layerPanel
     }
   }
 

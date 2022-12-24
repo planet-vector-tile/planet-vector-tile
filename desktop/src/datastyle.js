@@ -1,4 +1,3 @@
-import { map } from './map.js'
 import store from './store.js'
 import { isVectorType } from './util.js'
 
@@ -65,7 +64,7 @@ export function createDataStyleFromMapStyle() {
     if (!isVectorType(type)) {
       layers.push(layer)
     }
-    if (isVectorType(type) && vectorSourceIds.has(layer.source)) {
+    if (isVectorType(type) && vectorSourceIds.has(layer.source) && layer['source-layer'] !== 'fake') {
       layers.push(layer)
       sourcesWithVectorLayers.add(layer.source)
     }
@@ -79,7 +78,7 @@ export function createDataStyleFromMapStyle() {
         id: `fake ${sourceId}`,
         type: 'line',
         source: sourceId,
-        'source-layer': 'fake not real',
+        'source-layer': 'fake',
         layout: {
           visibility: 'visible',
         },
@@ -114,30 +113,33 @@ function checkForNewVectorSource(sourceDataEvent) {
 function updateStyle(map, sourceId, newLayers) {
   const style = store.dataStyle
 
-  for (const layerId of newLayers) {
+  for (const sourceLayerId of newLayers) {
     const color = pickColor()
 
+    const fillLayerId = `${sourceLayerId} Fill`
     const fillLayer = {
-      id: `${layerId} Fill`,
+      id: fillLayerId,
       type: 'fill',
       minzoom: 0,
       maxzoom: 23,
       source: sourceId,
-      'source-layer': layerId,
-      layout: { visibility: 'none' },
+      'source-layer': sourceLayerId,
+      layout: { visibility: store.layerPanel.flc[fillLayerId] || 'none' },
       paint: {
         'fill-color': color,
         'fill-opacity': 0.5,
       },
     }
 
+    const lineLayerId = `${sourceLayerId} Line`
     const lineLayer = {
-      id: `${layerId} Line`,
+      id: lineLayerId,
       type: 'line',
       minzoom: 0,
       maxzoom: 23,
       source: sourceId,
-      'source-layer': layerId,
+      'source-layer': sourceLayerId,
+      layout: { visibility: store.layerPanel.flc[lineLayerId] || 'visible' },
       paint: {
         'line-color': color,
         'line-width': 2,
@@ -145,14 +147,15 @@ function updateStyle(map, sourceId, newLayers) {
       },
     }
 
+    const circleLayerId = `${sourceLayerId} Circle`
     const circleLayer = {
-      id: `${layerId} Circle`,
+      id: circleLayerId,
       type: 'circle',
       minzoom: 0,
       maxzoom: 23,
       source: sourceId,
-      'source-layer': layerId,
-      layout: { visibility: 'none' },
+      'source-layer': sourceLayerId,
+      layout: { visibility: store.layerPanel.flc[circleLayerId] || 'none'},
       paint: {
         'circle-radius': 3,
         'circle-color': color,
@@ -165,7 +168,7 @@ function updateStyle(map, sourceId, newLayers) {
     style.layers.push(fillLayer)
     style.layers.push(lineLayer)
     style.layers.push(circleLayer)
-    
+    store.dataStyle = style
 
     if (map.getStyle().name === 'Data') {
       map.addLayer(fillLayer)

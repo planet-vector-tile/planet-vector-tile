@@ -19,6 +19,13 @@ const initialState = {
   bbox: null,
   mapStyle: defaultMapStyle,
   dataStyle: defaultDataStyle,
+  layerPanel: {
+    flc: {},      // layer id -> visibility string value
+    mapMute: {},  // layer id -> boolean
+    dataMute: {}, // source layer id -> boolean
+    mapSolo: {},  // layer id -> boolean
+    dataSolo: {}, // source layer id -> boolean
+  }
 }
 
 const properties = ['nav', 'bbox', 'mapStyle', 'dataStyle']
