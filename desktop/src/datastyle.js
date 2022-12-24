@@ -152,6 +152,7 @@ function updateStyle(map, sourceId, newLayers) {
       maxzoom: 23,
       source: sourceId,
       'source-layer': layerId,
+      layout: { visibility: 'none' },
       paint: {
         'circle-radius': 3,
         'circle-color': color,
