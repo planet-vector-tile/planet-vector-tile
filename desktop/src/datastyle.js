@@ -117,6 +117,20 @@ function updateStyle(map, sourceId, newLayers) {
   for (const layerId of newLayers) {
     const color = pickColor()
 
+    const fillLayer = {
+      id: `${layerId} Fill`,
+      type: 'fill',
+      minzoom: 0,
+      maxzoom: 23,
+      source: sourceId,
+      'source-layer': layerId,
+      layout: { visibility: 'none' },
+      paint: {
+        'fill-color': color,
+        'fill-opacity': 0.5,
+      },
+    }
+
     const lineLayer = {
       id: `${layerId} Line`,
       type: 'line',
@@ -147,28 +161,15 @@ function updateStyle(map, sourceId, newLayers) {
       },
     }
 
-    const fillLayer = {
-      id: `${layerId} Fill`,
-      type: 'fill',
-      minzoom: 0,
-      maxzoom: 23,
-      source: sourceId,
-      'source-layer': layerId,
-      layout: { visibility: 'none' },
-      paint: {
-        'fill-color': color,
-        'fill-opacity': 0.5,
-      },
-    }
-
+    style.layers.push(fillLayer)
     style.layers.push(lineLayer)
     style.layers.push(circleLayer)
-    style.layers.push(fillLayer)
+    
 
     if (map.getStyle().name === 'Data') {
+      map.addLayer(fillLayer)
       map.addLayer(lineLayer)
       map.addLayer(circleLayer)
-      map.addLayer(fillLayer)
     }
   }
 }
