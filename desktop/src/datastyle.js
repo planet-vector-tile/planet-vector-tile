@@ -57,18 +57,15 @@ export function createDataStyleFromMapStyle() {
 
   const layers = []
 
-  // Add contextual layers from mapLayers
-  for (const layer of store.mapStyle.layers) {
-    const type = layer.type
-    if (!isVectorType(type)) {
-      layers.push(layer)
-    }
-  }
-
   // Add layers from local storage
   const sourcesWithVectorLayers = new Set()
   for (const layer of store.dataStyle.layers) {
-    if (isVectorType(layer.type) && vectorSourceIds.has(layer.source)) {
+    const type = layer.type
+    // Add contextual layers
+    if (!isVectorType(type)) {
+      layers.push(layer)
+    }
+    if (isVectorType(type) && vectorSourceIds.has(layer.source)) {
       layers.push(layer)
       sourcesWithVectorLayers.add(layer.source)
     }
