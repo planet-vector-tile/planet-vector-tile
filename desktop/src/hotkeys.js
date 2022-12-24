@@ -2,7 +2,7 @@ import { map } from './map'
 
 export async function setupHotKeys() {
   document.addEventListener('keyup', event => {
-    console.log('keyup', event.key)
+    // console.log('keyup', event.key)
     switch (event.key) {
       case 'b':
         toggleBackground()

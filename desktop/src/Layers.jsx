@@ -1,6 +1,6 @@
 import { useEffect, useState, memo } from 'react'
 import { Switch } from '@headlessui/react'
-import { classNames } from './util'
+import { classNames, isVectorType } from './util'
 import store from './store'
 import { map } from './map'
 import { DataLayerType, Page } from './types'
@@ -302,11 +302,12 @@ function isDataLayerMuted(name) {
 }
 
 function isDataLayerSolo(name) {
-  return !!store.layerPanel.dataSolo[name] || false
+  return !!store.layerPanel.dataSolo.find(sourceLayerId => sourceLayerId === name)
 }
 
 function DataLayer({ dataLayer }) {
   const isMuted = isDataLayerMuted(dataLayer.name)
+  const inSoloMode = store.layerPanel.dataSolo.length > 0
   const isSolo = isDataLayerSolo(dataLayer.name)
 
   const color =
@@ -329,7 +330,7 @@ function DataLayer({ dataLayer }) {
         map.setLayoutProperty(layer.id, 'visibility', layer.layout?.visibility || 'visible')
       }
 
-      store.layerPanel.dataMute[dataLayer.name] = null
+      delete store.layerPanel.dataMute[dataLayer.name]
     }
     // mute
     else {
@@ -346,8 +347,50 @@ function DataLayer({ dataLayer }) {
   }
 
   function toggleSolo() {
-    store.layerPanel.dataSolo[dataLayer.name] = !isSolo
+    // un-solo
+    if (isSolo) {
+      const soloedSourceLayerIds = store.layerPanel.dataSolo.filter(name => name !== dataLayer.name)
+      store.layerPanel.dataSolo = soloedSourceLayerIds
+      if (soloedSourceLayerIds.length === 0) {
+        // assert
+        if (!Array.isArray(store.beforeDataSoloLayers)) {
+          console.error('store.beforeDataSoloLayers should be an array of layers when there are soloed layers')
+          return
+        }
+        for (const layer of store.beforeDataSoloLayers) {
+          map.setLayoutProperty(layer.id, 'visibility', layer.layout?.visibility || 'visible')
+        }
+        store.layerPanel.beforeDataSoloLayers = null
+      }
+    }
+    // solo
+    else {
+      store.layerPanel.dataSolo.push(dataLayer.name)
+      if (!Array.isArray(store.beforeDataSoloLayers) || store.beforeDataSoloLayers.length !== 0) {
+        store.layerPanel.beforeDataSoloLayers = map.getStyle().layers
+      }
+    }
+
+    // persist
     store.layerPanel = store.layerPanel
+
+    const soloedSourceLayerIdSet = new Set(store.layerPanel.dataSolo)
+
+    // mute all other layers
+    if (soloedSourceLayerIdSet.size > 0) {
+      for (const layer of map.getStyle().layers) {
+        if (!soloedSourceLayerIdSet.has(layer['source-layer']) && isVectorType(layer.type)) {
+          map.setLayoutProperty(layer.id, 'visibility', 'none')
+        }
+      }
+    } 
+    // return layers to how they were before solo
+    else {
+      for (const layer of store.beforeDataSoloLayers) {
+        map.setLayoutProperty(layer.id, 'visibility', layer.layout?.visibility || 'visible')
+      }
+    }
+    
   }
 
   return (

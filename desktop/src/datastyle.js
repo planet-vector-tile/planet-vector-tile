@@ -172,6 +172,18 @@ function updateStyle(map, sourceId, newLayers) {
       map.addLayer(lineLayer)
       map.addLayer(circleLayer)
     }
+
+    // Now look and see if we had layers soloed, and if so, mute the non-soloed layers
+    // NHTODO DRY this up with code in Layers.jsx toggleSolo()
+    const soloedSourceLayerIdSet = new Set(store.layerPanel.dataSolo)
+    if (soloedSourceLayerIdSet.size > 0) {
+      for (const layer of map.getStyle().layers) {
+        if (!soloedSourceLayerIdSet.has(layer['source-layer']) && isVectorType(layer.type)) {
+          map.setLayoutProperty(layer.id, 'visibility', 'none')
+        }
+      }
+    }
+
   }
 }
 

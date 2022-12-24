@@ -39,9 +39,10 @@ const initialState = {
   dataStyle: defaultDataStyle,
   layerPanel: {
     flc: {}, // layer id -> visibility string value
-    dataMute: {},
-    mapSolo: {},
-    dataSolo: {},
+    dataMute: {}, // source layer id -> array of layers
+    mapSolo: [],  // array of layer ids
+    dataSolo: [], // array of source layer ids
+    beforeDataSoloLayers: null, // array of layers 
   },
 }
 
@@ -73,6 +74,11 @@ window.resetStore = () => {
   }
   init()
   return 'store reset'
+}
+
+window.reset = () => {
+  window.resetStore()
+  window.location.reload()
 }
 
 // Updating values in the state automatically persists to localStorage via a Proxy.
