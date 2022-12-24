@@ -206,23 +206,10 @@ function VectorLayerGroup({ source, layers, page }) {
 const MUTE_AND_SOLO_STYLE =
   'border border-gray-600/40 group-hover:border-gray-500 rounded-md font-light text-sm group-hover:text-gray-300 group-hover:border-gray-500'
 
-function MuteAndSolo({ isMuted, toggleMute, isSolo, toggleSolo }) {
+function MuteAndSolo({ isMuted, toggleMute, isSolo, inSoloMode, toggleSolo }) {
   return (
     <div className='flex-shrink-0'>
-      <div className='text-center'>
-        <button
-          title='Mute'
-          className={classNames(
-            isMuted ? 'text-amber-600 group-hover:bg-amber-600 shadow-inner' : 'text-gray-500',
-            MUTE_AND_SOLO_STYLE,
-            'px-1 group-hover:shadow-md'
-          )}
-          onClick={toggleMute}
-        >
-          M
-        </button>
-      </div>
-
+      {inSoloMode ? <DisabledMute /> : <Mute isMuted={isMuted} toggleMute={toggleMute} />}
       <div className='text-center'>
         <button
           title='Solo'
@@ -236,6 +223,34 @@ function MuteAndSolo({ isMuted, toggleMute, isSolo, toggleSolo }) {
           S
         </button>
       </div>
+    </div>
+  )
+}
+
+function Mute({ isMuted, toggleMute }) {
+  return (
+    <div className='text-center'>
+      <button
+        title='Mute'
+        className={classNames(
+          isMuted ? 'text-amber-600 group-hover:bg-amber-600 shadow-inner' : 'text-gray-500',
+          MUTE_AND_SOLO_STYLE,
+          'px-1 group-hover:shadow-md'
+        )}
+        onClick={toggleMute}
+      >
+        M
+      </button>
+    </div>
+  )
+}
+
+function DisabledMute() {
+  return (
+    <div className='text-center'>
+      <button disabled className='text-gray-500 border border-transparent font-light text-sm px-1'>
+        M
+      </button>
     </div>
   )
 }
@@ -407,11 +422,17 @@ function DataLayer({ dataLayer }) {
 
   return (
     <li key={dataLayer.name} className='group relative flex items-center space-x-3 pl-1 pr-2 pb-1 cursor-default'>
-      <MuteAndSolo isMuted={isMuted} toggleMute={toggleMute} isSolo={isSolo} toggleSolo={toggleSolo} />
+      <MuteAndSolo
+        isMuted={isMuted}
+        toggleMute={toggleMute}
+        isSolo={isSolo}
+        inSoloMode={inSoloMode}
+        toggleSolo={toggleSolo}
+      />
       <div className='flex-1 font-light text-sm' style={{ color }}>
         {dataLayer.name}
       </div>
-      <FLC dataLayer={dataLayer} />
+      <FLC dataLayer={dataLayer} inSoloMode={inSoloMode} />
     </li>
   )
 }
@@ -420,8 +441,8 @@ const ON_STYLE = 'text-fuchsia-700 group-hover:text-gray-300 group-hover:bg-fuch
 const OFF_STYLE = 'text-gray-500 group-hover:text-gray-300 group-hover:shadow-md'
 const DISABLED_STYLE = 'border border-transparent px-1 font-light text-sm text-center text-gray-500'
 
-function FLC({ dataLayer }) {
-  const disabled = isDataLayerMuted(dataLayer.name)
+function FLC({ dataLayer, inSoloMode }) {
+  const disabled = isDataLayerMuted(dataLayer.name) || inSoloMode
   if (disabled) {
     return (
       <div className='flex-shrink-0 space-y-0.5'>
