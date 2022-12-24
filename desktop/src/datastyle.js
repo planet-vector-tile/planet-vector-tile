@@ -121,7 +121,7 @@ function updateStyle(map, sourceId, newLayers) {
       maxzoom: 23,
       source: sourceId,
       'source-layer': sourceLayerId,
-      layout: { visibility: store.layerPanel.flc[fillLayerId] || 'none' },
+      layout: { visibility: computeVisibility(sourceLayerId, fillLayerId, 'none') },
       paint: {
         'fill-color': color,
         'fill-opacity': 0.5,
@@ -136,7 +136,7 @@ function updateStyle(map, sourceId, newLayers) {
       maxzoom: 23,
       source: sourceId,
       'source-layer': sourceLayerId,
-      layout: { visibility: store.layerPanel.flc[lineLayerId] || 'visible' },
+      layout: { visibility: computeVisibility(sourceLayerId, lineLayerId, 'visible') },
       paint: {
         'line-color': color,
         'line-width': 2,
@@ -152,7 +152,7 @@ function updateStyle(map, sourceId, newLayers) {
       maxzoom: 23,
       source: sourceId,
       'source-layer': sourceLayerId,
-      layout: { visibility: store.layerPanel.flc[circleLayerId] || 'none' },
+      layout: { visibility: computeVisibility(sourceLayerId, circleLayerId, 'none') },
       paint: {
         'circle-radius': 3,
         'circle-color': color,
@@ -173,6 +173,17 @@ function updateStyle(map, sourceId, newLayers) {
       map.addLayer(circleLayer)
     }
   }
+}
+
+function computeVisibility(sourceLayerId, layerId, defaultValue) {
+  if (store.layerPanel.dataMute[sourceLayerId]) {
+    return 'none'
+  }
+  const visibility = store.layerPanel.flc[layerId]
+  if (!visibility) {
+    return defaultValue
+  }
+  return visibility
 }
 
 export function dataLayerNameAndType(layerId) {
