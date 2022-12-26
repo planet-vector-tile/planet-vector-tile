@@ -1,7 +1,9 @@
 let map = null
 const hoverFeatures = new Map() //HashMap
 const clickFeatures = new Map() //HashMap
-const clickFeatureListeners = []
+
+let showFeaturesPanel = () => {}
+let clickFeaturesListener = _clickFeatures => {}
 
 export function listenToMapForSelection(maplibreMap) {
   map = maplibreMap
@@ -32,18 +34,19 @@ export function listenToMapForSelection(maplibreMap) {
       map.setFeatureState(f, { click: true })
       clickFeatures.set(f.id, f)
     }
+    if (clickFeatures.size > 0) {
+      showFeaturesPanel()
+    }
+    clickFeaturesListener(clickFeatures.values())
   })
 }
 
-export function listenForClickedFeatures(cb) {
-  clickFeatureListeners.push(cb)
+export function listenToShowFeaturesPanel(cb) {
+  showFeaturesPanel = cb
 }
 
-export function removeClickdFeatureListener(cb) {
-  const index = clickFeatureListeners.indexOf(cb)
-  if (index > -1) {
-    clickFeatureListeners.splice(index, 1)
-  }
+export function listenToClickFeatures(cb) {
+  clickFeaturesListener = cb
 }
 
 export function clearClickedFeatures() {

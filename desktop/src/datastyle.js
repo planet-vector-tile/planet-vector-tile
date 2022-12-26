@@ -174,7 +174,12 @@ function updateStyle(map, sourceId, newLayers) {
       circleLayerVisibility === 'visible' || lineLayerVisibility === 'visible' || fillLayerVisibility === 'visible'
         ? 'visible'
         : 'none'
-    const { hoverLineLayer, clickLineLayer } = selectionLayersForDataLayer(sourceId, sourceLayerId, color, hoverVisiblity)
+    const { hoverLineLayer, clickLineLayer } = selectionLayersForDataLayer(
+      sourceId,
+      sourceLayerId,
+      color,
+      hoverVisiblity
+    )
 
     style.layers.push(fillLayer)
     style.layers.push(hoverLineLayer)

@@ -1,3 +1,6 @@
+import { useEffect, useState } from 'react'
+import { listenToClickFeatures } from './selection'
+
 const directory = {
   Water: [
     {
@@ -178,6 +181,11 @@ const directory = {
 }
 
 export default function Features() {
+  const [clickFeatures, setClickFeatures] = useState([])
+  console.log('clickFeatures', clickFeatures)
+
+  useEffect(() => listenToClickFeatures(clickFeatures => setClickFeatures(clickFeatures)), [])
+
   return (
     <nav aria-label='Features'>
       {Object.keys(directory).map(letter => (
