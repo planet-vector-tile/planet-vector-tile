@@ -44,17 +44,13 @@ function initialize() {
   })
 
   map.on('moveend', function () {
+    // Store the bbox of the map so that the map will be in the same place when the app is restarted
     store.bbox = map.getBounds().toArray()
   })
 
-  map.on('mouseup', e => {
-    const features = map.queryRenderedFeatures(clickBBox(e.point))
-    console.log('features', features)
-  })
-
   const hoverFeatures = new Map() //HashMap
+  map.hoverFeatures = hoverFeatures
   const canvasStyle = map.getCanvas().style
-  canvasStyle.cursor = 'default'
   map.on('mousemove', e => {
     for (const f of hoverFeatures.values()) {
       map.setFeatureState(f, { hover: false })
@@ -71,6 +67,21 @@ function initialize() {
       canvasStyle.cursor = 'pointer'
     } else {
       canvasStyle.cursor = ''
+    }
+  })
+
+  const clickFeatures = new Map() //HashMap
+  map.clickFeatures = clickFeatures
+  map.on('mouseup', e => {
+    for (const f of clickFeatures.values()) {
+      map.setFeatureState(f, { click: false })
+    }
+    clickFeatures.clear()
+
+    const features = map.queryRenderedFeatures(clickBBox(e.point))
+    for (const f of features) {
+      map.setFeatureState(f, { click: true })
+      clickFeatures.set(f.id, f)
     }
   })
 
