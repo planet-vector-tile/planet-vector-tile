@@ -12,7 +12,7 @@ export function listenToMapForSelection(maplibreMap) {
     }
     hoverFeatures.clear()
 
-    const features = map.queryRenderedFeatures(clickBBox(e.point))
+    const features = map.queryRenderedFeatures(mouseBBox(e.point))
     for (const f of features) {
       map.setFeatureState(f, { hover: true })
       hoverFeatures.set(f.id, f)
@@ -26,10 +26,8 @@ export function listenToMapForSelection(maplibreMap) {
   })
 
   map.on('click', e => {
-    const features = map.queryRenderedFeatures(clickBBox(e.point))
-    if (features.length > 0) {
-      clearClickedFeatures()
-    }
+    clearClickedFeatures()
+    const features = map.queryRenderedFeatures(mouseBBox(e.point))
     for (const f of features) {
       map.setFeatureState(f, { click: true })
       clickFeatures.set(f.id, f)
@@ -76,8 +74,6 @@ export function selectionLayersForDataLayer(source, sourceLayerId, hoverColor, v
     },
   }
 
-  // We don't need to set the visibility for the clicked feature,
-  // because a feature should never be selected if the core feature is not visible.
   const clickLineLayer = {
     id: `${sourceLayerId} Click`,
     type: 'line',
@@ -88,6 +84,7 @@ export function selectionLayersForDataLayer(source, sourceLayerId, hoverColor, v
     layout: {
       'line-join': 'round',
       'line-cap': 'round',
+      visibility,
     },
     paint: {
       'line-color': '#a21caf',
@@ -121,7 +118,7 @@ export function showHoverForDataLayer(sourceLayerId) {
   }
 }
 
-function clickBBox(point) {
+function mouseBBox(point) {
   return [
     [point.x - 3, point.y - 3],
     [point.x + 3, point.y + 3],
