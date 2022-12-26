@@ -3,7 +3,7 @@ const { ipcRenderer } = require('electron')
 
 import { createDataStyleFromMapStyle } from './datastyle'
 import store from './store'
-import selection from './selection'
+import { listenToMapForSelection } from './selection'
 
 // To prevent a mess of top-level promise calls for the map, we just expose the main map here
 // and make sure we initialize the map before initializing React (in index.jsx).
@@ -42,7 +42,7 @@ function initialize() {
     store.bbox = map.getBounds().toArray()
   })
 
-  selection.listenToMap(map)
+  listenToMapForSelection(map)
 
   ipcRenderer.on('open-style', (_event, style) => {
     map.setStyle(style)

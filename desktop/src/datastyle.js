@@ -1,5 +1,6 @@
-import store from './store.js'
-import { isVectorType } from './util.js'
+import store from './store'
+import { selectionLayersForDataLayer } from './selection'
+import { isVectorType } from './util'
 
 const sources = {}
 
@@ -114,6 +115,7 @@ function updateStyle(map, sourceId, newLayers) {
     const color = pickColor()
 
     const fillLayerId = `${sourceLayerId} Fill`
+    const fillLayerVisibility = computeVisibility(sourceLayerId, fillLayerId, 'none')
     const fillLayer = {
       id: fillLayerId,
       type: 'fill',
@@ -121,56 +123,15 @@ function updateStyle(map, sourceId, newLayers) {
       maxzoom: 23,
       source: sourceId,
       'source-layer': sourceLayerId,
-      layout: { visibility: computeVisibility(sourceLayerId, fillLayerId, 'none') },
+      layout: { visibility: fillLayerVisibility },
       paint: {
         'fill-color': color,
         'fill-opacity': 0.5,
       },
     }
 
-    // NHTODO Do this in selection.js
-    const hoverLineLayerId = `${sourceLayerId} Hover`
-    const hoverLineLayer = {
-      id: hoverLineLayerId,
-      type: 'line',
-      minzoom: 0,
-      maxzoom: 23,
-      source: sourceId,
-      'source-layer': sourceLayerId,
-      layout: {
-        'line-join': 'round',
-        'line-cap': 'round',
-      },
-      paint: {
-        'line-color': color,
-        'line-width': 10,
-        'line-blur': 2,
-        'line-opacity': ['case', ['boolean', ['feature-state', 'hover'], false], 0.3, 0],
-      },
-    }
-
-    // NHTODO Do this in selection.js
-    const clickLineLayerId = `${sourceLayerId} Click`
-    const clickLineLayer = {
-      id: clickLineLayerId,
-      type: 'line',
-      minzoom: 0,
-      maxzoom: 23,
-      source: sourceId,
-      'source-layer': sourceLayerId,
-      layout: {
-        'line-join': 'round',
-        'line-cap': 'round',
-      },
-      paint: {
-        'line-color': '#a21caf',
-        'line-width': 12,
-        'line-blur': 2,
-        'line-opacity': ['case', ['boolean', ['feature-state', 'click'], false], 0.5, 0],
-      },
-    }
-
     const lineLayerId = `${sourceLayerId} Line`
+    const lineLayerVisibility = computeVisibility(sourceLayerId, lineLayerId, 'visible')
     const lineLayer = {
       id: lineLayerId,
       type: 'line',
@@ -181,7 +142,7 @@ function updateStyle(map, sourceId, newLayers) {
       layout: {
         'line-join': 'round',
         'line-cap': 'round',
-        visibility: computeVisibility(sourceLayerId, lineLayerId, 'visible'),
+        visibility: lineLayerVisibility,
       },
       paint: {
         'line-color': color,
@@ -191,6 +152,7 @@ function updateStyle(map, sourceId, newLayers) {
     }
 
     const circleLayerId = `${sourceLayerId} Circle`
+    const circleLayerVisibility = computeVisibility(sourceLayerId, circleLayerId, 'none')
     const circleLayer = {
       id: circleLayerId,
       type: 'circle',
@@ -198,7 +160,7 @@ function updateStyle(map, sourceId, newLayers) {
       maxzoom: 23,
       source: sourceId,
       'source-layer': sourceLayerId,
-      layout: { visibility: computeVisibility(sourceLayerId, circleLayerId, 'none') },
+      layout: { visibility: circleLayerVisibility },
       paint: {
         'circle-radius': 3,
         'circle-color': color,
@@ -207,6 +169,12 @@ function updateStyle(map, sourceId, newLayers) {
         'circle-stroke-color': '#334155',
       },
     }
+
+    const hoverVisiblity =
+      circleLayerVisibility === 'visible' || lineLayerVisibility === 'visible' || fillLayerVisibility === 'visible'
+        ? 'visible'
+        : 'none'
+    const { hoverLineLayer, clickLineLayer } = selectionLayersForDataLayer(sourceId, sourceLayerId, color, hoverVisiblity)
 
     style.layers.push(fillLayer)
     style.layers.push(hoverLineLayer)

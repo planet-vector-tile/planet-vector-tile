@@ -5,6 +5,7 @@ import store from './store'
 import { map } from './map'
 import { DataLayerType, Page } from './types'
 import { dataLayerNameAndType } from './datastyle'
+import { hideHoverForDataLayer, showHoverForDataLayer } from './selection'
 
 export default function Layers({ page }) {
   const [backgroundLayers, setBackgroundLayers] = useState([])
@@ -341,8 +342,16 @@ function DataLayer({ dataLayer }) {
         return
       }
 
+      let hasVisibleLayer = false
       for (const layer of layers) {
-        map.setLayoutProperty(layer.id, 'visibility', layer.layout?.visibility || 'visible')
+        const visibility = layer.layout?.visibility || 'visible'
+        if (visibility === 'visible') {
+          hasVisibleLayer = true
+        }
+        map.setLayoutProperty(layer.id, 'visibility', visibility)
+      }
+      if (hasVisibleLayer) {
+        showHoverForDataLayer(dataLayer.name)
       }
 
       delete store.layerPanel.dataMute[dataLayer.name]
@@ -354,6 +363,7 @@ function DataLayer({ dataLayer }) {
         layers.push(layer)
         map.setLayoutProperty(layer.id, 'visibility', 'none')
       }
+      hideHoverForDataLayer(dataLayer.name)
       store.layerPanel.dataMute[dataLayer.name] = layers
     }
 
@@ -376,9 +386,18 @@ function DataLayer({ dataLayer }) {
           )
           return
         }
+        const visibleSourceLayerIds = new Set()
         for (const layer of beforeDataSoloLayers) {
-          map.setLayoutProperty(layer.id, 'visibility', layer.layout?.visibility || 'visible')
+          const visibility = layer.layout?.visibility || 'visible'
+          map.setLayoutProperty(layer.id, 'visibility', visibility)
+          if (visibility === 'visible') {
+            visibleSourceLayerIds.add(layer['source-layer'])
+          }
         }
+        for (const sourceLayerId of visibleSourceLayerIds.values()) {
+          showHoverForDataLayer(sourceLayerId)
+        }
+
         store.layerPanel.beforeDataSoloLayers = null
       }
     }
@@ -402,13 +421,30 @@ function DataLayer({ dataLayer }) {
         if (!isVectorType(layer.type)) {
           continue
         }
-        if (!soloedSourceLayerIdSet.has(layer['source-layer'])) {
+
+        const hoverSourceLayersToHide = new Set()
+        const hoverSourceLayersToShow = new Set()
+
+        const sourceLayerId = layer['source-layer']
+        if (!soloedSourceLayerIdSet.has(sourceLayerId)) {
           map.setLayoutProperty(layer.id, 'visibility', 'none')
+          hoverSourceLayersToHide.add(sourceLayerId)
         } else {
           // A soloed layer. We want to look at the saved layer state before solo to determine
           // which of the sublayers to show
           const beforeDataSoloLayer = beforeDataSoloLayers.find(l => l.id === layer.id)
-          map.setLayoutProperty(layer.id, 'visibility', beforeDataSoloLayer?.layout?.visibility || 'visible')
+          const beforeDataSoloLayerVisilibity = beforeDataSoloLayer?.layout?.visibility || 'visible'
+          map.setLayoutProperty(layer.id, 'visibility', beforeDataSoloLayerVisilibity)
+          if (beforeDataSoloLayerVisilibity === 'visible') {
+            hoverSourceLayersToShow.add(sourceLayerId)
+          }
+        }
+
+        for (const sourceLayerId of hoverSourceLayersToHide.values()) {
+          hideHoverForDataLayer(sourceLayerId)
+        }
+        for (const sourceLayerId of hoverSourceLayersToShow.values()) {
+          showHoverForDataLayer(sourceLayerId)
         }
       }
     }

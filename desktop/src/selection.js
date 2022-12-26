@@ -1,8 +1,10 @@
+let map = null
 const hoverFeatures = new Map() //HashMap
 const clickFeatures = new Map() //HashMap
 const clickFeatureListeners = []
 
-function listenToMap(map) {
+export function listenToMapForSelection(maplibreMap) {
+  map = maplibreMap
   const canvasStyle = map.getCanvas().style
   map.on('mousemove', e => {
     for (const f of hoverFeatures.values()) {
@@ -35,22 +37,88 @@ function listenToMap(map) {
   })
 }
 
-function listenForClickedFeatures(cb) {
+export function listenForClickedFeatures(cb) {
   clickFeatureListeners.push(cb)
 }
 
-function removeClickdFeatureListener(cb) {
+export function removeClickdFeatureListener(cb) {
   const index = clickFeatureListeners.indexOf(cb)
   if (index > -1) {
     clickFeatureListeners.splice(index, 1)
   }
 }
 
-function clearClickedFeatures() {
+export function clearClickedFeatures() {
   for (const f of clickFeatures.values()) {
     map.setFeatureState(f, { click: false })
   }
   clickFeatures.clear()
+}
+
+export function selectionLayersForDataLayer(source, sourceLayerId, hoverColor, visibility) {
+  const hoverLineLayer = {
+    id: `${sourceLayerId} Hover`,
+    type: 'line',
+    minzoom: 0,
+    maxzoom: 23,
+    source,
+    'source-layer': sourceLayerId,
+    layout: {
+      'line-join': 'round',
+      'line-cap': 'round',
+      visibility,
+    },
+    paint: {
+      'line-color': hoverColor,
+      'line-width': 10,
+      'line-blur': 2,
+      'line-opacity': ['case', ['boolean', ['feature-state', 'hover'], false], 0.3, 0],
+    },
+  }
+
+  // We don't need to set the visibility for the clicked feature,
+  // because a feature should never be selected if the core feature is not visible.
+  const clickLineLayer = {
+    id: `${sourceLayerId} Click`,
+    type: 'line',
+    minzoom: 0,
+    maxzoom: 23,
+    source,
+    'source-layer': sourceLayerId,
+    layout: {
+      'line-join': 'round',
+      'line-cap': 'round',
+    },
+    paint: {
+      'line-color': '#a21caf',
+      'line-width': 12,
+      'line-blur': 2,
+      'line-opacity': ['case', ['boolean', ['feature-state', 'click'], false], 0.5, 0],
+    },
+  }
+
+  // NHTODO Handle circles.
+
+  return {
+    hoverLineLayer,
+    clickLineLayer,
+  }
+}
+
+export function hideHoverForDataLayer(sourceLayerId) {
+  const hoverLayerId = `${sourceLayerId} Hover`
+  const hoverLayer = map.getLayer(hoverLayerId)
+  if (hoverLayer) {
+    map.setLayoutProperty(hoverLayerId, 'visibility', 'none')
+  }
+}
+
+export function showHoverForDataLayer(sourceLayerId) {
+  const hoverLayerId = `${sourceLayerId} Hover`
+  const hoverLayer = map.getLayer(hoverLayerId)
+  if (hoverLayer) {
+    map.setLayoutProperty(hoverLayerId, 'visibility', 'visible')
+  }
 }
 
 function clickBBox(point) {
@@ -58,11 +126,4 @@ function clickBBox(point) {
     [point.x - 3, point.y - 3],
     [point.x + 3, point.y + 3],
   ]
-}
-
-export default {
-  listenToMap,
-  listenForClickedFeatures,
-  removeClickdFeatureListener,
-  clearClickedFeatures,
 }
