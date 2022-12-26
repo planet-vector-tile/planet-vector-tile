@@ -128,6 +128,7 @@ function updateStyle(map, sourceId, newLayers) {
       },
     }
 
+    // NHTODO Do this in selection.js
     const hoverLineLayerId = `${sourceLayerId} Hover`
     const hoverLineLayer = {
       id: hoverLineLayerId,
@@ -148,6 +149,7 @@ function updateStyle(map, sourceId, newLayers) {
       },
     }
 
+    // NHTODO Do this in selection.js
     const clickLineLayerId = `${sourceLayerId} Click`
     const clickLineLayer = {
       id: clickLineLayerId,

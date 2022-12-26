@@ -3,17 +3,11 @@ const { ipcRenderer } = require('electron')
 
 import { createDataStyleFromMapStyle } from './datastyle'
 import store from './store'
+import selection from './selection'
 
 // To prevent a mess of top-level promise calls for the map, we just expose the main map here
 // and make sure we initialize the map before initializing React (in index.jsx).
 export let map = null
-
-function clickBBox(point) {
-  return [
-    [point.x - 3, point.y - 3],
-    [point.x + 3, point.y + 3],
-  ]
-}
 
 function initialize() {
   // We bring in MapLibre from a script tag so that we
@@ -48,42 +42,7 @@ function initialize() {
     store.bbox = map.getBounds().toArray()
   })
 
-  const hoverFeatures = new Map() //HashMap
-  map.hoverFeatures = hoverFeatures
-  const canvasStyle = map.getCanvas().style
-  map.on('mousemove', e => {
-    for (const f of hoverFeatures.values()) {
-      map.setFeatureState(f, { hover: false })
-    }
-    hoverFeatures.clear()
-
-    const features = map.queryRenderedFeatures(clickBBox(e.point))
-    for (const f of features) {
-      map.setFeatureState(f, { hover: true })
-      hoverFeatures.set(f.id, f)
-    }
-
-    if (hoverFeatures.size > 0) {
-      canvasStyle.cursor = 'pointer'
-    } else {
-      canvasStyle.cursor = ''
-    }
-  })
-
-  const clickFeatures = new Map() //HashMap
-  map.clickFeatures = clickFeatures
-  map.on('mouseup', e => {
-    for (const f of clickFeatures.values()) {
-      map.setFeatureState(f, { click: false })
-    }
-    clickFeatures.clear()
-
-    const features = map.queryRenderedFeatures(clickBBox(e.point))
-    for (const f of features) {
-      map.setFeatureState(f, { click: true })
-      clickFeatures.set(f.id, f)
-    }
-  })
+  selection.listenToMap(map)
 
   ipcRenderer.on('open-style', (_event, style) => {
     map.setStyle(style)
