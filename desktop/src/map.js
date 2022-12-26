@@ -8,6 +8,13 @@ import store from './store'
 // and make sure we initialize the map before initializing React (in index.jsx).
 export let map = null
 
+function clickBBox(point) {
+  return [
+    [point.x - 3, point.y - 3],
+    [point.x + 3, point.y + 3],
+  ]
+}
+
 function initialize() {
   // We bring in MapLibre from a script tag so that we
   // don't have the massive library in the app bundle.
@@ -41,13 +48,7 @@ function initialize() {
   })
 
   map.on('mouseup', e => {
-    // give a little bit of space so we are more likely to select what we want
-    const bbox = [
-      [e.point.x - 5, e.point.y - 5],
-      [e.point.x + 5, e.point.y + 5],
-    ]
-
-    const features = map.queryRenderedFeatures(bbox)
+    const features = map.queryRenderedFeatures(clickBBox(e.point))
     console.log('features', features)
   })
 
@@ -55,17 +56,12 @@ function initialize() {
   const canvasStyle = map.getCanvas().style
   canvasStyle.cursor = 'default'
   map.on('mousemove', e => {
-    const bbox = [
-      [e.point.x - 5, e.point.y - 5],
-      [e.point.x + 5, e.point.y + 5],
-    ]
-
     for (const f of hoverFeatures.values()) {
       map.setFeatureState(f, { hover: false })
     }
     hoverFeatures.clear()
 
-    const features = map.queryRenderedFeatures(bbox)
+    const features = map.queryRenderedFeatures(clickBBox(e.point))
     for (const f of features) {
       map.setFeatureState(f, { hover: true })
       hoverFeatures.set(f.id, f)
