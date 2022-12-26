@@ -136,7 +136,8 @@ function updateStyle(map, sourceId, newLayers) {
       maxzoom: 23,
       source: sourceId,
       'source-layer': sourceLayerId,
-      layout: { visibility: computeVisibility(sourceLayerId, lineLayerId, 'visible') },
+      layout: { 'line-join': 'round',
+      'line-cap': 'round', visibility: computeVisibility(sourceLayerId, lineLayerId, 'visible') },
       paint: {
         'line-color': color,
         'line-width': 2,
@@ -162,15 +163,38 @@ function updateStyle(map, sourceId, newLayers) {
       },
     }
 
+    const hoverLineLayerId = `${sourceLayerId} Hover`
+    const hoverLineLayer = {
+      id: hoverLineLayerId,
+      type: 'line',
+      minzoom: 0,
+      maxzoom: 23,
+      source: sourceId,
+      'source-layer': sourceLayerId,
+      layout: {
+        'line-join': 'round',
+        'line-cap': 'round',
+        },
+      paint: {
+        'line-color': color,
+        'line-width': 12,
+        'line-blur': 2,
+        'line-opacity': ['case', ['boolean', ['feature-state', 'hover'], false], 0.3, 0],
+      }
+    }
+
     style.layers.push(fillLayer)
     style.layers.push(lineLayer)
     style.layers.push(circleLayer)
+    style.layers.push(hoverLineLayer)
+
     store.dataStyle = style
 
     if (map.getStyle().name === 'Data') {
       map.addLayer(fillLayer)
       map.addLayer(lineLayer)
       map.addLayer(circleLayer)
+      map.addLayer(hoverLineLayer)
     }
 
     // Now look and see if we had layers soloed, and if so, mute the non-soloed layers

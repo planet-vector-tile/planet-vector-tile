@@ -51,6 +51,33 @@ function initialize() {
     console.log('features', features)
   })
 
+  const hoverFeatures = new Map() //HashMap
+  const canvasStyle = map.getCanvas().style
+  canvasStyle.cursor = 'default'
+  map.on('mousemove', e => {
+    const bbox = [
+      [e.point.x - 5, e.point.y - 5],
+      [e.point.x + 5, e.point.y + 5],
+    ]
+
+    for (const f of hoverFeatures.values()) {
+      map.setFeatureState(f, { hover: false })
+    }
+    hoverFeatures.clear()
+
+    const features = map.queryRenderedFeatures(bbox)
+    for (const f of features) {
+      map.setFeatureState(f, { hover: true })
+      hoverFeatures.set(f.id, f)
+    }
+
+    if (hoverFeatures.size > 0) {
+      canvasStyle.cursor = 'pointer'
+    } else {
+      canvasStyle.cursor = ''
+    }
+  })
+
   ipcRenderer.on('open-style', (_event, style) => {
     map.setStyle(style)
     store.mapStyle = style
