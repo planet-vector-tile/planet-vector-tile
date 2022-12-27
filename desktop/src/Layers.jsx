@@ -6,6 +6,7 @@ import { map } from './map'
 import { DataLayerType, Page } from './types'
 import { dataLayerNameAndType } from './datastyle'
 import { hideHoverForDataLayer, showHoverForDataLayer } from './selection'
+import { TileInfoZoom } from './tileinfo'
 
 export default function Layers({ page }) {
   const [backgroundLayers, setBackgroundLayers] = useState([])
@@ -468,6 +469,7 @@ function DataLayer({ dataLayer }) {
       <div className='flex-1 font-light text-sm' style={{ color }}>
         {dataLayer.name}
       </div>
+      <TileInfoZoom dataLayer={dataLayer} />
       <FLC dataLayer={dataLayer} inSoloMode={inSoloMode} />
     </li>
   )
