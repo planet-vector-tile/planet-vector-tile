@@ -1,6 +1,7 @@
 import store from './store'
 import { selectionLayersForDataLayer } from './selection'
 import { isVectorType } from './util'
+import { tileInfoFillPaint, tileInfoLinePaint, tileInfoLabelStyle } from './tileinfo'
 
 const sources = {}
 
@@ -114,13 +115,13 @@ function updateStyle(map, sourceId, newLayers) {
   for (const sourceLayerId of newLayers) {
     const color = pickColor()
 
+    const isTileInfoLayer = sourceLayerId.indexOf('Tile ') === 0
+
     const fillLayerId = `${sourceLayerId} Fill`
     const fillLayerVisibility = computeVisibility(sourceLayerId, fillLayerId, 'none')
     const fillLayer = {
       id: fillLayerId,
       type: 'fill',
-      minzoom: 0,
-      maxzoom: 23,
       source: sourceId,
       'source-layer': sourceLayerId,
       layout: { visibility: fillLayerVisibility },
@@ -129,14 +130,18 @@ function updateStyle(map, sourceId, newLayers) {
         'fill-opacity': 0.5,
       },
     }
+    if (isTileInfoLayer) {
+      let paint = tileInfoFillPaint(sourceLayerId)
+      if (paint) {
+        fillLayer.paint = paint
+      }
+    }
 
     const lineLayerId = `${sourceLayerId} Line`
-    const lineLayerVisibility = computeVisibility(sourceLayerId, lineLayerId, 'visible')
+    const lineLayerVisibility = computeVisibility(sourceLayerId, lineLayerId, isTileInfoLayer ? 'none' :'visible')
     const lineLayer = {
       id: lineLayerId,
       type: 'line',
-      minzoom: 0,
-      maxzoom: 23,
       source: sourceId,
       'source-layer': sourceLayerId,
       layout: {
@@ -150,14 +155,18 @@ function updateStyle(map, sourceId, newLayers) {
         'line-opacity': 0.8,
       },
     }
+    if (isTileInfoLayer) {
+      let paint = tileInfoLinePaint(sourceLayerId)
+      if (paint) {
+        lineLayer.paint = paint
+      }
+    }
 
     const circleLayerId = `${sourceLayerId} Circle`
     const circleLayerVisibility = computeVisibility(sourceLayerId, circleLayerId, 'none')
-    const circleLayer = {
+    let circleLayer = {
       id: circleLayerId,
       type: 'circle',
-      minzoom: 0,
-      maxzoom: 23,
       source: sourceId,
       'source-layer': sourceLayerId,
       layout: { visibility: circleLayerVisibility },
@@ -168,6 +177,12 @@ function updateStyle(map, sourceId, newLayers) {
         'circle-stroke-width': 1,
         'circle-stroke-color': '#334155',
       },
+    }
+    if (isTileInfoLayer) {
+      let layer = tileInfoLabelStyle(circleLayerId, sourceId, sourceLayerId, circleLayerVisibility)
+      if (layer) {
+        circleLayer = layer
+      }
     }
 
     const hoverVisiblity =
@@ -182,8 +197,15 @@ function updateStyle(map, sourceId, newLayers) {
     )
 
     style.layers.push(fillLayer)
-    style.layers.push(hoverLineLayer)
-    style.layers.push(clickLineLayer)
+
+    // For now, we are omitting the tile info layers from hover and click due to complexity.
+    // Also, it feels like a special layer that shouldn't be thought of as map data.
+    if (!isTileInfoLayer) {
+      style.layers.push(hoverLineLayer)
+      style.layers.push(clickLineLayer)
+    }
+    
+
     style.layers.push(lineLayer)
     style.layers.push(circleLayer)
 
@@ -191,8 +213,10 @@ function updateStyle(map, sourceId, newLayers) {
 
     if (map.getStyle().name === 'Data') {
       map.addLayer(fillLayer)
-      map.addLayer(hoverLineLayer)
-      map.addLayer(clickLineLayer)
+      if (!isTileInfoLayer) {
+        map.addLayer(hoverLineLayer)
+        map.addLayer(clickLineLayer)
+      }
       map.addLayer(lineLayer)
       map.addLayer(circleLayer)
     }

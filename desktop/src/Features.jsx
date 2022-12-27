@@ -46,7 +46,7 @@ function Property({ k, v }) {
   return (
     <div className='sm:grid sm:grid-cols-3 sm:gap-1'>
       <dt className='text-sm font-medium text-gray-500'>{k}</dt>
-      <dd className='text-sm text-gray-300 sm:col-span-2 mt-1 sm:mt-0'>{v.toString()}</dd>
+      <dd className='text-sm text-gray-300 sm:col-span-2 mt-1 sm:mt-0'>{v?.toString()}</dd>
     </div>
   )
 }

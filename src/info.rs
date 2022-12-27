@@ -30,8 +30,8 @@ fn info(render_tile: &Tile, builder: &mut PVTBuilder, grandchild_levels: u8, max
     let pyramid = render_tile.pyramid(grandchild_levels, max_zoom);
 
     let mut boundary_vec = Vec::<WIPOffset<PVTFeature>>::new();
-    let mut center_vec = Vec::<WIPOffset<PVTFeature>>::new();
     let mut bearing_vec = Vec::<WIPOffset<PVTFeature>>::new();
+    let mut center_vec = Vec::<WIPOffset<PVTFeature>>::new();
 
     for tile in &pyramid {
         let (boundary, center, bearing) = generate_features(render_tile, tile, builder, &pyramid);
@@ -47,30 +47,30 @@ fn info(render_tile: &Tile, builder: &mut PVTBuilder, grandchild_levels: u8, max
     let boundary_layer = PVTLayer::create(
         fbb,
         &PVTLayerArgs {
-            name: attributes.upsert_string("tile_boundary"),
+            name: attributes.upsert_string("Tile Boundary"),
             features: Some(boundary_features),
-        },
-    );
-    let center_features = fbb.create_vector(&center_vec);
-    let center_layer = PVTLayer::create(
-        fbb,
-        &PVTLayerArgs {
-            name: attributes.upsert_string("tile_center"),
-            features: Some(center_features),
         },
     );
     let bearing_features = fbb.create_vector(&bearing_vec);
     let bearing_layer = PVTLayer::create(
         fbb,
         &PVTLayerArgs {
-            name: attributes.upsert_string("tile_bearing"),
+            name: attributes.upsert_string("Tile Bearing"),
             features: Some(bearing_features),
+        },
+    );
+    let center_features = fbb.create_vector(&center_vec);
+    let center_layer = PVTLayer::create(
+        fbb,
+        &PVTLayerArgs {
+            name: attributes.upsert_string("Tile Center"),
+            features: Some(center_features),
         },
     );
 
     builder.add_layer(boundary_layer);
-    builder.add_layer(center_layer);
     builder.add_layer(bearing_layer);
+    builder.add_layer(center_layer);
 }
 
 pub fn generate_features<'a>(

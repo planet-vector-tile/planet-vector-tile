@@ -68,8 +68,6 @@ export function selectionLayersForDataLayer(source, sourceLayerId, hoverColor, v
   const hoverLineLayer = {
     id: `${sourceLayerId} Hover`,
     type: 'line',
-    minzoom: 0,
-    maxzoom: 23,
     source,
     'source-layer': sourceLayerId,
     layout: {
@@ -88,8 +86,6 @@ export function selectionLayersForDataLayer(source, sourceLayerId, hoverColor, v
   const clickLineLayer = {
     id: `${sourceLayerId} Click`,
     type: 'line',
-    minzoom: 0,
-    maxzoom: 23,
     source,
     'source-layer': sourceLayerId,
     layout: {
