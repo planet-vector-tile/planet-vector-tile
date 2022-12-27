@@ -56,6 +56,9 @@ export function tileInfoLabelStyle(circleLayerId, sourceId, sourceLayerId, circl
     },
     paint: {
       'text-color': 'white',
+      'text-halo-color': 'rgba(0,0,0,0.8)',
+      'text-halo-blur': 1,
+      'text-halo-width': 1,
     },
   }
 }

@@ -138,7 +138,7 @@ function updateStyle(map, sourceId, newLayers) {
     }
 
     const lineLayerId = `${sourceLayerId} Line`
-    const lineLayerVisibility = computeVisibility(sourceLayerId, lineLayerId, 'visible')
+    const lineLayerVisibility = computeVisibility(sourceLayerId, lineLayerId, isTileInfoLayer ? 'none' :'visible')
     const lineLayer = {
       id: lineLayerId,
       type: 'line',
