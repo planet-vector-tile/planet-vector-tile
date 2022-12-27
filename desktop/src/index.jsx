@@ -13,11 +13,13 @@ setupMainMap()
     setupHotKeys(map)
     setupDataStyleWithMap(map)
 
-    ReactDOM.createRoot(document.getElementById('root')).render(
-      <React.StrictMode>
-        <App />
-      </React.StrictMode>
-    )
+    // ReactDOM.createRoot(document.getElementById('root')).render(
+    //   <React.StrictMode>
+    //     <App />
+    //   </React.StrictMode>
+    // )
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />)
   })
   .catch(err => {
     console.error('Unable to initialize map.', err)

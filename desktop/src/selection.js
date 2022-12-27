@@ -1,4 +1,7 @@
 let map = null
+
+// We insert features by their feature id into a hash map so that we get only one entry per feature.
+// The feature may be in several render layers.
 const hoverFeatures = new Map() //HashMap
 const clickFeatures = new Map() //HashMap
 
@@ -30,6 +33,7 @@ export function listenToMapForSelection(maplibreMap) {
   map.on('click', e => {
     clearClickedFeatures()
     const features = map.queryRenderedFeatures(mouseBBox(e.point))
+    console.log('features', features)
     for (const f of features) {
       map.setFeatureState(f, { click: true })
       clickFeatures.set(f.id, f)
@@ -37,7 +41,7 @@ export function listenToMapForSelection(maplibreMap) {
     if (clickFeatures.size > 0) {
       showFeaturesPanel()
     }
-    clickFeaturesListener(clickFeatures.values())
+    clickFeaturesListener(Array.from(clickFeatures.values()))
   })
 }
 
@@ -47,6 +51,10 @@ export function listenToShowFeaturesPanel(cb) {
 
 export function listenToClickFeatures(cb) {
   clickFeaturesListener = cb
+}
+
+export function listClickFeatures() {
+  return Array.from(clickFeatures.values())
 }
 
 export function clearClickedFeatures() {
