@@ -47,7 +47,7 @@ fn info(render_tile: &Tile, builder: &mut PVTBuilder, grandchild_levels: u8, max
     let boundary_layer = PVTLayer::create(
         fbb,
         &PVTLayerArgs {
-            name: attributes.upsert_string("tile_boundary"),
+            name: attributes.upsert_string("Tile Boundary"),
             features: Some(boundary_features),
         },
     );
@@ -55,7 +55,7 @@ fn info(render_tile: &Tile, builder: &mut PVTBuilder, grandchild_levels: u8, max
     let center_layer = PVTLayer::create(
         fbb,
         &PVTLayerArgs {
-            name: attributes.upsert_string("tile_center"),
+            name: attributes.upsert_string("Tile Center"),
             features: Some(center_features),
         },
     );
@@ -63,7 +63,7 @@ fn info(render_tile: &Tile, builder: &mut PVTBuilder, grandchild_levels: u8, max
     let bearing_layer = PVTLayer::create(
         fbb,
         &PVTLayerArgs {
-            name: attributes.upsert_string("tile_bearing"),
+            name: attributes.upsert_string("Tile Bearing"),
             features: Some(bearing_features),
         },
     );
