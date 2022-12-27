@@ -197,8 +197,15 @@ function updateStyle(map, sourceId, newLayers) {
     )
 
     style.layers.push(fillLayer)
-    style.layers.push(hoverLineLayer)
-    style.layers.push(clickLineLayer)
+
+    // For now, we are omitting the tile info layers from hover and click due to complexity.
+    // Also, it feels like a special layer that shouldn't be thought of as map data.
+    if (!isTileInfoLayer) {
+      style.layers.push(hoverLineLayer)
+      style.layers.push(clickLineLayer)
+    }
+    
+
     style.layers.push(lineLayer)
     style.layers.push(circleLayer)
 
