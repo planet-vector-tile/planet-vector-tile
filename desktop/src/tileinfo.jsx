@@ -90,10 +90,10 @@ export function TileInfoZoom({ dataLayer }) {
     <Listbox value={selected} onChange={setSelected}>
       {({ open }) => (
         <span className="flex items-center">
-          <Listbox.Label className="block text-sm font-light text-gray-500 pt-0.5 pr-0.5">Z:</Listbox.Label>
+          <Listbox.Label className="block text-sm font-light text-gray-500 group-hover:text-gray-300 pt-0.5 pr-0.5">Z:</Listbox.Label>
           <div className="relative">
-            <Listbox.Button className="relative rounded-md border border-gray-600 bg-transparent py-0 pl-2 pr-6 text-left shadow-sm text-sm cursor-pointer">
-              <span className="block truncate text-gray-500">{selected}</span>
+            <Listbox.Button className="relative rounded-md border border-gray-600 group-hover:border-gray-500 group-hover-text-gray-500 bg-transparent py-0 pl-2 pr-6 text-left shadow-sm text-sm cursor-pointer">
+              <span className="block truncate text-gray-500 group-hover:text-gray-300">{selected}</span>
               <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-0">
                 <ChevronUpDownIcon className="h-4 w-5 text-gray-500" aria-hidden="true" />
               </span>
