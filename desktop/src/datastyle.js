@@ -213,8 +213,10 @@ function updateStyle(map, sourceId, newLayers) {
 
     if (map.getStyle().name === 'Data') {
       map.addLayer(fillLayer)
-      map.addLayer(hoverLineLayer)
-      map.addLayer(clickLineLayer)
+      if (!isTileInfoLayer) {
+        map.addLayer(hoverLineLayer)
+        map.addLayer(clickLineLayer)
+      }
       map.addLayer(lineLayer)
       map.addLayer(circleLayer)
     }
