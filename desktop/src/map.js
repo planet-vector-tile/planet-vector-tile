@@ -3,6 +3,7 @@ const { ipcRenderer } = require('electron')
 
 import { createDataStyleFromMapStyle } from './datastyle'
 import store from './store'
+import { listenToMapForSelection } from './selection'
 
 // To prevent a mess of top-level promise calls for the map, we just expose the main map here
 // and make sure we initialize the map before initializing React (in index.jsx).
@@ -37,19 +38,11 @@ function initialize() {
   })
 
   map.on('moveend', function () {
+    // Store the bbox of the map so that the map will be in the same place when the app is restarted
     store.bbox = map.getBounds().toArray()
   })
 
-  map.on('mouseup', e => {
-    // give a little bit of space so we are more likely to select what we want
-    const bbox = [
-      [e.point.x - 5, e.point.y - 5],
-      [e.point.x + 5, e.point.y + 5],
-    ]
-
-    const features = map.queryRenderedFeatures(bbox)
-    console.log('features', features)
-  })
+  listenToMapForSelection(map)
 
   ipcRenderer.on('open-style', (_event, style) => {
     map.setStyle(style)

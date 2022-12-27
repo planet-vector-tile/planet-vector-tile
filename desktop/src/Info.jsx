@@ -5,6 +5,7 @@ import Layers from './Layers'
 import Features from './Features'
 import { Page, Info } from './types'
 import { registerCloseInfoPanel } from './hotkeys'
+import { clearClickedFeatures } from './selection'
 
 const enable = {
   top: false,
@@ -24,6 +25,7 @@ export default function InfoPanel({ nav, setNav }) {
 
   function close() {
     setNav({ ...nav, info: Info.None })
+    clearClickedFeatures()
   }
   registerCloseInfoPanel(close)
 
@@ -39,7 +41,7 @@ export default function InfoPanel({ nav, setNav }) {
         className='right-0 bg-slate-700/90 border-l border-gray-900 backdrop-blur-md overflow-y-auto'
       >
         {nav.info === 'layers' && <Layers page={nav.page} />}
-        {nav.info === 'features' && <Features />}
+        {nav.info === 'features' && <Features close={close} />}
       </Resizable>
     </>
   )

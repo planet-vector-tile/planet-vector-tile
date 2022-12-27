@@ -1,5 +1,6 @@
-import store from './store.js'
-import { isVectorType } from './util.js'
+import store from './store'
+import { selectionLayersForDataLayer } from './selection'
+import { isVectorType } from './util'
 
 const sources = {}
 
@@ -114,6 +115,7 @@ function updateStyle(map, sourceId, newLayers) {
     const color = pickColor()
 
     const fillLayerId = `${sourceLayerId} Fill`
+    const fillLayerVisibility = computeVisibility(sourceLayerId, fillLayerId, 'none')
     const fillLayer = {
       id: fillLayerId,
       type: 'fill',
@@ -121,7 +123,7 @@ function updateStyle(map, sourceId, newLayers) {
       maxzoom: 23,
       source: sourceId,
       'source-layer': sourceLayerId,
-      layout: { visibility: computeVisibility(sourceLayerId, fillLayerId, 'none') },
+      layout: { visibility: fillLayerVisibility },
       paint: {
         'fill-color': color,
         'fill-opacity': 0.5,
@@ -129,6 +131,7 @@ function updateStyle(map, sourceId, newLayers) {
     }
 
     const lineLayerId = `${sourceLayerId} Line`
+    const lineLayerVisibility = computeVisibility(sourceLayerId, lineLayerId, 'visible')
     const lineLayer = {
       id: lineLayerId,
       type: 'line',
@@ -136,7 +139,11 @@ function updateStyle(map, sourceId, newLayers) {
       maxzoom: 23,
       source: sourceId,
       'source-layer': sourceLayerId,
-      layout: { visibility: computeVisibility(sourceLayerId, lineLayerId, 'visible') },
+      layout: {
+        'line-join': 'round',
+        'line-cap': 'round',
+        visibility: lineLayerVisibility,
+      },
       paint: {
         'line-color': color,
         'line-width': 2,
@@ -145,6 +152,7 @@ function updateStyle(map, sourceId, newLayers) {
     }
 
     const circleLayerId = `${sourceLayerId} Circle`
+    const circleLayerVisibility = computeVisibility(sourceLayerId, circleLayerId, 'none')
     const circleLayer = {
       id: circleLayerId,
       type: 'circle',
@@ -152,7 +160,7 @@ function updateStyle(map, sourceId, newLayers) {
       maxzoom: 23,
       source: sourceId,
       'source-layer': sourceLayerId,
-      layout: { visibility: computeVisibility(sourceLayerId, circleLayerId, 'none') },
+      layout: { visibility: circleLayerVisibility },
       paint: {
         'circle-radius': 3,
         'circle-color': color,
@@ -162,13 +170,29 @@ function updateStyle(map, sourceId, newLayers) {
       },
     }
 
+    const hoverVisiblity =
+      circleLayerVisibility === 'visible' || lineLayerVisibility === 'visible' || fillLayerVisibility === 'visible'
+        ? 'visible'
+        : 'none'
+    const { hoverLineLayer, clickLineLayer } = selectionLayersForDataLayer(
+      sourceId,
+      sourceLayerId,
+      color,
+      hoverVisiblity
+    )
+
     style.layers.push(fillLayer)
+    style.layers.push(hoverLineLayer)
+    style.layers.push(clickLineLayer)
     style.layers.push(lineLayer)
     style.layers.push(circleLayer)
+
     store.dataStyle = style
 
     if (map.getStyle().name === 'Data') {
       map.addLayer(fillLayer)
+      map.addLayer(hoverLineLayer)
+      map.addLayer(clickLineLayer)
       map.addLayer(lineLayer)
       map.addLayer(circleLayer)
     }

@@ -18,6 +18,8 @@ setupMainMap()
         <App />
       </React.StrictMode>
     )
+
+    // ReactDOM.createRoot(document.getElementById('root')).render(<App />)
   })
   .catch(err => {
     console.error('Unable to initialize map.', err)
