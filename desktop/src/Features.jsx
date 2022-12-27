@@ -1,10 +1,17 @@
 import { useEffect, useState } from 'react'
 import { listClickFeatures, listenToClickFeatures } from './selection'
 
-export default function Features() {
+export default function Features({ close }) {
   const [clickFeatures, setClickFeatures] = useState(listClickFeatures())
 
-  useEffect(() => listenToClickFeatures(clickFeatures => setClickFeatures(clickFeatures)), [])
+  useEffect(() => {
+    listenToClickFeatures(clickFeatures => {
+      setClickFeatures(clickFeatures)
+      if (clickFeatures.length === 0) {
+        close()
+      }
+    })
+  }, [])
 
   return (
     <section aria-label='Features' className='pb-10'>
