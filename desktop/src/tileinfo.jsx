@@ -71,6 +71,7 @@ export function TileInfoZoom({ dataLayer }) {
     return null
   }
 
+  // NHTODO This persistance mechanism is not working.
   const filter = dataLayer.layers.line.filter
   const z = filter && filter[1][2] || 'All'
   const [selected, _setSelected] = useState(parseInt(z) || 'All')
