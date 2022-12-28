@@ -292,6 +292,8 @@ fn build_tags(
         let len = &tags_index_range.end - &tags_index_range.start + 2; // osm_id and rule
         let mut keys: Vec<u32> = Vec::with_capacity(len);
         let mut vals: Vec<u32> = Vec::with_capacity(len);
+        keys.push(rule_key);
+        vals.push(rule_val);
 
         let osm_id_key = builder.attributes.upsert_string("osm_id");
         let osm_id_val = builder.attributes.upsert_number_value(osm_id as f64);
@@ -320,6 +322,8 @@ fn build_tags(
         IncludeTagIdxs::Keys(key_str_idxs) => {
             let mut keys: Vec<u32> = Vec::with_capacity(key_str_idxs.len());
             let mut vals: Vec<u32> = Vec::with_capacity(key_str_idxs.len());
+            keys.push(rule_key);
+            vals.push(rule_val);
 
             for tag_idx in &tags_index[tags_index_range] {
                 let tag_i = tag_idx.value() as usize;

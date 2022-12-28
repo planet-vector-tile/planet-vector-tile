@@ -22,8 +22,10 @@ pub struct Data {
     pub source: PathBuf,
     pub planet: PathBuf,
     pub archive: PathBuf,
+    // NHTODO Right now this only applies for a report. Do we also want to use it for the build?
+    // Should this be in the report section?
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub include_leaves: Vec<u64>, // these are the hilbert values for the leaves we want to include in the build
+    pub include_leaves: Vec<u64>,
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
