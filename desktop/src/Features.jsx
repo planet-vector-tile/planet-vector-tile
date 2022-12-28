@@ -27,12 +27,14 @@ export default function Features({ close }) {
 
 function Feature({ feature }) {
   console.log(feature)
+  const vtf = feature._vectorTileFeature
   return (
     <li key={feature.id} className='p-2'>
       <dl>
         <Property key='source' k='Source' v={feature.source} />
         <Property key='sourceLayer' k='Layer' v={feature.sourceLayer} />
         <Property key='featureId' k='ID' v={feature.id} />
+        <Property key='tile' k='Tile' v={`${vtf._z}/${vtf._x}/${vtf._y}`} />
 
         {Object.keys(feature.properties).map(k => (
           <Property key={k} k={k} v={feature.properties[k]} />

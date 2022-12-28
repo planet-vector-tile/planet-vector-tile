@@ -33,7 +33,6 @@ export function listenToMapForSelection(maplibreMap) {
   map.on('click', e => {
     clearClickedFeatures()
     const features = map.queryRenderedFeatures(mouseBBox(e.point))
-    console.log('features', features)
     for (const f of features) {
       map.setFeatureState(f, { click: true })
       clickFeatures.set(f.id, f)
