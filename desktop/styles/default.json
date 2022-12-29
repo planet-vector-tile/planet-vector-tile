@@ -22,7 +22,7 @@
     },
     "planet": {
       "type": "planet",
-      "tiles": ["info", "/Users/n/code/planet-vector-tile/manifests/santa_cruz.yaml"],
+      "tiles": ["info", "/Users/n/code/planet-vector-tile/manifests/full_planet.yaml"],
       "sprite": "https://storage.googleapis.com/hellopvt3/sprites",
       "minzoom": 0,
       "maxzoom": 14

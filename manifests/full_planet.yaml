@@ -1,6 +1,6 @@
 data:
   source: /opt/geodata/osm/planet-2022-11-26.osm.pbf
-  planet: /opt/pvt/planets/full_planet
+  planet: /opt/pvt/planets/full_planet_2022-12-28
   archive: /opt/pvt/archives/full_planet.pvt
 
 render:
@@ -21,7 +21,7 @@ layers:
     - place_state
     - place_region
     - place_county
-    - place_city
+    - place_city  
     - place_town
     - place_continent
     - place_archipelago
