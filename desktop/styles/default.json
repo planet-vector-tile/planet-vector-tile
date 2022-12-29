@@ -14,6 +14,12 @@
       "minzoom": 0,
       "maxzoom": 23
     },
+    "osm": {
+      "type": "raster",
+      "tiles": ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
+      "minzoom": 0,
+      "maxzoom": 23
+    },
     "planet": {
       "type": "planet",
       "tiles": ["info", "/Users/n/code/planet-vector-tile/manifests/full_planet.yaml"],

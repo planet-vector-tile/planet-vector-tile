@@ -1,11 +1,12 @@
 data:
   source: /opt/geodata/osm/planet-2022-11-26.osm.pbf
-  planet: /opt/pvt/planets/full_planet
+  planet: /opt/pvt/planets/full_planet_2022-12-28
   archive: /opt/pvt/archives/full_planet.pvt
 
 render:
   leaf_zoom: 14
   layer_order: [Administrative, Water, Landuse, Major Roads, Minor Roads, Places, Buildings]
+  all_tags: true
 
 layers:
   Administrative: [admin_country, admin_state, admin_county, admin_city, admin_other, boundary]

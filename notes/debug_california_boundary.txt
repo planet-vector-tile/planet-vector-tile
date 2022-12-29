@@ -1,0 +1,60 @@
+tile: 53234999 14/2730/6173
+w_ext 3_651_049
+ext 16_388_863
+osm_id 104470078
+
+ways[i] 170_629_649 for admin_state osm_id=48996005
+
+---
+tile: 53235000 14/2730/6174
+size: 1.18 K
+layers:
+  - name: no_rule
+    features: []
+  - name: Administrative
+    features:
+      - id: "48996005"
+        keys:
+          - rule
+        values:
+          - admin_state
+  - name: Water
+    features:
+      - id: "88988995"
+        keys:
+          - rule
+        values:
+          - waterway_intermittent
+  - name: Landuse
+    features: []
+  - name: Major Roads
+    features: []
+  - name: Minor Roads
+    features: []
+  - name: Places
+    features: []
+  - name: Buildings
+    features: []
+
+---
+tile: 53234999 14/2730/6173
+size: 1.80 K
+layers:
+  - name: no_rule
+    features:
+      - id: "104470078"
+        keys:
+          - osm_id
+        values:
+          - 104470078
+
+
+
+let ways_it = w_ext_range.map(|i| external_entities[i] as usize);
+let w_ext = pair.item.w_ext;
+let ext = external_entities[w_ext as usize];
+let w = &ways[ext as usize];
+let osm_id = w.osm_id();
+println!("w_ext {}", w_ext);
+println!("ext {}", ext);
+println!("osm_id {}", osm_id);

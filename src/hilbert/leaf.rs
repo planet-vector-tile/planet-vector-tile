@@ -233,6 +233,7 @@ pub fn populate_hilbert_leaves_external(
             leaves_ext.push(first);
             for &way_i in it {
                 leaves_ext.push(way_i);
+                counter += 1;
             }
         } else {
             leaf.w_ext = counter;

@@ -151,6 +151,7 @@ impl HilbertTree {
                 strings,
                 builder,
                 &rule_eval,
+                self.manifest.render.all_tags,
             );
             let keys_vec = builder.fbb.create_vector(&keys);
             let vals_vec = builder.fbb.create_vector(&vals);
@@ -209,6 +210,7 @@ impl HilbertTree {
                 strings,
                 builder,
                 rule_eval,
+                self.manifest.render.all_tags,
             );
             let keys_vec = builder.fbb.create_vector(&keys);
             let vals_vec = builder.fbb.create_vector(&vals);
@@ -281,36 +283,47 @@ fn build_tags(
     strings: RawData,
     builder: &mut PVTBuilder,
     rule_eval: &RuleEval,
+    all_tags: bool,
 ) -> (Vec<u32>, Vec<u32>) {
     let rule_key = builder.attributes.upsert_string("rule");
     let rule_val = builder.attributes.upsert_string_value(&rule_eval.name);
 
+    let mut include_all_tags = || {
+        let len = &tags_index_range.end - &tags_index_range.start + 2; // osm_id and rule
+        let mut keys: Vec<u32> = Vec::with_capacity(len);
+        let mut vals: Vec<u32> = Vec::with_capacity(len);
+        keys.push(rule_key);
+        vals.push(rule_val);
+
+        let osm_id_key = builder.attributes.upsert_string("osm_id");
+        let osm_id_val = builder.attributes.upsert_number_value(osm_id as f64);
+        keys.push(osm_id_key);
+        vals.push(osm_id_val);
+
+        for tag_idx in &tags_index[tags_index_range.clone()] {
+            let tag_i = tag_idx.value() as usize;
+            debug_assert!(tag_i < tags.len());
+            let tag = &tags[tag_i];
+            let k = unsafe { strings.substring_unchecked(tag.key_idx() as usize) };
+            let v = unsafe { strings.substring_unchecked(tag.value_idx() as usize) };
+            keys.push(builder.attributes.upsert_string(k));
+            vals.push(builder.attributes.upsert_string_value(v));
+        }
+        (keys, vals)
+    };
+
+    if all_tags {
+        return include_all_tags();
+    }
+
     match &rule_eval.include {
         IncludeTagIdxs::None => (Vec::from([rule_key]), Vec::from([rule_val])),
-        IncludeTagIdxs::All => {
-            let len = tags_index_range.end - tags_index_range.start + 2; // osm_id and rule
-            let mut keys: Vec<u32> = Vec::with_capacity(len);
-            let mut vals: Vec<u32> = Vec::with_capacity(len);
-
-            let osm_id_key = builder.attributes.upsert_string("osm_id");
-            let osm_id_val = builder.attributes.upsert_number_value(osm_id as f64);
-            keys.push(osm_id_key);
-            vals.push(osm_id_val);
-
-            for tag_idx in &tags_index[tags_index_range] {
-                let tag_i = tag_idx.value() as usize;
-                debug_assert!(tag_i < tags.len());
-                let tag = &tags[tag_i];
-                let k = unsafe { strings.substring_unchecked(tag.key_idx() as usize) };
-                let v = unsafe { strings.substring_unchecked(tag.value_idx() as usize) };
-                keys.push(builder.attributes.upsert_string(k));
-                vals.push(builder.attributes.upsert_string_value(v));
-            }
-            (keys, vals)
-        }
+        IncludeTagIdxs::All => include_all_tags(),
         IncludeTagIdxs::Keys(key_str_idxs) => {
             let mut keys: Vec<u32> = Vec::with_capacity(key_str_idxs.len());
             let mut vals: Vec<u32> = Vec::with_capacity(key_str_idxs.len());
+            keys.push(rule_key);
+            vals.push(rule_val);
 
             for tag_idx in &tags_index[tags_index_range] {
                 let tag_i = tag_idx.value() as usize;
