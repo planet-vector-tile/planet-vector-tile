@@ -1,4 +1,4 @@
-import { classNames } from "./util"
+import { classNames } from './util'
 
 import { Fragment, useState } from 'react'
 import { Listbox, Transition } from '@headlessui/react'
@@ -63,7 +63,6 @@ export function tileInfoLabelStyle(circleLayerId, sourceId, sourceLayerId, circl
   }
 }
 
-
 const zooms = ['All', 2, 4, 6, 8, 10, 12, 14]
 
 export function TileInfoZoom({ dataLayer }) {
@@ -73,7 +72,7 @@ export function TileInfoZoom({ dataLayer }) {
 
   // NHTODO This persistance mechanism is not working.
   const filter = dataLayer.layers.line.filter
-  const z = filter && filter[1][2] || 'All'
+  const z = (filter && filter[1][2]) || 'All'
   const [selected, _setSelected] = useState(parseInt(z) || 'All')
 
   function setSelected(z) {
@@ -93,25 +92,27 @@ export function TileInfoZoom({ dataLayer }) {
   return (
     <Listbox value={selected} onChange={setSelected}>
       {({ open }) => (
-        <span className="flex items-center">
-          <Listbox.Label className="block text-sm font-light text-gray-500 group-hover:text-gray-300 pt-0.5 pr-0.5">Z:</Listbox.Label>
-          <div className="relative">
-            <Listbox.Button className="relative rounded-md border border-gray-600 group-hover:border-gray-500 group-hover-text-gray-500 bg-transparent py-0 pl-2 pr-6 text-left shadow-sm text-sm cursor-pointer">
-              <span className="block truncate text-gray-500 group-hover:text-gray-300">{selected}</span>
-              <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-0">
-                <ChevronUpDownIcon className="h-4 w-5 text-gray-500" aria-hidden="true" />
+        <span className='flex items-center'>
+          <Listbox.Label className='block text-sm font-light text-gray-500 group-hover:text-gray-300 pt-0.5 pr-0.5'>
+            Z:
+          </Listbox.Label>
+          <div className='relative'>
+            <Listbox.Button className='relative rounded-md border border-gray-600 group-hover:border-gray-500 group-hover-text-gray-500 bg-transparent py-0 pl-2 pr-6 text-left shadow-sm text-sm cursor-pointer'>
+              <span className='block truncate text-gray-500 group-hover:text-gray-300'>{selected}</span>
+              <span className='pointer-events-none absolute inset-y-0 right-0 flex items-center pr-0'>
+                <ChevronUpDownIcon className='h-4 w-5 text-gray-500' aria-hidden='true' />
               </span>
             </Listbox.Button>
 
             <Transition
               show={open}
               as={Fragment}
-              leave="transition ease-in duration-100"
-              leaveFrom="opacity-100"
-              leaveTo="opacity-0"
+              leave='transition ease-in duration-100'
+              leaveFrom='opacity-100'
+              leaveTo='opacity-0'
             >
-              <Listbox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-gray-700 py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                {zooms.map((z) => (
+              <Listbox.Options className='absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-gray-700 py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm'>
+                {zooms.map(z => (
                   <Listbox.Option
                     key={z}
                     className={({ active }) =>
@@ -123,9 +124,7 @@ export function TileInfoZoom({ dataLayer }) {
                     value={z}
                   >
                     {({ selected, active }) => (
-                        <span className={classNames(selected ? 'font-semibold' : 'font-normal')}>
-                          {z}
-                        </span>
+                      <span className={classNames(selected ? 'font-semibold' : 'font-normal')}>{z}</span>
                     )}
                   </Listbox.Option>
                 ))}
@@ -137,4 +136,3 @@ export function TileInfoZoom({ dataLayer }) {
     </Listbox>
   )
 }
-

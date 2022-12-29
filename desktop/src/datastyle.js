@@ -138,7 +138,7 @@ function updateStyle(map, sourceId, newLayers) {
     }
 
     const lineLayerId = `${sourceLayerId} Line`
-    const lineLayerVisibility = computeVisibility(sourceLayerId, lineLayerId, isTileInfoLayer ? 'none' :'visible')
+    const lineLayerVisibility = computeVisibility(sourceLayerId, lineLayerId, isTileInfoLayer ? 'none' : 'visible')
     const lineLayer = {
       id: lineLayerId,
       type: 'line',
@@ -204,7 +204,6 @@ function updateStyle(map, sourceId, newLayers) {
       style.layers.push(hoverLineLayer)
       style.layers.push(clickLineLayer)
     }
-    
 
     style.layers.push(lineLayer)
     style.layers.push(circleLayer)

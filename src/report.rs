@@ -102,8 +102,8 @@ fn parse_options(strs: &Vec<String>) -> ReportOptions {
     let mut options = ReportOptions {
         write_fb_tiles: false,
         lookup_strings_and_values: false,
-        include_strings: false,     // This is the array of string values in the strings array of the PVT flatbuffer
-        include_values: false,      // This is the array of values in the values array of the PVT flatbuffer.
+        include_strings: false, // This is the array of string values in the strings array of the PVT flatbuffer
+        include_values: false, // This is the array of values in the values array of the PVT flatbuffer.
         include_layers: false,
         include_features: false,
         include_geometries: false,

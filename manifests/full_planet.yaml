@@ -21,7 +21,7 @@ layers:
     - place_state
     - place_region
     - place_county
-    - place_city  
+    - place_city
     - place_town
     - place_continent
     - place_archipelago

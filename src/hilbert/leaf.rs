@@ -186,7 +186,6 @@ pub fn populate_hilbert_leaves_external(
     let t = Instant::now();
     println!("Populating external leaf entities...");
 
-    // Is the i correct for the way index when using par_iter?
     ways.par_iter().enumerate().for_each(|(i, way)| {
         let way_h = way_pairs[i].h();
         let way_tile_h = h_to_zoom_h(way_h, leaf_zoom) as u32;
@@ -199,19 +198,11 @@ pub fn populate_hilbert_leaves_external(
             refs.end as usize
         };
 
-        let osm_id = way.osm_id();
-        if osm_id == 48996005 {
-            println!("osm_id={} i={} way_h={} way_tile_h={}", osm_id, i, way_h, way_tile_h);
-        }
-
         for n in &nodes_index[start..end] {
             if let Some(v) = n.value() {
                 let h = node_pairs[v as usize].h();
                 let tile_h = h_to_zoom_h(h, leaf_zoom) as u32;
                 if tile_h != way_tile_h {
-                    if osm_id == 48996005 {
-                        println!("tile_h != way_tile_h tile_h={} i={}", tile_h, i);
-                    }
                     match leaf_to_ways.entry(tile_h) {
                         Occupied(mut o) => {
                             o.get_mut().insert(i as u32);
@@ -234,9 +225,6 @@ pub fn populate_hilbert_leaves_external(
     for i in 0..leaves.len() {
         let leaf = &mut leaves[i];
         let h = leaf.h;
-        if h == 53234999 || h == 53235000 {
-            println!("h={} w_ext={}", h, counter);
-        }
         if let Some(ways) = leaf_to_ways.get(&h) {
             let mut it = ways.iter();
             let Some(&first) = it.next() else { break; };
