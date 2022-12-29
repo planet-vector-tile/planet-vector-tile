@@ -7,6 +7,6 @@ pushd maplibre-gl-js
 npm i
 npm run build-dist
 popd
-pushd electron
+pushd desktop
 npm i
 popd
