@@ -11,7 +11,9 @@ use std::time::Instant;
 
 use crate::location;
 use crate::manifest::Manifest;
+use crate::mutant::Mutant;
 use crate::parallel;
+use crate::relation::Roles;
 
 use super::ids;
 use super::osmflat_generated::osm as osmflat;
@@ -19,6 +21,8 @@ use super::osmpbf;
 use super::osmpbf::{build_block_index, read_block, BlockIndex, BlockType};
 use super::stats::Stats;
 use super::strings::StringTable;
+
+use crate::relation::{Relation, RelationMember, RelationMemberEntity};
 
 type Error = Box<dyn std::error::Error>;
 
@@ -165,6 +169,7 @@ pub fn convert(manifest: &Manifest) -> Result<osmflat::Osm, Error> {
         &mut tags,
         &mut stringtable,
         &mut stats,
+        &manifest,
     )?;
 
     // Finalize data structures
@@ -505,6 +510,9 @@ fn serialize_relations(
     relation_ids: &mut Option<flatdata::ExternalVector<osmflat::Id>>,
     relation_members: &mut flatdata::MultiVector<osmflat::RelationMembers>,
     tags: &mut TagSerializer,
+    m_relations: &mut Mutant<Relation>,
+    m_relation_members: &mut Mutant<RelationMember>,
+    roles: &mut Roles,
 ) -> Result<Stats, Error> {
     let mut stats = Stats::default();
     let string_refs = add_string_table(&block.stringtable, stringtable)?;
@@ -522,13 +530,21 @@ fn serialize_relations(
                 pbf_relation.vals.len(),
                 "invalid input data"
             );
-            relation.set_tag_first_idx(tags.next_index());
+            let tags_first_idx = tags.next_index();
+            relation.set_tag_first_idx(tags_first_idx);
             for i in 0..pbf_relation.keys.len() {
                 tags.serialize(
                     string_refs[pbf_relation.keys[i] as usize],
                     string_refs[pbf_relation.vals[i] as usize],
                 )?;
             }
+
+            let r = Relation {
+                osm_id: pbf_relation.id as u32,
+                tags_i: tags_first_idx as u32,
+                members_i: m_relation_members.len as u32,
+            };
+            m_relations.push(r);
 
             debug_assert!(
                 pbf_relation.roles_sid.len() == pbf_relation.memids.len()
@@ -544,6 +560,8 @@ fn serialize_relations(
                 let member_type = osmpbf::relation::MemberType::from_i32(pbf_relation.types[i]);
                 debug_assert!(member_type.is_some());
 
+                let role_i = roles.upsert(string_refs[pbf_relation.roles_sid[i] as usize] as u32);
+
                 match member_type.unwrap() {
                     osmpbf::relation::MemberType::Node => {
                         let idx = nodes_id_to_idx.get(memid as u64);
@@ -552,6 +570,14 @@ fn serialize_relations(
                         let member = members.add_node_member();
                         member.set_node_idx(idx);
                         member.set_role_idx(string_refs[pbf_relation.roles_sid[i] as usize]);
+
+                        let member = match idx {
+                            Some(idx) => {
+                                RelationMember::new(RelationMemberEntity::Node(idx), role_i)
+                            }
+                            None => RelationMember::new(RelationMemberEntity::Unresolved, role_i),
+                        };
+                        m_relation_members.push(member);
                     }
                     osmpbf::relation::MemberType::Way => {
                         let idx = ways_id_to_idx.get(memid as u64);
@@ -560,6 +586,14 @@ fn serialize_relations(
                         let member = members.add_way_member();
                         member.set_way_idx(idx);
                         member.set_role_idx(string_refs[pbf_relation.roles_sid[i] as usize]);
+
+                        let member = match idx {
+                            Some(idx) => {
+                                RelationMember::new(RelationMemberEntity::Way(idx as u32), role_i)
+                            }
+                            None => RelationMember::new(RelationMemberEntity::Unresolved, role_i),
+                        };
+                        m_relation_members.push(member);
                     }
                     osmpbf::relation::MemberType::Relation => {
                         let idx = relations_id_to_idx.get(memid as u64);
@@ -568,6 +602,14 @@ fn serialize_relations(
                         let member = members.add_relation_member();
                         member.set_relation_idx(idx);
                         member.set_role_idx(string_refs[pbf_relation.roles_sid[i] as usize]);
+
+                        let member = match idx {
+                            Some(idx) => {
+                                RelationMember::new(RelationMemberEntity::Way(idx as u32), role_i)
+                            }
+                            None => RelationMember::new(RelationMemberEntity::Unresolved, role_i),
+                        };
+                        m_relation_members.push(member);
                     }
                 }
             }
@@ -707,6 +749,7 @@ fn serialize_relation_blocks(
     tags: &mut TagSerializer,
     stringtable: &mut StringTable,
     stats: &mut Stats,
+    manifest: &Manifest,
 ) -> Result<(), Error> {
     // We need to build the index of relation ids first, since relations can refer
     // again to relations.
@@ -714,6 +757,12 @@ fn serialize_relation_blocks(
 
     let mut relations = builder.start_relations()?;
     let mut relation_members = builder.start_relation_members()?;
+
+    let mut m_relations =
+        Mutant::<Relation>::with_capacity(&manifest.data.planet, "relations2", 4096)?;
+    let mut m_members =
+        Mutant::<RelationMember>::with_capacity(&manifest.data.planet, "relation_members2", 4096)?;
+    let mut roles = Roles::new();
 
     let mut pb = ProgressBar::new(blocks.len() as u64);
     pb.message("Converting relations...");
@@ -734,11 +783,16 @@ fn serialize_relation_blocks(
                 &mut relation_ids,
                 &mut relation_members,
                 tags,
+                &mut m_relations,
+                &mut m_members,
+                &mut roles,
             )?;
             pb.inc();
             Ok(block)
         },
     )?;
+
+    roles.write(&manifest.data.planet, "roles")?;
 
     {
         let sentinel = relations.grow()?;

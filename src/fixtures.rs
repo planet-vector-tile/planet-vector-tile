@@ -6,6 +6,7 @@ mod mutant;
 mod osmflat;
 mod parallel;
 pub mod pvt_builder;
+mod relation;
 mod rules;
 mod sort;
 mod source;

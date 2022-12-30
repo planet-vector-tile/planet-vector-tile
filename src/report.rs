@@ -6,10 +6,10 @@ use std::path::Path;
 use std::sync::atomic::AtomicU64;
 use std::sync::atomic::Ordering;
 
+use crate::osmflat::osmflat_generated::osm::Osm;
 use flatdata::FileResourceStorage;
 use rayon::prelude::IntoParallelRefIterator;
 use rayon::prelude::ParallelIterator;
-use crate::osmflat::osmflat_generated::osm::Osm;
 use serde_derive::{Deserialize, Serialize};
 
 use crate::source::Source;
@@ -148,10 +148,12 @@ fn parse_options(strs: &Vec<String>) -> ReportOptions {
     options
 }
 
-
-pub fn generate_entity_stats(manifest: &Manifest, buf_writer: &mut BufWriter<File>) -> Result<(), Error> {
+pub fn generate_entity_stats(
+    manifest: &Manifest,
+    buf_writer: &mut BufWriter<File>,
+) -> Result<(), Error> {
     let mut stats = EntityStats::new();
-    
+
     let dir = &manifest.data.planet.clone();
     let flatdata = Osm::open(FileResourceStorage::new(dir))?;
 

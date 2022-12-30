@@ -24,6 +24,8 @@ pub struct Mutant<T: Sized> {
 }
 
 impl<T: Sized> Mutant<T> {
+    /// Use new if you already know the length of the array.
+    /// Use with_capacity if you don't know the length of the array.
     pub fn new(dir: &Path, file_name: &str, len: usize) -> Result<Self> {
         let size = 8 + size_of::<T>() * len;
         let path = dir.join(file_name);
