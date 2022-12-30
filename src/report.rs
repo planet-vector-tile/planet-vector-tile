@@ -3,6 +3,14 @@ use std::fs::File;
 use std::io::BufWriter;
 use std::io::Write;
 use std::path::Path;
+use std::sync::atomic::AtomicU64;
+use std::sync::atomic::Ordering;
+
+use flatdata::FileResourceStorage;
+use rayon::prelude::IntoParallelRefIterator;
+use rayon::prelude::ParallelIterator;
+use crate::osmflat::osmflat_generated::osm::Osm;
+use serde_derive::{Deserialize, Serialize};
 
 use crate::source::Source;
 use crate::tile::Tile;
@@ -19,6 +27,8 @@ type Error = Box<dyn std::error::Error>;
 
 #[derive(Debug, Clone)]
 pub struct ReportOptions {
+    pub include_entity_stats: bool,
+    pub iterate_tiles: bool,
     pub write_fb_tiles: bool,
     pub lookup_strings_and_values: bool,
     pub include_strings: bool,
@@ -46,6 +56,15 @@ pub fn generate(manifest: &Manifest) -> Result<(), Error> {
 
     let file = File::create(report_path)?;
     let mut buf_writer = BufWriter::with_capacity(1024 * 1024 * 32, file);
+
+    if options.include_entity_stats {
+        generate_entity_stats(&manifest, &mut buf_writer)?;
+    }
+
+    if !options.iterate_tiles {
+        buf_writer.flush()?;
+        return Ok(());
+    }
 
     let tree = HilbertTree::open(manifest)?;
 
@@ -100,6 +119,8 @@ fn visit_tile(
 
 fn parse_options(strs: &Vec<String>) -> ReportOptions {
     let mut options = ReportOptions {
+        include_entity_stats: false,
+        iterate_tiles: false,
         write_fb_tiles: false,
         lookup_strings_and_values: false,
         include_strings: false, // This is the array of string values in the strings array of the PVT flatbuffer
@@ -111,6 +132,8 @@ fn parse_options(strs: &Vec<String>) -> ReportOptions {
 
     for s in strs {
         match s.as_str() {
+            "include_entity_stats" => options.include_entity_stats = true,
+            "iterate_tiles" => options.iterate_tiles = true,
             "write_fb_tiles" => options.write_fb_tiles = true,
             "lookup_strings_and_values" => options.lookup_strings_and_values = true,
             "include_strings" => options.include_strings = true,
@@ -123,4 +146,51 @@ fn parse_options(strs: &Vec<String>) -> ReportOptions {
     }
     println!("{:?}", options);
     options
+}
+
+
+pub fn generate_entity_stats(manifest: &Manifest, buf_writer: &mut BufWriter<File>) -> Result<(), Error> {
+    let mut stats = EntityStats::new();
+    
+    let dir = &manifest.data.planet.clone();
+    let flatdata = Osm::open(FileResourceStorage::new(dir))?;
+
+    stats.node_count = flatdata.nodes().len();
+    stats.way_count = flatdata.ways().len();
+    stats.relation_count = flatdata.relations().len();
+    stats.relation_member_count = flatdata.relation_members().len();
+
+    let string_count = AtomicU64::new(0);
+    flatdata.stringtable().as_bytes().par_iter().for_each(|b| {
+        if *b == 0 {
+            string_count.fetch_add(1, Ordering::Relaxed);
+        }
+    });
+
+    stats.string_count = string_count.load(Ordering::Relaxed) as usize;
+
+    serde_yaml::to_writer(buf_writer, &stats)?;
+
+    Ok(())
+}
+
+#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
+pub struct EntityStats {
+    pub node_count: usize,
+    pub way_count: usize,
+    pub relation_count: usize,
+    pub relation_member_count: usize,
+    pub string_count: usize,
+}
+
+impl EntityStats {
+    pub fn new() -> Self {
+        Self {
+            node_count: 0,
+            way_count: 0,
+            relation_count: 0,
+            relation_member_count: 0,
+            string_count: 0,
+        }
+    }
 }

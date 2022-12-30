@@ -3,6 +3,9 @@ data:
   planet: /opt/pvt/planets/full_planet_2022-12-28
   archive: /opt/pvt/archives/full_planet.pvt
 
+report_options:
+  - include_entity_stats
+
 render:
   leaf_zoom: 14
   layer_order: [Administrative, Water, Landuse, Major Roads, Minor Roads, Places, Buildings]
