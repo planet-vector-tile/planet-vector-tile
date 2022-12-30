@@ -383,7 +383,7 @@ mod tests {
 
         let features = layers.get(0).features().unwrap();
         // println!("{}", features.len());
-        assert_eq!(features.len(), 3265);
+        assert_eq!(features.len(), 3300);
 
         let feature = features.get(0);
 
@@ -391,20 +391,20 @@ mod tests {
         assert_eq!(id, 3660421543731798272); // hilbert location of node
 
         let keys = feature.keys().unwrap();
-        assert_eq!(keys.len(), 2);
+        assert_eq!(keys.len(), 3);
         let vals = feature.values().unwrap();
 
         let pvt_values = pvt.values().unwrap();
 
-        let k0 = strings.get(keys.get(0) as usize);
-        let v0 = pvt_values.get(vals.get(0) as usize).v();
-        assert_eq!(k0, "osm_id");
-        assert_eq!(v0, 5680698655.0);
-
         let k1 = strings.get(keys.get(1) as usize);
-        let v1 = strings.get(pvt_values.get(vals.get(1) as usize).v() as usize);
-        assert_eq!(k1, "power");
-        assert_eq!(v1, "pole");
+        let v1 = pvt_values.get(vals.get(1) as usize).v();
+        assert_eq!(k1, "osm_id");
+        assert_eq!(v1, 5680698655.0);
+
+        let k2 = strings.get(keys.get(2) as usize);
+        let v2 = strings.get(pvt_values.get(vals.get(2) as usize).v() as usize);
+        assert_eq!(k2, "power");
+        assert_eq!(v2, "pole");
 
         let geometries = feature.geometries().unwrap();
         let len = geometries.len();

@@ -604,9 +604,10 @@ fn serialize_relations(
                         member.set_role_idx(string_refs[pbf_relation.roles_sid[i] as usize]);
 
                         let member = match idx {
-                            Some(idx) => {
-                                RelationMember::new(RelationMemberEntity::Relation(idx as u32), role_i)
-                            }
+                            Some(idx) => RelationMember::new(
+                                RelationMemberEntity::Relation(idx as u32),
+                                role_i,
+                            ),
                             None => RelationMember::new(RelationMemberEntity::Unresolved, role_i),
                         };
                         m_relation_members.push(member);
