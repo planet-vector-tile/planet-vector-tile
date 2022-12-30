@@ -4,8 +4,10 @@ use crate::{
     osmflat::osmflat_generated::osm::{
         HilbertNodePair, HilbertWayPair, Node, NodeIndex, Osm, TagIndex, Way,
     },
-    util,
+    relation::{HilbertRelationPair, Relation, RelationMember, RelationMemberEntity},
+    util::{self, finish},
 };
+use crossbeam::queue::SegQueue;
 use geo::algorithm::interior_point::InteriorPoint;
 use geo::geometry::LineString;
 use geo::Coord;
@@ -34,35 +36,55 @@ pub fn sort_flatdata(flatdata: Osm, dir: &PathBuf) -> Result<(), Box<dyn std::er
     // Build hilbert way pairs.
     let ways = flatdata.ways();
     let ways_len = flatdata.ways().len();
-    let way_pairs_mut = Mutant::<HilbertWayPair>::new(dir, "hilbert_way_pairs", ways_len)?;
-    let way_pairs = way_pairs_mut.mutable_slice();
+    let m_way_pairs = Mutant::<HilbertWayPair>::new(dir, "hilbert_way_pairs", ways_len)?;
+    let way_pairs = m_way_pairs.mutable_slice();
     build_hilbert_way_pairs(way_pairs, &flatdata)?;
 
     // Sort hilbert way pairs.
     let t = util::timer("Sorting hilbert way pairs.");
     way_pairs.par_sort_unstable_by_key(|idx| idx.h());
-    println!("Finished in {} secs.", t.elapsed().as_secs());
+    finish(t);
+
+    // Build hilbert relation pairs.
+    let m_relations = Mutant::<Relation>::open(dir, "relations2", false)?;
+    let m_relation_members = Mutant::<RelationMember>::open(dir, "relation_members2", false)?;
+    let m_node_pairs = Mutant::<HilbertNodePair>::open(dir, "hilbert_node_pairs", true)?;
+    let m_relation_pairs =
+        Mutant::<HilbertRelationPair>::new(dir, "hilbert_relation_pairs", m_relations.len)?;
+    build_hilbert_relation_pairs(
+        m_relations.slice(),
+        m_relation_members.slice(),
+        m_node_pairs.slice(),
+        m_way_pairs.slice(),
+        &m_relation_pairs,
+    );
+
+    // Sort hilbert relation pairs.
+    let t = util::timer("Sorting hilbert relation pairs.");
+    m_relation_pairs
+        .mutable_slice()
+        .par_sort_unstable_by_key(|pair| pair.h);
+    finish(t);
 
     // Sort hilbert node pairs.
     let t = util::timer("Sorting hilbert node pairs.");
-    let nodes_len = flatdata.nodes().len();
-    let node_pairs_mut = Mutant::<HilbertNodePair>::open(dir, "hilbert_node_pairs", true)?;
-    let node_pairs = node_pairs_mut.mutable_slice();
+    let node_pairs = m_node_pairs.mutable_slice();
     node_pairs.par_sort_unstable_by_key(|idx| idx.h());
-    println!("Finished in {} secs.", t.elapsed().as_secs());
+    finish(t);
 
     // Reorder nodes to sorted hilbert node pairs.
-    let mut pb = Prog::new("Reordering nodes. ", nodes_len);
+    let mut pb = Prog::new("Reordering nodes. ", flatdata.nodes().len());
     let nodes = flatdata.nodes();
+    let nodes_len = nodes.len();
     let mut m_sorted_nodes = Mutant::<Node>::new_from_flatdata(&dir, "sorted_nodes", "nodes")?;
     let sorted_nodes = m_sorted_nodes.mutable_slice();
     let m_old_node_idx = Mutant::<usize>::new(dir, "old_node_idx", nodes_len)?;
     let old_node_idx = m_old_node_idx.mutable_slice();
     let mut tag_counter: usize = 0;
     let tags_index = flatdata.tags_index();
-    let mut sorted_tags_index_mut =
+    let mut m_sorted_tags_index =
         Mutant::<TagIndex>::new_from_flatdata(dir, "sorted_tags_index", "tags_index")?;
-    let sorted_tags_index = sorted_tags_index_mut.mutable_slice();
+    let sorted_tags_index = m_sorted_tags_index.mutable_slice();
     for i in 0..nodes_len {
         let node_pair = &node_pairs[i];
         let old_i = node_pair.i() as usize;
@@ -106,12 +128,12 @@ pub fn sort_flatdata(flatdata: Osm, dir: &PathBuf) -> Result<(), Box<dyn std::er
 
     // Reorder ways to sorted hilbert way pairs.
     let mut pb = Prog::new("Reordering ways. ", ways_len);
-    let mut sorted_ways_mut = Mutant::<Way>::new_from_flatdata(dir, "sorted_ways", "ways")?;
-    let sorted_ways = sorted_ways_mut.mutable_slice();
+    let mut m_sorted_ways = Mutant::<Way>::new_from_flatdata(dir, "sorted_ways", "ways")?;
+    let sorted_ways = m_sorted_ways.mutable_slice();
     let mut nodes_index_counter: usize = 0;
-    let mut sorted_nodes_index_mut =
+    let mut m_sorted_nodes_index =
         Mutant::<NodeIndex>::new_from_flatdata(dir, "sorted_nodes_index", "nodes_index")?;
-    let sorted_nodes_index = sorted_nodes_index_mut.mutable_slice();
+    let sorted_nodes_index = m_sorted_nodes_index.mutable_slice();
     sorted_ways
         .iter_mut()
         .zip(way_pairs.iter_mut())
@@ -144,14 +166,22 @@ pub fn sort_flatdata(flatdata: Osm, dir: &PathBuf) -> Result<(), Box<dyn std::er
         });
     pb.finish();
 
+    // Update references in relation members
+
+    // Update references in relations
+
+    // Re-order relations
+
+    // Update relation references in relation members
+
     // std::mem::drop(flatdata);
     m_sorted_nodes.mv("nodes")?;
     println!("Moved sorted_nodes to nodes");
-    sorted_ways_mut.mv("ways")?;
+    m_sorted_ways.mv("ways")?;
     println!("Moved sorted_ways to ways");
-    sorted_nodes_index_mut.mv("nodes_index")?;
+    m_sorted_nodes_index.mv("nodes_index")?;
     println!("Moved sorted_nodes_index to nodes_index");
-    sorted_tags_index_mut.mv("tags_index")?;
+    m_sorted_tags_index.mv("tags_index")?;
     println!("Moved sorted_tags_index to tags_index");
 
     Ok(())
@@ -294,6 +324,88 @@ fn build_hilbert_way_pairs(
 
     println!("Finished in {} secs.", t.elapsed().as_secs());
     Ok(())
+}
+
+fn build_hilbert_relation_pairs(
+    relations: &[Relation],
+    relation_members: &[RelationMember],
+    node_pairs: &[HilbertNodePair],
+    way_pairs: &[HilbertWayPair],
+    m_relation_pairs: &Mutant<HilbertRelationPair>,
+) {
+    let t = util::timer("Building hilbert relation pairs.");
+
+    // For relations with relation members, we need to dig into the members to find
+    // their Hilbert locations, so we need to have a queue of relations waiting for that.
+    let q = SegQueue::<usize>::new();
+
+    let relation_pairs = m_relation_pairs.slice();
+
+    let compute_relation_h = |relation_i: usize, relation: &Relation| {
+        let members_range = if relation_i < relations.len() - 2 {
+            relation.members_i as usize..relations[relation_i + 1].members_i as usize
+        } else {
+            relation.members_i as usize..relation_members.len()
+        };
+
+        let mut h_total: u128 = 0;
+        let mut processed_members_count: u32 = 0;
+
+        for member_i in members_range {
+            let member = &relation_members[member_i];
+            let h = match member.entity() {
+                RelationMemberEntity::Unresolved => {
+                    println!(
+                        "Unresolved member. relation_i={} member_i={}",
+                        relation_i, member_i
+                    );
+                    // For this, we just ignore and continue computing the h.
+                    continue;
+                }
+                RelationMemberEntity::Node(i) => node_pairs[i as usize].h(),
+                RelationMemberEntity::Way(i) => way_pairs[i as usize].h(),
+                RelationMemberEntity::Relation(i) => {
+                    let h = relation_pairs[i as usize].h;
+                    if h == 0 {
+                        // Here we add the relation to the queue to be processed later.
+                        q.push(i as usize);
+                        return;
+                    }
+                    h
+                }
+            };
+            h_total += h as u128;
+            processed_members_count += 1;
+        }
+        let mean_h = (h_total / processed_members_count as u128) as u64;
+        // Rust complains about mutable borrow if we write to the mutable slice that is defined outside of the closure.
+        // We know it is actually fine, because we are iterating over relations, which is a 1:1 relationship. Rust compiler doesn't know that.
+        m_relation_pairs.mutable_slice()[relation_i].h = mean_h;
+    };
+
+    relations
+        .par_iter()
+        .enumerate()
+        .for_each(|(relation_i, relation)| compute_relation_h(relation_i, relation));
+
+    let mut last_q_len = q.len();
+    let mut try_count: u8 = 0;
+    while let Some(relation_i) = q.pop() {
+        compute_relation_h(relation_i, &relations[relation_i]);
+        if q.len() == last_q_len {
+            try_count += 1;
+        }
+        if try_count == 100 {
+            // We should continue along with the build, so we should just log the problema and move on.
+            eprintln!(
+                "Unable to compute all of the h for relations. Re-tried {} times.",
+                try_count
+            );
+        }
+        last_q_len = q.len();
+    }
+
+    finish(t);
 }
 
 struct Prog {

@@ -198,11 +198,6 @@ struct Relation {
     tag_first_idx: u64 : 40;
 }
 
-struct HilbertRelationPair {
-    i: u32 : 32;
-    h: u64 : 64;
-}
-
 struct Id {
     value: u64 : 40;
 }
@@ -296,9 +291,6 @@ archive Osm {
      */
     @explicit_reference( Relation.tag_first_idx, tags_index )
     relations: vector<Relation>;
-
-    @optional
-    hilbert_relation_pairs_not_used: vector<HilbertRelationPair>;
 
     /**
      * Members attached to relations.
