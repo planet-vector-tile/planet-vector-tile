@@ -605,7 +605,7 @@ fn serialize_relations(
 
                         let member = match idx {
                             Some(idx) => {
-                                RelationMember::new(RelationMemberEntity::Way(idx as u32), role_i)
+                                RelationMember::new(RelationMemberEntity::Relation(idx as u32), role_i)
                             }
                             None => RelationMember::new(RelationMemberEntity::Unresolved, role_i),
                         };
