@@ -1,11 +1,14 @@
+use crate::osmflat::osmflat_generated::osm::EntityType;
 use crate::{
     location,
     mutant::Mutant,
     osmflat::osmflat_generated::osm::{
-        HilbertNodePair, HilbertRelationPair, HilbertWayPair, Node, NodeIndex, Osm, TagIndex, Way,
+        HilbertNodePair, HilbertRelationPair, HilbertWayPair, Node, NodeIndex, Osm, Relation,
+        TagIndex, Way,
     },
     util::{self, finish, timer},
 };
+use crossbeam::queue::SegQueue;
 use geo::algorithm::interior_point::InteriorPoint;
 use geo::geometry::LineString;
 use geo::Coord;
@@ -44,12 +47,12 @@ pub fn sort_flatdata(flatdata: Osm, dir: &PathBuf) -> Result<(), Box<dyn std::er
     println!("Finished in {} secs.", t.elapsed().as_secs());
 
     // Build hilbert relation pairs
-    let relations = flatdata.relations();
-    let relations_len = flatdata.relations().len();
-    let m_relation_pairs =
-        Mutant::<HilbertRelationPair>::new(dir, "hilbert_relation_pairs", relations_len)?;
-    let relation_pairs = m_relation_pairs.mutable_slice();
-    build_hilbert_relation_pairs(relation_pairs, &flatdata)?;
+    let m_relation_pairs = Mutant::<HilbertRelationPair>::new(
+        dir,
+        "hilbert_relation_pairs",
+        flatdata.relations().len(),
+    )?;
+    build_hilbert_relation_pairs(&m_way_pairs, &m_relation_pairs, &flatdata)?;
 
     // Sort hilbert node pairs.
     let t = util::timer("Sorting hilbert node pairs.");
@@ -304,10 +307,85 @@ fn build_hilbert_way_pairs(
 }
 
 fn build_hilbert_relation_pairs(
-    relation_pairs: &mut [HilbertRelationPair],
+    m_way_pairs: &Mutant<HilbertWayPair>,
+    m_relation_pairs: &Mutant<HilbertRelationPair>,
     flatdata: &Osm,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let t = timer("Building hilbert relation pairs.");
+
+    // For relations with relation members, we need to dig into the members to find
+    // their Hilbert locations, so we need to have a queue of relations waiting for that.
+    let q = SegQueue::<usize>::new();
+
+    let node_pairs = flatdata.hilbert_node_pairs().unwrap();
+    let way_pairs = m_way_pairs.slice();
+    let relation_pairs = m_relation_pairs.slice();
+
+    let relations = flatdata.relations();
+    let members = flatdata.members();
+
+    let compute_relation_h = |relation_i: usize, relation: &Relation| {
+        let mut h_total: u128 = 0;
+        let mut processed_members_count: u32 = 0;
+
+        let members_range = relation.members();
+
+        for member in &members[members_range.start as usize..members_range.end as usize] {
+            let idx = member.idx();
+            if idx.is_none() {
+                return;
+            }
+            let i = member.idx().unwrap() as usize;
+
+            let h = match member.entity_type() {
+                EntityType::Node => node_pairs[i].h(),
+                EntityType::Way => way_pairs[i].h(),
+                EntityType::Relation => {
+                    let h = relation_pairs[i].h();
+                    if h == 0 {
+                        // Here we add the relation to the queue to be processed later.
+                        q.push(i as usize);
+                        return;
+                    }
+                    h
+                }
+                _ => 0,
+            };
+
+            h_total += h as u128;
+            processed_members_count += 1;
+        }
+        let mean_h = (h_total / processed_members_count as u128) as u64;
+        let relation_pair = &mut m_relation_pairs.mutable_slice()[relation_i];
+        relation_pair.set_h(mean_h);
+        relation_pair.set_i(relation_i as u32);
+    };
+
+    relations
+        .par_iter()
+        .enumerate()
+        .for_each(|(relation_i, relation)| compute_relation_h(relation_i, relation));
+
+    let mut last_q_len = q.len();
+    let mut try_count: u8 = 0;
+    while let Some(relation_i) = q.pop() {
+        compute_relation_h(relation_i, &relations[relation_i]);
+        if q.len() == last_q_len {
+            try_count += 1;
+        }
+        if try_count == 100 {
+            // We should continue along with the build, so we should just log the problema and move on.
+            eprintln!(
+                "Unable to compute all of the h for relations. Re-tried {} times.",
+                try_count
+            );
+        }
+        last_q_len = q.len();
+    }
+
+    for p in relation_pairs {
+        println!("h {} i {}", p.h(), p.i());
+    }
 
     finish(t);
     Ok(())
