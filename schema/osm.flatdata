@@ -177,6 +177,22 @@ struct RelationMember {
     role_idx: u64 : 40;
 }
 
+struct Member {
+    /// Index of the member in either the `relations`, `ways`, or `nodes` vector.
+    @optional(INVALID_IDX)
+    idx: u64: 40;
+
+    role_idx: u64 : 40;
+
+    entity_type: EntityType;
+}
+
+enum EntityType : u8 : 2 {
+    Node = 0,
+    Way = 1,
+    Relation = 2,
+}
+
 /**
  * A relation is an ordered list of one or more nodes, ways and/or relations as members.
  *
@@ -196,6 +212,9 @@ struct Relation {
      */
     @range(tags)
     tag_first_idx: u64 : 40;
+
+    @range(members)
+    member_first_idx: u32: 32;
 }
 
 struct HilbertRelationPair {
@@ -295,6 +314,7 @@ archive Osm {
      * relation at index `i` are at index `i` in the `relation_members` multivector.
      */
     @explicit_reference( Relation.tag_first_idx, tags_index )
+    @explicit_reference( Relation.member_first_idx, members )
     relations: vector<Relation>;
 
     @optional
@@ -319,6 +339,9 @@ archive Osm {
     @explicit_reference( RelationMember.relation_idx, relations )
     @explicit_reference( RelationMember.role_idx, stringtable )
     relation_members: multivector<40, NodeMember, WayMember, RelationMember>;
+
+
+    members: vector<Member>;
 
     /**
      * List of tags.

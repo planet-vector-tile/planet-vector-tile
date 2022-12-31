@@ -1588,27 +1588,175 @@ pub mod osm {
             self.set_role_idx(other.role_idx());
         }
     }
+    #[repr(transparent)]
+    #[derive(Clone)]
+    pub struct Member {
+        data: [u8; 11],
+    }
+
+    impl Member {
+        /// Unsafe since the struct might not be self-contained
+        pub unsafe fn new_unchecked() -> Self {
+            Self { data: [0; 11] }
+        }
+    }
+
+    impl flatdata::Struct for Member {
+        unsafe fn create_unchecked() -> Self {
+            Self { data: [0; 11] }
+        }
+
+        const SIZE_IN_BYTES: usize = 11;
+        const IS_OVERLAPPING_WITH_NEXT: bool = false;
+    }
+
+    impl Member {
+        pub fn new() -> Self {
+            Self { data: [0; 11] }
+        }
+
+        /// Create reference from byte array of matching size
+        pub fn from_bytes(data: &[u8; 11]) -> &Self {
+            // Safety: This is safe since Member is repr(transparent)
+            unsafe { std::mem::transmute(data) }
+        }
+
+        /// Create reference from byte array of matching size
+        pub fn from_bytes_mut(data: &mut [u8; 11]) -> &mut Self {
+            // Safety: This is safe since Member is repr(transparent)
+            unsafe { std::mem::transmute(data) }
+        }
+
+        /// Create reference from byte array
+        pub fn from_bytes_slice(data: &[u8]) -> Result<&Self, flatdata::ResourceStorageError> {
+            // We cannot rely on TryFrom here, since it does not yet support > 33 bytes
+            if data.len() < 11 {
+                assert_eq!(data.len(), 11);
+                return Err(flatdata::ResourceStorageError::UnexpectedDataSize);
+            }
+            let ptr = data.as_ptr() as *const [u8; 11];
+            // Safety: We checked length before
+            Ok(Self::from_bytes(unsafe { &*ptr }))
+        }
+
+        /// Create reference from byte array
+        pub fn from_bytes_slice_mut(
+            data: &mut [u8],
+        ) -> Result<&mut Self, flatdata::ResourceStorageError> {
+            // We cannot rely on TryFrom here, since it does not yet support > 33 bytes
+            if data.len() < 11 {
+                assert_eq!(data.len(), 11);
+                return Err(flatdata::ResourceStorageError::UnexpectedDataSize);
+            }
+            let ptr = data.as_ptr() as *mut [u8; 11];
+            // Safety: We checked length before
+            Ok(Self::from_bytes_mut(unsafe { &mut *ptr }))
+        }
+
+        pub fn as_bytes(&self) -> &[u8; 11] {
+            &self.data
+        }
+    }
+
+    impl Default for Member {
+        fn default() -> Self {
+            Self::new()
+        }
+    }
+
+    unsafe impl flatdata::NoOverlap for Member {}
+
+    impl Member {
+        /// Index of the member in either the `relations`, `ways`, or `nodes` vector.
+        #[inline]
+        pub fn idx(&self) -> Option<u64> {
+            let value = flatdata_read_bytes!(u64, self.data.as_ptr(), 0, 40);
+            let x = unsafe { std::mem::transmute::<u64, u64>(value) };
+            Some(x).filter(|&x| x != super::osm::INVALID_IDX)
+        }
+
+        #[inline]
+        pub fn role_idx(&self) -> u64 {
+            let value = flatdata_read_bytes!(u64, self.data.as_ptr(), 40, 40);
+            unsafe { std::mem::transmute::<u64, u64>(value) }
+        }
+
+        #[inline]
+        pub fn entity_type(&self) -> super::osm::EntityType {
+            let value = flatdata_read_bytes!(u8, self.data.as_ptr(), 80, 2);
+            unsafe { std::mem::transmute::<u8, super::osm::EntityType>(value) }
+        }
+    }
+
+    impl std::fmt::Debug for Member {
+        fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+            f.debug_struct("Member")
+                .field("idx", &self.idx())
+                .field("role_idx", &self.role_idx())
+                .field("entity_type", &self.entity_type())
+                .finish()
+        }
+    }
+
+    impl std::cmp::PartialEq for Member {
+        #[inline]
+        fn eq(&self, other: &Self) -> bool {
+            self.idx() == other.idx()
+                && self.role_idx() == other.role_idx()
+                && self.entity_type() == other.entity_type()
+        }
+    }
+
+    impl Member {
+        /// Index of the member in either the `relations`, `ways`, or `nodes` vector.
+        #[inline]
+        #[allow(missing_docs)]
+        pub fn set_idx(&mut self, value: Option<u64>) {
+            let value = value.unwrap_or(super::osm::INVALID_IDX);
+            flatdata_write_bytes!(u64; value, self.data, 0, 40)
+        }
+
+        #[inline]
+        #[allow(missing_docs)]
+        pub fn set_role_idx(&mut self, value: u64) {
+            flatdata_write_bytes!(u64; value, self.data, 40, 40)
+        }
+
+        #[inline]
+        #[allow(missing_docs)]
+        pub fn set_entity_type(&mut self, value: super::osm::EntityType) {
+            flatdata_write_bytes!(u8; value, self.data, 80, 2)
+        }
+
+        /// Copies the data from `other` into this struct.
+        #[inline]
+        pub fn fill_from(&mut self, other: &Member) {
+            self.set_idx(other.idx());
+            self.set_role_idx(other.role_idx());
+            self.set_entity_type(other.entity_type());
+        }
+    }
     /// A relation is an ordered list of one or more nodes, ways and/or relations as members.
     ///
     /// See <https://wiki.openstreetmap.org/wiki/Relation>.
     #[repr(transparent)]
     pub struct Relation {
-        data: [u8; 18],
+        data: [u8; 22],
     }
 
     impl Relation {
         /// Unsafe since the struct might not be self-contained
         pub unsafe fn new_unchecked() -> Self {
-            Self { data: [0; 18] }
+            Self { data: [0; 22] }
         }
     }
 
     impl flatdata::Struct for Relation {
         unsafe fn create_unchecked() -> Self {
-            Self { data: [0; 18] }
+            Self { data: [0; 22] }
         }
 
-        const SIZE_IN_BYTES: usize = 18;
+        const SIZE_IN_BYTES: usize = 22;
         const IS_OVERLAPPING_WITH_NEXT: bool = true;
     }
 
@@ -1643,7 +1791,23 @@ pub mod osm {
         #[inline]
         pub fn tags(&self) -> std::ops::Range<u64> {
             let start = flatdata_read_bytes!(u64, self.data.as_ptr(), 104, 40);
-            let end = flatdata_read_bytes!(u64, self.data.as_ptr(), 104 + 18 * 8, 40);
+            let end = flatdata_read_bytes!(u64, self.data.as_ptr(), 104 + 22 * 8, 40);
+            start..end
+        }
+
+        /// First element of the range [`members`].
+        ///
+        /// [`members`]: #method.members
+        #[inline]
+        pub fn member_first_idx(&self) -> u32 {
+            let value = flatdata_read_bytes!(u32, self.data.as_ptr(), 144, 32);
+            unsafe { std::mem::transmute::<u32, u32>(value) }
+        }
+
+        #[inline]
+        pub fn members(&self) -> std::ops::Range<u32> {
+            let start = flatdata_read_bytes!(u32, self.data.as_ptr(), 144, 32);
+            let end = flatdata_read_bytes!(u32, self.data.as_ptr(), 144 + 22 * 8, 32);
             start..end
         }
     }
@@ -1654,6 +1818,7 @@ pub mod osm {
                 .field("osm_id", &self.osm_id())
                 .field("h", &self.h())
                 .field("tag_first_idx", &self.tag_first_idx())
+                .field("member_first_idx", &self.member_first_idx())
                 .finish()
         }
     }
@@ -1664,6 +1829,7 @@ pub mod osm {
             self.osm_id() == other.osm_id()
                 && self.h() == other.h()
                 && self.tag_first_idx() == other.tag_first_idx()
+                && self.member_first_idx() == other.member_first_idx()
         }
     }
 
@@ -1690,12 +1856,22 @@ pub mod osm {
             flatdata_write_bytes!(u64; value, self.data, 104, 40)
         }
 
+        /// First element of the range [`members`].
+        ///
+        /// [`members`]: struct.RelationRef.html#method.members
+        #[inline]
+        #[allow(missing_docs)]
+        pub fn set_member_first_idx(&mut self, value: u32) {
+            flatdata_write_bytes!(u32; value, self.data, 144, 32)
+        }
+
         /// Copies the data from `other` into this struct.
         #[inline]
         pub fn fill_from(&mut self, other: &Relation) {
             self.set_osm_id(other.osm_id());
             self.set_h(other.h());
             self.set_tag_first_idx(other.tag_first_idx());
+            self.set_member_first_idx(other.member_first_idx());
         }
     }
     #[repr(transparent)]
@@ -1937,6 +2113,19 @@ pub mod osm {
         pub fn fill_from(&mut self, other: &Id) {
             self.set_value(other.value());
         }
+    }
+    #[derive(Debug, PartialEq, Eq)]
+    #[repr(u8)]
+    pub enum EntityType {
+        Node = 0,
+        Way = 1,
+        Relation = 2,
+        #[doc(hidden)]
+        UnknownValue3 = 3,
+    }
+
+    impl flatdata::helper::Int for EntityType {
+        const IS_SIGNED: bool = false;
     }
 
     /// An optional sub-archive storing the original OSM ids of nodes, ways, and relations
@@ -2323,6 +2512,7 @@ pub mod osm {
         relations: &'static [super::osm::Relation],
         hilbert_relation_pairs_not_used: Option<&'static [super::osm::HilbertRelationPair]>,
         relation_members: flatdata::MultiArrayView<'static, RelationMembers>,
+        members: &'static [super::osm::Member],
         tags: &'static [super::osm::Tag],
         tags_index: &'static [super::osm::TagIndex],
         nodes_index: &'static [super::osm::NodeIndex],
@@ -2402,6 +2592,11 @@ pub mod osm {
             &self.relation_members
         }
 
+        #[inline]
+        pub fn members(&self) -> &[super::osm::Member] {
+            self.members
+        }
+
         /// List of tags.
         ///
         /// A tag references its key and value in the `stringtable` raw data.
@@ -2452,6 +2647,7 @@ pub mod osm {
                     &self.hilbert_relation_pairs_not_used(),
                 )
                 .field("relation_members", &self.relation_members())
+                .field("members", &self.members())
                 .field("tags", &self.tags())
                 .field("tags_index", &self.tags_index())
                 .field("nodes_index", &self.nodes_index())
@@ -2591,6 +2787,17 @@ pub mod osm {
                 };
                 check("relation_members", |r| r.len(), max_size, result)?
             };
+            let members = {
+                use flatdata::check_resource as check;
+                let max_size = Some(4294967296);
+                let resource = extend(storage.read("members", schema::osm::resources::MEMBERS));
+                check(
+                    "members",
+                    |r| r.len(),
+                    max_size,
+                    resource.and_then(|x| <&[super::osm::Member]>::from_bytes(x)),
+                )?
+            };
             let tags = {
                 use flatdata::check_resource as check;
                 let max_size = Some(1099511627776);
@@ -2659,6 +2866,7 @@ pub mod osm {
                 relations,
                 hilbert_relation_pairs_not_used,
                 relation_members,
+                members,
                 tags,
                 tags_index,
                 nodes_index,
@@ -2887,6 +3095,38 @@ pub mod osm {
                 &*self.storage,
                 "relation_members",
                 schema::osm::resources::RELATION_MEMBERS,
+            )
+        }
+
+        #[inline]
+        /// Stores [`members`] in the archive.
+        ///
+        /// [`members`]: struct.Osm.html#method.members
+        pub fn set_members(&self, vector: &[super::osm::Member]) -> ::std::io::Result<()> {
+            use flatdata::SliceExt;
+            self.storage.write(
+                "members",
+                schema::osm::resources::MEMBERS,
+                vector.as_bytes(),
+            )
+        }
+
+        /// Opens [`members`] in the archive for buffered writing.
+        ///
+        /// Elements can be added to the vector until the [`ExternalVector::close`] method
+        /// is called. To flush the data fully into the archive, this method must be called
+        /// in the end.
+        ///
+        /// [`members`]: struct.Osm.html#method.members
+        /// [`ExternalVector::close`]: flatdata/struct.ExternalVector.html#method.close
+        #[inline]
+        pub fn start_members(
+            &self,
+        ) -> ::std::io::Result<flatdata::ExternalVector<super::osm::Member>> {
+            flatdata::create_external_vector(
+                &*self.storage,
+                "members",
+                schema::osm::resources::MEMBERS,
             )
         }
 
@@ -3138,6 +3378,8 @@ struct Relation
     h : u64 : 64;
     @range( tags )
     tag_first_idx : u64 : 40;
+    @range( members )
+    member_first_idx : u32 : 32;
 }
 }
 
@@ -3177,6 +3419,25 @@ struct RelationMember
     @optional( .osm.INVALID_IDX )
     relation_idx : u64 : 40;
     role_idx : u64 : 40;
+}
+}
+
+namespace osm {
+enum EntityType : u8 : 2
+{
+    Node = 0,
+    Way = 1,
+    Relation = 2,
+}
+}
+
+namespace osm {
+struct Member
+{
+    @optional( .osm.INVALID_IDX )
+    idx : u64 : 40;
+    role_idx : u64 : 40;
+    entity_type : .osm.EntityType : 2;
 }
 }
 
@@ -3237,6 +3498,7 @@ archive Osm
     @optional
     hilbert_way_pairs_not_used : vector< .osm.HilbertWayPair >;
     @explicit_reference( .osm.Relation.tag_first_idx, .osm.Osm.tags_index )
+    @explicit_reference( .osm.Relation.member_first_idx, .osm.Osm.members )
     relations : vector< .osm.Relation >;
     @optional
     hilbert_relation_pairs_not_used : vector< .osm.HilbertRelationPair >;
@@ -3247,6 +3509,7 @@ archive Osm
     @explicit_reference( .osm.RelationMember.relation_idx, .osm.Osm.relations )
     @explicit_reference( .osm.RelationMember.role_idx, .osm.Osm.stringtable )
     relation_members : multivector< 40, .osm.NodeMember, .osm.WayMember, .osm.RelationMember >;
+    members : vector< .osm.Member >;
     @explicit_reference( .osm.Tag.key_idx, .osm.Osm.stringtable )
     @explicit_reference( .osm.Tag.value_idx, .osm.Osm.stringtable )
     tags : vector< .osm.Tag >;
@@ -3372,6 +3635,8 @@ struct Relation
     h : u64 : 64;
     @range( tags )
     tag_first_idx : u64 : 40;
+    @range( members )
+    member_first_idx : u32 : 32;
 }
 }
 
@@ -3379,6 +3644,7 @@ namespace osm {
 archive Osm
 {
     @explicit_reference( .osm.Relation.tag_first_idx, .osm.Osm.tags_index )
+    @explicit_reference( .osm.Relation.member_first_idx, .osm.Osm.members )
     relations : vector< .osm.Relation >;
 }
 }
@@ -3442,6 +3708,37 @@ archive Osm
     @explicit_reference( .osm.RelationMember.relation_idx, .osm.Osm.relations )
     @explicit_reference( .osm.RelationMember.role_idx, .osm.Osm.stringtable )
     relation_members : multivector< 40, .osm.NodeMember, .osm.WayMember, .osm.RelationMember >;
+}
+}
+
+"#;
+                pub const MEMBERS: &str = r#"namespace osm {
+const u64 INVALID_IDX = 1099511627775;
+}
+
+namespace osm {
+enum EntityType : u8 : 2
+{
+    Node = 0,
+    Way = 1,
+    Relation = 2,
+}
+}
+
+namespace osm {
+struct Member
+{
+    @optional( .osm.INVALID_IDX )
+    idx : u64 : 40;
+    role_idx : u64 : 40;
+    entity_type : .osm.EntityType : 2;
+}
+}
+
+namespace osm {
+archive Osm
+{
+    members : vector< .osm.Member >;
 }
 }
 
