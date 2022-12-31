@@ -7,9 +7,9 @@ use std::io::Result;
 #[repr(packed)]
 #[derive(Clone, Copy, Debug)]
 pub struct Relation {
-    pub osm_id: u32,
-    pub tags_i: u32,
-    pub members_i: u32,
+    pub id: u32,
+    pub tag_i: u32,
+    pub member_i: u32,
 }
 
 #[repr(packed)]

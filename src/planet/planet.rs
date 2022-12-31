@@ -23,7 +23,11 @@ pub struct Planet {
     pub members: Mutant<Member>,
     pub roles: Mutant<u32>,
     pub simp_ways: Mutant<Way>,
+    pub simp_way_tag_i: Mutant<u32>,
+    pub simp_refs: Mutant<U40>,
     pub simp_relations: Mutant<Relation>,
+    pub simp_relation_tag_i: Mutant<u32>,
+    pub simp_members: Mutant<Member>,
 }
 
 impl Planet {
@@ -44,7 +48,11 @@ impl Planet {
         let members = Mutant::<Member>::new_empty(dir, "members")?;
         let roles = Mutant::<u32>::new_empty(dir, "roles")?;
         let simp_ways = Mutant::<Way>::new_empty(dir, "simp_ways")?;
+        let simp_way_tag_i = Mutant::<u32>::new_empty(dir, "simp_way_tag_i")?;
+        let simp_refs = Mutant::<U40>::new_empty(dir, "simp_refs")?;
         let simp_relations = Mutant::<Relation>::new_empty(dir, "simp_relations")?;
+        let simp_relation_tag_i = Mutant::<u32>::new_empty(dir, "simp_relation_tag_i")?;
+        let simp_members = Mutant::<Member>::new_empty(dir, "simp_members")?;
 
         Ok(Self {
             string_i,
@@ -61,7 +69,11 @@ impl Planet {
             members,
             roles,
             simp_ways,
+            simp_way_tag_i,
+            simp_refs,
             simp_relations,
+            simp_relation_tag_i,
+            simp_members,
         })
     }
 
@@ -82,7 +94,11 @@ impl Planet {
         let members = Mutant::<Member>::open(dir, "members", false)?;
         let roles = Mutant::<u32>::open(dir, "roles", false)?;
         let simp_ways = Mutant::<Way>::open(dir, "simp_ways", false)?;
+        let simp_way_tag_i = Mutant::<u32>::open(dir, "simp_way_tag_i", false)?;
+        let simp_refs = Mutant::<U40>::open(dir, "simp_refs", false)?;
         let simp_relations = Mutant::<Relation>::open(dir, "simp_relations", false)?;
+        let simp_relation_tag_i = Mutant::<u32>::open(dir, "simp_relation_tag_i", false)?;
+        let simp_members = Mutant::<Member>::open(dir, "simp_members", false)?;
 
         Ok(Self {
             string_i,
@@ -99,7 +115,11 @@ impl Planet {
             members,
             roles,
             simp_ways,
+            simp_way_tag_i,
+            simp_refs,
             simp_relations,
+            simp_relation_tag_i,
+            simp_members,
         })
     }
 
@@ -118,7 +138,11 @@ impl Planet {
         let members = self.members.slice();
         let roles = self.roles.slice();
         let simp_ways = self.simp_ways.slice();
+        let simp_way_tag_i = self.simp_way_tag_i.slice();
+        let simp_refs = self.simp_refs.slice();
         let simp_relations = self.simp_relations.slice();
+        let simp_relation_tag_i = self.simp_relation_tag_i.slice();
+        let simp_members = self.simp_members.slice();
 
         PlanetSlice {
             string_i,
@@ -135,7 +159,11 @@ impl Planet {
             members,
             roles,
             simp_ways,
+            simp_way_tag_i,
+            simp_refs,
             simp_relations,
+            simp_relation_tag_i,
+            simp_members,
         }
     }
 
@@ -154,7 +182,11 @@ impl Planet {
         let members = self.members.mutable_slice();
         let roles = self.roles.mutable_slice();
         let simp_ways = self.simp_ways.mutable_slice();
+        let simp_way_tag_i = self.simp_way_tag_i.mutable_slice();
+        let simp_refs = self.simp_refs.mutable_slice();
         let simp_relations = self.simp_relations.mutable_slice();
+        let simp_relation_tag_i = self.simp_relation_tag_i.mutable_slice();
+        let simp_members = self.simp_members.mutable_slice();
 
         PlanetMutableSlice {
             string_i,
@@ -171,7 +203,11 @@ impl Planet {
             members,
             roles,
             simp_ways,
+            simp_way_tag_i,
+            simp_refs,
             simp_relations,
+            simp_relation_tag_i,
+            simp_members,
         }
     }
 }
@@ -191,7 +227,11 @@ pub struct PlanetSlice<'a> {
     pub members: &'a [Member],
     pub roles: &'a [u32],
     pub simp_ways: &'a [Way],
+    pub simp_way_tag_i: &'a [u32],
+    pub simp_refs: &'a [U40],
     pub simp_relations: &'a [Relation],
+    pub simp_relation_tag_i: &'a [u32],
+    pub simp_members: &'a [Member],
 }
 
 pub struct PlanetMutableSlice<'a> {
@@ -209,5 +249,9 @@ pub struct PlanetMutableSlice<'a> {
     pub members: &'a mut [Member],
     pub roles: &'a mut [u32],
     pub simp_ways: &'a mut [Way],
+    pub simp_way_tag_i: &'a mut [u32],
+    pub simp_refs: &'a mut [U40],
     pub simp_relations: &'a mut [Relation],
+    pub simp_relation_tag_i: &'a mut [u32],
+    pub simp_members: &'a mut [Member],
 }

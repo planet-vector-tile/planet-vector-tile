@@ -540,9 +540,9 @@ fn serialize_relations(
             }
 
             let r = Relation {
-                osm_id: pbf_relation.id as u32,
-                tags_i: tags_first_idx as u32,
-                members_i: m_relation_members.len as u32,
+                id: pbf_relation.id as u32,
+                tag_i: tags_first_idx as u32,
+                member_i: m_relation_members.len as u32,
             };
             m_relations.push(r);
 

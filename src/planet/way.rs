@@ -3,7 +3,10 @@ use super::{node::Node, planet::PlanetSlice, tag::Tag};
 #[repr(packed)]
 #[derive(Clone, Copy, Debug)]
 pub struct Way {
+    h: u64,
     id: u32,
+    tag_i: u32,
+    refs: u32,
 }
 
 impl Way {

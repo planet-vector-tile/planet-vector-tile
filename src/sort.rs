@@ -353,9 +353,9 @@ fn build_hilbert_relation_pairs(
 
     let compute_relation_h = |relation_i: usize, relation: &Relation| {
         let members_range = if relation_i < relations.len() - 2 {
-            relation.members_i as usize..relations[relation_i + 1].members_i as usize
+            relation.member_i as usize..relations[relation_i + 1].member_i as usize
         } else {
-            relation.members_i as usize..relation_members.len()
+            relation.member_i as usize..relation_members.len()
         };
 
         let mut h_total: u128 = 0;

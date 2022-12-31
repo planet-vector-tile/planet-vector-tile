@@ -1,1 +1,4 @@
-pub struct Tag {}
+pub struct Tag {
+    k: u32,
+    v: u32,
+}
