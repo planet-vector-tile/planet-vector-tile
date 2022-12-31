@@ -25,7 +25,7 @@ pub struct Mutant<T: Sized> {
 
 impl<T: Sized> Mutant<T> {
     /// Use new if you already know the length of the array.
-    /// Use with_capacity if you don't know the length of the array.
+    /// Use new_empty or with_capacity if you don't know the length of the array.
     pub fn new(dir: &Path, file_name: &str, len: usize) -> Result<Self> {
         let size = 8 + size_of::<T>() * len;
         let path = dir.join(file_name);
@@ -54,6 +54,10 @@ impl<T: Sized> Mutant<T> {
             is_flatdata: false,
             phantom: PhantomData,
         })
+    }
+
+    pub fn new_empty(dir: &Path, file_name: &str) -> Result<Self> {
+        Mutant::with_capacity(dir, "relations", 0)
     }
 
     pub fn new_from_flatdata(

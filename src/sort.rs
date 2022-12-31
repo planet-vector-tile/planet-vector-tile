@@ -166,13 +166,22 @@ pub fn sort_flatdata(flatdata: Osm, dir: &PathBuf) -> Result<(), Box<dyn std::er
         });
     pb.finish();
 
-    // Update references in relation members
+    // Reorder relations
+    // let relations_len = m_relations.len;
+    // let relations = m_relations.slice();
+    // let relation_pairs = m_relation_pairs.slice();
+    // let mut m_sorted_relations = Mutant::<Relation>::new(dir, "sorted_relations", relations_len)?;
+    // let mut m_sorted_relation_mambers =Mutant::<RelationMember>::new(dir, "sorted_relation_members", relations_len)?;
+    // let sorted_relations = m_sorted_relations.mutable_slice();
+    // let sorted_relation_members = m_sorted_relation_mambers.mutable_slice();
 
-    // Update references in relations
+    // let mut pb = ProgressBar::new(relations_len as u64);
+    // pb.message("Reordering relations.");
+    // for (sorted_relation_i, relation_pair) in relation_pairs.iter().enumerate() {
+    //     let old_relation_i = relation_pair.i as usize;
+    //     let mut relation = relations[old_relation_i].clone();
 
-    // Re-order relations
-
-    // Update relation references in relation members
+    // }
 
     // std::mem::drop(flatdata);
     m_sorted_nodes.mv("nodes")?;
@@ -408,6 +417,7 @@ fn build_hilbert_relation_pairs(
     finish(t);
 }
 
+// This is just a throttle around ProgressBar. NHTODO Is this necessary?
 struct Prog {
     prog_counter: usize,
     pb: ProgressBar<Stdout>,

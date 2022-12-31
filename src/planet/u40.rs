@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 #[repr(packed)]
 #[derive(Clone, Copy, Debug)]
 pub struct U40 {
