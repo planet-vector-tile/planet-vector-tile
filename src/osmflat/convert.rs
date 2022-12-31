@@ -118,24 +118,11 @@ pub fn convert(manifest: &Manifest) -> Result<osmflat::Osm, Error> {
 
     let mut stats = Stats::default();
 
-    // let ids_archive;
-    let node_ids = None;
-    let way_ids = None;
-    let relation_ids = None;
-    // NHTODO Think about how we want to handle IDs as well as other OSM entity attributes regarding optionality.
-    // if args.ids {
-    //     ids_archive = builder.ids()?;
-    //     node_ids = Some(ids_archive.start_nodes()?);
-    //     way_ids = Some(ids_archive.start_ways()?);
-    //     relation_ids = Some(ids_archive.start_relations()?);
-    // }
-
     let hilbert_node_pairs = builder.start_hilbert_node_pairs()?;
 
     let nodes_id_to_idx = serialize_dense_node_blocks(
         &builder,
         greatest_common_granularity,
-        node_ids,
         hilbert_node_pairs,
         pbf_dense_nodes,
         &input_data,
@@ -146,7 +133,6 @@ pub fn convert(manifest: &Manifest) -> Result<osmflat::Osm, Error> {
 
     let ways_id_to_idx = serialize_way_blocks(
         &builder,
-        way_ids,
         pbf_ways,
         &input_data,
         &nodes_id_to_idx,
@@ -157,7 +143,6 @@ pub fn convert(manifest: &Manifest) -> Result<osmflat::Osm, Error> {
 
     serialize_relation_blocks(
         &builder,
-        relation_ids,
         pbf_relations,
         &input_data,
         &nodes_id_to_idx,
@@ -328,7 +313,6 @@ fn serialize_dense_nodes(
     block: &osmpbf::PrimitiveBlock,
     granularity: i32,
     nodes: &mut flatdata::ExternalVector<osmflat::Node>,
-    node_ids: &mut Option<flatdata::ExternalVector<osmflat::Id>>,
     nodes_id_to_idx: &mut ids::IdTableBuilder,
     hilbert_node_pairs: &mut flatdata::ExternalVector<osmflat::HilbertNodePair>,
     stringtable: &mut StringTable,
@@ -355,10 +339,6 @@ fn serialize_dense_nodes(
             assert_eq!(index as usize, nodes.len());
 
             let node = nodes.grow()?;
-            if let Some(ids) = node_ids {
-                ids.grow()?.set_value(id as u64);
-            }
-
             node.set_osm_id(id);
 
             lat += dense_nodes.lat[i];
@@ -425,7 +405,6 @@ fn serialize_ways(
     block: &osmpbf::PrimitiveBlock,
     nodes_id_to_idx: &[Option<u64>],
     ways: &mut flatdata::ExternalVector<osmflat::Way>,
-    way_ids: &mut Option<flatdata::ExternalVector<osmflat::Id>>,
     ways_id_to_idx: &mut ids::IdTableBuilder,
     stringtable: &mut StringTable,
     tags: &mut TagSerializer,
@@ -441,13 +420,6 @@ fn serialize_ways(
 
             let way = ways.grow()?;
 
-            // NHTODO Remove the id archive. Too cumbersome.
-            if let Some(ids) = way_ids {
-                ids.grow()?.set_value(pbf_way.id as u64);
-            }
-
-            // NHTODO Redo the tagging mechanism to include types other than string,
-            // then include OSM entity attributes, such as OSM ID.
             way.set_osm_id(pbf_way.id);
 
             debug_assert_eq!(pbf_way.keys.len(), pbf_way.vals.len(), "invalid input data");
@@ -502,8 +474,8 @@ fn serialize_relations(
     relations_id_to_idx: &ids::IdTable,
     stringtable: &mut StringTable,
     relations: &mut flatdata::ExternalVector<osmflat::Relation>,
-    relation_ids: &mut Option<flatdata::ExternalVector<osmflat::Id>>,
     relation_members: &mut flatdata::MultiVector<osmflat::RelationMembers>,
+    members: &mut flatdata::ExternalVector<osmflat::Member>,
     tags: &mut TagSerializer,
 ) -> Result<Stats, Error> {
     let mut stats = Stats::default();
@@ -511,10 +483,6 @@ fn serialize_relations(
     for group in &block.primitivegroup {
         for pbf_relation in &group.relations {
             let relation = relations.grow()?;
-            if let Some(ids) = relation_ids {
-                ids.grow()?.set_value(pbf_relation.id as u64);
-            }
-
             relation.set_osm_id(pbf_relation.id);
 
             debug_assert_eq!(
@@ -581,7 +549,6 @@ fn serialize_relations(
 fn serialize_dense_node_blocks(
     builder: &osmflat::OsmBuilder,
     granularity: i32,
-    mut node_ids: Option<flatdata::ExternalVector<osmflat::Id>>,
     mut hilbert_node_pairs: flatdata::ExternalVector<osmflat::HilbertNodePair>,
     blocks: Vec<BlockIndex>,
     data: &[u8],
@@ -604,7 +571,6 @@ fn serialize_dense_node_blocks(
                 &block,
                 granularity,
                 &mut nodes,
-                &mut node_ids,
                 &mut nodes_id_to_idx,
                 &mut hilbert_node_pairs,
                 stringtable,
@@ -620,10 +586,6 @@ fn serialize_dense_node_blocks(
     // of the last node
     nodes.grow()?.set_tag_first_idx(tags.next_index());
     nodes.close()?;
-    if let Some(ids) = node_ids {
-        ids.close()?;
-    }
-
     hilbert_node_pairs.close()?;
 
     println!("Dense nodes converted in {} secs.", t.elapsed().as_secs());
@@ -638,7 +600,6 @@ type PrimitiveBlockWithIds = (osmpbf::PrimitiveBlock, (Vec<Option<u64>>, Stats))
 #[allow(clippy::too_many_arguments)]
 fn serialize_way_blocks(
     builder: &osmflat::OsmBuilder,
-    mut way_ids: Option<flatdata::ExternalVector<osmflat::Id>>,
     blocks: Vec<BlockIndex>,
     data: &[u8],
     nodes_id_to_idx: &ids::IdTable,
@@ -666,7 +627,6 @@ fn serialize_way_blocks(
                 &block,
                 &ids,
                 &mut ways,
-                &mut way_ids,
                 &mut ways_id_to_idx,
                 stringtable,
                 tags,
@@ -684,9 +644,6 @@ fn serialize_way_blocks(
         sentinel.set_ref_first_idx(nodes_index.len() as u64);
     }
     ways.close()?;
-    if let Some(ids) = way_ids {
-        ids.close()?;
-    }
     nodes_index.close()?;
 
     println!("Ways converted in {} secs", t.elapsed().as_secs());
@@ -699,7 +656,6 @@ fn serialize_way_blocks(
 #[allow(clippy::too_many_arguments)]
 fn serialize_relation_blocks(
     builder: &osmflat::OsmBuilder,
-    mut relation_ids: Option<flatdata::ExternalVector<osmflat::Id>>,
     blocks: Vec<BlockIndex>,
     data: &[u8],
     nodes_id_to_idx: &ids::IdTable,
@@ -714,6 +670,8 @@ fn serialize_relation_blocks(
 
     let mut relations = builder.start_relations()?;
     let mut relation_members = builder.start_relation_members()?;
+
+    let mut members = builder.start_members()?;
 
     let mut pb = ProgressBar::new(blocks.len() as u64);
     pb.message("Converting relations...");
@@ -731,8 +689,8 @@ fn serialize_relation_blocks(
                 &relations_id_to_idx,
                 stringtable,
                 &mut relations,
-                &mut relation_ids,
                 &mut relation_members,
+                &mut members,
                 tags,
             )?;
             pb.inc();
@@ -743,13 +701,12 @@ fn serialize_relation_blocks(
     {
         let sentinel = relations.grow()?;
         sentinel.set_tag_first_idx(tags.next_index());
+        sentinel.set_member_first_idx(members.len() as u32);
     }
 
     relations.close()?;
-    if let Some(ids) = relation_ids {
-        ids.close()?;
-    }
     relation_members.close()?;
+    members.close()?;
 
     println!("Relations converted in {} secs.", t.elapsed().as_secs());
 
