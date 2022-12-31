@@ -3,7 +3,5 @@ pub mod metadata;
 pub mod node;
 pub mod planet;
 pub mod relation;
-pub mod strings;
 pub mod tag;
-pub mod u40;
 pub mod way;

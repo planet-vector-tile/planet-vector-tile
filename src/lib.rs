@@ -16,6 +16,7 @@ mod sort;
 mod source;
 pub mod tile;
 pub mod tile_attributes;
+mod u40;
 pub mod util;
 
 #[macro_use]

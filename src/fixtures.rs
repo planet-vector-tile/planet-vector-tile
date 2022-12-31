@@ -13,6 +13,7 @@ mod sort;
 mod source;
 mod tile;
 mod tile_attributes;
+mod u40;
 mod util;
 
 use fs_extra::dir::{copy, CopyOptions};

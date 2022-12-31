@@ -2,7 +2,7 @@ use super::metadata::Metadata;
 use super::node::Node;
 use super::relation::{Member, Relation};
 use super::tag::Tag;
-use super::u40::U40;
+use crate::u40::U40;
 use super::way::Way;
 use crate::manifest::Manifest;
 use crate::mutant::Mutant;

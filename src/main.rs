@@ -1,7 +1,7 @@
 mod commands;
-mod ingest;
 mod filter;
 mod hilbert;
+mod ingest;
 mod location;
 pub mod manifest;
 mod mutant;
@@ -17,6 +17,7 @@ mod sort;
 mod source;
 mod tile;
 mod tile_attributes;
+mod u40;
 mod util;
 
 use clap::ArgMatches;

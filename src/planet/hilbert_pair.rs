@@ -1,4 +1,4 @@
-use super::u40::U40;
+use crate::u40::U40;
 
 #[repr(packed)]
 #[derive(Clone, Copy, Debug)]
