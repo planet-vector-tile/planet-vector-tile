@@ -21,6 +21,18 @@ impl U40 {
     }
 }
 
+#[allow(clippy::derive_hash_xor_eq)]
+impl std::hash::Hash for U40 {
+    fn hash<H>(&self, h: &mut H)
+    where
+        H: std::hash::Hasher,
+    {
+        // We manually implement Hash like this, since [u8; 5] is slower to hash
+        // than u64 for some/many hash functions
+        self.to_u64().hash(h)
+    }
+}
+
 // #[cfg(test)]
 // mod tests {
 //     use super::*;

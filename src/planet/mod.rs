@@ -5,3 +5,9 @@ pub mod planet;
 pub mod relation;
 pub mod tag;
 pub mod way;
+
+pub enum EntityType {
+    Node,
+    Way,
+    Relation
+}

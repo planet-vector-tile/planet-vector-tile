@@ -4,8 +4,8 @@ use crate::u40::U40;
 #[derive(Clone, Copy, Debug)]
 pub struct Node {
     h: u64,
+    id: U40,
     lon: i32,
     lat: i32,
-    id: U40,
     tag_i: u32,
 }
