@@ -2,9 +2,9 @@ use crate::{
     location,
     mutant::Mutant,
     osmflat::osmflat_generated::osm::{
-        HilbertNodePair, HilbertWayPair, Node, NodeIndex, Osm, TagIndex, Way,
+        HilbertNodePair, HilbertRelationPair, HilbertWayPair, Node, NodeIndex, Osm, TagIndex, Way,
     },
-    util,
+    util::{self, finish, timer},
 };
 use geo::algorithm::interior_point::InteriorPoint;
 use geo::geometry::LineString;
@@ -34,14 +34,22 @@ pub fn sort_flatdata(flatdata: Osm, dir: &PathBuf) -> Result<(), Box<dyn std::er
     // Build hilbert way pairs.
     let ways = flatdata.ways();
     let ways_len = flatdata.ways().len();
-    let way_pairs_mut = Mutant::<HilbertWayPair>::new(dir, "hilbert_way_pairs", ways_len)?;
-    let way_pairs = way_pairs_mut.mutable_slice();
+    let m_way_pairs = Mutant::<HilbertWayPair>::new(dir, "hilbert_way_pairs", ways_len)?;
+    let way_pairs = m_way_pairs.mutable_slice();
     build_hilbert_way_pairs(way_pairs, &flatdata)?;
 
     // Sort hilbert way pairs.
     let t = util::timer("Sorting hilbert way pairs.");
     way_pairs.par_sort_unstable_by_key(|idx| idx.h());
     println!("Finished in {} secs.", t.elapsed().as_secs());
+
+    // Build hilbert relation pairs
+    let relations = flatdata.relations();
+    let relations_len = flatdata.relations().len();
+    let m_relation_pairs =
+        Mutant::<HilbertRelationPair>::new(dir, "hilbert_relation_pairs", relations_len)?;
+    let relation_pairs = m_relation_pairs.mutable_slice();
+    build_hilbert_relation_pairs(relation_pairs, &flatdata)?;
 
     // Sort hilbert node pairs.
     let t = util::timer("Sorting hilbert node pairs.");
@@ -166,8 +174,7 @@ fn build_hilbert_way_pairs(
     let node_pairs = flatdata.hilbert_node_pairs().unwrap();
     let ways = flatdata.ways();
 
-    println!("Building hilbert way pairs.");
-    let t = Instant::now();
+    let t = timer("Building hilbert way pairs.");
 
     way_pairs.par_iter_mut().enumerate().for_each(|(i, pair)| {
         let way = &ways[i];
@@ -292,7 +299,17 @@ fn build_hilbert_way_pairs(
         }
     });
 
-    println!("Finished in {} secs.", t.elapsed().as_secs());
+    finish(t);
+    Ok(())
+}
+
+fn build_hilbert_relation_pairs(
+    relation_pairs: &mut [HilbertRelationPair],
+    flatdata: &Osm,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let t = timer("Building hilbert relation pairs.");
+
+    finish(t);
     Ok(())
 }
 
