@@ -45,7 +45,7 @@ pub fn ingest_osm_pbf(manifest: &Manifest) -> Result<Planet, Error> {
     finish(t);
 
     // Build strings table
-    channel_blocks("Building strings table...", &pbf, &block_index, &|block| {
+    read_blocks("Building strings table...", &pbf, &block_index, &|block| {
         println!("hi");
     })?;
 
@@ -60,17 +60,17 @@ pub fn ingest_osm_pbf(manifest: &Manifest) -> Result<Planet, Error> {
     }
 
     // Ingest nodes
-    channel_blocks("Ingesting nodes...", &pbf, &blocks.nodes, &|block| {
+    read_blocks("Ingesting nodes...", &pbf, &blocks.nodes, &|block| {
         println!("hi");
     })?;
 
     // Ingest ways
-    channel_blocks("Ingesting ways...", &pbf, &blocks.ways, &|block| {
+    read_blocks("Ingesting ways...", &pbf, &blocks.ways, &|block| {
         println!("hi");
     })?;
 
     // Ingest relations
-    channel_blocks("Ingesting relations...", &pbf, &blocks.relations, &|block| {
+    read_blocks("Ingesting relations...", &pbf, &blocks.relations, &|block| {
         println!("hi");
     })?;
 
@@ -82,7 +82,7 @@ pub fn ingest_osm_pbf(manifest: &Manifest) -> Result<Planet, Error> {
     Ok(planet)
 }
 
-fn channel_blocks(
+fn read_blocks(
     msg: &str,
     pbf: &Mmap,
     blocks: &[BlockIndex],

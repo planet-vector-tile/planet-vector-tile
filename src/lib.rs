@@ -8,6 +8,7 @@ mod manifest;
 mod mutant;
 pub mod osmflat;
 mod parallel;
+mod planet;
 mod pvt_builder;
 mod relation;
 mod rules;

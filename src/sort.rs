@@ -1,10 +1,11 @@
+use crate::planet::hilbert_pair::HilbertPair40;
 use crate::{
     location,
     mutant::Mutant,
     osmflat::osmflat_generated::osm::{
         HilbertNodePair, HilbertWayPair, Node, NodeIndex, Osm, TagIndex, Way,
     },
-    relation::{HilbertRelationPair, Relation, RelationMember, RelationMemberEntity},
+    relation::{Relation, RelationMember, RelationMemberEntity},
     util::{self, finish},
 };
 use crossbeam::queue::SegQueue;
@@ -50,7 +51,7 @@ pub fn sort_flatdata(flatdata: Osm, dir: &PathBuf) -> Result<(), Box<dyn std::er
     let m_relation_members = Mutant::<RelationMember>::open(dir, "relation_members2", false)?;
     let m_node_pairs = Mutant::<HilbertNodePair>::open(dir, "hilbert_node_pairs", true)?;
     let m_relation_pairs =
-        Mutant::<HilbertRelationPair>::new(dir, "hilbert_relation_pairs", m_relations.len)?;
+        Mutant::<HilbertPair40>::new(dir, "hilbert_relation_pairs", m_relations.len)?;
     build_hilbert_relation_pairs(
         m_relations.slice(),
         m_relation_members.slice(),
@@ -340,7 +341,7 @@ fn build_hilbert_relation_pairs(
     relation_members: &[RelationMember],
     node_pairs: &[HilbertNodePair],
     way_pairs: &[HilbertWayPair],
-    m_relation_pairs: &Mutant<HilbertRelationPair>,
+    m_relation_pairs: &Mutant<HilbertPair40>,
 ) {
     let t = util::timer("Building hilbert relation pairs.");
 

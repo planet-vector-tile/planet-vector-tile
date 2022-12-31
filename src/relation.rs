@@ -14,13 +14,6 @@ pub struct Relation {
 
 #[repr(packed)]
 #[derive(Clone, Copy, Debug)]
-pub struct HilbertRelationPair {
-    pub h: u64,
-    pub i: u32,
-}
-
-#[repr(packed)]
-#[derive(Clone, Copy, Debug)]
 pub struct RelationMember {
     pub ref_i: u32,
     pub pack: u8,

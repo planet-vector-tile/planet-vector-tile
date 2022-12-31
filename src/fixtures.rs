@@ -5,6 +5,7 @@ mod manifest;
 mod mutant;
 mod osmflat;
 mod parallel;
+mod planet;
 pub mod pvt_builder;
 mod relation;
 mod rules;
