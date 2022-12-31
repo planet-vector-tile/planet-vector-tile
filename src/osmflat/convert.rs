@@ -11,6 +11,7 @@ use std::time::Instant;
 
 use crate::location;
 use crate::manifest::Manifest;
+use crate::osmflat::osmflat_generated::osm::EntityType;
 use crate::parallel;
 
 use super::ids;
@@ -474,7 +475,6 @@ fn serialize_relations(
     relations_id_to_idx: &ids::IdTable,
     stringtable: &mut StringTable,
     relations: &mut flatdata::ExternalVector<osmflat::Relation>,
-    relation_members: &mut flatdata::MultiVector<osmflat::RelationMembers>,
     members: &mut flatdata::ExternalVector<osmflat::Member>,
     tags: &mut TagSerializer,
 ) -> Result<Stats, Error> {
@@ -504,10 +504,12 @@ fn serialize_relations(
                 "invalid input data"
             );
 
+            relation.set_member_first_idx(members.len() as u32);
+
             let mut memid = 0;
-            let mut members = relation_members.grow()?;
             for i in 0..pbf_relation.roles_sid.len() {
                 memid += pbf_relation.memids[i];
+                let member = members.grow()?;
 
                 let member_type = osmpbf::relation::MemberType::from_i32(pbf_relation.types[i]);
                 debug_assert!(member_type.is_some());
@@ -517,24 +519,24 @@ fn serialize_relations(
                         let idx = nodes_id_to_idx.get(memid as u64);
                         stats.num_unresolved_node_ids = idx.is_none() as usize;
 
-                        let member = members.add_node_member();
-                        member.set_node_idx(idx);
+                        member.set_entity_type(EntityType::Node);
+                        member.set_idx(idx);
                         member.set_role_idx(string_refs[pbf_relation.roles_sid[i] as usize]);
                     }
                     osmpbf::relation::MemberType::Way => {
                         let idx = ways_id_to_idx.get(memid as u64);
                         stats.num_unresolved_way_ids = idx.is_none() as usize;
 
-                        let member = members.add_way_member();
-                        member.set_way_idx(idx);
+                        member.set_entity_type(EntityType::Way);
+                        member.set_idx(idx);
                         member.set_role_idx(string_refs[pbf_relation.roles_sid[i] as usize]);
                     }
                     osmpbf::relation::MemberType::Relation => {
                         let idx = relations_id_to_idx.get(memid as u64);
                         stats.num_unresolved_rel_ids = idx.is_none() as usize;
 
-                        let member = members.add_relation_member();
-                        member.set_relation_idx(idx);
+                        member.set_entity_type(EntityType::Relation);
+                        member.set_idx(idx);
                         member.set_role_idx(string_refs[pbf_relation.roles_sid[i] as usize]);
                     }
                 }
@@ -669,8 +671,6 @@ fn serialize_relation_blocks(
     let relations_id_to_idx = build_relations_index(data, blocks.clone().into_iter())?;
 
     let mut relations = builder.start_relations()?;
-    let mut relation_members = builder.start_relation_members()?;
-
     let mut members = builder.start_members()?;
 
     let mut pb = ProgressBar::new(blocks.len() as u64);
@@ -689,7 +689,6 @@ fn serialize_relation_blocks(
                 &relations_id_to_idx,
                 stringtable,
                 &mut relations,
-                &mut relation_members,
                 &mut members,
                 tags,
             )?;
@@ -705,7 +704,6 @@ fn serialize_relation_blocks(
     }
 
     relations.close()?;
-    relation_members.close()?;
     members.close()?;
 
     println!("Relations converted in {} secs.", t.elapsed().as_secs());
