@@ -1,14 +1,18 @@
+use super::hilbert_pair::{HilbertPair32, HilbertPair40};
 use super::metadata::Metadata;
 use super::node::Node;
 use super::relation::{Member, Relation};
 use super::tag::Tag;
-use crate::u40::U40;
 use super::way::Way;
 use crate::manifest::Manifest;
 use crate::mutant::Mutant;
+use crate::u40::U40;
+use std::fs;
 use std::io::Result;
+use std::path::PathBuf;
 
 pub struct Planet {
+    pub manifest: Manifest,
     pub string_i: Mutant<u32>,
     pub strings: Mutant<u8>,
     pub metadata: Mutant<Metadata>,
@@ -28,11 +32,23 @@ pub struct Planet {
     pub simp_relations: Mutant<Relation>,
     pub simp_relation_tag_i: Mutant<u32>,
     pub simp_members: Mutant<Member>,
+
+    // These get deleted after the sorting stage is completed during ingest.
+    pub node_pairs: Option<Mutant<HilbertPair40>>,
+    pub way_pairs: Option<Mutant<HilbertPair32>>,
+    pub relation_pairs: Option<Mutant<HilbertPair32>>,
 }
 
 impl Planet {
     pub fn new(manifest: &Manifest) -> Result<Planet> {
         let dir = &manifest.data.planet;
+
+        // Copy the manifest to the build directory so we know exactly what it was at the time of build.
+        let mut planet_manifest = manifest.clone();
+        planet_manifest.data.planet = PathBuf::from("./");
+        let manifest_str = serde_yaml::to_string(&planet_manifest)
+            .expect("Cound not re-serialize manifest to planet dir.");
+        fs::write(dir.join("manifest.yaml"), manifest_str)?;
 
         let string_i = Mutant::<u32>::new_empty(dir, "string_i")?;
         let strings = Mutant::<u8>::new_empty(dir, "strings")?;
@@ -54,7 +70,12 @@ impl Planet {
         let simp_relation_tag_i = Mutant::<u32>::new_empty(dir, "simp_relation_tag_i")?;
         let simp_members = Mutant::<Member>::new_empty(dir, "simp_members")?;
 
+        let node_pairs = Some(Mutant::<HilbertPair40>::new_empty(dir, "node_pairs")?);
+        let way_pairs = Some(Mutant::<HilbertPair32>::new_empty(dir, "way_pairs")?);
+        let relation_pairs = Some(Mutant::<HilbertPair32>::new_empty(dir, "relation_pairs")?);
+
         Ok(Self {
+            manifest: planet_manifest,
             string_i,
             strings,
             metadata,
@@ -74,6 +95,9 @@ impl Planet {
             simp_relations,
             simp_relation_tag_i,
             simp_members,
+            node_pairs,
+            way_pairs,
+            relation_pairs,
         })
     }
 
@@ -100,7 +124,21 @@ impl Planet {
         let simp_relation_tag_i = Mutant::<u32>::open(dir, "simp_relation_tag_i", false)?;
         let simp_members = Mutant::<Member>::open(dir, "simp_members", false)?;
 
+        let node_pairs = match Mutant::<HilbertPair40>::open(dir, "node_pairs", false) {
+            Ok(mutant) => Some(mutant),
+            Err(_) => None,
+        };
+        let way_pairs = match Mutant::<HilbertPair32>::open(dir, "way_pairs", false) {
+            Ok(mutant) => Some(mutant),
+            Err(_) => None,
+        };
+        let relation_pairs = match Mutant::<HilbertPair32>::open(dir, "relation_pairs", false) {
+            Ok(mutant) => Some(mutant),
+            Err(_) => None,
+        };
+
         Ok(Self {
+            manifest: manifest.clone(),
             string_i,
             strings,
             metadata,
@@ -120,6 +158,9 @@ impl Planet {
             simp_relations,
             simp_relation_tag_i,
             simp_members,
+            node_pairs,
+            way_pairs,
+            relation_pairs,
         })
     }
 
@@ -137,12 +178,26 @@ impl Planet {
         let relation_tag_i = self.relation_tag_i.slice();
         let members = self.members.slice();
         let roles = self.roles.slice();
+
         let simp_ways = self.simp_ways.slice();
         let simp_way_tag_i = self.simp_way_tag_i.slice();
         let simp_refs = self.simp_refs.slice();
         let simp_relations = self.simp_relations.slice();
         let simp_relation_tag_i = self.simp_relation_tag_i.slice();
         let simp_members = self.simp_members.slice();
+
+        let node_pairs = match &self.node_pairs {
+            Some(m) => Some(m.slice()),
+            None => None,
+        };
+        let way_pairs = match &self.way_pairs {
+            Some(m) => Some(m.slice()),
+            None => None,
+        };
+        let relation_pairs = match &self.relation_pairs {
+            Some(m) => Some(m.slice()),
+            None => None,
+        };
 
         PlanetSlice {
             string_i,
@@ -164,6 +219,9 @@ impl Planet {
             simp_relations,
             simp_relation_tag_i,
             simp_members,
+            node_pairs,
+            way_pairs,
+            relation_pairs,
         }
     }
 
@@ -187,6 +245,18 @@ impl Planet {
         let simp_relations = self.simp_relations.mutable_slice();
         let simp_relation_tag_i = self.simp_relation_tag_i.mutable_slice();
         let simp_members = self.simp_members.mutable_slice();
+        let node_pairs = match &self.node_pairs {
+            Some(m) => Some(m.mutable_slice()),
+            None => None,
+        };
+        let way_pairs = match &self.way_pairs {
+            Some(m) => Some(m.mutable_slice()),
+            None => None,
+        };
+        let relation_pairs = match &self.relation_pairs {
+            Some(m) => Some(m.mutable_slice()),
+            None => None,
+        };
 
         PlanetMutableSlice {
             string_i,
@@ -208,6 +278,9 @@ impl Planet {
             simp_relations,
             simp_relation_tag_i,
             simp_members,
+            node_pairs,
+            way_pairs,
+            relation_pairs,
         }
     }
 }
@@ -232,6 +305,9 @@ pub struct PlanetSlice<'a> {
     pub simp_relations: &'a [Relation],
     pub simp_relation_tag_i: &'a [u32],
     pub simp_members: &'a [Member],
+    pub node_pairs: Option<&'a [HilbertPair40]>,
+    pub way_pairs: Option<&'a [HilbertPair32]>,
+    pub relation_pairs: Option<&'a [HilbertPair32]>,
 }
 
 pub struct PlanetMutableSlice<'a> {
@@ -254,4 +330,7 @@ pub struct PlanetMutableSlice<'a> {
     pub simp_relations: &'a mut [Relation],
     pub simp_relation_tag_i: &'a mut [u32],
     pub simp_members: &'a mut [Member],
+    pub node_pairs: Option<&'a mut [HilbertPair40]>,
+    pub way_pairs: Option<&'a mut [HilbertPair32]>,
+    pub relation_pairs: Option<&'a mut [HilbertPair32]>,
 }

@@ -5,6 +5,7 @@ use crate::osmflat::osmpbf;
 use crate::osmflat::osmpbf::read_block;
 use crate::osmflat::osmpbf::BlockIndex;
 use crate::osmflat::osmpbf::{build_block_index, BlockType};
+use crate::osmflat::stats::Stats;
 use crate::parallel;
 use crate::planet::planet::Planet;
 use itertools::Itertools;
@@ -44,20 +45,17 @@ pub fn ingest_osm_pbf(manifest: &Manifest) -> Result<Planet, Error> {
     let block_index = build_block_index(&pbf);
     finish(t);
 
-    // Build strings table
-    read_blocks("Building strings table...", &pbf, &block_index, &|block| {
-        println!("hi");
-    })?;
-
     // Group blocks by type
     let blocks = group_blocks_by_type(block_index);
 
-    // Ingest header
-    if let Some(header) = blocks.header.first() {
-        // serialize_header(&pbf_header, coord_scale, &builder, &mut stringtable)?;
-    } else {
-        println!("Missing header block from OSM PBF.");
-    }
+    // Initialize planet
+    let planet = Planet::new(manifest)?;
+
+    let mut stats = Stats::default();
+
+    // NHTODO Ingest header
+
+    let hilbert_node_pairs = planet.node_pairs;
 
     // Ingest nodes
     read_blocks("Ingesting nodes...", &pbf, &blocks.nodes, &|block| {
@@ -70,11 +68,14 @@ pub fn ingest_osm_pbf(manifest: &Manifest) -> Result<Planet, Error> {
     })?;
 
     // Ingest relations
-    read_blocks("Ingesting relations...", &pbf, &blocks.relations, &|block| {
-        println!("hi");
-    })?;
-
-    
+    read_blocks(
+        "Ingesting relations...",
+        &pbf,
+        &blocks.relations,
+        &|block| {
+            println!("hi");
+        },
+    )?;
 
     let planet = Planet::new(manifest)?;
 
