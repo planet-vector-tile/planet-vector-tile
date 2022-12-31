@@ -11,8 +11,8 @@ pub mod osmflat_generated;
 #[path = "../generated/osmpbf.rs"]
 mod osmpbf_generated;
 
-mod ids;
-mod osmpbf;
-mod stats;
-mod strings;
-mod tags;
+pub mod ids;
+pub mod osmpbf;
+pub mod stats;
+pub mod strings;
+pub mod tags;
