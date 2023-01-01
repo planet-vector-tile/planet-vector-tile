@@ -1,14 +1,14 @@
 # PlanetVectorTile
 
-PlanetVectorTile is a map engine that focuses on enabling you to have the entire map of the planet on your own computer. The core of the library, written in Rust, is a command line tool, `pvt`, and a native NodeJS module. This binds to a desktop application that allows you to view, style, and navigate your planet dataset--all on your own machine, within the same process.
+PlanetVectorTile is a map engine that focuses on enabling you to have the entire map of the planet on your own computer. The core of the library, written in Rust, is a command line tool, `pvt`, and a native NodeJS module. This binds to a [desktop application](desktop/) that allows you to view, style, and navigate your planet dataset--all on your own machine, within the same process.
 
-If you are a map enthusiast that can benefit by having planet-scale spatial data on your own machine and infrastructure, under your own control and ownership, this project may be of interest. There is no database or external dependency. All you need is the compiled binary to run the CLI, and the app package to run the app.
+If you are a map enthusiast, you might want to have planet-scale spatial data on your own machine and infrastructure, under your own control and ownership. There is no database or external dependency. All you need is the compiled binary to run the CLI, and the app package to run the app. The planet binary format is structured so that any common laptop is sufficient to browse a map of the entire planet.
 
 You can use `pvt` to:
 
 - Convert an OSM PBF into the planet binary format, allowing you to render and navigate the planet on your local machine.
 - Declare a manifest file that lets you build rules determining what features are in a given layer and zoom range.
-- Build a Hilbert Tile tree that provides a spatial index for tiling.
+- Build a [Hilbert Tile Tree](docs/hilbert.md) that provides a spatial index for tiling.
 - Create a report providing analysis and statistics about the spatial data you have ingested.
 
 You can build a planet of all of OpenStreetMap on a server with 256GB of RAM in < 1.5hrs. Any machine will do, but your build will take significantly longer. Smaller datasets work fine on a standard laptop (such as an OSM extract of California or the United States).
@@ -19,7 +19,7 @@ The desktop application is a tool that allows you to navigate your planet. There
 - **Map:** View your styled map, rendered by the Maplibre/Mapbox style spec.
 - **Data:** Navigate and filter the layers of your dataset. Toggle features to explore what is in your map.
 
-We render vector tiles ad hoc in our own [flatbuffer](https://google.github.io/flatbuffers/) format, which is consumed in the app with a custom fork of Maplibre. The planet binary source data is also our own format levraging memory mapped [flatdata](https://github.com/heremaps/flatdata) files.
+We render vector tiles ad hoc in our own [flatbuffer](https://google.github.io/flatbuffers/) format, which is consumed in the app with a custom fork of Maplibre. The planet binary source data is also our own format leveraging memory mapped [flatdata](https://github.com/heremaps/flatdata) files.
 
 Nodes, ways, and relations are indexed and tiled using our new Hilbert Tree spatial index, allowing immediate retrival from your memory mapped files. Features that are located near each other on Earth are also located near each other in the binary data. No bounding box search is required for retrival.
 
