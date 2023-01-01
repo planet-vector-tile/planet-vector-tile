@@ -16,5 +16,5 @@ Tiles at higher zooms have a higher Hilbert location, but that location will alw
 
 ## Lots of data
 
-![](lots-of-data.jpg)
+![](screenshots/lots-of-data.jpg)
 
