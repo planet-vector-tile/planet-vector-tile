@@ -1,11 +1,14 @@
+use crate::osmflat::osmflat_generated::osm::EntityType;
 use crate::{
     location,
     mutant::Mutant,
     osmflat::osmflat_generated::osm::{
-        HilbertNodePair, HilbertWayPair, Node, NodeIndex, Osm, TagIndex, Way,
+        HilbertNodePair, HilbertRelationPair, HilbertWayPair, Node, NodeIndex, Osm, Relation,
+        TagIndex, Way,
     },
-    util,
+    util::{self, finish, timer},
 };
+use crossbeam::queue::SegQueue;
 use geo::algorithm::interior_point::InteriorPoint;
 use geo::geometry::LineString;
 use geo::Coord;
@@ -34,14 +37,22 @@ pub fn sort_flatdata(flatdata: Osm, dir: &PathBuf) -> Result<(), Box<dyn std::er
     // Build hilbert way pairs.
     let ways = flatdata.ways();
     let ways_len = flatdata.ways().len();
-    let way_pairs_mut = Mutant::<HilbertWayPair>::new(dir, "hilbert_way_pairs", ways_len)?;
-    let way_pairs = way_pairs_mut.mutable_slice();
+    let m_way_pairs = Mutant::<HilbertWayPair>::new(dir, "hilbert_way_pairs", ways_len)?;
+    let way_pairs = m_way_pairs.mutable_slice();
     build_hilbert_way_pairs(way_pairs, &flatdata)?;
 
     // Sort hilbert way pairs.
     let t = util::timer("Sorting hilbert way pairs.");
     way_pairs.par_sort_unstable_by_key(|idx| idx.h());
     println!("Finished in {} secs.", t.elapsed().as_secs());
+
+    // Build hilbert relation pairs
+    let m_relation_pairs = Mutant::<HilbertRelationPair>::new(
+        dir,
+        "hilbert_relation_pairs",
+        flatdata.relations().len(),
+    )?;
+    build_hilbert_relation_pairs(&m_way_pairs, &m_relation_pairs, &flatdata)?;
 
     // Sort hilbert node pairs.
     let t = util::timer("Sorting hilbert node pairs.");
@@ -166,8 +177,7 @@ fn build_hilbert_way_pairs(
     let node_pairs = flatdata.hilbert_node_pairs().unwrap();
     let ways = flatdata.ways();
 
-    println!("Building hilbert way pairs.");
-    let t = Instant::now();
+    let t = timer("Building hilbert way pairs.");
 
     way_pairs.par_iter_mut().enumerate().for_each(|(i, pair)| {
         let way = &ways[i];
@@ -292,7 +302,96 @@ fn build_hilbert_way_pairs(
         }
     });
 
-    println!("Finished in {} secs.", t.elapsed().as_secs());
+    finish(t);
+    Ok(())
+}
+
+fn build_hilbert_relation_pairs(
+    m_way_pairs: &Mutant<HilbertWayPair>,
+    m_relation_pairs: &Mutant<HilbertRelationPair>,
+    flatdata: &Osm,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let t = timer("Building hilbert relation pairs.");
+
+    // For relations with relation members, we need to dig into the members to find
+    // their Hilbert locations, so we need to have a queue of relations waiting for that.
+    let q = SegQueue::<usize>::new();
+
+    let node_pairs = flatdata.hilbert_node_pairs().unwrap();
+    let way_pairs = m_way_pairs.slice();
+    let relation_pairs = m_relation_pairs.slice();
+
+    let relations = flatdata.relations();
+    let members = flatdata.members();
+
+    let compute_relation_h = |relation_i: usize, relation: &Relation| {
+        let relation_pair = &mut m_relation_pairs.mutable_slice()[relation_i];
+        relation_pair.set_i(relation_i as u32);
+
+        let mut h_total: u128 = 0;
+        let mut processed_members_count: u32 = 0;
+
+        let members_range = relation.members();
+
+        let mut missing_member = false;
+        for member in &members[members_range.start as usize..members_range.end as usize] {
+            let idx = member.idx();
+            if idx.is_none() {
+                missing_member = true;
+                continue;
+            }
+            let i = member.idx().unwrap() as usize;
+            let h = match member.entity_type() {
+                EntityType::Node => node_pairs[i].h(),
+                EntityType::Way => way_pairs[i].h(),
+                EntityType::Relation => {
+                    let h = relation_pairs[i].h();
+                    if h == 0 {
+                        // Here we add the relation to the queue to be processed later.
+                        q.push(i as usize);
+                        return;
+                    }
+                    h
+                }
+                _ => 0,
+            };
+
+            h_total += h as u128;
+            processed_members_count += 1;
+        }
+        if missing_member {
+            println!(
+                "Missing member(s) for relation. osm_id={}",
+                relation.osm_id()
+            );
+        }
+        let mean_h = (h_total / processed_members_count as u128) as u64;
+        relation_pair.set_h(mean_h);
+    };
+
+    relations
+        .par_iter()
+        .enumerate()
+        .for_each(|(relation_i, relation)| compute_relation_h(relation_i, relation));
+
+    let mut last_q_len = q.len();
+    let mut try_count: u8 = 0;
+    while let Some(relation_i) = q.pop() {
+        compute_relation_h(relation_i, &relations[relation_i]);
+        if q.len() == last_q_len {
+            try_count += 1;
+        }
+        if try_count == 100 {
+            // We should continue along with the build, so we should just log the problema and move on.
+            eprintln!(
+                "Unable to compute all of the h for relations. Re-tried {} times.",
+                try_count
+            );
+        }
+        last_q_len = q.len();
+    }
+
+    finish(t);
     Ok(())
 }
 
@@ -394,5 +493,29 @@ mod tests {
         let m_way_pairs = Mutant::<HilbertWayPair>::open(&dir, "hilbert_way_pairs", true).unwrap();
         let way_pairs = m_way_pairs.mutable_slice();
         let _ = build_hilbert_way_pairs(way_pairs, &flatdata);
+    }
+
+    #[test]
+    fn test_hilbert_relation_pairs() {
+        let dir = PathBuf::from("tests/fixtures/santa_cruz/sort");
+        let relation_pair_path =
+            PathBuf::from("tests/fixtures/santa_cruz/sort/hilbert_relation_pairs");
+        let _ = fs::remove_file(relation_pair_path);
+        let flatdata = Osm::open(FileResourceStorage::new(&dir)).unwrap();
+
+        let m_way_pairs = Mutant::<HilbertWayPair>::open(&dir, "hilbert_way_pairs", false).unwrap();
+
+        let len = flatdata.relations().len();
+        let m_relation_pairs =
+            Mutant::<HilbertRelationPair>::new(&dir, "hilbert_relation_pairs", len).unwrap();
+
+        build_hilbert_relation_pairs(&m_way_pairs, &m_relation_pairs, &flatdata).unwrap();
+        println!("after");
+        for p in m_relation_pairs.slice() {
+            println!("h {} i {}", p.h(), p.i());
+        }
+
+        // just a basic sanity check to see if we don't panic
+        assert!(m_relation_pairs.slice()[3243].h() > 1);
     }
 }

@@ -7,3 +7,7 @@ pub fn timer(msg: &str) -> Instant {
     println!("<== {} ==> {}", date, msg);
     time
 }
+
+pub fn finish(t: Instant) {
+    println!("Finished in {} secs.", t.elapsed().as_secs());
+}
