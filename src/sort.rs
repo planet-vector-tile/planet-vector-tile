@@ -325,18 +325,22 @@ fn build_hilbert_relation_pairs(
     let members = flatdata.members();
 
     let compute_relation_h = |relation_i: usize, relation: &Relation| {
+        let relation_pair = &mut m_relation_pairs.mutable_slice()[relation_i];
+        relation_pair.set_i(relation_i as u32);
+
         let mut h_total: u128 = 0;
         let mut processed_members_count: u32 = 0;
 
         let members_range = relation.members();
 
+        let mut missing_member = false;
         for member in &members[members_range.start as usize..members_range.end as usize] {
             let idx = member.idx();
             if idx.is_none() {
-                return;
+                missing_member = true;
+                continue;
             }
             let i = member.idx().unwrap() as usize;
-
             let h = match member.entity_type() {
                 EntityType::Node => node_pairs[i].h(),
                 EntityType::Way => way_pairs[i].h(),
@@ -355,10 +359,14 @@ fn build_hilbert_relation_pairs(
             h_total += h as u128;
             processed_members_count += 1;
         }
+        if missing_member {
+            println!(
+                "Missing member(s) for relation. osm_id={}",
+                relation.osm_id()
+            );
+        }
         let mean_h = (h_total / processed_members_count as u128) as u64;
-        let relation_pair = &mut m_relation_pairs.mutable_slice()[relation_i];
         relation_pair.set_h(mean_h);
-        relation_pair.set_i(relation_i as u32);
     };
 
     relations
@@ -381,10 +389,6 @@ fn build_hilbert_relation_pairs(
             );
         }
         last_q_len = q.len();
-    }
-
-    for p in relation_pairs {
-        println!("h {} i {}", p.h(), p.i());
     }
 
     finish(t);
@@ -489,5 +493,29 @@ mod tests {
         let m_way_pairs = Mutant::<HilbertWayPair>::open(&dir, "hilbert_way_pairs", true).unwrap();
         let way_pairs = m_way_pairs.mutable_slice();
         let _ = build_hilbert_way_pairs(way_pairs, &flatdata);
+    }
+
+    #[test]
+    fn test_hilbert_relation_pairs() {
+        let dir = PathBuf::from("tests/fixtures/santa_cruz/sort");
+        let relation_pair_path =
+            PathBuf::from("tests/fixtures/santa_cruz/sort/hilbert_relation_pairs");
+        let _ = fs::remove_file(relation_pair_path);
+        let flatdata = Osm::open(FileResourceStorage::new(&dir)).unwrap();
+
+        let m_way_pairs = Mutant::<HilbertWayPair>::open(&dir, "hilbert_way_pairs", false).unwrap();
+
+        let len = flatdata.relations().len();
+        let m_relation_pairs =
+            Mutant::<HilbertRelationPair>::new(&dir, "hilbert_relation_pairs", len).unwrap();
+
+        build_hilbert_relation_pairs(&m_way_pairs, &m_relation_pairs, &flatdata).unwrap();
+        println!("after");
+        for p in m_relation_pairs.slice() {
+            println!("h {} i {}", p.h(), p.i());
+        }
+
+        // just a basic sanity check to see if we don't panic
+        assert!(m_relation_pairs.slice()[3243].h() > 1);
     }
 }
