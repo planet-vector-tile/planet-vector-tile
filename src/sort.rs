@@ -382,10 +382,10 @@ fn build_hilbert_relation_pairs(
         let mut h_total: u128 = 0;
         let mut processed_members_count: u32 = 0;
 
-        let members_range = relation.members();
+        let members_start = relation.member_first_idx() as usize;
 
         let mut missing_member = false;
-        for member in &members[members_range.start as usize..members_range.end as usize] {
+        for member in &members[members_start..] {
             let idx = member.idx();
             if idx.is_none() {
                 missing_member = true;
