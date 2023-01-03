@@ -48,11 +48,8 @@ pub fn sort_flatdata(flatdata: Osm, dir: &PathBuf) -> Result<(), Box<dyn std::er
 
     // Build hilbert relation pairs
     let relations_len = flatdata.relations().len();
-    let m_relation_pairs = Mutant::<HilbertRelationPair>::new(
-        dir,
-        "hilbert_relation_pairs",
-        relations_len,
-    )?;
+    let m_relation_pairs =
+        Mutant::<HilbertRelationPair>::new(dir, "hilbert_relation_pairs", relations_len)?;
     build_hilbert_relation_pairs(&m_way_pairs, &m_relation_pairs, &flatdata)?;
 
     // Sort hilbert node pairs.
@@ -157,42 +154,51 @@ pub fn sort_flatdata(flatdata: Osm, dir: &PathBuf) -> Result<(), Box<dyn std::er
     pb.finish();
 
     // Reorder relations to sorted hilbert relation pairs.
-    let mut pb = Prog::new("Reordering relations to sorted hilbert relation pairs. ", relations_len);
-    let mut m_sorted_relations = Mutant::<Relation>::new_from_flatdata(dir, "sorted_relations", "relations")?;
-    let mut sorted_relations = m_sorted_relations.mutable_slice();
+    let mut pb = Prog::new(
+        "Reordering relations to sorted hilbert relation pairs. ",
+        relations_len,
+    );
+    let relations = flatdata.relations();
+    let members = flatdata.members();
+    let mut m_sorted_relations =
+        Mutant::<Relation>::new_from_flatdata(dir, "sorted_relations", "relations")?;
+    let sorted_relations = m_sorted_relations.mutable_slice();
+    let relation_pairs = m_relation_pairs.slice();
     let mut members_counter: usize = 0;
     let mut m_sorted_members =
         Mutant::<Member>::new_from_flatdata(dir, "sorted_members", "members")?;
     let sorted_members = m_sorted_members.mutable_slice();
     sorted_relations
         .iter_mut()
-        .zip(way_pairs.iter_mut())
-        .for_each(|(sorted_way, hilbert_way_pair)| {
-            // let i = hilbert_way_pair.i() as usize;
-            // let way = &ways[i];
+        .zip(relation_pairs.iter())
+        .for_each(|(sorted_relation, hilbert_relation_pair)| {
+            let i = hilbert_relation_pair.i() as usize;
+            let relation = &relations[i];
 
-            // let start = way.tag_first_idx() as usize;
-            // let end = way.tags().end as usize;
+            let tags_range = relation.tags();
+            let start = tags_range.start as usize;
+            let end = tags_range.end as usize;
 
-            // let tag_first_idx = tag_counter;
-            // for t in &tags_index[start..end] {
-            //     sorted_tags_index[tag_counter].fill_from(t);
-            //     tag_counter += 1;
-            // }
+            let tag_first_idx = tag_counter;
+            for t in &tags_index[start..end] {
+                sorted_tags_index[tag_counter].fill_from(t);
+                tag_counter += 1;
+            }
 
-            // let ref_start = way.ref_first_idx() as usize;
-            // let ref_end = way.refs().end as usize;
+            let members_range = relation.members();
+            let members_start = members_range.start as usize;
+            let members_end = members_range.end as usize;
 
-            // let nodes_first_idx = nodes_index_counter;
-            // for r in &nodes_index[ref_start..ref_end] {
-            //     sorted_nodes_index[nodes_index_counter].fill_from(r);
-            //     nodes_index_counter += 1;
-            // }
+            let members_first_idx = members_counter;
+            for member in &members[members_start..members_end] {
+                sorted_members[members_counter].fill_from(member);
+                members_counter += 1;
+            }
 
-            // sorted_way.fill_from(way);
-            // sorted_way.set_tag_first_idx(tag_first_idx as u64);
-            // sorted_way.set_ref_first_idx(nodes_first_idx as u64);
-            // pb.tick(i);
+            sorted_relation.fill_from(relation);
+            sorted_relation.set_tag_first_idx(tag_first_idx as u64);
+            sorted_relation.set_member_first_idx(members_first_idx as u32);
+            pb.tick(i);
         });
     pb.finish();
 
