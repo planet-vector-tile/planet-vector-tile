@@ -153,6 +153,8 @@ pub fn sort_flatdata(flatdata: Osm, dir: &PathBuf) -> Result<(), Box<dyn std::er
         });
     pb.finish();
 
+    // Reorder node and way relation member references.
+
     // Reorder relations to sorted hilbert relation pairs.
     let mut pb = Prog::new(
         "Reordering relations to sorted hilbert relation pairs. ",
@@ -201,6 +203,8 @@ pub fn sort_flatdata(flatdata: Osm, dir: &PathBuf) -> Result<(), Box<dyn std::er
             pb.tick(i);
         });
     pb.finish();
+
+    // Reorder relation member references.
 
     // std::mem::drop(flatdata);
     m_sorted_nodes.mv("nodes")?;
