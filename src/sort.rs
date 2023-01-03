@@ -1,4 +1,4 @@
-use crate::osmflat::osmflat_generated::osm::EntityType;
+use crate::osmflat::osmflat_generated::osm::{EntityType, Member};
 use crate::{
     location,
     mutant::Mutant,
@@ -47,10 +47,11 @@ pub fn sort_flatdata(flatdata: Osm, dir: &PathBuf) -> Result<(), Box<dyn std::er
     println!("Finished in {} secs.", t.elapsed().as_secs());
 
     // Build hilbert relation pairs
+    let relations_len = flatdata.relations().len();
     let m_relation_pairs = Mutant::<HilbertRelationPair>::new(
         dir,
         "hilbert_relation_pairs",
-        flatdata.relations().len(),
+        relations_len,
     )?;
     build_hilbert_relation_pairs(&m_way_pairs, &m_relation_pairs, &flatdata)?;
 
@@ -63,7 +64,7 @@ pub fn sort_flatdata(flatdata: Osm, dir: &PathBuf) -> Result<(), Box<dyn std::er
     println!("Finished in {} secs.", t.elapsed().as_secs());
 
     // Reorder nodes to sorted hilbert node pairs.
-    let mut pb = Prog::new("Reordering nodes. ", nodes_len);
+    let mut pb = Prog::new("Reordering nodes to sorted hilbert node pairs. ", nodes_len);
     let nodes = flatdata.nodes();
     let mut m_sorted_nodes = Mutant::<Node>::new_from_flatdata(&dir, "sorted_nodes", "nodes")?;
     let sorted_nodes = m_sorted_nodes.mutable_slice();
@@ -71,9 +72,9 @@ pub fn sort_flatdata(flatdata: Osm, dir: &PathBuf) -> Result<(), Box<dyn std::er
     let old_node_idx = m_old_node_idx.mutable_slice();
     let mut tag_counter: usize = 0;
     let tags_index = flatdata.tags_index();
-    let mut sorted_tags_index_mut =
+    let mut m_sorted_tags_index =
         Mutant::<TagIndex>::new_from_flatdata(dir, "sorted_tags_index", "tags_index")?;
-    let sorted_tags_index = sorted_tags_index_mut.mutable_slice();
+    let sorted_tags_index = m_sorted_tags_index.mutable_slice();
     for i in 0..nodes_len {
         let node_pair = &node_pairs[i];
         let old_i = node_pair.i() as usize;
@@ -116,13 +117,13 @@ pub fn sort_flatdata(flatdata: Osm, dir: &PathBuf) -> Result<(), Box<dyn std::er
     let _ = fs::remove_file(old_node_idx_path);
 
     // Reorder ways to sorted hilbert way pairs.
-    let mut pb = Prog::new("Reordering ways. ", ways_len);
-    let mut sorted_ways_mut = Mutant::<Way>::new_from_flatdata(dir, "sorted_ways", "ways")?;
-    let sorted_ways = sorted_ways_mut.mutable_slice();
+    let mut pb = Prog::new("Reordering ways to sorted hilbert way pairs. ", ways_len);
+    let mut m_sorted_ways = Mutant::<Way>::new_from_flatdata(dir, "sorted_ways", "ways")?;
+    let sorted_ways = m_sorted_ways.mutable_slice();
     let mut nodes_index_counter: usize = 0;
-    let mut sorted_nodes_index_mut =
+    let mut m_sorted_nodes_index =
         Mutant::<NodeIndex>::new_from_flatdata(dir, "sorted_nodes_index", "nodes_index")?;
-    let sorted_nodes_index = sorted_nodes_index_mut.mutable_slice();
+    let sorted_nodes_index = m_sorted_nodes_index.mutable_slice();
     sorted_ways
         .iter_mut()
         .zip(way_pairs.iter_mut())
@@ -155,15 +156,59 @@ pub fn sort_flatdata(flatdata: Osm, dir: &PathBuf) -> Result<(), Box<dyn std::er
         });
     pb.finish();
 
+    // Reorder relations to sorted hilbert relation pairs.
+    let mut pb = Prog::new("Reordering relations to sorted hilbert relation pairs. ", relations_len);
+    let mut m_sorted_relations = Mutant::<Relation>::new_from_flatdata(dir, "sorted_relations", "relations")?;
+    let mut sorted_relations = m_sorted_relations.mutable_slice();
+    let mut members_counter: usize = 0;
+    let mut m_sorted_members =
+        Mutant::<Member>::new_from_flatdata(dir, "sorted_members", "members")?;
+    let sorted_members = m_sorted_members.mutable_slice();
+    sorted_relations
+        .iter_mut()
+        .zip(way_pairs.iter_mut())
+        .for_each(|(sorted_way, hilbert_way_pair)| {
+            // let i = hilbert_way_pair.i() as usize;
+            // let way = &ways[i];
+
+            // let start = way.tag_first_idx() as usize;
+            // let end = way.tags().end as usize;
+
+            // let tag_first_idx = tag_counter;
+            // for t in &tags_index[start..end] {
+            //     sorted_tags_index[tag_counter].fill_from(t);
+            //     tag_counter += 1;
+            // }
+
+            // let ref_start = way.ref_first_idx() as usize;
+            // let ref_end = way.refs().end as usize;
+
+            // let nodes_first_idx = nodes_index_counter;
+            // for r in &nodes_index[ref_start..ref_end] {
+            //     sorted_nodes_index[nodes_index_counter].fill_from(r);
+            //     nodes_index_counter += 1;
+            // }
+
+            // sorted_way.fill_from(way);
+            // sorted_way.set_tag_first_idx(tag_first_idx as u64);
+            // sorted_way.set_ref_first_idx(nodes_first_idx as u64);
+            // pb.tick(i);
+        });
+    pb.finish();
+
     // std::mem::drop(flatdata);
     m_sorted_nodes.mv("nodes")?;
     println!("Moved sorted_nodes to nodes");
-    sorted_ways_mut.mv("ways")?;
+    m_sorted_ways.mv("ways")?;
     println!("Moved sorted_ways to ways");
-    sorted_nodes_index_mut.mv("nodes_index")?;
+    m_sorted_nodes_index.mv("nodes_index")?;
     println!("Moved sorted_nodes_index to nodes_index");
-    sorted_tags_index_mut.mv("tags_index")?;
+    m_sorted_tags_index.mv("tags_index")?;
     println!("Moved sorted_tags_index to tags_index");
+    m_sorted_relations.mv("relations")?;
+    println!("Moved sorted_relations to relations");
+    m_sorted_members.mv("members")?;
+    println!("Moved sorted_members to members");
 
     Ok(())
 }
