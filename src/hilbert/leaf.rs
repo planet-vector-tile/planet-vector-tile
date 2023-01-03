@@ -2,7 +2,7 @@ use std::io::{Error, ErrorKind};
 use std::path::Path;
 use std::time::Instant;
 
-use crate::osmflat::osmflat_generated::osm::Osm;
+use crate::osmflat::osmflat_generated::osm::{Osm, HilbertRelationPair};
 use crate::tile::tile_count_for_zoom;
 use crate::{location, util};
 use crate::{
@@ -42,6 +42,7 @@ pub struct Leaf {
 pub fn build_leaves(
     m_node_pairs: &Mutant<HilbertNodePair>,
     m_way_pairs: &Mutant<HilbertWayPair>,
+    m_relation_pairs: &Mutant<HilbertRelationPair>,
     dir: &Path,
     leaf_zoom: u8,
 ) -> Result<Mutant<Leaf>, Box<dyn std::error::Error>> {
@@ -171,6 +172,7 @@ pub fn populate_hilbert_leaves_external(
     flatdata: &Osm,
     m_node_pairs: &Mutant<HilbertNodePair>,
     m_way_pairs: &Mutant<HilbertWayPair>,
+    m_relation_pairs: &Mutant<HilbertRelationPair>,
     m_leaves: &Mutant<Leaf>,
     leaf_zoom: u8,
 ) -> Result<Mutant<u32>, Box<dyn std::error::Error>> {
