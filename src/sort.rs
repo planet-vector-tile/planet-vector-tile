@@ -1,10 +1,9 @@
-use crate::osmflat::osmflat_generated::osm::{EntityType, Member};
 use crate::{
     location,
     mutant::Mutant,
     osmflat::osmflat_generated::osm::{
-        HilbertNodePair, HilbertRelationPair, HilbertWayPair, Node, NodeIndex, Osm, Relation,
-        TagIndex, Way,
+        EntityType, HilbertNodePair, HilbertRelationPair, HilbertWayPair, Member, Node, NodeIndex,
+        Osm, Relation, TagIndex, Way,
     },
     util::{self, finish, timer},
 };
@@ -153,8 +152,6 @@ pub fn sort_flatdata(flatdata: Osm, dir: &PathBuf) -> Result<(), Box<dyn std::er
         });
     pb.finish();
 
-    // Reorder node and way relation member references.
-
     // Reorder relations to sorted hilbert relation pairs.
     let mut pb = Prog::new(
         "Reordering relations to sorted hilbert relation pairs. ",
@@ -205,6 +202,24 @@ pub fn sort_flatdata(flatdata: Osm, dir: &PathBuf) -> Result<(), Box<dyn std::er
     pb.finish();
 
     // Reorder relation member references.
+    sorted_members.par_iter_mut().for_each(|member| {
+        let Some(idx) = member.idx() else { return; };
+        match member.entity_type() {
+            EntityType::Node => {
+                let i = node_pairs[idx as usize].i();
+                member.set_idx(Some(i));
+            }
+            EntityType::Way => {
+                let i = way_pairs[idx as usize].i() as u64;
+                member.set_idx(Some(i));
+            }
+            EntityType::Relation => {
+                let i = relation_pairs[idx as usize].i() as u64;
+                member.set_idx(Some(i));
+            }
+            _ => (),
+        };
+    });
 
     // std::mem::drop(flatdata);
     m_sorted_nodes.mv("nodes")?;
@@ -442,6 +457,7 @@ fn build_hilbert_relation_pairs(
                 "Unable to compute all of the h for relations. Re-tried {} times.",
                 try_count
             );
+            break;
         }
         last_q_len = q.len();
     }

@@ -58,20 +58,6 @@
       },
       "args": ["report", "./manifests/santa_cruz.yaml"],
       "cwd": "${workspaceFolder}"
-    },
-    {
-      "type": "lldb",
-      "request": "launch",
-      "name": "Debug unit tests in executable 'pvt'",
-      "cargo": {
-        "args": ["test", "--no-run", "--bin=pvt", "--package=planet-vector-tile"],
-        "filter": {
-          "name": "pvt",
-          "kind": "bin"
-        }
-      },
-      "args": [],
-      "cwd": "${workspaceFolder}"
     }
   ]
 }
