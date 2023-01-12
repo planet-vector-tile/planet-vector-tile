@@ -2,7 +2,7 @@ use std::io::{Error, ErrorKind};
 use std::path::Path;
 use std::time::Instant;
 
-use crate::osmflat::osmflat_generated::osm::Osm;
+use crate::osmflat::osmflat_generated::osm::{Osm, HilbertRelationPair};
 use crate::tile::tile_count_for_zoom;
 use crate::{location, util};
 use crate::{
@@ -42,11 +42,13 @@ pub struct Leaf {
 pub fn build_leaves(
     m_node_pairs: &Mutant<HilbertNodePair>,
     m_way_pairs: &Mutant<HilbertWayPair>,
+    m_relation_pairs: &Mutant<HilbertRelationPair>,
     dir: &Path,
     leaf_zoom: u8,
 ) -> Result<Mutant<Leaf>, Box<dyn std::error::Error>> {
     let node_pairs = m_node_pairs.slice();
     let way_pairs = m_way_pairs.slice();
+    let relation_pairs = m_relation_pairs.slice();
 
     if node_pairs.len() == 0 && way_pairs.len() == 0 {
         return Err(Box::new(Error::new(
@@ -59,6 +61,7 @@ pub fn build_leaves(
 
     let mut n_i: usize = 0; // node hilbert pair index
     let mut w_i: usize = 0; // way hilbert pair index
+    let mut r_i: usize = 0; // relation hilbert pair index
 
     let mut lowest_h = 0;
 
@@ -171,6 +174,7 @@ pub fn populate_hilbert_leaves_external(
     flatdata: &Osm,
     m_node_pairs: &Mutant<HilbertNodePair>,
     m_way_pairs: &Mutant<HilbertWayPair>,
+    m_relation_pairs: &Mutant<HilbertRelationPair>,
     m_leaves: &Mutant<Leaf>,
     leaf_zoom: u8,
 ) -> Result<Mutant<u32>, Box<dyn std::error::Error>> {
@@ -263,6 +267,7 @@ mod tests {
         let m_node_pairs =
             Mutant::<HilbertNodePair>::open(&dir, "hilbert_node_pairs", true).unwrap();
         let m_way_pairs = Mutant::<HilbertWayPair>::open(&dir, "hilbert_way_pairs", true).unwrap();
+        let m_relation_pairs = Mutant::<HilbertRelationPair>::open(&dir, "hilbert_relation_pairs", true).unwrap();
         let m_leaves = Mutant::<Leaf>::open(&dir, "hilbert_leaves", false).unwrap();
 
         let m_ext = populate_hilbert_leaves_external(
@@ -270,6 +275,7 @@ mod tests {
             &flatdata,
             &m_node_pairs,
             &m_way_pairs,
+            &m_relation_pairs,
             &m_leaves,
             12,
         )
@@ -322,8 +328,9 @@ mod tests {
         let m_node_pairs =
             Mutant::<HilbertNodePair>::open(&dir, "hilbert_node_pairs", true).unwrap();
         let m_way_pairs = Mutant::<HilbertWayPair>::open(&dir, "hilbert_way_pairs", true).unwrap();
+        let m_relation_pairs = Mutant::<HilbertRelationPair>::open(&dir, "hilbert_relation_pairs", true).unwrap();
 
-        let m_leaves = build_leaves(&m_node_pairs, &m_way_pairs, &dir, 12).unwrap();
+        let m_leaves = build_leaves(&m_node_pairs, &m_way_pairs, &m_relation_pairs, &dir, 12).unwrap();
 
         // We know there are 3 unique leaf tiles for the 4 nodes.
         assert_eq!(m_leaves.len, 3);
