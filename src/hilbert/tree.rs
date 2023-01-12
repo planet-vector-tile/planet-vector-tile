@@ -6,7 +6,7 @@ use super::{
 use crate::{
     manifest::Manifest,
     mutant::Mutant,
-    osmflat::osmflat_generated::osm::{HilbertNodePair, HilbertWayPair, Osm, HilbertRelationPair},
+    osmflat::osmflat_generated::osm::{HilbertNodePair, HilbertRelationPair, HilbertWayPair, Osm},
     rules::Rules,
     tile::Tile,
 };
@@ -44,9 +44,16 @@ impl HilbertTree {
 
         let m_node_pairs = Mutant::<HilbertNodePair>::open(dir, "hilbert_node_pairs", true)?;
         let m_way_pairs = Mutant::<HilbertWayPair>::open(dir, "hilbert_way_pairs", true)?;
-        let m_relation_pairs = Mutant::<HilbertRelationPair>::open(dir, "hilbert_relation_pairs", true)?;
+        let m_relation_pairs =
+            Mutant::<HilbertRelationPair>::open(dir, "hilbert_relation_pairs", true)?;
 
-        let m_leaves = build_leaves(&m_node_pairs, &m_way_pairs, &m_relation_pairs, &dir, leaf_zoom)?;
+        let m_leaves = build_leaves(
+            &m_node_pairs,
+            &m_way_pairs,
+            &m_relation_pairs,
+            &dir,
+            leaf_zoom,
+        )?;
         let m_tiles = build_tiles(&m_leaves, &dir, leaf_zoom)?;
 
         let m_leaves_external = populate_hilbert_leaves_external(
@@ -94,7 +101,8 @@ impl HilbertTree {
         let flatdata = Osm::open(FileResourceStorage::new(dir))?;
 
         let m_way_pairs = Mutant::<HilbertWayPair>::open(dir, "hilbert_way_pairs", true)?;
-        let m_relation_pairs = Mutant::<HilbertRelationPair>::open(dir, "hilbert_relation_pairs", true)?;
+        let m_relation_pairs =
+            Mutant::<HilbertRelationPair>::open(dir, "hilbert_relation_pairs", true)?;
         let m_leaves = Mutant::<Leaf>::open(dir, "hilbert_leaves", false)?;
         let m_leaves_external = Mutant::<u32>::open(dir, "hilbert_leaves_external", false)?;
         let m_tiles = Mutant::<HilbertTile>::open(dir, "hilbert_tiles", false)?;
