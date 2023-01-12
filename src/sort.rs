@@ -40,11 +40,6 @@ pub fn sort_flatdata(flatdata: Osm, dir: &PathBuf) -> Result<(), Box<dyn std::er
     let way_pairs = m_way_pairs.mutable_slice();
     build_hilbert_way_pairs(way_pairs, &flatdata)?;
 
-    // Sort hilbert way pairs.
-    let t = util::timer("Sorting hilbert way pairs.");
-    way_pairs.par_sort_unstable_by_key(|idx| idx.h());
-    println!("Finished in {} secs.", t.elapsed().as_secs());
-
     // Build hilbert relation pairs
     let relations_len = flatdata.relations().len();
     let m_relation_pairs =
@@ -57,7 +52,12 @@ pub fn sort_flatdata(flatdata: Osm, dir: &PathBuf) -> Result<(), Box<dyn std::er
     let node_pairs_mut = Mutant::<HilbertNodePair>::open(dir, "hilbert_node_pairs", true)?;
     let node_pairs = node_pairs_mut.mutable_slice();
     node_pairs.par_sort_unstable_by_key(|idx| idx.h());
-    println!("Finished in {} secs.", t.elapsed().as_secs());
+    finish(t);
+
+    // Sort hilbert way pairs.
+    let t = util::timer("Sorting hilbert way pairs.");
+    way_pairs.par_sort_unstable_by_key(|idx| idx.h());
+    finish(t);
 
     // Reorder nodes to sorted hilbert node pairs.
     let mut pb = Prog::new("Reordering nodes to sorted hilbert node pairs. ", nodes_len);
@@ -403,8 +403,14 @@ fn build_hilbert_relation_pairs(
 
         let members_start = relation.member_first_idx() as usize;
 
+        let members_end = if relation_i + 1 < relations.len() {
+            relations[relation_i + 1].member_first_idx() as usize
+        } else {
+            members.len()
+        };
+
         let mut missing_member = false;
-        for member in &members[members_start..] {
+        for member in &members[members_start..members_end] {
             let idx = member.idx();
             if idx.is_none() {
                 missing_member = true;
@@ -417,7 +423,8 @@ fn build_hilbert_relation_pairs(
                 EntityType::Relation => {
                     let h = relation_pairs[i].h();
                     if h == 0 {
-                        // Here we add the relation to the queue to be processed later.
+                        // Here we add the relation with a member relation to the queue to be processed later
+                        // when the member should already be processed..
                         q.push(i as usize);
                         return;
                     }
