@@ -217,7 +217,9 @@ pub fn populate_hilbert_leaves_external(
     let leaf_to_ways: DashMap<u32, BTreeSet<u32>> = DashMap::new();
 
     let ways = flatdata.ways();
+    let relations = flatdata.relations();
     let way_pairs = m_way_pairs.slice();
+    let relation_pairs = m_relation_pairs.slice();
     let node_pairs = m_node_pairs.slice();
     let nodes_index = flatdata.nodes_index();
     let nodes_index_len = nodes_index.len();
@@ -254,6 +256,20 @@ pub fn populate_hilbert_leaves_external(
             }
         }
     });
+
+    // relations.par_iter().enumerate().for_each(|(i, relation)| {
+    //     let relation_h = relation_pairs[i].h();
+    //     let relation_tile_h = h_to_zoom_h(relation_h, leaf_zoom) as u32;
+
+    //     let members = relation.members();
+    //     let start = members.start as usize;
+    //     let end = if members.end == 0 {
+    //         relation_pairs.len()
+    //     } else {
+    //         members.end as usize
+    //     };
+
+    // });
 
     let mut leaves_ext = Mutant::<u32>::with_capacity(dir, "hilbert_leaves_external", 1024)?;
 

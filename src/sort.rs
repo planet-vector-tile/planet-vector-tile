@@ -437,10 +437,13 @@ fn build_hilbert_relation_pairs(
             processed_members_count += 1;
         }
         if missing_member {
-            println!(
+            eprintln!(
                 "Missing member(s) for relation. osm_id={}",
                 relation.osm_id()
             );
+        }
+        if processed_members_count == 0 {
+            return;
         }
         let mean_h = (h_total / processed_members_count as u128) as u64;
         relation_pair.set_h(mean_h);
