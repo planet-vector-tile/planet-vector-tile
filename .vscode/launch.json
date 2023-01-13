@@ -28,7 +28,7 @@
           "kind": "bin"
         }
       },
-      "args": ["convert", "./manifests/full_planet.yaml", "-o"],
+      "args": ["convert", "./manifests/santa_cruz.yaml", "-o"],
       "cwd": "${workspaceFolder}"
     },
     {
