@@ -581,6 +581,16 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
+    fn test_build_hilbert_relation_pairs_planet() {
+        let dir = PathBuf::from("/opt/pvt/debug_relations");
+        let flatdata = Osm::open(FileResourceStorage::new(&dir)).unwrap();
+        let m_way_pairs = Mutant::<HilbertWayPair>::open(&dir, "hilbert_way_pairs", true).unwrap();
+        let m_relation_pairs = Mutant::<HilbertRelationPair>::new(&dir, "hilbert_relation_pairs", flatdata.relations().len()).unwrap();
+        let _ = build_hilbert_relation_pairs(&m_way_pairs, &m_relation_pairs, &flatdata);
+    }
+
+    #[test]
     fn test_hilbert_relation_pairs() {
         let dir = PathBuf::from("tests/fixtures/santa_cruz/sort");
         let relation_pair_path =
