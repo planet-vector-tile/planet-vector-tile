@@ -34,17 +34,19 @@ pub fn sort_flatdata(flatdata: Osm, dir: &PathBuf) -> Result<(), Box<dyn std::er
     };
 
     // Build hilbert way pairs.
-    let ways = flatdata.ways();
-    let ways_len = flatdata.ways().len();
-    let m_way_pairs = Mutant::<HilbertWayPair>::new(dir, "hilbert_way_pairs", ways_len)?;
-    let way_pairs = m_way_pairs.mutable_slice();
-    build_hilbert_way_pairs(way_pairs, &flatdata)?;
+    // let ways = flatdata.ways();
+    // let ways_len = flatdata.ways().len();
+    // let m_way_pairs = Mutant::<HilbertWayPair>::new(dir, "hilbert_way_pairs", ways_len)?;
+    // let way_pairs = m_way_pairs.mutable_slice();
+    // build_hilbert_way_pairs(way_pairs, &flatdata)?;
 
     // Build hilbert relation pairs
     let relations_len = flatdata.relations().len();
     let m_relation_pairs =
         Mutant::<HilbertRelationPair>::new(dir, "hilbert_relation_pairs", relations_len)?;
     build_hilbert_relation_pairs(&m_way_pairs, &m_relation_pairs, &flatdata)?;
+
+    return Ok(());
 
     // Sort hilbert node pairs.
     let t = util::timer("Sorting hilbert node pairs.");
