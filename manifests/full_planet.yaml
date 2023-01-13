@@ -1,6 +1,6 @@
 data:
   source: /opt/geodata/osm/planet-2022-11-26.osm.pbf
-  planet: /opt/pvtstore/planets/full_planet_2022-12-28
+  planet: /opt/pvt/planets/full_planet_2022-12-28
   archive: /opt/pvt/archives/full_planet.pvt
 
 render:
