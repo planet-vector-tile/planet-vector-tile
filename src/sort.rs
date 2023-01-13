@@ -458,12 +458,16 @@ fn build_hilbert_relation_pairs(
         if q.len() == last_q_len {
             try_count += 1;
         }
-        if try_count == 100 {
+        if try_count == 255 {
             // We should continue along with the build, so we should just log the problema and move on.
             eprintln!(
                 "Unable to compute all of the h for relations. Re-tried {} times.",
                 try_count
             );
+            eprintln!("Remaining relations in queue: {}", q.len());
+            while let Some(i) = q.pop() {
+                eprintln!("i={} osm_id={}", i, relations[i].osm_id());
+            }
             break;
         }
         last_q_len = q.len();
