@@ -424,8 +424,8 @@ fn build_hilbert_relation_pairs(
                     let h = relation_pairs[i].h();
                     if h == 0 {
                         // Here we add the relation with a member relation to the queue to be processed later
-                        // when the member should already be processed..
-                        q.push(i as usize);
+                        // when the member relation should already be processed..
+                        q.push(relation_i);
                         return;
                     }
                     h
