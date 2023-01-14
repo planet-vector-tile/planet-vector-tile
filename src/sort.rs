@@ -456,13 +456,13 @@ fn build_hilbert_relation_pairs(
         .for_each(|(relation_i, relation)| compute_relation_h(relation_i, relation));
 
     let mut last_q_len = q.len();
-    let mut try_count: u8 = 0;
+    let mut try_count: u32 = 0;
     while let Some(relation_i) = q.pop() {
         compute_relation_h(relation_i, &relations[relation_i]);
         if q.len() == last_q_len {
             try_count += 1;
         }
-        if try_count == 255 {
+        if try_count == 500000 {
             // We should continue along with the build, so we should just log the problema and move on.
             eprintln!(
                 "Unable to compute all of the h for relations. Re-tried {} times.",
