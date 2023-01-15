@@ -266,7 +266,7 @@ pub fn populate_hilbert_leaves_external(
         let members_range = relation.members();
         let start = members_range.start as usize;
         let end = if members_range.end == 0 {
-            relation_pairs.len()
+            members.len()
         } else {
             members_range.end as usize
         };
@@ -371,18 +371,7 @@ mod tests {
         )
         .unwrap();
         let ext = m_ext.slice();
-        assert_eq!(ext.len(), 4633);
-
-        let mut osm_id = 0;
-        let mut count = 0;
-        let ways = flatdata.ways();
-        for i in 0..ext.len() {
-            let w = &ways[i];
-            osm_id = w.osm_id();
-            count += 1;
-        }
-        assert_eq!(count, ext.len());
-        assert_eq!(osm_id, 962148640);
+        assert_eq!(ext.len(), 16885);
 
         // Check that w_ext is ascending or equal for the leaves.
         let mut leaves_it = m_leaves.slice().iter();
@@ -391,6 +380,17 @@ mod tests {
         while next.is_some() {
             let next_leaf = next.unwrap();
             assert!(leaf.w_ext <= next_leaf.w_ext);
+            leaf = next_leaf;
+            next = leaves_it.next();
+        }
+
+        // Check that r_ext is ascending or equal for the leaves.
+        let mut leaves_it = m_leaves.slice().iter();
+        let mut leaf = leaves_it.next().unwrap();
+        let mut next = leaves_it.next();
+        while next.is_some() {
+            let next_leaf = next.unwrap();
+            assert!(leaf.r_ext <= next_leaf.r_ext);
             leaf = next_leaf;
             next = leaves_it.next();
         }
