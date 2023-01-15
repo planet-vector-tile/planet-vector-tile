@@ -18,11 +18,9 @@ mod u40;
 mod util;
 
 use clap::ArgMatches;
-use flatdata::FileResourceStorage;
 use hilbert::tree::HilbertTree;
 use humantime::format_duration;
 use manifest::Manifest;
-use osmflat::osmflat_generated::osm::Osm;
 use std::{error::Error, fs};
 
 fn main() {
@@ -42,16 +40,14 @@ fn main() {
     match sub {
         ("convert", matches) => {
             let manifest = get_manifest(matches);
-            // let overwrite = matches.get_one::<bool>("overwrite").unwrap();
-            // if *overwrite {
-            //     if let Err(e) = fs::remove_dir_all(&manifest.data.planet) {
-            //         eprintln!("Unable to remove planet dir: {}", e);
-            //     }
-            // }
+            let overwrite = matches.get_one::<bool>("overwrite").unwrap();
+            if *overwrite {
+                if let Err(e) = fs::remove_dir_all(&manifest.data.planet) {
+                    eprintln!("Unable to remove planet dir: {}", e);
+                }
+            }
 
-            // let flatdata = osmflat::convert(&manifest).unwrap_or_else(quit);
-            let storage = FileResourceStorage::new(&manifest.data.planet);
-            let flatdata = Osm::open(storage).unwrap();
+            let flatdata = osmflat::convert(&manifest).unwrap_or_else(quit);
             sort::sort_flatdata(flatdata, &manifest.data.planet).unwrap_or_else(quit);
 
             match HilbertTree::new(&manifest) {

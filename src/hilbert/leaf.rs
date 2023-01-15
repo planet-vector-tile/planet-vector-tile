@@ -2,7 +2,7 @@ use std::io::{Error, ErrorKind};
 use std::path::Path;
 use std::time::Instant;
 
-use crate::osmflat::osmflat_generated::osm::{EntityType, HilbertRelationPair, Member, Osm};
+use crate::osmflat::osmflat_generated::osm::{EntityType, HilbertRelationPair, Osm};
 use crate::tile::tile_count_for_zoom;
 use crate::{location, util};
 use crate::{
@@ -318,7 +318,7 @@ pub fn populate_hilbert_leaves_external(
         } else {
             leaf.w_ext = counter;
         }
-        if let Some(relations) = leaf_to_relations(&h) {
+        if let Some(relations) = leaf_to_relations.get(&h) {
             let mut it = relations.iter();
             let Some(&first) = it.next() else { break; };
             leaf.r_ext = counter;
