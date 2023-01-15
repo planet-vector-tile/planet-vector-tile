@@ -18,12 +18,12 @@ mod u40;
 mod util;
 
 use clap::ArgMatches;
+use flatdata::FileResourceStorage;
 use hilbert::tree::HilbertTree;
 use humantime::format_duration;
 use manifest::Manifest;
-use std::{error::Error, fs};
-use flatdata::FileResourceStorage;
 use osmflat::osmflat_generated::osm::Osm;
+use std::{error::Error, fs};
 
 fn main() {
     let time = util::timer("pvt");

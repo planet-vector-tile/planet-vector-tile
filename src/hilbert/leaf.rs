@@ -215,6 +215,7 @@ pub fn populate_hilbert_leaves_external(
 ) -> Result<Mutant<u32>, Box<dyn std::error::Error>> {
     // NHTODO Profile memory usage here.
     let leaf_to_ways: DashMap<u32, BTreeSet<u32>> = DashMap::new();
+    let leaf_to_relations: DashMap<u32, BTreeSet<u32>> = DashMap::new();
 
     let ways = flatdata.ways();
     let relations = flatdata.relations();
@@ -271,7 +272,7 @@ pub fn populate_hilbert_leaves_external(
         };
 
         for m in &members[start..end] {
-            let Some(idx)= m.idx() else { continue;};
+            let Some(idx) = m.idx() else { continue; };
             let i = idx as usize;
 
             let h = match m.entity_type() {
@@ -283,7 +284,7 @@ pub fn populate_hilbert_leaves_external(
 
             let tile_h = h_to_zoom_h(h, leaf_zoom) as u32;
             if tile_h != relation_tile_h {
-                match leaf_to_ways.entry(tile_h) {
+                match leaf_to_relations.entry(tile_h) {
                     Occupied(mut o) => {
                         o.get_mut().insert(i as u32);
                     }
@@ -316,6 +317,19 @@ pub fn populate_hilbert_leaves_external(
             }
         } else {
             leaf.w_ext = counter;
+        }
+        if let Some(relations) = leaf_to_relations(&h) {
+            let mut it = relations.iter();
+            let Some(&first) = it.next() else { break; };
+            leaf.r_ext = counter;
+            counter += 1;
+            leaves_ext.push(first);
+            for &relation_i in it {
+                leaves_ext.push(relation_i);
+                counter += 1;
+            }
+        } else {
+            leaf.r_ext = counter;
         }
     }
 
