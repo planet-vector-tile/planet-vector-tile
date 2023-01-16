@@ -210,7 +210,6 @@ pub fn populate_leaves_external_ways(
     flatdata: &Osm,
     m_node_pairs: &Mutant<HilbertNodePair>,
     m_way_pairs: &Mutant<HilbertWayPair>,
-    m_relation_pairs: &Mutant<HilbertRelationPair>,
     m_leaves: &Mutant<Leaf>,
     leaf_zoom: u8,
 ) -> Result<Mutant<u32>, Box<dyn std::error::Error>> {
@@ -219,7 +218,6 @@ pub fn populate_leaves_external_ways(
 
     let ways = flatdata.ways();
     let way_pairs = m_way_pairs.slice();
-    let relation_pairs = m_relation_pairs.slice();
     let node_pairs = m_node_pairs.slice();
     let nodes_index = flatdata.nodes_index();
     let nodes_index_len = nodes_index.len();
@@ -283,6 +281,13 @@ pub fn populate_leaves_external_ways(
 
     leaves_ext_ways.trim();
     Ok(leaves_ext_ways)
+}
+
+pub fn populate_leaves_external_relations(
+    dir: &Path,
+    flatdata: &Osm,
+) -> Result<Mutant<u32>, Box<dyn std::error::Error>> {
+    Ok(Mutant::<u32>::new(dir, "leaves_external_relations", 1024)?)
 }
 
 #[cfg(test)]
