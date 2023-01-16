@@ -243,4 +243,11 @@ mod tests {
         assert_eq!(22, size_of::<HilbertTile>());
         assert_eq!(28, size_of::<Leaf>());
     }
+
+    #[test]
+    #[ignore]
+    fn test_open_santa_cruz() {
+        let manifest = manifest::parse("manifests/santa_cruz.yaml").unwrap();
+        let _ = HilbertTree::open(&manifest).unwrap();
+    }
 }
