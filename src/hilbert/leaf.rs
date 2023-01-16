@@ -1,6 +1,5 @@
 use std::io::{Error, ErrorKind};
 use std::path::Path;
-use std::time::Instant;
 
 use crate::osmflat::osmflat_generated::osm::{EntityType, HilbertRelationPair, Osm};
 use crate::tile::tile_count_for_zoom;
@@ -13,7 +12,6 @@ use crate::{
 };
 use dashmap::mapref::entry::Entry::{Occupied, Vacant};
 use dashmap::DashMap;
-use humantime::format_duration;
 use rayon::prelude::*;
 use std::collections::BTreeSet;
 
@@ -306,7 +304,7 @@ pub fn populate_leaves_external_relations(
         let relation_tile_h = h_to_zoom_h(relation_h, leaf_zoom) as u32;
 
         let start = relation.member_first_idx() as usize;
-        let end = if i + 1 < members.len() {
+        let end = if i + 1 < relations.len() {
             relations[i + 1].member_first_idx() as usize
         } else {
             members.len() as usize
