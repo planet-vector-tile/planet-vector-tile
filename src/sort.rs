@@ -108,11 +108,6 @@ pub fn sort_flatdata(flatdata: Osm, dir: &PathBuf) -> Result<(), Box<dyn std::er
         pb.tick(i);
     }
 
-    // Remove the old node index, as we don't need it anymore.
-    let old_node_idx_path = m_old_node_idx.path.clone();
-    // drop(m_old_node_idx);
-    let _ = fs::remove_file(old_node_idx_path);
-
     // Reorder ways to sorted hilbert way pairs.
     let mut pb = Prog::new("Reordering ways to sorted hilbert way pairs. ", ways_len);
     let mut m_sorted_ways = Mutant::<Way>::new_from_flatdata(dir, "sorted_ways", "ways")?;
@@ -121,36 +116,39 @@ pub fn sort_flatdata(flatdata: Osm, dir: &PathBuf) -> Result<(), Box<dyn std::er
     let mut m_sorted_nodes_index =
         Mutant::<NodeIndex>::new_from_flatdata(dir, "sorted_nodes_index", "nodes_index")?;
     let sorted_nodes_index = m_sorted_nodes_index.mutable_slice();
-    sorted_ways
-        .iter_mut()
-        .zip(way_pairs.iter_mut())
-        .for_each(|(sorted_way, hilbert_way_pair)| {
-            let i = hilbert_way_pair.i() as usize;
-            let way = &ways[i];
+    let m_old_way_idx = Mutant::<u32>::new(dir, "old_way_idx", ways_len)?;
+    let old_way_idx = m_old_way_idx.mutable_slice();
 
-            let start = way.tag_first_idx() as usize;
-            let end = way.tags().end as usize;
+    for i in 0..ways_len {
+        let pair = &way_pairs[i];
+        let old_way_i = pair.i();
+        old_way_idx[i] = old_way_i;
+        let way = &ways[old_way_i as usize];
 
-            let tag_first_idx = tag_counter;
-            for t in &tags_index[start..end] {
-                sorted_tags_index[tag_counter].fill_from(t);
-                tag_counter += 1;
-            }
+        let start = way.tag_first_idx() as usize;
+        let end = way.tags().end as usize;
 
-            let ref_start = way.ref_first_idx() as usize;
-            let ref_end = way.refs().end as usize;
+        let tag_first_idx = tag_counter;
+        for t in &tags_index[start..end] {
+            sorted_tags_index[tag_counter].fill_from(t);
+            tag_counter += 1;
+        }
 
-            let nodes_first_idx = nodes_index_counter;
-            for r in &nodes_index[ref_start..ref_end] {
-                sorted_nodes_index[nodes_index_counter].fill_from(r);
-                nodes_index_counter += 1;
-            }
+        let ref_start = way.ref_first_idx() as usize;
+        let ref_end = way.refs().end as usize;
 
-            sorted_way.fill_from(way);
-            sorted_way.set_tag_first_idx(tag_first_idx as u64);
-            sorted_way.set_ref_first_idx(nodes_first_idx as u64);
-            pb.tick(i);
-        });
+        let nodes_first_idx = nodes_index_counter;
+        for r in &nodes_index[ref_start..ref_end] {
+            sorted_nodes_index[nodes_index_counter].fill_from(r);
+            nodes_index_counter += 1;
+        }
+
+        let sorted_way = &mut sorted_ways[i];
+        sorted_way.fill_from(way);
+        sorted_way.set_tag_first_idx(tag_first_idx as u64);
+        sorted_way.set_ref_first_idx(nodes_first_idx as u64);
+        pb.tick(i);
+    }
     pb.finish();
 
     // Reorder relations to sorted hilbert relation pairs.
@@ -222,7 +220,11 @@ pub fn sort_flatdata(flatdata: Osm, dir: &PathBuf) -> Result<(), Box<dyn std::er
         };
     });
 
-    // std::mem::drop(flatdata);
+    let old_node_idx_path = m_old_node_idx.path.clone();
+    let _ = fs::remove_file(old_node_idx_path);
+    let old_way_idx_path = m_old_way_idx.path.clone();
+    let _ = fs::remove_file(old_way_idx_path);
+
     m_sorted_nodes.mv("nodes")?;
     println!("Moved sorted_nodes to nodes");
     m_sorted_ways.mv("ways")?;
