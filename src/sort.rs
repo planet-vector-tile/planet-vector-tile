@@ -205,18 +205,19 @@ pub fn sort_flatdata(flatdata: Osm, dir: &PathBuf) -> Result<(), Box<dyn std::er
 
     // Reorder relation member references.
     sorted_members.par_iter_mut().for_each(|member| {
-        let Some(idx) = member.idx() else { return; };
+        let Some(idx64) = member.idx() else { return; };
+        let idx = idx64 as usize;
         match member.entity_type() {
             EntityType::Node => {
-                let i = node_pairs[idx as usize].i();
+                let i = old_node_idx[idx] as u64;
                 member.set_idx(Some(i));
             }
             EntityType::Way => {
-                let i = way_pairs[idx as usize].i() as u64;
+                let i = old_way_idx[idx] as u64;
                 member.set_idx(Some(i));
             }
             EntityType::Relation => {
-                let i = relation_pairs[idx as usize].i() as u64;
+                let i = old_relation_idx[idx] as u64;
                 member.set_idx(Some(i));
             }
             _ => (),
