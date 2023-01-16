@@ -108,11 +108,6 @@ pub fn sort_flatdata(flatdata: Osm, dir: &PathBuf) -> Result<(), Box<dyn std::er
         pb.tick(i);
     }
 
-    // Remove the old node index, as we don't need it anymore.
-    let old_node_idx_path = m_old_node_idx.path.clone();
-    // drop(m_old_node_idx);
-    let _ = fs::remove_file(old_node_idx_path);
-
     // Reorder ways to sorted hilbert way pairs.
     let mut pb = Prog::new("Reordering ways to sorted hilbert way pairs. ", ways_len);
     let mut m_sorted_ways = Mutant::<Way>::new_from_flatdata(dir, "sorted_ways", "ways")?;
@@ -121,36 +116,39 @@ pub fn sort_flatdata(flatdata: Osm, dir: &PathBuf) -> Result<(), Box<dyn std::er
     let mut m_sorted_nodes_index =
         Mutant::<NodeIndex>::new_from_flatdata(dir, "sorted_nodes_index", "nodes_index")?;
     let sorted_nodes_index = m_sorted_nodes_index.mutable_slice();
-    sorted_ways
-        .iter_mut()
-        .zip(way_pairs.iter_mut())
-        .for_each(|(sorted_way, hilbert_way_pair)| {
-            let i = hilbert_way_pair.i() as usize;
-            let way = &ways[i];
+    let m_old_way_idx = Mutant::<u32>::new(dir, "old_way_idx", ways_len)?;
+    let old_way_idx = m_old_way_idx.mutable_slice();
 
-            let start = way.tag_first_idx() as usize;
-            let end = way.tags().end as usize;
+    for i in 0..ways_len {
+        let pair = &way_pairs[i];
+        let old_way_i = pair.i();
+        old_way_idx[i] = old_way_i;
+        let way = &ways[old_way_i as usize];
 
-            let tag_first_idx = tag_counter;
-            for t in &tags_index[start..end] {
-                sorted_tags_index[tag_counter].fill_from(t);
-                tag_counter += 1;
-            }
+        let start = way.tag_first_idx() as usize;
+        let end = way.tags().end as usize;
 
-            let ref_start = way.ref_first_idx() as usize;
-            let ref_end = way.refs().end as usize;
+        let tag_first_idx = tag_counter;
+        for t in &tags_index[start..end] {
+            sorted_tags_index[tag_counter].fill_from(t);
+            tag_counter += 1;
+        }
 
-            let nodes_first_idx = nodes_index_counter;
-            for r in &nodes_index[ref_start..ref_end] {
-                sorted_nodes_index[nodes_index_counter].fill_from(r);
-                nodes_index_counter += 1;
-            }
+        let ref_start = way.ref_first_idx() as usize;
+        let ref_end = way.refs().end as usize;
 
-            sorted_way.fill_from(way);
-            sorted_way.set_tag_first_idx(tag_first_idx as u64);
-            sorted_way.set_ref_first_idx(nodes_first_idx as u64);
-            pb.tick(i);
-        });
+        let nodes_first_idx = nodes_index_counter;
+        for r in &nodes_index[ref_start..ref_end] {
+            sorted_nodes_index[nodes_index_counter].fill_from(r);
+            nodes_index_counter += 1;
+        }
+
+        let sorted_way = &mut sorted_ways[i];
+        sorted_way.fill_from(way);
+        sorted_way.set_tag_first_idx(tag_first_idx as u64);
+        sorted_way.set_ref_first_idx(nodes_first_idx as u64);
+        pb.tick(i);
+    }
     pb.finish();
 
     // Reorder relations to sorted hilbert relation pairs.
@@ -168,61 +166,72 @@ pub fn sort_flatdata(flatdata: Osm, dir: &PathBuf) -> Result<(), Box<dyn std::er
     let mut m_sorted_members =
         Mutant::<Member>::new_from_flatdata(dir, "sorted_members", "members")?;
     let sorted_members = m_sorted_members.mutable_slice();
-    sorted_relations
-        .iter_mut()
-        .zip(relation_pairs.iter())
-        .for_each(|(sorted_relation, hilbert_relation_pair)| {
-            let i = hilbert_relation_pair.i() as usize;
-            let relation = &relations[i];
+    let m_old_relation_idx = Mutant::<u32>::new(dir, "old_relation_idx", relations_len)?;
+    let old_relation_idx = m_old_relation_idx.mutable_slice();
 
-            let tags_range = relation.tags();
-            let start = tags_range.start as usize;
-            let end = tags_range.end as usize;
+    for i in 0..relations_len {
+        let pair = &relation_pairs[i];
+        let old_relation_i = pair.i();
+        old_relation_idx[i] = old_relation_i;
+        let relation = &relations[old_relation_i as usize];
 
-            let tag_first_idx = tag_counter;
-            for t in &tags_index[start..end] {
-                sorted_tags_index[tag_counter].fill_from(t);
-                tag_counter += 1;
-            }
+        let tags_range = relation.tags();
+        let start = tags_range.start as usize;
+        let end = tags_range.end as usize;
 
-            let members_range = relation.members();
-            let members_start = members_range.start as usize;
-            let members_end = members_range.end as usize;
+        let tag_first_idx = tag_counter;
+        for t in &tags_index[start..end] {
+            sorted_tags_index[tag_counter].fill_from(t);
+            tag_counter += 1;
+        }
 
-            let members_first_idx = members_counter;
-            for member in &members[members_start..members_end] {
-                sorted_members[members_counter].fill_from(member);
-                members_counter += 1;
-            }
+        let members_range = relation.members();
+        let members_start = members_range.start as usize;
+        let members_end = members_range.end as usize;
 
-            sorted_relation.fill_from(relation);
-            sorted_relation.set_tag_first_idx(tag_first_idx as u64);
-            sorted_relation.set_member_first_idx(members_first_idx as u32);
-            pb.tick(i);
-        });
+        let members_first_idx = members_counter;
+        for member in &members[members_start..members_end] {
+            sorted_members[members_counter].fill_from(member);
+            members_counter += 1;
+        }
+
+        let sorted_relation = &mut sorted_relations[i];
+        sorted_relation.fill_from(relation);
+        sorted_relation.set_tag_first_idx(tag_first_idx as u64);
+        sorted_relation.set_member_first_idx(members_first_idx as u32);
+        pb.tick(i);
+    }
     pb.finish();
 
     // Reorder relation member references.
     sorted_members.par_iter_mut().for_each(|member| {
-        let Some(idx) = member.idx() else { return; };
+        let Some(idx64) = member.idx() else { return; };
+        let idx = idx64 as usize;
         match member.entity_type() {
             EntityType::Node => {
-                let i = node_pairs[idx as usize].i();
+                let i = old_node_idx[idx] as u64;
                 member.set_idx(Some(i));
             }
             EntityType::Way => {
-                let i = way_pairs[idx as usize].i() as u64;
+                let i = old_way_idx[idx] as u64;
                 member.set_idx(Some(i));
             }
             EntityType::Relation => {
-                let i = relation_pairs[idx as usize].i() as u64;
+                let i = old_relation_idx[idx] as u64;
                 member.set_idx(Some(i));
             }
             _ => (),
         };
     });
 
-    // std::mem::drop(flatdata);
+    // Remove temporary old index arrays.
+    let old_node_idx_path = m_old_node_idx.path.clone();
+    let _ = fs::remove_file(old_node_idx_path);
+    let old_way_idx_path = m_old_way_idx.path.clone();
+    let _ = fs::remove_file(old_way_idx_path);
+    let old_relation_idx_path = m_old_relation_idx.path.clone();
+    let _ = fs::remove_file(old_relation_idx_path);
+
     m_sorted_nodes.mv("nodes")?;
     println!("Moved sorted_nodes to nodes");
     m_sorted_ways.mv("ways")?;

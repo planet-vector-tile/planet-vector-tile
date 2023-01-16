@@ -66,7 +66,15 @@ impl HilbertTree {
             leaf_zoom,
         )?;
 
-        let m_leaves_external_relations = populate_leaves_external_relations(dir, &flatdata)?;
+        let m_leaves_external_relations = populate_leaves_external_relations(
+            dir,
+            &flatdata,
+            &m_node_pairs,
+            &m_way_pairs,
+            &m_relation_pairs,
+            &m_leaves,
+            leaf_zoom,
+        )?;
 
         Ok(Self {
             manifest: manifest.clone(),
