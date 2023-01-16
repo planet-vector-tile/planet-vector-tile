@@ -169,15 +169,20 @@ pub fn render_tile_content(
                 .map(|i| (*i as usize, &ways[*i as usize]));
 
             let filtered_ways: Vec<u32> = ways.filter(way_filter).map(|(i, _)| i as u32).collect();
-            
+
             let r_idxs = m_r.slice();
             let relation_idxs = match end_child {
                 Some(end_child) => &r_idxs[start_child.r as usize..end_child.r as usize],
                 None => &r_idxs[start_child.r as usize..],
             };
 
-            let relations = relation_idxs.par_iter().map(|i| (*i as usize, &relations[*i as usize]));
-            let filtered_relations: Vec<u32> = relations.filter(relation_filter).map(|(i, _)| i as u32).collect();
+            let relations = relation_idxs
+                .par_iter()
+                .map(|i| (*i as usize, &relations[*i as usize]));
+            let filtered_relations: Vec<u32> = relations
+                .filter(relation_filter)
+                .map(|(i, _)| i as u32)
+                .collect();
 
             (filtered_nodes, filtered_ways, filtered_relations)
         };
