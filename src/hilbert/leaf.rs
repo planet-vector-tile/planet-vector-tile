@@ -2,8 +2,9 @@ use std::io::{Error, ErrorKind};
 use std::path::Path;
 use std::time::Instant;
 
-use crate::osmflat::osmflat_generated::osm::{Osm, HilbertRelationPair};
+use crate::osmflat::osmflat_generated::osm::{EntityType, HilbertRelationPair, Osm};
 use crate::tile::tile_count_for_zoom;
+use crate::util::{finish, timer};
 use crate::{location, util};
 use crate::{
     location::h_to_zoom_h,
@@ -69,13 +70,25 @@ pub fn build_leaves(
     if let Some(first_node_pair) = node_pairs.first() {
         lowest_h = first_node_pair.h();
         n_i = 1;
+        w_i = 0;
+        r_i = 0;
     }
     if let Some(first_way_pair) = way_pairs.first() {
         let first_way_h = first_way_pair.h();
         if first_way_h < lowest_h {
             lowest_h = first_way_h;
-            w_i = 1;
             n_i = 0;
+            w_i = 1;
+            r_i = 0;
+        }
+    }
+    if let Some(first_relation_pair) = relation_pairs.first() {
+        let first_relation_h = first_relation_pair.h();
+        if first_relation_h < lowest_h {
+            lowest_h = first_relation_h;
+            w_i = 0;
+            n_i = 0;
+            r_i = 1;
         }
     }
 
@@ -95,6 +108,8 @@ pub fn build_leaves(
     let node_pairs_len = node_pairs.len();
     let way_pairs = m_way_pairs.slice();
     let way_pairs_len = way_pairs.len();
+    let relation_pairs = m_relation_pairs.slice();
+    let relation_pairs_len = relation_pairs.len();
 
     // First leaf tile
     let first_leaf = Leaf {
@@ -112,6 +127,7 @@ pub fn build_leaves(
 
     let mut next_node_tile_h = tile_h;
     let mut next_way_tile_h = tile_h;
+    let mut next_relation_tile_h = tile_h;
 
     loop {
         let mut node_changed = false;
@@ -138,17 +154,37 @@ pub fn build_leaves(
             w_i += 1;
         }
 
-        let next_tile_h = if !way_changed || (node_changed && next_node_tile_h < next_way_tile_h) {
-            next_node_tile_h
-        } else {
-            next_way_tile_h
-        };
+        let mut relation_changed = false;
+        while r_i < relation_pairs_len && next_relation_tile_h <= tile_h {
+            let relation_h = relation_pairs[r_i].h();
+            let relation_tile_h = location::h_to_zoom_h(relation_h, leaf_zoom) as u32;
+            if relation_tile_h > tile_h {
+                next_relation_tile_h = relation_tile_h;
+                relation_changed = true;
+                break;
+            }
+            r_i += 1;
+        }
+
+        let mut next_tile_h = tile_h;
+
+        if node_changed {
+            next_tile_h = next_node_tile_h;
+        }
+
+        if way_changed && next_way_tile_h < next_tile_h {
+            next_tile_h = next_way_tile_h;
+        }
+
+        if relation_changed && next_relation_tile_h < next_tile_h {
+            next_tile_h = next_relation_tile_h;
+        }
 
         if next_tile_h > tile_h {
             let leaf = Leaf {
                 n: n_i as u64,
                 w: w_i as u32,
-                r: 0,
+                r: r_i as u32,
                 h: next_tile_h,
                 w_ext: 0,
                 r_ext: 0,
@@ -162,19 +198,18 @@ pub fn build_leaves(
         }
     }
 
-    // The last increment of t_i falls through both whiles, so it is equal to the length.
+    // The last increment of t_i falls through all whiles, so it is equal to the length.
     m_leaves.set_len(leaf_i);
     m_leaves.trim();
     println!("Finished in {} secs.", time.elapsed().as_secs());
     Ok(m_leaves)
 }
 
-pub fn populate_hilbert_leaves_external(
+pub fn populate_leaves_external_ways(
     dir: &Path,
     flatdata: &Osm,
     m_node_pairs: &Mutant<HilbertNodePair>,
     m_way_pairs: &Mutant<HilbertWayPair>,
-    m_relation_pairs: &Mutant<HilbertRelationPair>,
     m_leaves: &Mutant<Leaf>,
     leaf_zoom: u8,
 ) -> Result<Mutant<u32>, Box<dyn std::error::Error>> {
@@ -187,8 +222,7 @@ pub fn populate_hilbert_leaves_external(
     let nodes_index = flatdata.nodes_index();
     let nodes_index_len = nodes_index.len();
 
-    let t = Instant::now();
-    println!("Populating external leaf entities...");
+    let t = timer("Populating external leaf entities...");
 
     ways.par_iter().enumerate().for_each(|(i, way)| {
         let way_h = way_pairs[i].h();
@@ -220,10 +254,9 @@ pub fn populate_hilbert_leaves_external(
         }
     });
 
-    let mut leaves_ext = Mutant::<u32>::with_capacity(dir, "hilbert_leaves_external", 1024)?;
-
+    let mut leaves_ext_ways =
+        Mutant::<u32>::with_capacity(dir, "hilbert_leaves_external_ways", 1024)?;
     let leaves = m_leaves.mutable_slice();
-
     let mut counter: u32 = 0;
 
     for i in 0..leaves.len() {
@@ -234,9 +267,9 @@ pub fn populate_hilbert_leaves_external(
             let Some(&first) = it.next() else { break; };
             leaf.w_ext = counter;
             counter += 1;
-            leaves_ext.push(first);
+            leaves_ext_ways.push(first);
             for &way_i in it {
-                leaves_ext.push(way_i);
+                leaves_ext_ways.push(way_i);
                 counter += 1;
             }
         } else {
@@ -244,13 +277,20 @@ pub fn populate_hilbert_leaves_external(
         }
     }
 
-    println!(
-        "Populated external leaf entities in {}",
-        format_duration(t.elapsed())
-    );
+    finish(t);
 
-    leaves_ext.trim();
-    Ok(leaves_ext)
+    leaves_ext_ways.trim();
+    Ok(leaves_ext_ways)
+}
+
+pub fn populate_leaves_external_relations(
+    dir: &Path,
+    flatdata: &Osm,
+) -> Result<Mutant<u32>, Box<dyn std::error::Error>> {
+    let mut leaves_ext_relations =
+        Mutant::<u32>::with_capacity(dir, "hilbert_leaves_external_relations", 1024)?;
+
+    Ok(leaves_ext_relations)
 }
 
 #[cfg(test)]
@@ -261,38 +301,27 @@ mod tests {
     use std::path::PathBuf;
 
     #[test]
-    fn test_populate_hilbert_leaves_external() {
+    fn test_populate_hilbert_leaves_external_ways() {
         let dir = PathBuf::from("tests/fixtures/santa_cruz/sort");
         let flatdata = Osm::open(FileResourceStorage::new(&dir)).unwrap();
         let m_node_pairs =
             Mutant::<HilbertNodePair>::open(&dir, "hilbert_node_pairs", true).unwrap();
         let m_way_pairs = Mutant::<HilbertWayPair>::open(&dir, "hilbert_way_pairs", true).unwrap();
-        let m_relation_pairs = Mutant::<HilbertRelationPair>::open(&dir, "hilbert_relation_pairs", true).unwrap();
+        let m_relation_pairs =
+            Mutant::<HilbertRelationPair>::open(&dir, "hilbert_relation_pairs", true).unwrap();
         let m_leaves = Mutant::<Leaf>::open(&dir, "hilbert_leaves", false).unwrap();
 
-        let m_ext = populate_hilbert_leaves_external(
+        let m_ext = populate_leaves_external_ways(
             &dir,
             &flatdata,
             &m_node_pairs,
             &m_way_pairs,
-            &m_relation_pairs,
             &m_leaves,
             12,
         )
         .unwrap();
         let ext = m_ext.slice();
         assert_eq!(ext.len(), 4633);
-
-        let mut osm_id = 0;
-        let mut count = 0;
-        let ways = flatdata.ways();
-        for i in 0..ext.len() {
-            let w = &ways[i];
-            osm_id = w.osm_id();
-            count += 1;
-        }
-        assert_eq!(count, ext.len());
-        assert_eq!(osm_id, 962148640);
 
         // Check that w_ext is ascending or equal for the leaves.
         let mut leaves_it = m_leaves.slice().iter();
@@ -328,9 +357,11 @@ mod tests {
         let m_node_pairs =
             Mutant::<HilbertNodePair>::open(&dir, "hilbert_node_pairs", true).unwrap();
         let m_way_pairs = Mutant::<HilbertWayPair>::open(&dir, "hilbert_way_pairs", true).unwrap();
-        let m_relation_pairs = Mutant::<HilbertRelationPair>::open(&dir, "hilbert_relation_pairs", true).unwrap();
+        let m_relation_pairs =
+            Mutant::<HilbertRelationPair>::open(&dir, "hilbert_relation_pairs", true).unwrap();
 
-        let m_leaves = build_leaves(&m_node_pairs, &m_way_pairs, &m_relation_pairs, &dir, 12).unwrap();
+        let m_leaves =
+            build_leaves(&m_node_pairs, &m_way_pairs, &m_relation_pairs, &dir, 12).unwrap();
 
         // We know there are 3 unique leaf tiles for the 4 nodes.
         assert_eq!(m_leaves.len, 3);

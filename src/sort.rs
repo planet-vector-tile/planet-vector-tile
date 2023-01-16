@@ -37,13 +37,9 @@ pub fn sort_flatdata(flatdata: Osm, dir: &PathBuf) -> Result<(), Box<dyn std::er
     let ways = flatdata.ways();
     let ways_len = flatdata.ways().len();
     let m_way_pairs = Mutant::<HilbertWayPair>::new(dir, "hilbert_way_pairs", ways_len)?;
+    // let m_way_pairs = Mutant::<HilbertWayPair>::open(dir, "hilbert_way_pairs", true).unwrap();
     let way_pairs = m_way_pairs.mutable_slice();
     build_hilbert_way_pairs(way_pairs, &flatdata)?;
-
-    // Sort hilbert way pairs.
-    let t = util::timer("Sorting hilbert way pairs.");
-    way_pairs.par_sort_unstable_by_key(|idx| idx.h());
-    println!("Finished in {} secs.", t.elapsed().as_secs());
 
     // Build hilbert relation pairs
     let relations_len = flatdata.relations().len();
@@ -57,7 +53,12 @@ pub fn sort_flatdata(flatdata: Osm, dir: &PathBuf) -> Result<(), Box<dyn std::er
     let node_pairs_mut = Mutant::<HilbertNodePair>::open(dir, "hilbert_node_pairs", true)?;
     let node_pairs = node_pairs_mut.mutable_slice();
     node_pairs.par_sort_unstable_by_key(|idx| idx.h());
-    println!("Finished in {} secs.", t.elapsed().as_secs());
+    finish(t);
+
+    // Sort hilbert way pairs.
+    let t = util::timer("Sorting hilbert way pairs.");
+    way_pairs.par_sort_unstable_by_key(|idx| idx.h());
+    finish(t);
 
     // Reorder nodes to sorted hilbert node pairs.
     let mut pb = Prog::new("Reordering nodes to sorted hilbert node pairs. ", nodes_len);
@@ -403,8 +404,14 @@ fn build_hilbert_relation_pairs(
 
         let members_start = relation.member_first_idx() as usize;
 
+        let members_end = if relation_i + 1 < relations.len() {
+            relations[relation_i + 1].member_first_idx() as usize
+        } else {
+            members.len()
+        };
+
         let mut missing_member = false;
-        for member in &members[members_start..] {
+        for member in &members[members_start..members_end] {
             let idx = member.idx();
             if idx.is_none() {
                 missing_member = true;
@@ -417,8 +424,9 @@ fn build_hilbert_relation_pairs(
                 EntityType::Relation => {
                     let h = relation_pairs[i].h();
                     if h == 0 {
-                        // Here we add the relation to the queue to be processed later.
-                        q.push(i as usize);
+                        // Here we add the relation with a member relation to the queue to be processed later
+                        // when the member relation should already be processed..
+                        q.push(relation_i);
                         return;
                     }
                     h
@@ -430,10 +438,13 @@ fn build_hilbert_relation_pairs(
             processed_members_count += 1;
         }
         if missing_member {
-            println!(
+            eprintln!(
                 "Missing member(s) for relation. osm_id={}",
                 relation.osm_id()
             );
+        }
+        if processed_members_count == 0 {
+            return;
         }
         let mean_h = (h_total / processed_members_count as u128) as u64;
         relation_pair.set_h(mean_h);
@@ -445,18 +456,22 @@ fn build_hilbert_relation_pairs(
         .for_each(|(relation_i, relation)| compute_relation_h(relation_i, relation));
 
     let mut last_q_len = q.len();
-    let mut try_count: u8 = 0;
+    let mut try_count: u32 = 0;
     while let Some(relation_i) = q.pop() {
         compute_relation_h(relation_i, &relations[relation_i]);
         if q.len() == last_q_len {
             try_count += 1;
         }
-        if try_count == 100 {
+        if try_count == 500000 {
             // We should continue along with the build, so we should just log the problema and move on.
             eprintln!(
                 "Unable to compute all of the h for relations. Re-tried {} times.",
                 try_count
             );
+            eprintln!("Remaining relations in queue: {}", q.len());
+            while let Some(i) = q.pop() {
+                eprintln!("i={} osm_id={}", i, relations[i].osm_id());
+            }
             break;
         }
         last_q_len = q.len();
