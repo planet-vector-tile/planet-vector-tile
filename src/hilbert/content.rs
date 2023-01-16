@@ -31,6 +31,7 @@ pub fn render_tile_content(
     let tiles_mut = m_tiles.mutable_slice();
     let nodes = flatdata.nodes();
     let ways = flatdata.ways();
+    let relations = flatdata.relations();
     let external_ways = m_leaves_external_ways.slice();
     let external_relations = m_leaves_external_relations.slice();
 
@@ -61,6 +62,7 @@ pub fn render_tile_content(
 
         let node_filter = filter.node_at_zoom(z);
         let way_filter = filter.way_at_zoom(z);
+        let relation_filter = filter.relation_at_zoom(z);
 
         let is_leaf_parent_zoom = z == leaf_zoom - 2;
 
@@ -72,7 +74,7 @@ pub fn render_tile_content(
 
         // Get a vec of indices to all of the entities in the tile.
         // We will then filter from this to render tile content.
-        let (nodes, ways): (Vec<u64>, Vec<u32>) = if is_leaf_parent_zoom {
+        let (nodes, ways, relations): (Vec<u64>, Vec<u32>, Vec<u32>) = if is_leaf_parent_zoom {
             let is_last_leaf_parent = children == total_children;
 
             let start_leaf = &leaves[tile.child as usize];
@@ -93,7 +95,6 @@ pub fn render_tile_content(
                 None => start_leaf.n as usize..nodes.len(),
             };
 
-            // let nodes = nodes_range.map(|i| (i, &nodes[i]));
             let nodes = nodes_range.into_par_iter().map(|i| (i, &nodes[i]));
 
             let filtered_nodes: Vec<u64> =
@@ -108,16 +109,33 @@ pub fn render_tile_content(
                 None => start_leaf.w_ext as usize..external_ways.len(),
             };
 
-            // let inner_ways = w_range.map(|i| (i, &ways[i]));
             let inner_ways = w_range.into_par_iter().map(|i| (i, &ways[i]));
-
             let ext_ways = external_ways[w_ext_range]
                 .into_par_iter()
                 .map(|&i| (i as usize, &ways[i as usize]));
             let ways = inner_ways.chain(ext_ways);
             let filtered_ways: Vec<u32> = ways.filter(way_filter).map(|(i, _)| i as u32).collect();
 
-            (filtered_nodes, filtered_ways)
+            let r_range = match end_leaf {
+                Some(end_leaf) => start_leaf.r as usize..end_leaf.r as usize,
+                None => start_leaf.r as usize..relations.len(),
+            };
+            let r_ext_range = match end_leaf {
+                Some(end_leaf) => start_leaf.r_ext as usize..end_leaf.r_ext as usize,
+                None => start_leaf.r_ext as usize..external_relations.len(),
+            };
+
+            let inner_relations = r_range.into_par_iter().map(|i| (i, &relations[i]));
+            let ext_relations = external_relations[r_ext_range]
+                .into_par_iter()
+                .map(|&i| (i as usize, &relations[i as usize]));
+            let relations = inner_relations.chain(ext_relations);
+            let filtered_relations: Vec<u32> = relations
+                .filter(relation_filter)
+                .map(|(i, _)| i as u32)
+                .collect();
+
+            (filtered_nodes, filtered_ways, filtered_relations)
         } else {
             let start_child = &tiles[tile.child as usize];
             let end_child = match next_tile {
@@ -132,7 +150,6 @@ pub fn render_tile_content(
                 None => &n_idxs[start_child.n as usize..],
             };
 
-            // let nodes = node_idxs.iter().map(|i| (*i as usize, &nodes[*i as usize]));
             let nodes = node_idxs
                 .par_iter()
                 .map(|i| (*i as usize, &nodes[*i as usize]));
@@ -147,18 +164,32 @@ pub fn render_tile_content(
                 None => &w_idxs[start_child.w as usize..],
             };
 
-            // let ways = way_idxs.iter().map(|i| (*i as usize, &ways[*i as usize]));
             let ways = way_idxs
                 .par_iter()
                 .map(|i| (*i as usize, &ways[*i as usize]));
 
             let filtered_ways: Vec<u32> = ways.filter(way_filter).map(|(i, _)| i as u32).collect();
 
-            (filtered_nodes, filtered_ways)
+            let r_idxs = m_r.slice();
+            let relation_idxs = match end_child {
+                Some(end_child) => &r_idxs[start_child.r as usize..end_child.r as usize],
+                None => &r_idxs[start_child.r as usize..],
+            };
+
+            let relations = relation_idxs
+                .par_iter()
+                .map(|i| (*i as usize, &relations[*i as usize]));
+            let filtered_relations: Vec<u32> = relations
+                .filter(relation_filter)
+                .map(|(i, _)| i as u32)
+                .collect();
+
+            (filtered_nodes, filtered_ways, filtered_relations)
         };
 
         m_n.append(&nodes)?;
         m_w.append(&ways)?;
+        m_r.append(&relations)?;
 
         // We set the entity content index of the next tile,
         // as that will be the current tile in the next loop iteration.
@@ -166,6 +197,7 @@ pub fn render_tile_content(
             let next_tile = &mut tiles_mut[i + 1];
             next_tile.n = m_n.len as u64;
             next_tile.w = m_w.len as u32;
+            next_tile.r = m_r.len as u32;
         }
 
         // println!(
