@@ -3,7 +3,7 @@ use std::ops::Range;
 use dashmap::DashSet;
 
 use crate::{
-    osmflat::osmflat_generated::osm::{Node, Osm, Way},
+    osmflat::osmflat_generated::osm::{Node, Osm, Relation, Way},
     rules::Rules,
 };
 
@@ -69,6 +69,29 @@ impl<'a> Filter<'a> {
         };
 
         evaluate_way
+    }
+
+    pub fn relation_at_zoom(&self, zoom: u8) -> impl Fn(&(usize, &'a Relation)) -> bool + '_ {
+        let tags_index = self.flatdata.tags_index();
+        let relations_set: DashSet<usize> = DashSet::new();
+
+        let evaluate_relation = move |(i, relation): &(usize, &'a Relation)| -> bool {
+            if relations_set.contains(i) {
+                return false;
+            }
+            relations_set.insert(*i);
+
+            let range = relation.tags();
+            let tags_index_start = range.start as usize;
+            let tags_index_end = if range.end != 0 {
+                range.end as usize
+            } else {
+                tags_index.len()
+            };
+            self.evaluate_tags(tags_index_start..tags_index_end, zoom)
+        };
+
+        evaluate_relation
     }
 
     fn evaluate_tags(&self, tags_idx_range: Range<usize>, zoom: u8) -> bool {
