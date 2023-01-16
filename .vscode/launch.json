@@ -58,6 +58,20 @@
       },
       "args": ["report", "./manifests/santa_cruz.yaml"],
       "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "fixtures",
+      "cargo": {
+        "args": ["build", "--bin=fixtures", "--package=planet-vector-tile"],
+        "filter": {
+          "name": "fixtures",
+          "kind": "bin"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
     }
   ]
 }

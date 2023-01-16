@@ -109,6 +109,8 @@ pub fn render_tile_content(
             // let inner_ways = w_range.map(|i| (i, &ways[i]));
             let inner_ways = w_range.into_par_iter().map(|i| (i, &ways[i]));
 
+            println!("ways.len()={}", ways.len());
+
             let ext_ways = external[w_ext_range]
                 .into_par_iter()
                 .map(|&i| (i as usize, &ways[i as usize]));
@@ -246,12 +248,12 @@ mod tests {
         let flatdata = Osm::open(FileResourceStorage::new(&dir)).unwrap();
         let m_leaves = Mutant::<Leaf>::open(&dir, "hilbert_leaves", false).unwrap();
         let m_tiles = Mutant::<HilbertTile>::open(&dir, "hilbert_tiles", false).unwrap();
-        let m_leaves_external =
-            Mutant::<u32>::open(&dir, "hilbert_leaves_external", false).unwrap();
+        let m_leaves_external_ways =
+            Mutant::<u32>::open(&dir, "hilbert_leaves_external_ways", false).unwrap();
         let _ = render_tile_content(
             &m_leaves,
             &m_tiles,
-            &m_leaves_external,
+            &m_leaves_external_ways,
             &flatdata,
             &manifest::parse("tests/fixtures/santa_cruz_sort.yaml").unwrap(),
         )
@@ -265,12 +267,12 @@ mod tests {
         let flatdata = Osm::open(FileResourceStorage::new(&dir)).unwrap();
         let m_leaves = Mutant::<Leaf>::open(&dir, "hilbert_leaves", false).unwrap();
         let m_tiles = Mutant::<HilbertTile>::open(&dir, "hilbert_tiles", false).unwrap();
-        let m_leaves_external =
-            Mutant::<u32>::open(&dir, "hilbert_leaves_external", false).unwrap();
+        let m_leaves_external_ways =
+            Mutant::<u32>::open(&dir, "hilbert_leaves_external_ways", false).unwrap();
         let _ = render_tile_content(
             &m_leaves,
             &m_tiles,
-            &m_leaves_external,
+            &m_leaves_external_ways,
             &flatdata,
             &manifest::parse("tests/fixtures/santa_cruz_sort.yaml").unwrap(),
         )

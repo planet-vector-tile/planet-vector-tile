@@ -44,7 +44,7 @@ impl HilbertTree {
         let nodes_len = nodes.len();
         let ways_len = ways.len();
         let relations_len = relations.len();
-        let external_entities = self.leaves_external.slice();
+        let external_entities = self.leaves_external_ways.slice();
 
         // The range of indices in the entities vectors.
         let (n_range, w_range, _r_range, w_ext_range) = if let Some(next) = pair.next {

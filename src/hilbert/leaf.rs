@@ -4,6 +4,7 @@ use std::time::Instant;
 
 use crate::osmflat::osmflat_generated::osm::{EntityType, HilbertRelationPair, Osm};
 use crate::tile::tile_count_for_zoom;
+use crate::util::{finish, timer};
 use crate::{location, util};
 use crate::{
     location::h_to_zoom_h,
@@ -204,7 +205,7 @@ pub fn build_leaves(
     Ok(m_leaves)
 }
 
-pub fn populate_hilbert_leaves_external(
+pub fn populate_leaves_external_ways(
     dir: &Path,
     flatdata: &Osm,
     m_node_pairs: &Mutant<HilbertNodePair>,
@@ -215,19 +216,15 @@ pub fn populate_hilbert_leaves_external(
 ) -> Result<Mutant<u32>, Box<dyn std::error::Error>> {
     // NHTODO Profile memory usage here.
     let leaf_to_ways: DashMap<u32, BTreeSet<u32>> = DashMap::new();
-    let leaf_to_relations: DashMap<u32, BTreeSet<u32>> = DashMap::new();
 
     let ways = flatdata.ways();
-    let relations = flatdata.relations();
-    let members = flatdata.members();
     let way_pairs = m_way_pairs.slice();
     let relation_pairs = m_relation_pairs.slice();
     let node_pairs = m_node_pairs.slice();
     let nodes_index = flatdata.nodes_index();
     let nodes_index_len = nodes_index.len();
 
-    let t = Instant::now();
-    println!("Populating external leaf entities...");
+    let t = timer("Populating external leaf entities...");
 
     ways.par_iter().enumerate().for_each(|(i, way)| {
         let way_h = way_pairs[i].h();
@@ -259,47 +256,9 @@ pub fn populate_hilbert_leaves_external(
         }
     });
 
-    relations.par_iter().enumerate().for_each(|(i, relation)| {
-        let relation_h = relation_pairs[i].h();
-        let relation_tile_h = h_to_zoom_h(relation_h, leaf_zoom) as u32;
-
-        let members_range = relation.members();
-        let start = members_range.start as usize;
-        let end = if members_range.end == 0 {
-            members.len()
-        } else {
-            members_range.end as usize
-        };
-
-        for m in &members[start..end] {
-            let Some(idx) = m.idx() else { continue; };
-            let i = idx as usize;
-
-            let h = match m.entity_type() {
-                EntityType::Node => node_pairs[i].h(),
-                EntityType::Way => way_pairs[i].h(),
-                EntityType::Relation => relation_pairs[i].h(),
-                _ => 0,
-            };
-
-            let tile_h = h_to_zoom_h(h, leaf_zoom) as u32;
-            if tile_h != relation_tile_h {
-                match leaf_to_relations.entry(tile_h) {
-                    Occupied(mut o) => {
-                        o.get_mut().insert(i as u32);
-                    }
-                    Vacant(v) => {
-                        v.insert(BTreeSet::from([i as u32]));
-                    }
-                }
-            }
-        }
-    });
-
-    let mut leaves_ext = Mutant::<u32>::with_capacity(dir, "hilbert_leaves_external", 1024)?;
-
+    let mut leaves_ext_ways =
+        Mutant::<u32>::with_capacity(dir, "hilbert_leaves_external_ways", 1024)?;
     let leaves = m_leaves.mutable_slice();
-
     let mut counter: u32 = 0;
 
     for i in 0..leaves.len() {
@@ -310,36 +269,20 @@ pub fn populate_hilbert_leaves_external(
             let Some(&first) = it.next() else { break; };
             leaf.w_ext = counter;
             counter += 1;
-            leaves_ext.push(first);
+            leaves_ext_ways.push(first);
             for &way_i in it {
-                leaves_ext.push(way_i);
+                leaves_ext_ways.push(way_i);
                 counter += 1;
             }
         } else {
             leaf.w_ext = counter;
         }
-        if let Some(relations) = leaf_to_relations.get(&h) {
-            let mut it = relations.iter();
-            let Some(&first) = it.next() else { break; };
-            leaf.r_ext = counter;
-            counter += 1;
-            leaves_ext.push(first);
-            for &relation_i in it {
-                leaves_ext.push(relation_i);
-                counter += 1;
-            }
-        } else {
-            leaf.r_ext = counter;
-        }
     }
 
-    println!(
-        "Populated external leaf entities in {}",
-        format_duration(t.elapsed())
-    );
+    finish(t);
 
-    leaves_ext.trim();
-    Ok(leaves_ext)
+    leaves_ext_ways.trim();
+    Ok(leaves_ext_ways)
 }
 
 #[cfg(test)]
@@ -350,7 +293,7 @@ mod tests {
     use std::path::PathBuf;
 
     #[test]
-    fn test_populate_hilbert_leaves_external() {
+    fn test_populate_hilbert_leaves_external_ways() {
         let dir = PathBuf::from("tests/fixtures/santa_cruz/sort");
         let flatdata = Osm::open(FileResourceStorage::new(&dir)).unwrap();
         let m_node_pairs =
@@ -360,7 +303,7 @@ mod tests {
             Mutant::<HilbertRelationPair>::open(&dir, "hilbert_relation_pairs", true).unwrap();
         let m_leaves = Mutant::<Leaf>::open(&dir, "hilbert_leaves", false).unwrap();
 
-        let m_ext = populate_hilbert_leaves_external(
+        let m_ext = populate_leaves_external_ways(
             &dir,
             &flatdata,
             &m_node_pairs,
