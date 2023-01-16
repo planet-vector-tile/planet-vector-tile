@@ -222,7 +222,7 @@ pub fn populate_leaves_external_ways(
     let nodes_index = flatdata.nodes_index();
     let nodes_index_len = nodes_index.len();
 
-    let t = timer("Populating external leaf entities...");
+    let t = timer("Populating external leaf ways...");
 
     ways.par_iter().enumerate().for_each(|(i, way)| {
         let way_h = way_pairs[i].h();
@@ -286,10 +286,84 @@ pub fn populate_leaves_external_ways(
 pub fn populate_leaves_external_relations(
     dir: &Path,
     flatdata: &Osm,
+    m_node_pairs: &Mutant<HilbertNodePair>,
+    m_way_pairs: &Mutant<HilbertWayPair>,
+    m_relation_pairs: &Mutant<HilbertRelationPair>,
+    m_leaves: &Mutant<Leaf>,
+    leaf_zoom: u8,
 ) -> Result<Mutant<u32>, Box<dyn std::error::Error>> {
+    let t = timer("Populating external leaf relations...");
+    let leaf_to_relations: DashMap<u32, BTreeSet<u32>> = DashMap::new();
+    let relations = flatdata.relations();
+    let members = flatdata.members();
+
+    let node_pairs = m_node_pairs.slice();
+    let way_pairs = m_way_pairs.slice();
+    let relation_pairs = m_relation_pairs.slice();
+
+    relations.par_iter().enumerate().for_each(|(i, relation)| {
+        let relation_h = relation_pairs[i].h();
+        let relation_tile_h = h_to_zoom_h(relation_h, leaf_zoom) as u32;
+
+        let start = relation.member_first_idx() as usize;
+        let end = if i + 1 < members.len() {
+            relations[i + 1].member_first_idx() as usize
+        } else {
+            members.len() as usize
+        };
+
+        // NHTODO Do we also want to track all of the tiles that member ways cover with their refs?
+
+        for m in &members[start..end] {
+            let Some(idx) = m.idx() else { continue; };
+            let i = idx as usize;
+
+            let h = match m.entity_type() {
+                EntityType::Node => node_pairs[i].h(),
+                EntityType::Way => way_pairs[i].h(),
+                EntityType::Relation => relation_pairs[i].h(),
+                _ => 0,
+            };
+
+            let tile_h = h_to_zoom_h(h, leaf_zoom) as u32;
+            if tile_h != relation_tile_h {
+                match leaf_to_relations.entry(tile_h) {
+                    Occupied(mut o) => {
+                        o.get_mut().insert(i as u32);
+                    }
+                    Vacant(v) => {
+                        v.insert(BTreeSet::from([i as u32]));
+                    }
+                }
+            }
+        }
+    });
+
     let mut leaves_ext_relations =
         Mutant::<u32>::with_capacity(dir, "hilbert_leaves_external_relations", 1024)?;
+    let leaves = m_leaves.mutable_slice();
+    let mut counter: u32 = 0;
 
+    for i in 0..leaves.len() {
+        let leaf = &mut leaves[i];
+        let h = leaf.h;
+        if let Some(relations) = leaf_to_relations.get(&h) {
+            let mut it = relations.iter();
+            let Some(&first) = it.next() else { break; };
+            leaf.r_ext = counter;
+            counter += 1;
+            leaves_ext_relations.push(first);
+            for &r_i in it {
+                leaves_ext_relations.push(r_i);
+                counter += 1;
+            }
+        } else {
+            leaf.r_ext = counter;
+        }
+    }
+
+    leaves_ext_relations.trim();
+    finish(t);
     Ok(leaves_ext_relations)
 }
 
