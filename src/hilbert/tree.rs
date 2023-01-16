@@ -1,7 +1,7 @@
 use super::{
     content::render_tile_content,
     hilbert_tile::{build_tiles, HilbertTile},
-    leaf::{build_leaves, populate_leaves_external_ways, Leaf, populate_leaves_external_relations},
+    leaf::{build_leaves, populate_leaves_external_relations, populate_leaves_external_ways, Leaf},
 };
 use crate::{
     manifest::Manifest,
@@ -108,8 +108,10 @@ impl HilbertTree {
         let m_relation_pairs =
             Mutant::<HilbertRelationPair>::open(dir, "hilbert_relation_pairs", true)?;
         let m_leaves = Mutant::<Leaf>::open(dir, "hilbert_leaves", false)?;
-        let m_leaves_external_ways = Mutant::<u32>::open(dir, "hilbert_leaves_external_ways", false)?;
-        let m_leaves_external_relations = Mutant::<u32>::open(dir, "leaves_external_relations", false)?;
+        let m_leaves_external_ways =
+            Mutant::<u32>::open(dir, "hilbert_leaves_external_ways", false)?;
+        let m_leaves_external_relations =
+            Mutant::<u32>::open(dir, "hilbert_leaves_external_relations", false)?;
         let m_tiles = Mutant::<HilbertTile>::open(dir, "hilbert_tiles", false)?;
         let m_n = Mutant::<u64>::open(dir, "n", false)?;
         let m_w = Mutant::<u32>::open(dir, "w", false)?;

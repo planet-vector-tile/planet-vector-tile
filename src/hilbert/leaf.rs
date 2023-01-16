@@ -287,7 +287,10 @@ pub fn populate_leaves_external_relations(
     dir: &Path,
     flatdata: &Osm,
 ) -> Result<Mutant<u32>, Box<dyn std::error::Error>> {
-    Ok(Mutant::<u32>::new(dir, "leaves_external_relations", 1024)?)
+    let mut leaves_ext_relations =
+        Mutant::<u32>::with_capacity(dir, "hilbert_leaves_external_relations", 1024)?;
+
+    Ok(leaves_ext_relations)
 }
 
 #[cfg(test)]
@@ -313,13 +316,12 @@ mod tests {
             &flatdata,
             &m_node_pairs,
             &m_way_pairs,
-            &m_relation_pairs,
             &m_leaves,
             12,
         )
         .unwrap();
         let ext = m_ext.slice();
-        assert_eq!(ext.len(), 16885);
+        assert_eq!(ext.len(), 4633);
 
         // Check that w_ext is ascending or equal for the leaves.
         let mut leaves_it = m_leaves.slice().iter();
@@ -328,17 +330,6 @@ mod tests {
         while next.is_some() {
             let next_leaf = next.unwrap();
             assert!(leaf.w_ext <= next_leaf.w_ext);
-            leaf = next_leaf;
-            next = leaves_it.next();
-        }
-
-        // Check that r_ext is ascending or equal for the leaves.
-        let mut leaves_it = m_leaves.slice().iter();
-        let mut leaf = leaves_it.next().unwrap();
-        let mut next = leaves_it.next();
-        while next.is_some() {
-            let next_leaf = next.unwrap();
-            assert!(leaf.r_ext <= next_leaf.r_ext);
             leaf = next_leaf;
             next = leaves_it.next();
         }

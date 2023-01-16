@@ -250,10 +250,13 @@ mod tests {
         let m_tiles = Mutant::<HilbertTile>::open(&dir, "hilbert_tiles", false).unwrap();
         let m_leaves_external_ways =
             Mutant::<u32>::open(&dir, "hilbert_leaves_external_ways", false).unwrap();
+        let m_leaves_external_relations =
+            Mutant::<u32>::open(&dir, "hilbert_leaves_external_relations", false).unwrap();
         let _ = render_tile_content(
             &m_leaves,
             &m_tiles,
             &m_leaves_external_ways,
+            &m_leaves_external_relations,
             &flatdata,
             &manifest::parse("tests/fixtures/santa_cruz_sort.yaml").unwrap(),
         )
@@ -269,10 +272,13 @@ mod tests {
         let m_tiles = Mutant::<HilbertTile>::open(&dir, "hilbert_tiles", false).unwrap();
         let m_leaves_external_ways =
             Mutant::<u32>::open(&dir, "hilbert_leaves_external_ways", false).unwrap();
+        let m_leaves_external_relations =
+            Mutant::<u32>::open(&dir, "hilbert_leaves_external_relations", false).unwrap();
         let _ = render_tile_content(
             &m_leaves,
             &m_tiles,
             &m_leaves_external_ways,
+            &m_leaves_external_relations,
             &flatdata,
             &manifest::parse("tests/fixtures/santa_cruz_sort.yaml").unwrap(),
         )
