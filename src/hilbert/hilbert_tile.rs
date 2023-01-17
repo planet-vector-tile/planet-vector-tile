@@ -14,7 +14,6 @@ pub struct HilbertTile {
     // Index of the first child.
     pub child: u32,
     // Bit mask denoting which of the 16 children for the given tile exist.
-    // MSB is index 15, MSB is index 0.
     pub mask: u16,
     pub n: u64,
     pub w: u32,
