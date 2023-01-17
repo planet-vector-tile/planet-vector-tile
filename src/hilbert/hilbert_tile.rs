@@ -96,7 +96,6 @@ pub fn build_tiles(
                 w: 0,
                 r: 0,
             };
-            // prinsortln!("i {} z {} h {} mask {:#018b}", tiles_i, zoom, tile_h, mask);
             tiles[tiles_i] = tile;
             tiles_i += 1;
         }

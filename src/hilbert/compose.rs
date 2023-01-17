@@ -5,6 +5,7 @@ use super::{
     tree::{FindResult, ResultPair},
 };
 use crate::{
+    location::h_to_xy,
     rules::{IncludeTagIdxs, RuleEval},
     tile::planet_vector_tile_generated::*,
 };
@@ -125,6 +126,8 @@ impl HilbertTree {
         let ways_len = ways.len();
         let relations_len = relations.len();
         let node_pairs = self.flatdata.hilbert_node_pairs().unwrap();
+        let way_pairs = self.way_pairs.slice();
+        let relation_pairs = self.relation_pairs.slice();
         let tags = self.flatdata.tags();
         let nodes_index = self.flatdata.nodes_index();
         let nodes_index_len = nodes_index.len();
@@ -133,6 +136,61 @@ impl HilbertTree {
         let strings = self.flatdata.stringtable();
 
         let mut layers: Vec<Vec<WIPOffset<PVTFeature>>> = vec![vec![]; self.rules.layers.len()];
+
+        for i in relations_it {
+            let relation = &relations[i];
+
+            let tags_index_start = relation.tag_first_idx() as usize;
+            let tags_index_end = if i + 1 < relations_len {
+                relations[i + 1].tag_first_idx() as usize
+            } else {
+                tags_index_len
+            };
+            let tags_index_range = tags_index_start..tags_index_end;
+
+            let rule_eval = self
+                .rules
+                .evaluate_tags(&self.flatdata, tags_index_range.clone());
+
+            // Tags
+            let (keys, vals) = build_tags(
+                tags_index_range,
+                relation.osm_id(),
+                tags_index,
+                tags,
+                strings,
+                builder,
+                &rule_eval,
+                self.manifest.render.all_tags,
+            );
+            let keys_vec = builder.fbb.create_vector(&keys);
+            let vals_vec = builder.fbb.create_vector(&vals);
+
+            // Point geometries for the hilbert location of the relation
+            // This is useful to see that we have included a relation for debugging,
+            // and it also is used as a label point for multipolygons and boundaries.
+            let h = relation_pairs[i].h();
+            let xy = h_to_xy(h); // h is already in Mercator.
+            let tile_point = tile.project(xy);
+            let points = builder.fbb.create_vector(&[tile_point]);
+            let mut geom_builder = PVTGeometryBuilder::new(&mut builder.fbb);
+            geom_builder.add_points(points);
+            let geom = geom_builder.finish();
+            let geoms = builder.fbb.create_vector(&[geom]);
+            let feature = PVTFeature::create(
+                &mut builder.fbb,
+                &PVTFeatureArgs {
+                    id: h,
+                    keys: Some(keys_vec),
+                    values: Some(vals_vec),
+                    geometries: Some(geoms),
+                },
+            );
+
+            for layer_i in &rule_eval.layers {
+                layers[*layer_i].push(feature)
+            }
+        }
 
         for i in nodes_it {
             let node = &nodes[i];
@@ -263,7 +321,7 @@ impl HilbertTree {
             let feature = PVTFeature::create(
                 &mut builder.fbb,
                 &PVTFeatureArgs {
-                    id: way.osm_id() as u64, // NHTODO get h instead of osm_id
+                    id: way_pairs[i].h(),
                     keys: Some(keys_vec),
                     values: Some(vals_vec),
                     geometries: Some(geoms),
@@ -397,12 +455,11 @@ mod tests {
         let layer_name = strings.get(layer_str_idx as usize);
         assert_eq!(layer_name, "no_rule");
 
-        let features = layers.get(0).features().unwrap();
-        // println!("{}", features.len());
-        assert_eq!(features.len(), 3300);
+        let features = layers.get(0).features().unwrap(); // layer is no_rule
+        assert_eq!(features.len(), 3647);
 
-        let feature = features.get(0);
-
+        // First no_rule node feature after no_rule relation features
+        let feature = features.get(347);
         let id = feature.id();
         assert_eq!(id, 3660421543731798272); // hilbert location of node
 
