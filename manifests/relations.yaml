@@ -1,0 +1,21 @@
+data:
+  source: /opt/geodata/osm/planet-2022-11-26.osm.pbf
+  planet: /opt/pvt/planets/relations
+  archive: /opt/pvt/archives/relations.pvt
+
+render:
+  leaf_zoom: 14
+  layer_order: [Boundary, MultiPolygon]
+  all_tags: true
+
+layers:
+  Boundary: [boundary]
+  MultiPolygon: [multipolygon]
+
+rules:
+  boundary:
+    minzoom: 4
+    tags: [[type, boundary]]
+  multipolygon:
+    minzoom: 4  
+    tags: [[type, multipolygon]]
