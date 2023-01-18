@@ -1,12 +1,12 @@
 use super::{
     content::render_tile_content,
     hilbert_tile::{build_tiles, HilbertTile},
-    leaf::{build_leaves, populate_hilbert_leaves_external, Leaf},
+    leaf::{build_leaves, populate_leaves_external_relations, populate_leaves_external_ways, Leaf},
 };
 use crate::{
     manifest::Manifest,
     mutant::Mutant,
-    osmflat::osmflat_generated::osm::{HilbertNodePair, HilbertWayPair, Osm},
+    osmflat::osmflat_generated::osm::{HilbertNodePair, HilbertRelationPair, HilbertWayPair, Osm},
     rules::Rules,
     tile::Tile,
 };
@@ -19,12 +19,14 @@ pub struct HilbertTree {
     pub manifest: Manifest,
     pub tiles: Mutant<HilbertTile>,
     pub leaves: Mutant<Leaf>,
-    pub leaves_external: Mutant<u32>,
+    pub leaves_external_ways: Mutant<u32>,
+    pub leaves_external_relations: Mutant<u32>,
     pub n: Mutant<u64>,
     pub w: Mutant<u32>,
     pub r: Mutant<u32>,
     pub flatdata: Osm,
     pub way_pairs: Mutant<HilbertWayPair>,
+    pub relation_pairs: Mutant<HilbertRelationPair>,
     pub rules: Rules,
 }
 
@@ -43,11 +45,19 @@ impl HilbertTree {
 
         let m_node_pairs = Mutant::<HilbertNodePair>::open(dir, "hilbert_node_pairs", true)?;
         let m_way_pairs = Mutant::<HilbertWayPair>::open(dir, "hilbert_way_pairs", true)?;
+        let m_relation_pairs =
+            Mutant::<HilbertRelationPair>::open(dir, "hilbert_relation_pairs", true)?;
 
-        let m_leaves = build_leaves(&m_node_pairs, &m_way_pairs, &dir, leaf_zoom)?;
+        let m_leaves = build_leaves(
+            &m_node_pairs,
+            &m_way_pairs,
+            &m_relation_pairs,
+            &dir,
+            leaf_zoom,
+        )?;
         let m_tiles = build_tiles(&m_leaves, &dir, leaf_zoom)?;
 
-        let m_leaves_external = populate_hilbert_leaves_external(
+        let m_leaves_external_ways = populate_leaves_external_ways(
             dir,
             &flatdata,
             &m_node_pairs,
@@ -56,16 +66,28 @@ impl HilbertTree {
             leaf_zoom,
         )?;
 
+        let m_leaves_external_relations = populate_leaves_external_relations(
+            dir,
+            &flatdata,
+            &m_node_pairs,
+            &m_way_pairs,
+            &m_relation_pairs,
+            &m_leaves,
+            leaf_zoom,
+        )?;
+
         Ok(Self {
             manifest: manifest.clone(),
             tiles: m_tiles,
             leaves: m_leaves,
-            leaves_external: m_leaves_external,
+            leaves_external_ways: m_leaves_external_ways,
+            leaves_external_relations: m_leaves_external_relations,
             n: Mutant::<u64>::new(&dir, "n", 0)?,
             w: Mutant::<u32>::new(&dir, "w", 0)?,
             r: Mutant::<u32>::new(&dir, "r", 0)?,
             flatdata,
             way_pairs: m_way_pairs,
+            relation_pairs: m_relation_pairs,
             rules: Rules::default(manifest),
         })
     }
@@ -74,7 +96,8 @@ impl HilbertTree {
         let (n, w, r, new_rules) = render_tile_content(
             &self.leaves,
             &self.tiles,
-            &self.leaves_external,
+            &self.leaves_external_ways,
+            &self.leaves_external_relations,
             &self.flatdata,
             &self.manifest,
         )?;
@@ -90,8 +113,13 @@ impl HilbertTree {
         let flatdata = Osm::open(FileResourceStorage::new(dir))?;
 
         let m_way_pairs = Mutant::<HilbertWayPair>::open(dir, "hilbert_way_pairs", true)?;
+        let m_relation_pairs =
+            Mutant::<HilbertRelationPair>::open(dir, "hilbert_relation_pairs", true)?;
         let m_leaves = Mutant::<Leaf>::open(dir, "hilbert_leaves", false)?;
-        let m_leaves_external = Mutant::<u32>::open(dir, "hilbert_leaves_external", false)?;
+        let m_leaves_external_ways =
+            Mutant::<u32>::open(dir, "hilbert_leaves_external_ways", false)?;
+        let m_leaves_external_relations =
+            Mutant::<u32>::open(dir, "hilbert_leaves_external_relations", false)?;
         let m_tiles = Mutant::<HilbertTile>::open(dir, "hilbert_tiles", false)?;
         let m_n = Mutant::<u64>::open(dir, "n", false)?;
         let m_w = Mutant::<u32>::open(dir, "w", false)?;
@@ -103,12 +131,14 @@ impl HilbertTree {
             manifest: manifest.clone(),
             tiles: m_tiles,
             leaves: m_leaves,
-            leaves_external: m_leaves_external,
+            leaves_external_ways: m_leaves_external_ways,
+            leaves_external_relations: m_leaves_external_relations,
             n: m_n,
             w: m_w,
             r: m_r,
             flatdata,
             way_pairs: m_way_pairs,
+            relation_pairs: m_relation_pairs,
             rules,
         })
     }
@@ -220,5 +250,12 @@ mod tests {
     fn test_struct_size() {
         assert_eq!(22, size_of::<HilbertTile>());
         assert_eq!(28, size_of::<Leaf>());
+    }
+
+    #[test]
+    #[ignore]
+    fn test_open_santa_cruz() {
+        let manifest = manifest::parse("manifests/santa_cruz.yaml").unwrap();
+        let _ = HilbertTree::open(&manifest).unwrap();
     }
 }

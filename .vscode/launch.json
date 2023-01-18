@@ -62,11 +62,11 @@
     {
       "type": "lldb",
       "request": "launch",
-      "name": "Debug unit tests in executable 'pvt'",
+      "name": "fixtures",
       "cargo": {
-        "args": ["test", "--no-run", "--bin=pvt", "--package=planet-vector-tile"],
+        "args": ["build", "--bin=fixtures", "--package=planet-vector-tile"],
         "filter": {
-          "name": "pvt",
+          "name": "fixtures",
           "kind": "bin"
         }
       },

@@ -138,43 +138,21 @@ struct TagIndex {
     value: u64 : 40;
 }
 
-/// Node member of a relation.
-struct NodeMember {
-    /// Index of the node in the `nodes` vector.
+struct Member {
+    /// Index of the member in either the `relations`, `ways`, or `nodes` vector.
     @optional(INVALID_IDX)
-    node_idx: u64 : 40;
-    /**
-     * Optional textual field describing the function of the node in the relation.
-     *
-     * Index in `stringtable`.
-     */
+    idx: u64: 40;
+
+    // Index in `stringtable`
     role_idx: u64 : 40;
+
+    entity_type: EntityType;
 }
 
-/// Way member of a relation.
-struct WayMember {
-    /// Index of the way in the `ways` vector.
-    @optional(INVALID_IDX)
-    way_idx: u64 : 40;
-    /**
-     * Optional textual field describing the function of the way in the relation.
-     *
-     * Index in `stringtable`.
-     */
-    role_idx: u64 : 40;
-}
-
-/// Relation member of a relation.
-struct RelationMember {
-    /// Index of the relation in the `relations` vector.
-    @optional(INVALID_IDX)
-    relation_idx: u64 : 40;
-    /**
-     * Optional textual field describing the function of the relation in the parent relation.
-     *
-     * Index in `stringtable`.
-     */
-    role_idx: u64 : 40;
+enum EntityType : u8 : 2 {
+    Node = 0,
+    Way = 1,
+    Relation = 2,
 }
 
 /**
@@ -196,6 +174,9 @@ struct Relation {
      */
     @range(tags)
     tag_first_idx: u64 : 40;
+
+    @range(members)
+    member_first_idx: u32: 32;
 }
 
 struct HilbertRelationPair {
@@ -203,55 +184,6 @@ struct HilbertRelationPair {
     h: u64 : 64;
 }
 
-struct Id {
-    value: u64 : 40;
-}
-
-/**
- * An optional sub-archive storing the original OSM ids of nodes, ways, and relations
- */
-archive Ids {
-    /**
-     * List of OSM ids of all nodes in the parent archive
-     * nodes[i] has its id stored in ids.nodes[i]
-     */
-    nodes: vector< Id >;
-
-    /**
-     * List of OSM ids of all ways in the parent archive
-     * ways[i] has its id stored in ids.ways[i]
-     */
-    ways: vector< Id >;
-
-    /**
-     * List of OSM ids of all relations in the parent archive
-     * relations[i] has its id stored in ids.relations[i]
-     */
-    relations: vector< Id >;
-}
-
-/**
- * OSM data archive
- *
- * Relations and relation members are indexed with the same index, i.e.
- * a relation at index `i` in the vector `relations` has the members
- * at index `i` in the multivector `relation_members`.
- *
- * All 1:n relationships are modeled in-place by using an additional index. This is a
- * common pattern in flatdata. For example, a node might have multiple tags attached
- * to it. To model this, a node in `nodes` references the first tag attached to it
- * by storing an index in the `tags_index` vector. The next node in `nodes` again
- * references its first tag, which is the last tag (exclusive) of the previous node.
- *
- * ```text
- * nodes:      [ ..., n_1, n_2, ... ]
- *                     |    |
- *                     |    +-------+
- *                     v            v
- * tags_index: [ ..., t_11, t_12, ..., t_1n, t_21, ... t_2m, ... ]
- * ```
- */
-@bound_implicitly(Relations: relations, relation_members)
 archive Osm {
     /**
      * Header which contains the metadata attached to the archive.
@@ -287,38 +219,14 @@ archive Osm {
     @optional
     hilbert_way_pairs_not_used: vector<HilbertWayPair>;
 
-    /**
-     * List of relations.
-     *
-     * A relation references a range of tags in `tags_index` vectors.
-     * Members are attached to a relation implicitly: members that belong to a
-     * relation at index `i` are at index `i` in the `relation_members` multivector.
-     */
     @explicit_reference( Relation.tag_first_idx, tags_index )
+    @explicit_reference( Relation.member_first_idx, members )
     relations: vector<Relation>;
 
     @optional
     hilbert_relation_pairs_not_used: vector<HilbertRelationPair>;
 
-    /**
-     * Members attached to relations.
-     *
-     * An index in this multivector corresponds to an index in the `relations` vector.
-     *
-     * A member has a variadic type: `NodeMember`, `WayMember` or `RelationMember`.
-     * Each type references its role in the `stringtable` raw data. Additionally,
-     *
-     * * a node member references a node in the `nodes` vector,
-     * * a way member references a way in the `ways` vector,
-     * * a relation member references a relation in the `relations` vector.
-     */
-    @explicit_reference( NodeMember.node_idx, nodes )
-    @explicit_reference( NodeMember.role_idx, stringtable )
-    @explicit_reference( WayMember.way_idx, ways )
-    @explicit_reference( WayMember.role_idx, stringtable )
-    @explicit_reference( RelationMember.relation_idx, relations )
-    @explicit_reference( RelationMember.role_idx, stringtable )
-    relation_members: multivector<40, NodeMember, WayMember, RelationMember>;
+    members: vector<Member>;
 
     /**
      * List of tags.
@@ -346,8 +254,5 @@ archive Osm {
      * List of strings separated by `\0`.
      */
     stringtable: raw_data;
-
-    @optional
-    ids: archive Ids;
 }
 } // namespace osm
