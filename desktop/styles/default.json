@@ -46,23 +46,23 @@
       }
     },
     {
-      "id": "tile_boundary_fill",
+      "id": "Tile Boundary_fill",
       "type": "fill",
       "minzoom": 0,
       "maxzoom": 23,
       "source": "planet",
-      "source-layer": "tile_boundary",
+      "source-layer": "Tile Boundary",
       "paint": {
         "fill-color": "rgba(255, 105, 180, 0.001)"
       }
     },
     {
-      "id": "tile_boundary",
+      "id": "Tile Boundary",
       "type": "line",
       "minzoom": 0,
       "maxzoom": 23,
       "source": "planet",
-      "source-layer": "tile_boundary",
+      "source-layer": "Tile Boundary",
       "paint": {
         "line-color": "rgba(255, 255, 255, 0.1)",
         "line-width": 1
@@ -70,12 +70,12 @@
       "filter": ["==", "highest_zoom", true]
     },
     {
-      "id": "render_tile_boundary",
+      "id": "render_Tile Boundary",
       "type": "line",
       "minzoom": 0,
       "maxzoom": 23,
       "source": "planet",
-      "source-layer": "tile_boundary",
+      "source-layer": "Tile Boundary",
       "filter": ["==", "is_render_tile", true],
       "paint": {
         "line-color": "rgba(255, 255, 255, 0.4)",
@@ -83,12 +83,12 @@
       }
     },
     {
-      "id": "selected_tile_boundary",
+      "id": "selected_Tile Boundary",
       "type": "line",
       "minzoom": 0,
       "maxzoom": 23,
       "source": "planet",
-      "source-layer": "tile_boundary",
+      "source-layer": "Tile Boundary",
       "paint": {
         "line-color": "#FFC000",
         "line-width": 3,
@@ -96,12 +96,12 @@
       }
     },
     {
-      "id": "tile_bearing",
+      "id": "Tile Bearing",
       "type": "line",
       "minzoom": 0,
       "maxzoom": 23,
       "source": "planet",
-      "source-layer": "tile_bearing",
+      "source-layer": "Tile Bearing",
       "filter": ["==", "z", -1],
       "paint": {
         "line-color": "#ff69b4",
@@ -109,12 +109,12 @@
       }
     },
     {
-      "id": "tile_bearing_arrow",
+      "id": "Tile Bearing Arrow",
       "type": "symbol",
       "source": "planet",
       "minzoom": 0,
       "maxzoom": 23,
-      "source-layer": "tile_bearing",
+      "source-layer": "Tile Bearing",
       "filter": ["==", "z", -1],
       "layout": {
         "icon-image": "dark-trail-direction",
@@ -122,12 +122,12 @@
       }
     },
     {
-      "id": "render_tile_bearing",
+      "id": "Render Tile Bearing",
       "type": "line",
       "minzoom": 0,
       "maxzoom": 23,
       "source": "planet",
-      "source-layer": "tile_bearing",
+      "source-layer": "Tile Bearing",
       "filter": ["==", "is_render_tile", true],
       "layout": { "visibility": "none" },
       "paint": {
@@ -136,12 +136,12 @@
       }
     },
     {
-      "id": "render_tile_bearing_arrow",
+      "id": "Render Tile Bearing Arrow",
       "type": "symbol",
       "source": "planet",
       "minzoom": 0,
       "maxzoom": 23,
-      "source-layer": "tile_bearing",
+      "source-layer": "Tile Bearing",
       "filter": ["==", "is_render_tile", true],
       "layout": {
         "icon-image": "dark-trail-direction",
@@ -150,12 +150,12 @@
       }
     },
     {
-      "id": "tile_center_label",
+      "id": "Tile Center Label",
       "type": "symbol",
       "minzoom": 0,
       "maxzoom": 23,
       "source": "planet",
-      "source-layer": "tile_center",
+      "source-layer": "Tile Center",
       "filter": ["==", "z", -1],
       "layout": {
         "text-font": ["Open Sans Semibold"],
@@ -167,12 +167,12 @@
       }
     },
     {
-      "id": "render_tile_center_label",
+      "id": "render_Tile Center Label",
       "type": "symbol",
       "minzoom": 0,
       "maxzoom": 23,
       "source": "planet",
-      "source-layer": "tile_center",
+      "source-layer": "Tile Center",
       "filter": ["==", "is_render_tile", true],
       "layout": {
         "text-font": ["Open Sans Semibold"],
@@ -186,7 +186,7 @@
     },
 
     {
-      "id": "no_rule_circle",
+      "id": "No Rule Circle",
       "type": "circle",
       "minzoom": 0,
       "maxzoom": 23,
@@ -199,7 +199,7 @@
       }
     },
     {
-      "id": "no_rule_line",
+      "id": "No Rule Line",
       "type": "line",
       "minzoom": 0,
       "maxzoom": 23,
@@ -212,7 +212,7 @@
       }
     },
     {
-      "id": "administrative_line",
+      "id": "Administrative Line",
       "type": "line",
       "minzoom": 0,
       "maxzoom": 23,
@@ -224,7 +224,7 @@
       }
     },
     {
-      "id": "water_fill",
+      "id": "Water Fill",
       "type": "line",
       "minzoom": 0,
       "maxzoom": 23,
@@ -237,7 +237,7 @@
       }
     },
     {
-      "id": "water_line",
+      "id": "Water Line",
       "type": "line",
       "minzoom": 0,
       "maxzoom": 23,
@@ -248,9 +248,8 @@
         "line-width": 3
       }
     },
-
     {
-      "id": "service_road-case",
+      "id": "Service Road Casing",
       "type": "line",
       "source": "planet",
       "source-layer": "Minor Roads",
@@ -288,7 +287,7 @@
       }
     },
     {
-      "id": "track_road-case",
+      "id": "Track Road Casing",
       "type": "line",
       "source": "planet",
       "source-layer": "Minor Roads",
@@ -344,7 +343,7 @@
       }
     },
     {
-      "id": "major_road-case-highzoom",
+      "id": "Major Road High Zoom",
       "type": "line",
       "source": "planet",
       "source-layer": "Major Roads",
@@ -386,7 +385,7 @@
       }
     },
     {
-      "id": "service_road",
+      "id": "Service Road",
       "type": "line",
       "source": "planet",
       "source-layer": "Minor Roads",
@@ -416,7 +415,7 @@
       }
     },
     {
-      "id": "road-highway-case-highzoom",
+      "id": "Highway Casing High Zoom",
       "type": "line",
       "source": "planet",
       "source-layer": "Major Roads",
@@ -456,7 +455,7 @@
       }
     },
     {
-      "id": "major_road-case-lowzoom",
+      "id": "Major Road Casing Low Zoom",
       "type": "line",
       "source": "planet",
       "source-layer": "Major Roads",
@@ -503,7 +502,7 @@
       }
     },
     {
-      "id": "major_road",
+      "id": "Major Road",
       "type": "line",
       "source": "planet",
       "source-layer": "Major Roads",
@@ -551,7 +550,7 @@
       }
     },
     {
-      "id": "road-label-major-road",
+      "id": "Major Road Label",
       "type": "symbol",
       "source": "planet",
       "source-layer": "Major Roads",
@@ -605,9 +604,8 @@
         }
       }
     },
-
     {
-      "id": "minor_road-case-highzoom",
+      "id": "Minor Road Casing High Zoom",
       "type": "line",
       "source": "planet",
       "source-layer": "Minor Roads",
@@ -650,7 +648,7 @@
       }
     },
     {
-      "id": "minor_road-case-lowzoom",
+      "id": "Minor Road Casing Low Zoom",
       "type": "line",
       "source": "planet",
       "source-layer": "Minor Roads",
@@ -694,11 +692,12 @@
       }
     },
     {
-      "id": "minor_road",
+      "id": "Minor Road",
       "type": "line",
       "source": "planet",
       "source-layer": "Minor Roads",
       "minzoom": 11,
+      "maxzoom": 24,
       "layout": {
         "line-cap": "round",
         "line-join": "round",
@@ -729,7 +728,7 @@
       }
     },
     {
-      "id": "roads-one-way",
+      "id": "One Way Roads",
       "type": "symbol",
       "source": "planet",
       "source-layer": "Minor Roads",
@@ -753,7 +752,7 @@
       "paint": { "icon-opacity": 0.3 }
     },
     {
-      "id": "road-label-minor-road",
+      "id": "Minor Road Label",
       "type": "symbol",
       "source": "planet",
       "source-layer": "Minor Roads",
@@ -815,7 +814,7 @@
     },
 
     {
-      "id": "places_circle",
+      "id": "Places Circle",
       "type": "circle",
       "minzoom": 0,
       "maxzoom": 23,
@@ -827,7 +826,7 @@
       }
     },
     {
-      "id": "places_line",
+      "id": "Places Line",
       "type": "line",
       "minzoom": 0,
       "maxzoom": 23,
@@ -840,7 +839,7 @@
     },
 
     {
-      "id": "building-lowzoom",
+      "id": "Buildings Low Zoom",
       "type": "fill",
       "source": "planet",
       "source-layer": "Buildings",
@@ -858,7 +857,7 @@
       }
     },
     {
-      "id": "building-stroke-lowzoom",
+      "id": "Buildings Stroke Low Zoom",
       "type": "line",
       "source": "planet",
       "source-layer": "Buildings",
@@ -876,7 +875,7 @@
       }
     },
     {
-      "id": "building",
+      "id": "Buildings",
       "type": "fill",
       "source": "planet",
       "source-layer": "Buildings",
@@ -889,7 +888,7 @@
       }
     },
     {
-      "id": "building-stroke",
+      "id": "Buildings Stroke",
       "type": "line",
       "source": "planet",
       "source-layer": "Buildings",
