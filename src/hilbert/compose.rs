@@ -5,6 +5,7 @@ use super::{
     tree::{FindResult, ResultPair},
 };
 use crate::{
+    location::h_to_xy,
     rules::{IncludeTagIdxs, RuleEval},
     tile::planet_vector_tile_generated::*,
 };
@@ -44,28 +45,35 @@ impl HilbertTree {
         let nodes_len = nodes.len();
         let ways_len = ways.len();
         let relations_len = relations.len();
-        let external_entities = self.leaves_external_ways.slice();
+        let external_ways = self.leaves_external_ways.slice();
+        let external_relations = self.leaves_external_relations.slice();
 
         // The range of indices in the entities vectors.
-        let (n_range, w_range, _r_range, w_ext_range) = if let Some(next) = pair.next {
+        let (n_range, w_range, r_range, w_ext_range, r_ext_range) = if let Some(next) = pair.next {
             (
                 (pair.item.n as usize)..(next.n as usize),
                 (pair.item.w as usize)..(next.w as usize),
                 (pair.item.r as usize)..(next.r as usize),
                 (pair.item.w_ext as usize)..(next.w_ext as usize),
+                (pair.item.r_ext as usize)..(next.r_ext as usize),
             )
         } else {
             (
                 (pair.item.n as usize)..nodes_len,
                 (pair.item.w as usize)..ways_len,
                 (pair.item.r as usize)..relations_len,
-                (pair.item.w_ext as usize)..external_entities.len(),
+                (pair.item.w_ext as usize)..external_ways.len(),
+                (pair.item.r_ext as usize)..external_relations.len(),
             )
         };
 
-        let ways_ext = w_ext_range.map(|i| external_entities[i] as usize);
+        let ways_ext = w_ext_range.map(|i| external_ways[i] as usize);
         let ways_it = w_range.chain(ways_ext);
-        self.build_pvt(n_range, ways_it, tile, builder)
+
+        let relations_ext = r_ext_range.map(|i| external_relations[i] as usize);
+        let relations_it = r_range.chain(relations_ext);
+
+        self.build_pvt(n_range, ways_it, relations_it, tile, builder)
     }
 
     pub fn compose_h_tile(
@@ -76,8 +84,9 @@ impl HilbertTree {
     ) {
         let tile_n_idx = self.n.slice();
         let tile_w_idx = self.w.slice();
+        let tile_r_idx = self.r.slice();
 
-        let (n_range, w_range, _r_range) = if let Some(next) = pair.next {
+        let (n_range, w_range, r_range) = if let Some(next) = pair.next {
             (
                 (pair.item.n as usize)..(next.n as usize),
                 (pair.item.w as usize)..(next.w as usize),
@@ -93,14 +102,22 @@ impl HilbertTree {
 
         let nodes_it = n_range.map(|i| tile_n_idx[i] as usize).into_iter();
         let ways_it = w_range.map(|i| tile_w_idx[i] as usize).into_iter();
+        let relations_it = r_range.map(|i| tile_r_idx[i] as usize).into_iter();
 
-        self.build_pvt(nodes_it, ways_it, tile, builder)
+        self.build_pvt(nodes_it, ways_it, relations_it, tile, builder)
     }
 
-    fn build_pvt<N, W>(&self, nodes_it: N, ways_it: W, tile: &Tile, builder: &mut PVTBuilder)
-    where
+    fn build_pvt<N, W, R>(
+        &self,
+        nodes_it: N,
+        ways_it: W,
+        relations_it: R,
+        tile: &Tile,
+        builder: &mut PVTBuilder,
+    ) where
         N: Iterator<Item = usize>,
         W: Iterator<Item = usize>,
+        R: Iterator<Item = usize>,
     {
         let nodes = self.flatdata.nodes();
         let ways = self.flatdata.ways();
@@ -109,6 +126,8 @@ impl HilbertTree {
         let ways_len = ways.len();
         let relations_len = relations.len();
         let node_pairs = self.flatdata.hilbert_node_pairs().unwrap();
+        let way_pairs = self.way_pairs.slice();
+        let relation_pairs = self.relation_pairs.slice();
         let tags = self.flatdata.tags();
         let nodes_index = self.flatdata.nodes_index();
         let nodes_index_len = nodes_index.len();
@@ -117,6 +136,61 @@ impl HilbertTree {
         let strings = self.flatdata.stringtable();
 
         let mut layers: Vec<Vec<WIPOffset<PVTFeature>>> = vec![vec![]; self.rules.layers.len()];
+
+        for i in relations_it {
+            let relation = &relations[i];
+
+            let tags_index_start = relation.tag_first_idx() as usize;
+            let tags_index_end = if i + 1 < relations_len {
+                relations[i + 1].tag_first_idx() as usize
+            } else {
+                tags_index_len
+            };
+            let tags_index_range = tags_index_start..tags_index_end;
+
+            let rule_eval = self
+                .rules
+                .evaluate_tags(&self.flatdata, tags_index_range.clone());
+
+            // Tags
+            let (keys, vals) = build_tags(
+                tags_index_range,
+                relation.osm_id(),
+                tags_index,
+                tags,
+                strings,
+                builder,
+                &rule_eval,
+                self.manifest.render.all_tags,
+            );
+            let keys_vec = builder.fbb.create_vector(&keys);
+            let vals_vec = builder.fbb.create_vector(&vals);
+
+            // Point geometries for the hilbert location of the relation
+            // This is useful to see that we have included a relation for debugging,
+            // and it also is used as a label point for multipolygons and boundaries.
+            let h = relation_pairs[i].h();
+            let xy = h_to_xy(h); // h is already in Mercator.
+            let tile_point = tile.project(xy);
+            let points = builder.fbb.create_vector(&[tile_point]);
+            let mut geom_builder = PVTGeometryBuilder::new(&mut builder.fbb);
+            geom_builder.add_points(points);
+            let geom = geom_builder.finish();
+            let geoms = builder.fbb.create_vector(&[geom]);
+            let feature = PVTFeature::create(
+                &mut builder.fbb,
+                &PVTFeatureArgs {
+                    id: h,
+                    keys: Some(keys_vec),
+                    values: Some(vals_vec),
+                    geometries: Some(geoms),
+                },
+            );
+
+            for layer_i in &rule_eval.layers {
+                layers[*layer_i].push(feature)
+            }
+        }
 
         for i in nodes_it {
             let node = &nodes[i];
@@ -247,7 +321,7 @@ impl HilbertTree {
             let feature = PVTFeature::create(
                 &mut builder.fbb,
                 &PVTFeatureArgs {
-                    id: way.osm_id() as u64, // NHTODO get h instead of osm_id
+                    id: way_pairs[i].h(),
                     keys: Some(keys_vec),
                     values: Some(vals_vec),
                     geometries: Some(geoms),
@@ -381,12 +455,11 @@ mod tests {
         let layer_name = strings.get(layer_str_idx as usize);
         assert_eq!(layer_name, "no_rule");
 
-        let features = layers.get(0).features().unwrap();
-        // println!("{}", features.len());
-        assert_eq!(features.len(), 3300);
+        let features = layers.get(0).features().unwrap(); // layer is no_rule
+        assert_eq!(features.len(), 3647);
 
-        let feature = features.get(0);
-
+        // First no_rule node feature after no_rule relation features
+        let feature = features.get(347);
         let id = feature.id();
         assert_eq!(id, 3660421543731798272); // hilbert location of node
 
