@@ -1,6 +1,5 @@
 const api = require('../index');
-// const style = require('../styles/default.json');
-const style = require('../styles/data.json');
+const style = require('./debug_style.json');
 
 const maplibre = window.maplibregl;
 
@@ -71,9 +70,10 @@ satSlider.addEventListener('change', e => {
 });
 
 map.on('load', () => {
+    let opacity = 0.8;
     const opacityStr = localStorage.getItem('opacity');
     if (opacityStr !== null) {
-        const opacity = parseFloat(opacityStr);
+        opacity = parseFloat(opacityStr);
         map.setPaintProperty('sat', 'raster-opacity', opacity);
         map.setPaintProperty('osm', 'raster-opacity', opacity);
         satSlider.value = opacity;
