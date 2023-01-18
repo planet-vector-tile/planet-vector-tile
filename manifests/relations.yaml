@@ -17,5 +17,5 @@ rules:
     minzoom: 4
     tags: [[type, boundary]]
   multipolygon:
-    minzoom: 4  
+    minzoom: 4
     tags: [[type, multipolygon]]

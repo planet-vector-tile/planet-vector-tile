@@ -152,31 +152,39 @@ pub fn build_leaves(
             w_i += 1;
         }
 
-        let mut relation_changed = false;
-        while r_i < relation_pairs_len && next_relation_tile_h <= tile_h {
-            let relation_h = relation_pairs[r_i].h();
-            let relation_tile_h = location::h_to_zoom_h(relation_h, leaf_zoom) as u32;
-            if relation_tile_h > tile_h {
-                next_relation_tile_h = relation_tile_h;
-                relation_changed = true;
-                break;
-            }
-            r_i += 1;
-        }
+        // NHTODO This logic results in dropped features in certain tiles.
+        // let mut relation_changed = false;
+        // while r_i < relation_pairs_len && next_relation_tile_h <= tile_h {
+        //     let relation_h = relation_pairs[r_i].h();
+        //     let relation_tile_h = location::h_to_zoom_h(relation_h, leaf_zoom) as u32;
+        //     if relation_tile_h > tile_h {
+        //         next_relation_tile_h = relation_tile_h;
+        //         relation_changed = true;
+        //         break;
+        //     }
+        //     r_i += 1;
+        // }
 
-        let mut next_tile_h = tile_h;
+        // let mut next_tile_h = tile_h;
 
-        if node_changed {
-            next_tile_h = next_node_tile_h;
-        }
+        // if node_changed {
+        //     next_tile_h = next_node_tile_h;
+        // }
 
-        if way_changed && next_way_tile_h < next_tile_h {
-            next_tile_h = next_way_tile_h;
-        }
+        // if way_changed && next_way_tile_h < next_tile_h {
+        //     next_tile_h = next_way_tile_h;
+        // }
 
-        if relation_changed && next_relation_tile_h < next_tile_h {
-            next_tile_h = next_relation_tile_h;
-        }
+        // if relation_changed && next_relation_tile_h < next_tile_h {
+        //     next_tile_h = next_relation_tile_h;
+        // }
+
+        // The old way before the relation work.
+        let next_tile_h = if !way_changed || (node_changed && next_node_tile_h < next_way_tile_h) {
+            next_node_tile_h
+        } else {
+            next_way_tile_h
+        };
 
         if next_tile_h > tile_h {
             let leaf = Leaf {
