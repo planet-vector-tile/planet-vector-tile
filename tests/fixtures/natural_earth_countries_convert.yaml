@@ -1,0 +1,31 @@
+data:
+  source: ../tests/fixtures/ne_10m_admin_0_countries/ne_10m_admin_0_countries.shp
+  planet: ../planets/natural_earth_countries_convert
+  archive: ../archives/natural_earth_countries.pvt
+  # include_leaves: [3329139]
+
+render:
+  leaf_zoom: 12
+  layer_order: [Countries]
+  all_tags: true
+
+report_options:
+  - write_fb_tiles
+  - lookup_strings_and_values
+  # - include_strings
+  # - include_values
+  - include_layers
+  - include_features
+  # - include_geometries
+
+layers:
+  Countries: [france, countries]
+
+rules:
+  france:
+    minzoom: 0
+    tags: [[name, France]]
+  countries:
+    minzoom: 4
+    keys: [name]
+  

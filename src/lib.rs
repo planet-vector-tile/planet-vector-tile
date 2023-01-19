@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 
 mod filter;
+mod gdal;
 mod hilbert;
 pub mod info;
 pub mod location;

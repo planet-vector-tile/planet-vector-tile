@@ -1,4 +1,6 @@
+mod convert;
 mod filter;
+mod gdal;
 mod hilbert;
 mod location;
 mod manifest;
@@ -13,6 +15,7 @@ mod tile;
 mod tile_attributes;
 mod util;
 
+use convert::convert;
 use fs_extra::dir::{copy, CopyOptions};
 use hilbert::tree::HilbertTree;
 use humantime::format_duration;
@@ -32,6 +35,10 @@ fn main() {
         "./tests/fixtures/santa_cruz_convert.yaml",
         "tests/fixtures/santa_cruz_sort.yaml",
     );
+    // build(
+    //     "./tests/fixtures/natural_earth_countries_convert.yaml",
+    //     "tests/fixtures/natural_earth_countries_sort.yaml",
+    // );
 
     println!("Total Time: {}", format_duration(time.elapsed()));
 }
@@ -48,7 +55,8 @@ fn build(convert_manifest_path_str: &str, sort_manifest_path_str: &str) {
         }
     };
 
-    let flatdata = osmflat::convert(&convert_manifest).unwrap_or_else(quit);
+    // let flatdata = osmflat::convert(&convert_manifest).unwrap_or_else(quit);
+    let flatdata = convert(&convert_manifest).unwrap_or_else(quit);
 
     let sort_manifest = match manifest::parse(sort_manifest_path_str) {
         Ok(manifest) => manifest,

@@ -587,6 +587,31 @@ dependencies = [
 ]
 
 [[package]]
+name = "gdal"
+version = "0.14.0"
+source = "git+https://github.com/georust/gdal.git?rev=1f55546#1f5554685d7d2010f7329617552194fbab126223"
+dependencies = [
+ "bitflags",
+ "chrono",
+ "gdal-sys",
+ "geo-types",
+ "libc",
+ "once_cell",
+ "semver 1.0.14",
+ "thiserror",
+]
+
+[[package]]
+name = "gdal-sys"
+version = "0.8.0"
+source = "git+https://github.com/georust/gdal.git?rev=1f55546#1f5554685d7d2010f7329617552194fbab126223"
+dependencies = [
+ "libc",
+ "pkg-config",
+ "semver 1.0.14",
+]
+
+[[package]]
 name = "geo"
 version = "0.23.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1041,6 +1066,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8b870d8c151b6f2fb93e84a13146138f05d02ed11c7e7c54f8826aaaf7c9f184"
 
 [[package]]
+name = "pkg-config"
+version = "0.3.26"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6ac9a59f73473f1b8d852421e59e64809f025994837ef743615c6d0c5b305160"
+
+[[package]]
 name = "planet-vector-tile"
 version = "0.1.0"
 dependencies = [
@@ -1056,6 +1087,7 @@ dependencies = [
  "flate2",
  "fs_extra",
  "futures",
+ "gdal",
  "geo",
  "humantime",
  "indexmap",
@@ -1560,6 +1592,26 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bab24d30b911b2376f3a13cc2cd443142f0c81dda04c118693e35b3835757755"
 dependencies = [
  "winapi-util",
+]
+
+[[package]]
+name = "thiserror"
+version = "1.0.38"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6a9cd18aa97d5c45c6603caea1da6628790b37f7a34b6ca89522331c5180fed0"
+dependencies = [
+ "thiserror-impl",
+]
+
+[[package]]
+name = "thiserror-impl"
+version = "1.0.38"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1fb327af4685e4d03fa8cbcf1716380da910eeb2bb8be417e7f9fd3fb164f36f"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
 ]
 
 [[package]]

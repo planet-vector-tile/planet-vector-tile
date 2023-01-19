@@ -1,5 +1,7 @@
 mod commands;
+mod convert;
 mod filter;
+mod gdal;
 mod hilbert;
 mod location;
 pub mod manifest;
@@ -18,6 +20,7 @@ mod u40;
 mod util;
 
 use clap::ArgMatches;
+use convert::convert;
 use hilbert::tree::HilbertTree;
 use humantime::format_duration;
 use manifest::Manifest;
@@ -47,7 +50,7 @@ fn main() {
                 }
             }
 
-            let flatdata = osmflat::convert(&manifest).unwrap_or_else(quit);
+            let flatdata = convert(&manifest).unwrap_or_else(quit);
             sort::sort_flatdata(flatdata, &manifest.data.planet).unwrap_or_else(quit);
 
             match HilbertTree::new(&manifest) {
@@ -93,7 +96,7 @@ fn main() {
                 }
             }
 
-            let flatdata = osmflat::convert(&manifest).unwrap_or_else(quit);
+            let flatdata = convert(&manifest).unwrap_or_else(quit);
             sort::sort_flatdata(flatdata, &manifest.data.planet).unwrap_or_else(quit);
 
             let mut tree = match HilbertTree::new(&manifest) {
